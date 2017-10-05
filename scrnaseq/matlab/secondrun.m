@@ -5,7 +5,7 @@ sdata_raw = load_10xData(data_dir, 1e15);
 
 %%
 sdata = sdata_raw;
-%% load barcodes
+
 
 
 %% filter out high mtDNA
