@@ -1,21 +1,12 @@
 %%Aug 7 2017, Jay Stanley 
 %%load data
-data_dir = '/data/lab/DataSets/ParkLab/corticalorganoids';
+data_dir = '';
 sdata_raw = load_10xData(data_dir, 1e15);
 
 %%
 sdata = sdata_raw;
 %% load barcodes
 
-barcode_file = data_dir+"/barcodes.tsv";
-barcodes = textscan(fopen(barcode_file),'%s');
-barcodes = barcodes{1};
-experiment_idxs = ones(size(barcodes,1),1);
-%split barcodes into cell types
-for i = 1:size(barcodes, 1)
-    cur_code = strsplit(barcodes{i},'-');
-    experiment_idxs(i) = str2double(cur_code(2));
-end
 
 %% filter out high mtDNA
 remove_top_prct = 10;
@@ -55,19 +46,4 @@ downsample_size = median(sdata.library_size(cells_keep));
 sdata = downsample_molecules(sdata, downsample_size);
 sdata = sdata.normalize_data_fix_zero();
 
-%% struct of experiments w/ filtered cells
-experiment_idxs = experiment_idxs(cells_keep);
-experiment_field = 'name';
-%order is key here
-experiment_labels = {'ehCO_1'; 'ehMGEO_1'; 'ehMGEO_2'; 'ehCO_2'; 'lhMGEO_1'; 'lhCO_1'; 'lhMGEO_2'; 'lhCO_2'};
-experiments = struct(experiment_field, experiment_labels);
-for i = 1:8
-    cur = experiment_idxs==i;
-    experiments(i).num = nnz(cur);
-    experiments(i).indices = find(cur);
-    experiments(i).data = sdata.data(cur,:);
-    experiments(i).library_size = sdata.library_size(cur);
-    experiments(i).genes = sdata.genes;
-    experiments(i).cells = experiments(i).data(cur);
-end
 
