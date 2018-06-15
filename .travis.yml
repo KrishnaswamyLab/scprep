@@ -1,0 +1,13 @@
+  language: python
+  python:
+    - "2.7"
+    - "3.5"
+    - "3.6"
+
+  sudo: required
+
+  before_install:
+    - pip install nose2
+
+  script:
+    - python -m nose2 -v

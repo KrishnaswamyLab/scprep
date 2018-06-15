@@ -1,0 +1,10 @@
+__pycache__
+*.pyc
+build
+dist
+*egg-info
+
+#syncthing
+.syncthing.*
+
+.DS_Store
