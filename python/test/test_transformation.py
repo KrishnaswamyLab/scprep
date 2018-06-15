@@ -2,7 +2,7 @@ import numpy as np
 from scipy import sparse
 import pandas as pd
 from functools import partial
-from preprocessing import transformations
+from preprocessing import transformation
 
 
 def to_array(X):
@@ -64,7 +64,7 @@ def test_transform(transform, lambda_transform, seed=42, check=all_equal):
             assert X.density == Y.density
 
 
-test_transform(transformations.sqrt_transform, lambda X: np.sqrt(X))
-test_transform(transformations.log_transform, lambda X: np.log(X + 1))
-test_transform(transformations.arcsinh_transform,
+test_transform(transformation.sqrt_transform, lambda X: np.sqrt(X))
+test_transform(transformation.log_transform, lambda X: np.log(X + 1))
+test_transform(transformation.arcsinh_transform,
                lambda X: np.arcsinh(X / 5), check=all_close)
