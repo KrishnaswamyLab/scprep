@@ -12,8 +12,67 @@ import fcsparser
 import tables
 
 
-def _matrix_to_data_frame(data, columns=None, index=None, sparse=None):
-    if columns is None and index is None:
+def _parse_header(header, n_expected, header_type="gene_names"):
+    """
+
+    Parameters
+    ----------
+    header : `str` filename, array-like or `None`
+
+    n_expected : `int`
+        Expected header length
+
+    header_type : argument name for error printing
+    """
+    if header is None or header is False:
+        return None
+    elif isinstance(header, str):
+        # treat as a file
+        if header.endswith("tsv"):
+            delimiter = "\t"
+        else:
+            delimiter = ","
+        columns = pd.read_csv(header, delimiter=delimiter,
+                              header=None).toarray().reshape(-1)
+        if not len(columns) == n_expected:
+            raise ValueError("Expected {} entries in {}. Got {}".format(
+                n_expected, header, len(columns)))
+    else:
+        # treat as list
+        if not len(columns) == n_expected:
+            raise ValueError("Expected {} entries in {}. Got {}".format(
+                n_expected, header_type, len(columns)))
+    return columns
+
+
+def _parse_gene_names(header, data):
+    return _parse_header(header, data.shape[1],
+                         header_type="gene_names")
+
+
+def _parse_cell_names(header, data):
+    return _parse_header(header, data.shape[0],
+                         header_type="cell_names")
+
+
+def _matrix_to_data_frame(data, gene_names=None, cell_names=None, sparse=None):
+    """Return the optimal data type given data, gene names and cell names.
+
+    Parameters
+    ----------
+
+    data : array-like
+
+    gene_names : `str`, array-like or `None` (default: None)
+        Either a filename or an array containing a list of gene symbols or ids.
+
+    cell_names : `str`, array-like or `None` (default: None)
+        Either a filename or an array containing a list of cell barcodes.
+
+    sparse : `bool` or `None` (default: None)
+        If not `None`, overrides default sparsity of the data.
+    """
+    if gene_names is None and cell_names is None:
         # just a matrix
         if sparse is not None:
             if sparse and not sp.issparse(data):
@@ -27,11 +86,13 @@ def _matrix_to_data_frame(data, columns=None, index=None, sparse=None):
             pass
         return data
     else:
+        gene_names = _parse_gene_names(gene_names)
+        cell_names = _parse_cell_names(cell_names)
         # dataframe with index and/or columns
         if sparse is None:
             # let the input data decide
             sparse = sp.issparse(data)
-        if sparse and len(np.unique(columns)) < len(columns):
+        if sparse and len(np.unique(gene_names)) < len(gene_names):
             warnings.warn(
                 "Duplicate gene names detected! Forcing dense matrix",
                 RuntimeWarning)
@@ -39,11 +100,115 @@ def _matrix_to_data_frame(data, columns=None, index=None, sparse=None):
         if sparse:
             # return pandas.SparseDataFrame
             data = pd.SparseDataFrame(data, default_fill_value=0.0,
-                                      index=index, columns=columns)
+                                      index=cell_names, columns=gene_names)
         else:
             # return pandas.DataFrame
-            data = pd.DataFrame(data, index=index, columns=columns)
+            data = pd.DataFrame(data, index=cell_names, columns=gene_names)
         return data
+
+
+def _read_csv_sparse(filename, chunksize=1000000, **kwargs):
+    chunks = pd.read_csv(filename, chunksize=chunksize, **kwargs)
+    data = pd.concat(chunk.to_sparse(fill_value=0.0)
+                     for chunk in chunks)
+    return data
+
+
+def load_csv(filename, cell_axis=0, delimiter=',',
+             gene_names=True, cell_names=True,
+             sparse=False):
+    """
+    gene_names : `bool`, `str`, array-like, or `None` (default: True)
+        If `True`, we assume gene names are in the first row/column. Otherwise
+        expects a filename or an array containing a list of gene symbols or ids
+
+    cell_names : `bool`, `str`, array-like, or `None` (default: True)
+        If `True`, we assume cell names are in the first row/column. Otherwise
+        expects a filename or an array containing a list of cell barcodes.
+    """
+    if cell_axis not in ['row', 'column', 'col']:
+        raise ValueError(
+            "cell_axis {} not recognized. Expected 'row' or 'column'".format(
+                cell_axis))
+
+    if cell_names is True:
+        index_col = 0
+        cell_names = None
+    else:
+        index_col = None
+    if gene_names is True:
+        header = True
+        gene_names = None
+    else:
+        header = False
+
+    # Read in csv file
+    if sparse:
+        read_fun = _read_csv_sparse
+    else:
+        read_fun = pd.read_csv
+    data = read_fun(filename, delimiter=delimiter,
+                    header=header, index_col=index_col)
+
+    if cell_axis in ['column', 'col']:
+        data = data.T
+
+    data = _matrix_to_data_frame(
+        data, gene_names=gene_names,
+        cell_names=cell_names, sparse=sparse)
+    return data
+
+
+def load_fcs(fcs_file,
+             metadata_channels=['Time', 'Event_length', 'DNA1', 'DNA2',
+                                'Cisplatin', 'beadDist', 'bead1']):
+    # Parse the fcs file
+    text, data = fcsparser.parse(fcs_file)
+    # Extract the S and N features (Indexing assumed to start from 1)
+    # Assumes channel names are in S
+    # TODO: is valid / unnecessary?
+    no_channels = text['$PAR']
+    channel_names = [''] * no_channels
+    for i in range(1, no_channels + 1):
+        # S name
+        try:
+            channel_names[i - 1] = text['$P%dS' % i]
+        except KeyError:
+            channel_names[i - 1] = text['$P%dN' % i]
+    data.columns = channel_names
+
+    # Metadata and data
+    metadata_channels = data.columns.intersection(metadata_channels)
+    data_channels = data.columns.difference(metadata_channels)
+    metadata = data[metadata_channels]
+    data = data[data_channels]
+
+    return data, metadata
+
+
+def load_mtx(mtx_file, cell_axis='row',
+             gene_names=None, cell_names=None, sparse=None):
+    """
+    Parameters
+    ----------
+
+    cell_axis : {'row', 'column'}
+        Axis on which cells are placed. cell_axis='row' implies that the csv
+        file has `n_cells` row and `n_genes` columns. `cell_axis='column'`
+        implies that the csv file has `n_cells` columns and `n_genes` rows.
+    """
+    if cell_axis not in ['row', 'column', 'col']:
+        raise ValueError(
+            "cell_axis {} not recognized. Expected 'row' or 'column'".format(
+                cell_axis))
+    # Read in mtx file
+    data = sio.mmread(mtx_file)
+    if cell_axis in ['column', 'col']:
+        data = data.T
+    data = _matrix_to_data_frame(
+        data, gene_names=gene_names,
+        cell_names=cell_names, sparse=sparse)
+    return data
 
 
 def _combine_gene_id(symbols, ids):
@@ -52,7 +217,7 @@ def _combine_gene_id(symbols, ids):
     Parameters
     ----------
 
-    genes : pandas.DataFrame with columns ['symbol', 'id']
+    genes: pandas.DataFrame with columns['symbol', 'id']
 
     Returns
     -------
@@ -99,24 +264,28 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol'):
 
     Parameters
     ----------
-    data_dir : string
+    data_dir: string
         path to input data directory
-        expects 'matrix.mtx', 'genes.tsv', 'barcodes.csv' to be present and
+        expects 'matrix.mtx', 'genes.tsv', 'barcodes.tsv' to be present and
         will raise and error otherwise
-    sparse : boolean
+    sparse: boolean
         If True, a sparse Pandas DataFrame is returned.
-    gene_labels : string, {'id', 'symbol', 'both'} optional, default: 'symbol'
+    gene_labels: string, {'id', 'symbol', 'both'} optional, default: 'symbol'
         Whether the columns of the dataframe should contain gene ids or gene
         symbols. If 'both', returns symbols followed by ids in parentheses.
 
     Returns
     -------
-    data : pandas.DataFrame shape=(n_cell, n_genes)
+    data: pandas.DataFrame shape = (n_cell, n_genes)
         imported data matrix
     """
 
     if gene_labels not in ['id', 'symbol', 'both']:
         raise ValueError("gene_labels not in ['id', 'symbol', 'both']")
+
+    if not os.path.isdir(data_dir):
+        raise FileNotFoundError(
+            "{} is not a directory".format(data_dir))
 
     try:
         m = sio.mmread(os.path.join(data_dir, "matrix.mtx"))
@@ -129,7 +298,7 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol'):
     except (FileNotFoundError, OSError):
         raise FileNotFoundError(
             "'matrix.mtx', 'genes.tsv', and 'barcodes.tsv' must be present "
-            "in data_dir")
+            "in {}".format(data_dir))
 
     index = barcodes[0]
     columns = _parse_10x_genes(genes['symbol'], genes['id'],
@@ -138,95 +307,17 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol'):
     data = _matrix_to_data_frame(m.T, index=index,
                                  columns=columns,
                                  sparse=sparse)
-
-    print("Imported data matrix with %s cells and %s genes." %
-          (data.shape[0], data.shape[1]))
     return data
 
 
-def load_csv(counts_csv_file, cell_axis=0, delimiter=',',
-             header=True, index=True,
-             rows_after_header_to_skip=0, cols_after_header_to_skip=0,
-             sparse=False, chunksize=1000000):
-    # TODO: allow index and header to be a file path or a list
-    if index:
-        index_col = 0
-    else:
-        index_col = None
-
-    # Read in csv file
-    if sparse:
-        chunks = pd.read_csv(counts_csv_file, chunksize=chunksize,
-                             sep=delimiter, index_col=index_col)
-        data = pd.concat(chunk.to_sparse(fill_value=0.0)
-                         for chunk in chunks)
-        del chunks
-    else:
-        data = pd.read_csv(counts_csv_file, sep=delimiter, index_col=index_col)
-
-    data.drop(data.index[1:rows_after_header_to_skip + 1],
-              axis=0, inplace=True)
-    data.drop(data.columns[1:cols_after_header_to_skip + 1],
-              axis=1, inplace=True)
-
-    if cell_axis != 0:
-        data = data.transpose()
-
-    return data
-
-
-def load_fcs(fcs_file,
-             metadata_channels=['Time', 'Event_length', 'DNA1', 'DNA2',
-                                'Cisplatin', 'beadDist', 'bead1']):
-
-    # Parse the fcs file
-    text, data = fcsparser.parse(fcs_file)
-    # Extract the S and N features (Indexing assumed to start from 1)
-    # Assumes channel names are in S
-    no_channels = text['$PAR']
-    channel_names = [''] * no_channels
-    for i in range(1, no_channels + 1):
-        # S name
-        try:
-            channel_names[i - 1] = text['$P%dS' % i]
-        except KeyError:
-            channel_names[i - 1] = text['$P%dN' % i]
-    data.columns = channel_names
-
-    # Metadata and data
-    metadata_channels = data.columns.intersection(metadata_channels)
-    data_channels = data.columns.difference(metadata_channels)
-    metadata = data[metadata_channels]
-    data = data[data_channels]
-
-    return data, metadata
-
-
-def load_mtx(mtx_file, gene_name_file, sparse=None):
-
-    # Read in mtx file
-    count_matrix = sio.mmread(mtx_file)
-
-    gene_names = np.loadtxt(gene_name_file, dtype=np.dtype('S'))
-    gene_names = np.array([gene.decode('utf-8') for gene in gene_names])
-
-    # remove todense
-    data = _matrix_to_data_frame(
-        count_matrix, index=None, columns=gene_names, sparse=sparse)
-
-    return data
-
-
-def load_10x_HDF5(cls, filename, genome, gene_labels='symbol', sparse=None):
-    if sparse is None:
-        # hdf5 format comes in sparse form
-        sparse = True
+def load_10x_HDF5(filename, genome, sparse=True, gene_labels='symbol'):
     with tables.open_file(filename, 'r') as f:
         try:
             group = f.get_node(f.root, genome)
         except tables.NoSuchNodeError:
-            print("That genome does not exist in this file.")
-            return None
+            raise ValueError(
+                "Genome {} not found in {}.".format(genome, filename))
+            # TODO: print available genomes.
         columns = _parse_10x_genes(
             symbols=[g.decode() for g in getattr(group, 'gene_names').read()],
             ids=[g.decode() for g in getattr(group, 'gene').read()],
