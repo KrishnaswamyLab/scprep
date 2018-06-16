@@ -7,6 +7,7 @@ install_requires = [
     'scipy>=0.18.0',
     'scikit-learn>=0.19.1',
     'future',
+    'pandas',
 ]
 
 test_requires = [

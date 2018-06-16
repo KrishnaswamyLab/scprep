@@ -8,8 +8,6 @@ import scipy.sparse as sp
 import warnings
 import numpy as np
 import os
-import fcsparser
-import tables
 
 
 def _parse_header(header, n_expected, header_type="gene_names"):
@@ -162,6 +160,11 @@ def load_csv(filename, cell_axis=0, delimiter=',',
 def load_fcs(fcs_file,
              metadata_channels=['Time', 'Event_length', 'DNA1', 'DNA2',
                                 'Cisplatin', 'beadDist', 'bead1']):
+    try:
+        import fcsparser
+    except ImportError:
+        raise ImportError("fcsparser not installed. Please install it with"
+                          " pip install --user tables")
     # Parse the fcs file
     text, data = fcsparser.parse(fcs_file)
     # Extract the S and N features (Indexing assumed to start from 1)
@@ -311,6 +314,11 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol'):
 
 
 def load_10x_HDF5(filename, genome, sparse=True, gene_labels='symbol'):
+    try:
+        import tables
+    except ImportError:
+        raise ImportError("tables not installed. Please install it with"
+                          " pip install --user tables")
     with tables.open_file(filename, 'r') as f:
         try:
             group = f.get_node(f.root, genome)
