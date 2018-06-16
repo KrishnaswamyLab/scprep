@@ -5,6 +5,7 @@ import numpy as np
 from scipy import sparse
 import pandas as pd
 import warnings
+from .utils import matrix_any
 
 
 def _transform(X, fun):
@@ -18,13 +19,13 @@ def _transform(X, fun):
 
 
 def sqrt_transform(X):
-    if any(X < 0):
+    if matrix_any(X < 0):
         raise ValueError("Cannot square root transform negative values")
     return _transform(X, np.sqrt)
 
 
 def log_transform(X, pseudocount=1):
-    if any(X < 0):
+    if matrix_any(X < 0):
         raise ValueError("Cannot log transform negative values")
     if pseudocount != 1 and (sparse.issparse(X) or
                              isinstance(X, pd.SparseDataFrame)):
