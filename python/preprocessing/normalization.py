@@ -6,14 +6,10 @@ from sklearn.preprocessing import normalize
 import numpy as np
 from scipy import sparse
 import warnings
-
-try:
-    import pandas as pd
-except ImportError:
-    pass
+import pandas as pd
 
 
-def library_size_normalize(data, verbose=False):
+def library_size_normalize(data):
     """Performs L1 normalization on input data
     Performs L1 normalization on input data such that the sum of expression
     values for each cell sums to 1
@@ -30,26 +26,14 @@ def library_size_normalize(data, verbose=False):
     data_norm : ndarray [n, p]
         2 dimensional array with normalized gene expression values
     """
-    if verbose:
-        print("Normalizing library sizes for %s cells" % (data.shape[0]))
-
     # pandas support
     columns, index = None, None
-    try:
-        if isinstance(data, pd.SparseDataFrame) or \
-                pd.api.types.is_sparse(data):
-            columns, index = data.columns, data.index
-            data = data.to_coo()
-        elif isinstance(data, pd.DataFrame):
-            columns, index = data.columns, data.index
-    except NameError as e:
-        if not str(e) == "name 'pd' is not defined":
-            raise
-        else:
-            pass
-    except AttributeError as e:
-        warnings.warn("{}: is pandas out of date? ({})".format(
-            str(e), pd.__version__), ImportWarning)
+    if isinstance(data, pd.SparseDataFrame) or \
+            pd.api.types.is_sparse(data):
+        columns, index = data.columns, data.index
+        data = data.to_coo()
+    elif isinstance(data, pd.DataFrame):
+        columns, index = data.columns, data.index
 
     median_transcript_count = np.median(np.array(data.sum(axis=1)))
     if sparse.issparse(data) and data.nnz >= 2**31:
@@ -92,3 +76,20 @@ def library_size_normalize(data, verbose=False):
         data_norm.columns = columns
         data_norm.index = index
     return data_norm
+
+
+def batch_mean_center(data, sample_idx=None):
+    if sparse.issparse(data) or isinstance(data, pd.SparseDataFrame):
+        raise ValueError("Cannot mean center sparse data. "
+                         "Convert to dense matrix first.")
+    if sample_idx is None:
+        sample_idx = np.ones(len(data))
+    for sample in np.unique(sample_idx):
+        idx = sample_idx == sample
+        if isinstance(data, pd.DataFrame):
+            feature_means = data.iloc[idx].mean(axis=0)
+            data.iloc[idx] = data.iloc[idx] - feature_means
+        else:
+            feature_means = np.mean(data[idx], axis=0)
+            data[idx] = data[idx] - feature_means[None, :]
+    return data
