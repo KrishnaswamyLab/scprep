@@ -5,7 +5,6 @@ from __future__ import print_function, division
 from sklearn.preprocessing import normalize
 import numpy as np
 from scipy import sparse
-import warnings
 import pandas as pd
 
 
