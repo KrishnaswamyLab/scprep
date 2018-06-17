@@ -22,7 +22,7 @@ def _parse_header(header, n_expected, header_type="gene_names"):
 
     header_type : argument name for error printing
     """
-    if header is None or header is False:
+    if header is None:
         return None
     elif isinstance(header, str):
         # treat as a file
@@ -31,12 +31,13 @@ def _parse_header(header, n_expected, header_type="gene_names"):
         else:
             delimiter = ","
         columns = pd.read_csv(header, delimiter=delimiter,
-                              header=None).toarray().reshape(-1)
+                              header=None).values.reshape(-1)
         if not len(columns) == n_expected:
             raise ValueError("Expected {} entries in {}. Got {}".format(
                 n_expected, header, len(columns)))
     else:
         # treat as list
+        columns = header
         if not len(columns) == n_expected:
             raise ValueError("Expected {} entries in {}. Got {}".format(
                 n_expected, header_type, len(columns)))
@@ -84,8 +85,8 @@ def _matrix_to_data_frame(data, gene_names=None, cell_names=None, sparse=None):
             pass
         return data
     else:
-        gene_names = _parse_gene_names(gene_names)
-        cell_names = _parse_cell_names(cell_names)
+        gene_names = _parse_gene_names(gene_names, data)
+        cell_names = _parse_cell_names(cell_names, data)
         # dataframe with index and/or columns
         if sparse is None:
             # let the input data decide
@@ -112,7 +113,7 @@ def _read_csv_sparse(filename, chunksize=1000000, **kwargs):
     return data
 
 
-def load_csv(filename, cell_axis=0, delimiter=',',
+def load_csv(filename, cell_axis='row', delimiter=',',
              gene_names=True, cell_names=True,
              sparse=False):
     """
@@ -135,10 +136,10 @@ def load_csv(filename, cell_axis=0, delimiter=',',
     else:
         index_col = None
     if gene_names is True:
-        header = True
+        header = 0
         gene_names = None
     else:
-        header = False
+        header = None
 
     # Read in csv file
     if sparse:
@@ -243,9 +244,9 @@ def _parse_10x_genes(symbols, ids, gene_labels='symbol', force_unique=False):
         columns = _combine_gene_id(symbols, ids)
     if gene_labels == 'symbol':
         columns = symbols
-        if force_unique and len(np.unique(columns)) > len(columns):
+        if force_unique and len(np.unique(columns)) < len(columns):
             warnings.warn(
-                "Duplicate gene names detected! Forcing `gene_labels='id'`."
+                "Duplicate gene names detected! Forcing `gene_labels='id'`. "
                 "Alternatively, try `gene_labels='both'` or loading the matrix"
                 " with `sparse=False`", RuntimeWarning)
             gene_labels = 'id'
@@ -303,12 +304,12 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol'):
             "'matrix.mtx', 'genes.tsv', and 'barcodes.tsv' must be present "
             "in {}".format(data_dir))
 
-    index = barcodes[0]
-    columns = _parse_10x_genes(genes['symbol'], genes['id'],
-                               gene_labels=gene_labels, force_unique=sparse)
+    cell_names = barcodes[0]
+    gene_names = _parse_10x_genes(genes['symbol'], genes['id'],
+                                  gene_labels=gene_labels, force_unique=sparse)
 
-    data = _matrix_to_data_frame(m.T, index=index,
-                                 columns=columns,
+    data = _matrix_to_data_frame(m.T, cell_names=cell_names,
+                                 gene_names=gene_names,
                                  sparse=sparse)
     return data
 
@@ -326,18 +327,18 @@ def load_10x_HDF5(filename, genome, sparse=True, gene_labels='symbol'):
             raise ValueError(
                 "Genome {} not found in {}.".format(genome, filename))
             # TODO: print available genomes.
-        columns = _parse_10x_genes(
+        gene_names = _parse_10x_genes(
             symbols=[g.decode() for g in getattr(group, 'gene_names').read()],
             ids=[g.decode() for g in getattr(group, 'gene').read()],
             gene_labels=gene_labels, force_unique=sparse)
-        index = [b.decode() for b in getattr(group, 'barcodes').read()]
+        cell_names = [b.decode() for b in getattr(group, 'barcodes').read()]
         data = getattr(group, 'data').read()
         indices = getattr(group, 'indices').read()
         indptr = getattr(group, 'indptr').read()
         shape = getattr(group, 'shape').read()
         data = sp.csr_matrix((data, indices, indptr), shape=shape)
         data = _matrix_to_data_frame(data.T,
-                                     columns=columns,
-                                     index=index,
+                                     gene_names=gene_names,
+                                     cell_names=cell_names,
                                      sparse=sparse)
         return data
