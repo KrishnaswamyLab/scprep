@@ -1,7 +1,7 @@
 from preprocessing import sanitization, io
-from sklearn.utils.testing import assert_warns_message
 import pandas as pd
 import numpy as np
+from scipy import sparse
 import os
 
 if os.getcwd().strip("/").endswith("test"):
@@ -49,3 +49,10 @@ def test_library_size_filter():
     sanitized_data = sanitization.filter_library_size(data, 100)
     assert sanitized_data.shape[1] == data.shape[1]
     assert not np.any(sanitized_data.sum(1) < 100)
+
+
+def test_sparse_dataframe_library_size():
+    data = pd.SparseDataFrame(sparse.coo_matrix((10**7, 2 * 10**4)),
+                              default_fill_value=0.0)
+    cell_sums = sanitization.library_size(data)
+    assert cell_sums.shape[0] == data.shape[0]

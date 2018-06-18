@@ -30,20 +30,13 @@ def remove_empty_cells(data):
 
 
 def library_size(data):
-    try:
+    if isinstance(data, pd.SparseDataFrame):
+        # densifies matrix if you take the sum
+        cell_sums = pd.Series(
+            np.array(data.to_coo().sum(axis=1)).reshape(-1),
+            index=data.index)
+    else:
         cell_sums = data.sum(axis=1)
-    except MemoryError:
-        # pandas sparse dataframes do weird stuff
-        if False:  # isinstance(data, pd.SparseDataFrame):
-            split = np.arange(0, data.shape[0], data.shape[0] // 10)
-            split = np.concatenate([split, [data.shape[0]]])
-            cell_sums = []
-            for i in range(len(split)):
-                cell_sums.append(library_size(
-                    data.iloc[split[i]:split[i + 1]]))
-            cell_sums = pd.concat(cell_sums)
-        else:
-            raise
     return cell_sums
 
 
