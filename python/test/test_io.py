@@ -21,8 +21,8 @@ def test_10X_duplicate_gene_names():
     assert_warns_message(
         RuntimeWarning,
         "Duplicate gene names detected! Forcing `gene_labels='id'`. "
-        "Alternatively, try `gene_labels='both'` or loading the matrix with "
-        "`sparse=False`",
+        "Alternatively, try `gene_labels='both'`, `allow_duplicates=True`, or "
+        "load the matrix with `sparse=False`",
         io.load_10X, os.path.join(data_dir, "test_10X_duplicate_gene_names"))
 
 
