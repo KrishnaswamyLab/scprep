@@ -22,7 +22,7 @@ def _parse_header(header, n_expected, header_type="gene_names"):
 
     header_type : argument name for error printing
     """
-    if header is None:
+    if header is None or header is False:
         return None
     elif isinstance(header, str):
         # treat as a file
@@ -71,12 +71,14 @@ def _matrix_to_data_frame(data, gene_names=None, cell_names=None, sparse=None):
     sparse : `bool` or `None` (default: None)
         If not `None`, overrides default sparsity of the data.
     """
-    if gene_names is None and cell_names is None:
+    if gene_names is None and cell_names is None and \
+            not isinstance(data, pd.DataFrame):
         # just a matrix
         if sparse is not None:
-            if sparse and not sp.issparse(data):
-                # return scipy.sparse.csr_matrix
-                data = sp.csr_matrix(data)
+            if sparse:
+                if not sp.issparse(data):
+                    # return scipy.sparse.csr_matrix
+                    data = sp.csr_matrix(data)
             elif sp.issparse(data) and not sparse:
                 # return numpy.ndarray
                 data = data.toarray()
@@ -90,32 +92,51 @@ def _matrix_to_data_frame(data, gene_names=None, cell_names=None, sparse=None):
         # dataframe with index and/or columns
         if sparse is None:
             # let the input data decide
-            sparse = sp.issparse(data)
-        if sparse and len(np.unique(gene_names)) < len(gene_names):
+            sparse = isinstance(data, pd.SparseDataFrame) or sp.issparse(data)
+        if sparse and gene_names is not None and \
+                len(np.unique(gene_names)) < len(gene_names):
             warnings.warn(
                 "Duplicate gene names detected! Forcing dense matrix",
                 RuntimeWarning)
             sparse = False
         if sparse:
             # return pandas.SparseDataFrame
-            data = pd.SparseDataFrame(data, default_fill_value=0.0,
-                                      index=cell_names, columns=gene_names)
+            if isinstance(data, pd.DataFrame):
+                if gene_names is not None:
+                    data.columns = gene_names
+                if cell_names is not None:
+                    data.index = cell_names
+                if not isinstance(data, pd.SparseDataFrame):
+                    data = data.to_sparse(fill_value=0.0)
+            else:
+                data = pd.SparseDataFrame(data, default_fill_value=0.0,
+                                          index=cell_names, columns=gene_names)
         else:
             # return pandas.DataFrame
-            data = pd.DataFrame(data, index=cell_names, columns=gene_names)
+            if isinstance(data, pd.DataFrame):
+                if gene_names is not None:
+                    data.columns = gene_names
+                if cell_names is not None:
+                    data.index = cell_names
+                if isinstance(data, pd.SparseDataFrame):
+                    data = data.to_dense()
+            else:
+                if sp.issparse(data):
+                    data = data.toarray()
+                data = pd.DataFrame(data, index=cell_names, columns=gene_names)
         return data
 
 
-def _read_csv_sparse(filename, chunksize=1000000, **kwargs):
+def _read_csv_sparse(filename, chunksize=1000000, fill_value=0.0, **kwargs):
     chunks = pd.read_csv(filename, chunksize=chunksize, **kwargs)
-    data = pd.concat(chunk.to_sparse(fill_value=0.0)
+    data = pd.concat(chunk.to_sparse(fill_value=fill_value)
                      for chunk in chunks)
     return data
 
 
 def load_csv(filename, cell_axis='row', delimiter=',',
              gene_names=True, cell_names=True,
-             sparse=False):
+             sparse=False, **kwargs):
     """
     gene_names : `bool`, `str`, array-like, or `None` (default: True)
         If `True`, we assume gene names are in the first row/column. Otherwise
@@ -130,12 +151,23 @@ def load_csv(filename, cell_axis='row', delimiter=',',
             "cell_axis {} not recognized. Expected 'row' or 'column'".format(
                 cell_axis))
 
-    if cell_names is True:
+    if 'index_col' in kwargs:
+        # override
+        index_col = kwargs['index_col']
+        cell_names = None
+        del kwargs['index_col']
+    elif cell_names is True:
         index_col = 0
         cell_names = None
     else:
         index_col = None
-    if gene_names is True:
+
+    if 'header' in kwargs:
+        # override
+        header = kwargs['header']
+        del kwargs['header']
+        gene_names = None
+    elif gene_names is True:
         header = 0
         gene_names = None
     else:
@@ -147,7 +179,8 @@ def load_csv(filename, cell_axis='row', delimiter=',',
     else:
         read_fun = pd.read_csv
     data = read_fun(filename, delimiter=delimiter,
-                    header=header, index_col=index_col)
+                    header=header, index_col=index_col,
+                    **kwargs)
 
     if cell_axis in ['column', 'col']:
         data = data.T

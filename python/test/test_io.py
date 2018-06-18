@@ -7,7 +7,7 @@ import os
 # TODO: write tests for fcs, hdf5
 # compare same matrix in csv, fcs, mtx, hdf5
 
-if os.getcwd().strip("/").endswith("test"):
+if os.getcwd().strip("/\\").endswith("test"):
     data_dir = os.path.join("..", "..", "data", "test_data")
 else:
     data_dir = os.path.join("..", "data", "test_data")
@@ -53,8 +53,10 @@ def test_csv():
     assert isinstance(csv_df, pd.DataFrame)
     assert not isinstance(csv_df, pd.SparseDataFrame)
     csv_df = io.load_csv(os.path.join(data_dir, "test_small.csv"),
-                         gene_names="../../data/test_data/gene_symbols.tsv",
-                         cell_names="../../data/test_data/barcodes.tsv")
+                         gene_names=os.path.join(data_dir, "gene_symbols.tsv"),
+                         cell_names=os.path.join(data_dir, "barcodes.tsv"),
+                         skiprows=1,
+                         usecols=range(1, 101))
     assert np.sum(np.sum(df != csv_df)) == 0
     assert np.all(df.columns == csv_df.columns)
     assert np.all(df.index == csv_df.index)
@@ -62,20 +64,23 @@ def test_csv():
     assert not isinstance(csv_df, pd.SparseDataFrame)
     csv_df = io.load_csv(os.path.join(data_dir, "test_small.csv"),
                          gene_names=df.columns,
-                         cell_names=df.index)
+                         cell_names=df.index,
+                         skiprows=1,
+                         usecols=range(1, 101))
     assert np.sum(np.sum(df != csv_df)) == 0
     assert np.all(df.columns == csv_df.columns)
     assert np.all(df.index == csv_df.index)
     assert isinstance(csv_df, pd.DataFrame)
     assert not isinstance(csv_df, pd.SparseDataFrame)
     csv_df = io.load_csv(os.path.join(data_dir, "test_small.csv"),
-                         gene_names=False,
-                         cell_names=False,
-                         sparse=True)
-    assert np.sum(np.sum(df != csv_df)) == 0
+                         gene_names=None,
+                         cell_names=None,
+                         sparse=True,
+                         skiprows=1,
+                         usecols=range(1, 101))
+    assert np.sum(np.sum(df.values != csv_df.values)) == 0
     assert isinstance(csv_df, pd.SparseDataFrame)
-    assert_warns_message(
-        RuntimeWarning,
-        "Duplicate gene names detected! Forcing dense matrix",
-        io.load_csv,
-        os.path.join(data_dir, "test_small_duplicate_gene_names.csv"))
+    csv_df = io.load_csv(os.path.join(data_dir,
+                                      "test_small_duplicate_gene_names.csv"))
+    assert 'DUPLICATE' in csv_df.columns
+    assert 'DUPLICATE.1' in csv_df.columns
