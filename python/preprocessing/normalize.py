@@ -6,6 +6,7 @@ from sklearn.preprocessing import normalize
 import numpy as np
 from scipy import sparse
 import pandas as pd
+from .filter import library_size
 
 
 def library_size_normalize(data):
@@ -34,7 +35,7 @@ def library_size_normalize(data):
     elif isinstance(data, pd.DataFrame):
         columns, index = data.columns, data.index
 
-    median_transcript_count = np.median(np.array(data.sum(axis=1)))
+    median_transcript_count = np.median(np.array(library_size(data)))
     if sparse.issparse(data) and data.nnz >= 2**31:
         # check we can access elements by index
         try:
