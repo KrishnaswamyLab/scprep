@@ -3,6 +3,7 @@ from scipy import sparse
 import pandas as pd
 from functools import partial
 from nose.tools import assert_raises
+import warnings
 
 
 def to_array(X):
@@ -29,7 +30,14 @@ def all_close(X, Y):
 
 def check_matrix_types(X, test_fun, matrix_funs, *args, **kwargs):
     for fun in matrix_funs:
-        test_fun(fun(X.copy()), *args, **kwargs)
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                category=sparse.SparseEfficiencyWarning,
+                message="Constructing a DIA matrix with [0-9]*"
+                " diagonals is inefficient")
+            Y = fun(X.copy())
+        test_fun(Y, *args, **kwargs)
 
 
 def check_dense_matrix_types(X, test_fun, *args, **kwargs):
