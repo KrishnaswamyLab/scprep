@@ -269,7 +269,8 @@ def _combine_gene_id(symbols, ids):
     return columns
 
 
-def _parse_10x_genes(symbols, ids, gene_labels='symbol', force_unique=False):
+def _parse_10x_genes(symbols, ids, gene_labels='symbol',
+                     allow_duplicates=True):
     if gene_labels not in ['symbol', 'id', 'both']:
         raise ValueError("gene_labels='{}' not recognized. Choose from "
                          "['symbol', 'id', 'both']")
@@ -277,10 +278,11 @@ def _parse_10x_genes(symbols, ids, gene_labels='symbol', force_unique=False):
         columns = _combine_gene_id(symbols, ids)
     if gene_labels == 'symbol':
         columns = symbols
-        if force_unique and len(np.unique(columns)) < len(columns):
+        if not allow_duplicates and len(np.unique(columns)) < len(columns):
             warnings.warn(
                 "Duplicate gene names detected! Forcing `gene_labels='id'`. "
-                "Alternatively, try `gene_labels='both'` or loading the matrix"
+                "Alternatively, try `gene_labels='both'`, "
+                "`allow_duplicates=True`, or load the matrix"
                 " with `sparse=False`", RuntimeWarning)
             gene_labels = 'id'
     if gene_labels == 'id':
@@ -288,7 +290,8 @@ def _parse_10x_genes(symbols, ids, gene_labels='symbol', force_unique=False):
     return columns
 
 
-def load_10X(data_dir, sparse=True, gene_labels='symbol'):
+def load_10X(data_dir, sparse=True, gene_labels='symbol',
+             allow_duplicates=None):
     """Basic IO for 10X data produced from the 10X Cellranger pipeline.
 
     A default run of the `cellranger count` command will generate gene-barcode
@@ -338,8 +341,11 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol'):
             "in {}".format(data_dir))
 
     cell_names = barcodes[0]
+    if allow_duplicates is None:
+        allow_duplicates = not sparse
     gene_names = _parse_10x_genes(genes['symbol'], genes['id'],
-                                  gene_labels=gene_labels, force_unique=sparse)
+                                  gene_labels=gene_labels,
+                                  allow_duplicates=allow_duplicates)
 
     data = _matrix_to_data_frame(m.T, cell_names=cell_names,
                                  gene_names=gene_names,
@@ -347,7 +353,8 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol'):
     return data
 
 
-def load_10x_HDF5(filename, genome, sparse=True, gene_labels='symbol'):
+def load_10x_HDF5(filename, genome, sparse=True, gene_labels='symbol',
+                  allow_duplicates=None):
     try:
         import tables
     except ImportError:
@@ -360,10 +367,12 @@ def load_10x_HDF5(filename, genome, sparse=True, gene_labels='symbol'):
             raise ValueError(
                 "Genome {} not found in {}.".format(genome, filename))
             # TODO: print available genomes.
+        if allow_duplicates is None:
+            allow_duplicates = not sparse
         gene_names = _parse_10x_genes(
             symbols=[g.decode() for g in getattr(group, 'gene_names').read()],
             ids=[g.decode() for g in getattr(group, 'gene').read()],
-            gene_labels=gene_labels, force_unique=sparse)
+            gene_labels=gene_labels, allow_duplicates=allow_duplicates)
         cell_names = [b.decode() for b in getattr(group, 'barcodes').read()]
         data = getattr(group, 'data').read()
         indices = getattr(group, 'indices').read()
