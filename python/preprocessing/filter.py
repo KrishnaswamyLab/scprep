@@ -3,6 +3,7 @@
 
 import pandas as pd
 import numpy as np
+from scipy import sparse
 import warnings
 try:
     import matplotlib.pyplot as plt
@@ -22,6 +23,8 @@ def _select_rows(data, idx):
     if isinstance(data, pd.DataFrame):
         data = data.loc[idx]
     else:
+        if isinstance(data, sparse.coo_matrix):
+            data = data.tocsr()
         data = data[idx, :]
     return data
 
@@ -55,6 +58,8 @@ def library_size(data):
             index=data.index)
     else:
         cell_sums = data.sum(axis=1)
+    if isinstance(cell_sums, np.matrix):
+        cell_sums = np.array(cell_sums).reshape(-1)
     return cell_sums
 
 
@@ -101,12 +106,14 @@ def _get_percentile_cutoff(data, cutoff, percentile, required=False):
     if percentile is not None:
         if cutoff is not None:
             warnings.warn(
-                "Only one of `cutoff` and `percentile` should be given.")
+                "Only one of `cutoff` and `percentile` should be given.",
+                UserWarning)
         if percentile < 1:
             warnings.warn(
                 "`percentile` expects values between 0 and 100. "
                 "Got {}. Did you mean {}?".format(percentile,
-                                                  percentile * 100))
+                                                  percentile * 100),
+                UserWarning)
         cutoff = np.percentile(np.array(data).reshape(-1), percentile)
     elif cutoff is None and required:
         raise ValueError(
@@ -114,7 +121,7 @@ def _get_percentile_cutoff(data, cutoff, percentile, required=False):
     return cutoff
 
 
-def plot_gene_set_expression(data, genes, bins=30,
+def plot_gene_set_expression(data, genes, bins=100,
                              cutoff=None, percentile=None):
     """
     Parameters
