@@ -81,7 +81,7 @@ def plot_library_size(data, bins=30, cutoff=None, log=True):
         plt.yscale('log')
     if cutoff is not None:
         plt.axvline(cutoff, color='red')
-    plt.show()
+    plt.show(block=False)
 
 
 def filter_library_size(data, cutoff=2000):
@@ -145,7 +145,7 @@ def plot_gene_set_expression(data, genes, bins=100,
     plt.hist(cell_sums, bins=bins)
     if cutoff is not None:
         plt.vline(cutoff, color='red')
-    plt.show()
+    plt.show(block=False)
 
 
 def filter_gene_set_expression(data, genes,
