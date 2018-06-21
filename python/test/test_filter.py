@@ -1,6 +1,7 @@
 import preprocessing
 import pandas as pd
 import numpy as np
+from sklearn.utils.testing import assert_warns_message
 from scipy import sparse
 import os
 
@@ -52,7 +53,38 @@ def test_library_size_filter():
     assert not np.any(sanitized_data.sum(1) < 100)
 
 
-def test_sparse_dataframe_library_size():
+def test_gene_expression_filter():
+    data = load_10X(sparse=True)
+    genes = np.arange(10)
+    sanitized_data = preprocessing.filter.filter_gene_expression(
+        data, genes, percentile=90, keep_cells='below')
+    assert sanitized_data.shape[1] == data.shape[1]
+    assert np.max(np.sum(data[genes], axis=1)) > \
+        np.max(np.sum(sanitized_data[genes], axis=1))
+    sanitized_data = preprocessing.filter.filter_gene_expression(
+        data, genes, percentile=10, keep_cells='above')
+    assert sanitized_data.shape[1] == data.shape[1]
+    assert np.min(np.sum(data[genes], axis=1)) < \
+        np.min(np.sum(sanitized_data[genes], axis=1))
+
+
+def test_gene_expression_filter_warning():
+    data = load_10X(sparse=True)
+    genes = np.arange(10)
+    assert_warns_message(
+        UserWarning,
+        "`percentile` expects values between 0 and 100. "
+        "Got 0.90. Did you mean 90?",
+        preprocessing.filter.filter_gene_expression,
+        data, genes, percentile=0.90, keep_cells='below')
+    assert_warns_message(
+        UserWarning,
+        "Only one of `cutoff` and `percentile` should be given.",
+        preprocessing.filter.filter_gene_expression,
+        data, genes, percentile=0.90, cutoff=50)
+
+
+def test_large_sparse_dataframe_library_size():
     data = pd.SparseDataFrame(sparse.coo_matrix((10**7, 2 * 10**4)),
                               default_fill_value=0.0)
     cell_sums = preprocessing.filter.library_size(data)
