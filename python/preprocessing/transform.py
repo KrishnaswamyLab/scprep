@@ -12,6 +12,9 @@ def _transform(X, fun):
     if sparse.issparse(X):
         if isinstance(X, (sparse.lil_matrix, sparse.dok_matrix)):
             X = X.tocsr()
+        else:
+            # avoid modifying in place
+            X = X.copy()
         X.data = fun(X.data)
     else:
         X = fun(X)
