@@ -8,6 +8,38 @@ import scipy.sparse as sp
 import warnings
 import numpy as np
 import os
+try:
+    import fcsparser
+except ImportError:
+    pass
+try:
+    import tables
+except ImportError:
+    pass
+
+
+def with_fcsparser(fun):
+    def wrapped_fun(*args, **kwargs):
+        try:
+            fcsparser
+        except NameError:
+            raise ImportError(
+                "fcsparser not found. "
+                "Please install it with e.g. `pip install --user fcsparser`")
+        fun(*args, **kwargs)
+    return wrapped_fun
+
+
+def with_tables(fun):
+    def wrapped_fun(*args, **kwargs):
+        try:
+            tables
+        except NameError:
+            raise ImportError(
+                "tables not found. "
+                "Please install it with e.g. `pip install --user tables`")
+        fun(*args, **kwargs)
+    return wrapped_fun
 
 
 def _parse_header(header, n_expected, header_type="gene_names"):
@@ -191,14 +223,10 @@ def load_csv(filename, cell_axis='row', delimiter=',',
     return data
 
 
+@with_fcsparser
 def load_fcs(fcs_file,
              metadata_channels=['Time', 'Event_length', 'DNA1', 'DNA2',
                                 'Cisplatin', 'beadDist', 'bead1']):
-    try:
-        import fcsparser
-    except ImportError:
-        raise ImportError("fcsparser not installed. Please install it with"
-                          " pip install --user tables")
     # Parse the fcs file
     text, data = fcsparser.parse(fcs_file)
     # Extract the S and N features (Indexing assumed to start from 1)
@@ -353,13 +381,9 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol',
     return data
 
 
+@with_tables
 def load_10x_HDF5(filename, genome, sparse=True, gene_labels='symbol',
                   allow_duplicates=None):
-    try:
-        import tables
-    except ImportError:
-        raise ImportError("tables not installed. Please install it with"
-                          " pip install --user tables")
     with tables.open_file(filename, 'r') as f:
         try:
             group = f.get_node(f.root, genome)

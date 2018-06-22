@@ -7,13 +7,20 @@ except ImportError:
 from .measure import library_size, gene_set_expression, _get_percentile_cutoff
 
 
+def with_matplotlib(fun):
+    def wrapped_fun(*args, **kwargs):
+        try:
+            plt
+        except NameError:
+            raise ImportError(
+                "matplotlib not found. "
+                "Please install it with e.g. `pip install --user matplotlib`")
+        fun(*args, **kwargs)
+    return wrapped_fun
+
+
+@with_matplotlib
 def plot_library_size(data, bins=30, cutoff=None, log=True):
-    try:
-        plt
-    except NameError:
-        raise ImportError(
-            "matplotlib not found. "
-            "Please install it with e.g. `pip install --user matplotlib`")
     cell_sums = library_size(data)
     if log:
         bins = np.logspace(np.log10(max(np.min(cell_sums), 1)),
@@ -28,6 +35,7 @@ def plot_library_size(data, bins=30, cutoff=None, log=True):
     plt.show(block=False)
 
 
+@with_matplotlib
 def plot_gene_set_expression(data, genes, bins=100,
                              cutoff=None, percentile=None):
     """
@@ -42,11 +50,6 @@ def plot_gene_set_expression(data, genes, bins=100,
         Integer between 0 and 100.
         Percentile at which to draw a cutoff line. Overrides cutoff.
     """
-    try:
-        plt
-    except NameError:
-        print("matplotlib not found. "
-              "Please install it with e.g. `pip install --user matplotlib`")
     cell_sums = gene_set_expression(data, genes)
     cutoff = _get_percentile_cutoff(
         cell_sums, cutoff, percentile, required=False)

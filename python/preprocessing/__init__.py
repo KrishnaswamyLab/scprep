@@ -6,3 +6,5 @@ import preprocessing.io
 import preprocessing.filter
 import preprocessing.normalize
 import preprocessing.transform
+import preprocessing.measure
+import preprocessing.plot
