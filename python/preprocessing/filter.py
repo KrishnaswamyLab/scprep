@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 from scipy import sparse
 import warnings
+import numbers
 try:
     import matplotlib.pyplot as plt
 except ImportError:
@@ -13,8 +14,20 @@ except ImportError:
 
 def _select_cols(data, idx):
     if isinstance(data, pd.DataFrame):
-        data = data[data.columns[idx].tolist()]
+        try:
+            data = data.loc[:, idx]
+        except KeyError:
+            if isinstance(idx, numbers.Integral) or \
+                    issubclass(np.array(idx).dtype.type, numbers.Integral):
+                data = data.loc[:, np.array(data.columns)[idx]]
+            else:
+                raise
     else:
+        if isinstance(data, (sparse.coo_matrix,
+                             sparse.bsr_matrix,
+                             sparse.lil_matrix,
+                             sparse.dia_matrix)):
+            data = data.tocsr()
         data = data[:, idx]
     return data
 
@@ -23,23 +36,25 @@ def _select_rows(data, idx):
     if isinstance(data, pd.DataFrame):
         data = data.loc[idx]
     else:
-        if isinstance(data, sparse.coo_matrix):
+        if isinstance(data, (sparse.coo_matrix,
+                             sparse.bsr_matrix,
+                             sparse.dia_matrix)):
             data = data.tocsr()
         data = data[idx, :]
     return data
 
 
 def remove_empty_genes(data):
-    gene_sums = data.sum(axis=0)
-    keep_cells_idx = gene_sums > 0
-    data = _select_cols(data, keep_cells_idx)
+    gene_sums = np.array(data.sum(axis=0)).reshape(-1)
+    keep_genes_idx = gene_sums > 0
+    data = _select_cols(data, keep_genes_idx)
     return data
 
 
 def remove_rare_genes(data, cutoff=0, min_cells=10):
-    gene_sums = (data > cutoff).sum(axis=0)
-    keep_cells_idx = gene_sums > min_cells
-    data = _select_cols(data, keep_cells_idx)
+    gene_sums = np.array((data > cutoff).sum(axis=0)).reshape(-1)
+    keep_genes_idx = gene_sums > min_cells
+    data = _select_cols(data, keep_genes_idx)
     return data
 
 
@@ -92,13 +107,7 @@ def filter_library_size(data, cutoff=2000):
 
 
 def gene_set_expression(data, genes):
-    try:
-        gene_data = data[genes]
-    except Exception:
-        # TODO: what should we catch here?
-        print(type(data), type(genes))
-        print(data.dtype, genes.dtype)
-        raise
+    gene_data = _select_cols(data, genes)
     return library_size(gene_data)
 
 
@@ -141,7 +150,8 @@ def plot_gene_set_expression(data, genes, bins=100,
         print("matplotlib not found. "
               "Please install it with e.g. `pip install --user matplotlib`")
     cell_sums = gene_set_expression(data, genes)
-    _get_percentile_cutoff(cell_sums, cutoff, percentile, required=False)
+    cutoff = _get_percentile_cutoff(
+        cell_sums, cutoff, percentile, required=False)
     plt.hist(cell_sums, bins=bins)
     if cutoff is not None:
         plt.vline(cutoff, color='red')
@@ -162,7 +172,8 @@ def filter_gene_set_expression(data, genes,
         Keep cells above or below the cutoff
     """
     cell_sums = gene_set_expression(data, genes)
-    _get_percentile_cutoff(cell_sums, cutoff, percentile, required=True)
+    cutoff = _get_percentile_cutoff(
+        cell_sums, cutoff, percentile, required=True)
     if keep_cells == 'above':
         keep_cells_idx = cell_sums > cutoff
     elif keep_cells == 'below':

@@ -37,7 +37,10 @@ def check_matrix_types(X, test_fun, matrix_funs, *args, **kwargs):
                 message="Constructing a DIA matrix with [0-9]*"
                 " diagonals is inefficient")
             Y = fun(X.copy())
-        test_fun(Y, *args, **kwargs)
+        try:
+            test_fun(Y, *args, **kwargs)
+        except Exception as e:
+            raise type(e)(str(type(Y)))
 
 
 def check_dense_matrix_types(X, test_fun, *args, **kwargs):
@@ -65,7 +68,7 @@ def check_all_matrix_types(X, test_fun, *args, **kwargs):
     check_sparse_matrix_types(X, test_fun, *args, **kwargs)
 
 
-def check_transform_equivalent(X, Y, transform, check=all_equal):
+def check_output_equivalent(X, Y, transform, check=all_equal):
     try:
         Y2 = transform(X)
     except Exception as e:
@@ -74,6 +77,11 @@ def check_transform_equivalent(X, Y, transform, check=all_equal):
     assert check(Y, Y2), "{} failed on {}".format(
         transform,
         type(X).__name__)
+    return Y2
+
+
+def check_transform_equivalent(X, Y, transform, check=all_equal):
+    Y2 = check_output_equivalent(X, Y, transform, check=check)
     assert matrix_class_equivalent(X, Y2), \
         "{} produced inconsistent matrix output".format(
         type(X).__name__)
@@ -84,6 +92,7 @@ def check_transform_raises(X, transform, exception=ValueError):
 
 
 def matrix_class_equivalent(X, Y):
+    assert X.shape == Y.shape
     if sparse.issparse(X):
         assert sparse.issparse(Y)
     if isinstance(X, pd.DataFrame):
