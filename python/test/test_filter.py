@@ -4,6 +4,11 @@ import numpy as np
 from sklearn.utils.testing import assert_warns_message
 from scipy import sparse
 import os
+from load_tests.utils import (
+    check_all_matrix_types,
+    check_transform_equivalent,
+)
+from functools import partial
 
 if os.getcwd().strip("/").endswith("test"):
     data_dir = os.path.join("..", "..", "data", "test_data")
@@ -23,6 +28,9 @@ def test_remove_empty_cells():
     sanitized_data = preprocessing.filter.remove_empty_cells(data)
     assert sanitized_data.shape[1] == data.shape[1]
     assert not np.any(sanitized_data.sum(1) == 0)
+    check_all_matrix_types(
+        data, check_transform_equivalent,
+        Y=sanitized_data, transform=preprocessing.filter.remove_empty_cells)
 
 
 def test_remove_empty_cells_sparse():
@@ -30,6 +38,9 @@ def test_remove_empty_cells_sparse():
     sanitized_data = preprocessing.filter.remove_empty_cells(data)
     assert sanitized_data.shape[1] == data.shape[1]
     assert not np.any(sanitized_data.sum(1) == 0)
+    check_all_matrix_types(
+        data, check_transform_equivalent,
+        Y=sanitized_data, transform=preprocessing.filter.remove_empty_cells)
 
 
 def test_remove_empty_genes():
@@ -37,6 +48,9 @@ def test_remove_empty_genes():
     sanitized_data = preprocessing.filter.remove_empty_genes(data)
     assert sanitized_data.shape[0] == data.shape[0]
     assert not np.any(sanitized_data.sum(0) == 0)
+    check_all_matrix_types(
+        data, check_transform_equivalent,
+        Y=sanitized_data, transform=preprocessing.filter.remove_empty_genes)
 
 
 def test_remove_empty_genes_sparse():
@@ -44,6 +58,9 @@ def test_remove_empty_genes_sparse():
     sanitized_data = preprocessing.filter.remove_empty_genes(data)
     assert sanitized_data.shape[0] == data.shape[0]
     assert not np.any(sanitized_data.sum(0) == 0)
+    check_all_matrix_types(
+        data, check_transform_equivalent,
+        Y=sanitized_data, transform=preprocessing.filter.remove_empty_genes)
 
 
 def test_library_size_filter():
@@ -51,6 +68,10 @@ def test_library_size_filter():
     sanitized_data = preprocessing.filter.filter_library_size(data, 100)
     assert sanitized_data.shape[1] == data.shape[1]
     assert not np.any(sanitized_data.sum(1) < 100)
+    check_all_matrix_types(
+        data, check_transform_equivalent,
+        Y=sanitized_data, transform=partial(
+            preprocessing.filter.filter_library_size, 100))
 
 
 def test_gene_expression_filter():
@@ -59,13 +80,23 @@ def test_gene_expression_filter():
     sanitized_data = preprocessing.filter.filter_gene_expression(
         data, genes, percentile=90, keep_cells='below')
     assert sanitized_data.shape[1] == data.shape[1]
-    assert np.max(np.sum(data[genes], axis=1)) > \
-        np.max(np.sum(sanitized_data[genes], axis=1))
+    assert np.max(np.sum(data[genes], axis=1)) > np.max(
+        np.sum(sanitized_data[genes], axis=1))
+    check_all_matrix_types(
+        data, check_transform_equivalent,
+        Y=sanitized_data, transform=partial(
+            preprocessing.filter.filter_gene_expression, genes,
+            percentile=90, keep_cells='below'))
     sanitized_data = preprocessing.filter.filter_gene_expression(
         data, genes, percentile=10, keep_cells='above')
     assert sanitized_data.shape[1] == data.shape[1]
-    assert np.min(np.sum(data[genes], axis=1)) < \
-        np.min(np.sum(sanitized_data[genes], axis=1))
+    assert np.min(np.sum(data[genes], axis=1)) < np.min(
+        np.sum(sanitized_data[genes], axis=1))
+    check_all_matrix_types(
+        data, check_transform_equivalent,
+        Y=sanitized_data, transform=partial(
+            preprocessing.filter.filter_gene_expression, genes,
+            percentile=10, keep_cells='above'))
 
 
 def test_gene_expression_filter_warning():
