@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import sparse
 import pandas as pd
-import preprocessing
+import scutils
 from load_tests.utils import (
     all_equal, all_close,
     check_all_matrix_types,
@@ -16,7 +16,7 @@ def test_sqrt_transform():
     Y = np.sqrt(X)
     check_all_matrix_types(
         X, check_transform_equivalent,
-        Y=Y, transform=preprocessing.transform.sqrt_transform)
+        Y=Y, transform=scutils.transform.sqrt_transform)
 
 
 def test_log_transform():
@@ -24,7 +24,7 @@ def test_log_transform():
     Y = np.log(X + 1)
     check_all_matrix_types(
         X, check_transform_equivalent,
-        Y=Y, transform=preprocessing.transform.log_transform)
+        Y=Y, transform=scutils.transform.log_transform)
 
 
 def test_arcsinh_transform():
@@ -32,5 +32,5 @@ def test_arcsinh_transform():
     Y = np.arcsinh(X / 5)
     check_all_matrix_types(
         X, check_transform_equivalent,
-        Y=Y, transform=preprocessing.transform.arcsinh_transform,
+        Y=Y, transform=scutils.transform.arcsinh_transform,
         check=all_close)

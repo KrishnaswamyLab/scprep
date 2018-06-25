@@ -1,4 +1,4 @@
-import preprocessing
+import scutils
 from sklearn.utils.testing import assert_warns_message
 import pandas as pd
 import numpy as np
@@ -14,8 +14,8 @@ else:
 
 
 def load_10X(**kwargs):
-    return preprocessing.io.load_10X(os.path.join(data_dir, "test_10X"),
-                                     **kwargs)
+    return scutils.io.load_10X(os.path.join(data_dir, "test_10X"),
+                               **kwargs)
 
 
 def test_10X_duplicate_gene_names():
@@ -24,7 +24,7 @@ def test_10X_duplicate_gene_names():
         "Duplicate gene names detected! Forcing `gene_labels='id'`. "
         "Alternatively, try `gene_labels='both'`, `allow_duplicates=True`, or "
         "load the matrix with `sparse=False`",
-        preprocessing.io.load_10X,
+        scutils.io.load_10X,
         os.path.join(data_dir, "test_10X_duplicate_gene_names"))
 
 
@@ -46,7 +46,7 @@ def test_10X():
 
 def test_csv():
     df = load_10X()
-    csv_df = preprocessing.io.load_csv(
+    csv_df = scutils.io.load_csv(
         os.path.join(data_dir, "test_small.csv"),
         gene_names=True,
         cell_names=True)
@@ -55,7 +55,7 @@ def test_csv():
     assert np.all(df.index == csv_df.index)
     assert isinstance(csv_df, pd.DataFrame)
     assert not isinstance(csv_df, pd.SparseDataFrame)
-    csv_df = preprocessing.io.load_csv(
+    csv_df = scutils.io.load_csv(
         os.path.join(data_dir, "test_small.csv"),
         gene_names=os.path.join(
             data_dir, "gene_symbols.tsv"),
@@ -68,7 +68,7 @@ def test_csv():
     assert np.all(df.index == csv_df.index)
     assert isinstance(csv_df, pd.DataFrame)
     assert not isinstance(csv_df, pd.SparseDataFrame)
-    csv_df = preprocessing.io.load_csv(
+    csv_df = scutils.io.load_csv(
         os.path.join(data_dir, "test_small.csv"),
         gene_names=df.columns,
         cell_names=df.index,
@@ -79,7 +79,7 @@ def test_csv():
     assert np.all(df.index == csv_df.index)
     assert isinstance(csv_df, pd.DataFrame)
     assert not isinstance(csv_df, pd.SparseDataFrame)
-    csv_df = preprocessing.io.load_csv(
+    csv_df = scutils.io.load_csv(
         os.path.join(data_dir, "test_small.csv"),
         gene_names=None,
         cell_names=None,
@@ -88,7 +88,7 @@ def test_csv():
         usecols=range(1, 101))
     assert np.sum(np.sum(df.values != csv_df.values)) == 0
     assert isinstance(csv_df, pd.SparseDataFrame)
-    csv_df = preprocessing.io.load_csv(
+    csv_df = scutils.io.load_csv(
         os.path.join(data_dir,
                      "test_small_duplicate_gene_names.csv"))
     assert 'DUPLICATE' in csv_df.columns
@@ -97,7 +97,7 @@ def test_csv():
 
 def test_mtx():
     df = load_10X()
-    csv_df = preprocessing.io.load_mtx(
+    csv_df = scutils.io.load_mtx(
         os.path.join(data_dir, "test_10X", "matrix.mtx"),
         gene_names=os.path.join(
             data_dir, "gene_symbols.tsv"),
@@ -110,7 +110,7 @@ def test_mtx():
     assert np.all(df.index == csv_df.index)
     assert isinstance(csv_df, pd.DataFrame)
     assert not isinstance(csv_df, pd.SparseDataFrame)
-    csv_df = preprocessing.io.load_mtx(
+    csv_df = scutils.io.load_mtx(
         os.path.join(data_dir, "test_10X", "matrix.mtx"),
         gene_names=df.columns,
         cell_names=df.index,
@@ -121,7 +121,7 @@ def test_mtx():
     assert np.all(df.index == csv_df.index)
     assert isinstance(csv_df, pd.DataFrame)
     assert not isinstance(csv_df, pd.SparseDataFrame)
-    csv_df = preprocessing.io.load_mtx(
+    csv_df = scutils.io.load_mtx(
         os.path.join(data_dir, "test_10X", "matrix.mtx"),
         gene_names=None,
         cell_names=None,
@@ -130,7 +130,7 @@ def test_mtx():
         usecols=range(1, 101))
     assert np.sum(np.sum(df.values != csv_df.values)) == 0
     assert isinstance(csv_df, pd.SparseDataFrame)
-    csv_df = preprocessing.io.load_mtx(
+    csv_df = scutils.io.load_mtx(
         os.path.join(data_dir,
                      "test_small_duplicate_gene_names.csv"))
     assert 'DUPLICATE' in csv_df.columns
@@ -140,12 +140,12 @@ def test_mtx():
 def test_fcs():
     path = fcsparser.test_sample_path
     meta, data = fcsparser.parse(path)
-    X = preprocessing.io.load_fcs(path)
+    X = scutils.io.load_fcs(path)
     assert 'Time' not in X.columns
     assert len(set(X.columns).difference(data.columns)) == 0
     assert np.all(X.index == data.index)
     assert np.all(X.values == data[X.columns].values)
-    X = preprocessing.io.load_fcs(path, sparse=True)
+    X = scutils.io.load_fcs(path, sparse=True)
     assert 'Time' not in X.columns
     assert len(set(X.columns).difference(data.columns)) == 0
     assert np.all(X.index == data.index)
