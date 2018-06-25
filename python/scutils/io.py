@@ -264,7 +264,7 @@ def load_fcs(fcs_file, gene_names=True, cell_names=True,
     data = data[data_channels]
     data = _matrix_to_data_frame(data, gene_names=gene_names,
                                  cell_names=cell_names, sparse=sparse)
-    return data, metadata
+    return meta, data
 
 
 def load_mtx(mtx_file, cell_axis='row',

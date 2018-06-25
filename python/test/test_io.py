@@ -97,7 +97,7 @@ def test_csv():
 
 def test_mtx():
     df = load_10X()
-    csv_df = scutils.io.load_mtx(
+    mtx_df = scutils.io.load_mtx(
         os.path.join(data_dir, "test_10X", "matrix.mtx"),
         gene_names=os.path.join(
             data_dir, "gene_symbols.tsv"),
@@ -105,47 +105,43 @@ def test_mtx():
             data_dir, "barcodes.tsv"),
         skiprows=1,
         usecols=range(1, 101))
-    assert np.sum(np.sum(df != csv_df)) == 0
-    assert np.all(df.columns == csv_df.columns)
-    assert np.all(df.index == csv_df.index)
-    assert isinstance(csv_df, pd.DataFrame)
-    assert not isinstance(csv_df, pd.SparseDataFrame)
-    csv_df = scutils.io.load_mtx(
+    assert np.sum(np.sum(df != mtx_df)) == 0
+    assert np.all(df.columns == mtx_df.columns)
+    assert np.all(df.index == mtx_df.index)
+    assert isinstance(mtx_df, pd.DataFrame)
+    assert not isinstance(mtx_df, pd.SparseDataFrame)
+    mtx_df = scutils.io.load_mtx(
         os.path.join(data_dir, "test_10X", "matrix.mtx"),
         gene_names=df.columns,
-        cell_names=df.index,
-        skiprows=1,
-        usecols=range(1, 101))
-    assert np.sum(np.sum(df != csv_df)) == 0
-    assert np.all(df.columns == csv_df.columns)
-    assert np.all(df.index == csv_df.index)
-    assert isinstance(csv_df, pd.DataFrame)
-    assert not isinstance(csv_df, pd.SparseDataFrame)
-    csv_df = scutils.io.load_mtx(
+        cell_names=df.index)
+    assert np.sum(np.sum(df != mtx_df)) == 0
+    assert np.all(df.columns == mtx_df.columns)
+    assert np.all(df.index == mtx_df.index)
+    assert isinstance(mtx_df, pd.DataFrame)
+    assert not isinstance(mtx_df, pd.SparseDataFrame)
+    mtx_df = scutils.io.load_mtx(
         os.path.join(data_dir, "test_10X", "matrix.mtx"),
         gene_names=None,
         cell_names=None,
-        sparse=True,
-        skiprows=1,
-        usecols=range(1, 101))
-    assert np.sum(np.sum(df.values != csv_df.values)) == 0
-    assert isinstance(csv_df, pd.SparseDataFrame)
-    csv_df = scutils.io.load_mtx(
+        sparse=True)
+    assert np.sum(np.sum(df.values != mtx_df.values)) == 0
+    assert isinstance(mtx_df, pd.SparseDataFrame)
+    mtx_df = scutils.io.load_mtx(
         os.path.join(data_dir,
                      "test_small_duplicate_gene_names.csv"))
-    assert 'DUPLICATE' in csv_df.columns
-    assert 'DUPLICATE.1' in csv_df.columns
+    assert 'DUPLICATE' in mtx_df.columns
+    assert 'DUPLICATE.1' in mtx_df.columns
 
 
 def test_fcs():
     path = fcsparser.test_sample_path
     meta, data = fcsparser.parse(path)
-    X = scutils.io.load_fcs(path)
+    _, X = scutils.io.load_fcs(path)
     assert 'Time' not in X.columns
     assert len(set(X.columns).difference(data.columns)) == 0
     assert np.all(X.index == data.index)
     assert np.all(X.values == data[X.columns].values)
-    X = scutils.io.load_fcs(path, sparse=True)
+    _, X = scutils.io.load_fcs(path, sparse=True)
     assert 'Time' not in X.columns
     assert len(set(X.columns).difference(data.columns)) == 0
     assert np.all(X.index == data.index)
