@@ -9,6 +9,8 @@ import warnings
 import numpy as np
 import os
 import zipfile
+import tempfile
+import shutil
 try:
     import fcsparser
 except ImportError:
@@ -264,7 +266,7 @@ def load_fcs(fcs_file, gene_names=True, cell_names=True,
     data = data[data_channels]
     data = _matrix_to_data_frame(data, gene_names=gene_names,
                                  cell_names=cell_names, sparse=sparse)
-    return meta, data
+    return metadata, data
 
 
 def load_mtx(mtx_file, cell_axis='row',
@@ -399,13 +401,29 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol',
 
 def load_10X_zip(filename, sparse=True, gene_labels='symbol',
                  allow_duplicates=None):
+    tmpdir = tempfile.mkdtemp()
     with zipfile.ZipFile(filename) as handle:
-        subdirs = handle.namelist()
-        if len(subdirs) > 1:
+        files = handle.namelist()
+        if len(files) != 4:
+            valid = False
+        else:
+            dirname = files[0].strip("\\/")
+            if os.path.join(dirname, "barcodes.tsv") in files[1:]:
+                valid = False
+            elif os.path.join(dirname, "genes.tsv") in files[1:]:
+                valid = False
+            elif os.path.join(dirname, "matrix.mtx") in files[1:]:
+                valid = False
+            else:
+                valid = True
+        if not valid:
             raise ValueError(
-                "Expected a single zipped folder. Got {}".format(subdirs))
-        handle.extractall()
-    return load_10X(subdirs[0])
+                "Expected a single zipped folder containing 'matrix.mtx', "
+                "'genes.tsv', and 'barcodes.tsv'. Got {}".format(files))
+        handle.extractall(path=tmpdir)
+    data = load_10X(os.path.join(tmpdir, dirname))
+    shutil.rmtree(tmpdir)
+    return data
 
 
 @with_tables
