@@ -15,7 +15,7 @@ def with_matplotlib(fun):
             raise ImportError(
                 "matplotlib not found. "
                 "Please install it with e.g. `pip install --user matplotlib`")
-        fun(*args, **kwargs)
+        return fun(*args, **kwargs)
     return wrapped_fun
 
 

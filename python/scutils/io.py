@@ -35,7 +35,7 @@ def with_fcsparser(fun):
             raise ImportError(
                 "fcsparser not found. "
                 "Please install it with e.g. `pip install --user fcsparser`")
-        fun(*args, **kwargs)
+        return fun(*args, **kwargs)
     return wrapped_fun
 
 
@@ -47,7 +47,7 @@ def with_tables(fun):
             raise ImportError(
                 "tables not found. "
                 "Please install it with e.g. `pip install --user tables`")
-        fun(*args, **kwargs)
+        return fun(*args, **kwargs)
     return wrapped_fun
 
 
