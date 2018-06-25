@@ -18,25 +18,25 @@ if sys.version_info[:2] < (2, 7) or (3, 0) <= sys.version_info[:2] < (3, 5):
     raise RuntimeError("Python version 2.7 or >=3.5 required.")
 
 version_py = os.path.join(os.path.dirname(
-    __file__), 'preprocessing', 'version.py')
+    __file__), 'scutils', 'version.py')
 version = open(version_py).read().strip().split(
     '=')[-1].replace('"', '').strip()
 
 readme = open('README.rst').read()
 
-setup(name='preprocessing',
+setup(name='scutils',
       version=version,
-      description='preprocessing',
+      description='scutils',
       author='Jay Stanley and Scott Gigante, Krishnaswamy Lab, Yale University',
       author_email='jay.stanley@yale.edu',
-      packages=['preprocessing', ],
+      packages=['scutils', ],
       license='GNU General Public License Version 2',
       install_requires=install_requires,
       extras_require={'test': test_requires},
       test_suite='nose2.collector.collector',
       long_description=readme,
-      url='https://github.com/KrishnaswamyLab/preprocessing',
-      download_url="https://github.com/KrishnaswamyLab/preprocessing/archive/v{}.tar.gz".format(
+      url='https://github.com/KrishnaswamyLab/scutils',
+      download_url="https://github.com/KrishnaswamyLab/scutils/archive/v{}.tar.gz".format(
           version),
       keywords=['big-data',
                 'computational-biology',
