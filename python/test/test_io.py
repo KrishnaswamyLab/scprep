@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import os
 import fcsparser
+import shutil
 
 # TODO: write tests for hdf5
 
@@ -42,6 +43,15 @@ def test_10X():
     assert df.shape == (100, 100)
     assert isinstance(df, pd.SparseDataFrame)
     assert df.columns[0] == "Arl8b (ENSMUSG00000030105)"
+
+
+def test_10X_zip():
+    df = load_10X()
+    zip_df = scutils.io.load_10X_zip(os.path.join(data_dir, "test_10X.zip"))
+    assert isinstance(zip_df, pd.SparseDataFrame)
+    assert np.sum(np.sum(df != zip_df)) == 0
+    assert np.all(df.columns == zip_df.columns)
+    assert np.all(df.index == zip_df.index)
 
 
 def test_csv():
