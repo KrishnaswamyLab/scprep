@@ -8,6 +8,7 @@ import scipy.sparse as sp
 import warnings
 import numpy as np
 import os
+import zipfile
 try:
     import fcsparser
 except ImportError:
@@ -16,6 +17,12 @@ try:
     import tables
 except ImportError:
     pass
+
+try:
+    FileNotFoundError
+except NameError:
+    # py2 compatibility
+    FileNotFoundError = OSError
 
 
 def with_fcsparser(fun):
@@ -223,31 +230,40 @@ def load_csv(filename, cell_axis='row', delimiter=',',
     return data
 
 
+def load_tsv(filename, cell_axis='row', delimiter='\t',
+             gene_names=True, cell_names=True,
+             sparse=False, **kwargs):
+    """
+    gene_names : `bool`, `str`, array-like, or `None` (default: True)
+        If `True`, we assume gene names are in the first row/column. Otherwise
+        expects a filename or an array containing a list of gene symbols or ids
+
+    cell_names : `bool`, `str`, array-like, or `None` (default: True)
+        If `True`, we assume cell names are in the first row/column. Otherwise
+        expects a filename or an array containing a list of cell barcodes.
+    """
+    return load_csv(filename, cell_axis=cell_axis, delimiter=delimiter,
+                    gene_names=gene_names, cell_names=cell_names,
+                    sparse=sparse, **kwargs)
+
+
 @with_fcsparser
-def load_fcs(fcs_file,
+def load_fcs(fcs_file, gene_names=True, cell_names=True,
+             sparse=None,
              metadata_channels=['Time', 'Event_length', 'DNA1', 'DNA2',
                                 'Cisplatin', 'beadDist', 'bead1']):
+    if cell_names is True:
+        cell_names = None
+    if gene_names is True:
+        gene_names = None
     # Parse the fcs file
-    text, data = fcsparser.parse(fcs_file)
-    # Extract the S and N features (Indexing assumed to start from 1)
-    # Assumes channel names are in S
-    # TODO: is valid / unnecessary?
-    no_channels = text['$PAR']
-    channel_names = [''] * no_channels
-    for i in range(1, no_channels + 1):
-        # S name
-        try:
-            channel_names[i - 1] = text['$P%dS' % i]
-        except KeyError:
-            channel_names[i - 1] = text['$P%dN' % i]
-    data.columns = channel_names
-
-    # Metadata and data
+    meta, data = fcsparser.parse(fcs_file)
     metadata_channels = data.columns.intersection(metadata_channels)
     data_channels = data.columns.difference(metadata_channels)
     metadata = data[metadata_channels]
     data = data[data_channels]
-
+    data = _matrix_to_data_frame(data, gene_names=gene_names,
+                                 cell_names=cell_names, sparse=sparse)
     return data, metadata
 
 
@@ -379,6 +395,17 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol',
                                  gene_names=gene_names,
                                  sparse=sparse)
     return data
+
+
+def load_10X_zip(filename, sparse=True, gene_labels='symbol',
+                 allow_duplicates=None):
+    with zipfile.ZipFile(filename) as handle:
+        subdirs = handle.namelist()
+        if len(subdirs) > 1:
+            raise ValueError(
+                "Expected a single zipped folder. Got {}".format(subdirs))
+        handle.extractall()
+    return load_10X(subdirs[0])
 
 
 @with_tables

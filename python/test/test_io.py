@@ -3,9 +3,9 @@ from sklearn.utils.testing import assert_warns_message
 import pandas as pd
 import numpy as np
 import os
+import fcsparser
 
-# TODO: write tests for fcs, hdf5
-# compare same matrix in csv, fcs, mtx, hdf5
+# TODO: write tests for hdf5
 
 if os.getcwd().strip("/\\").endswith("test"):
     data_dir = os.path.join("..", "..", "data", "test_data")
@@ -24,7 +24,8 @@ def test_10X_duplicate_gene_names():
         "Duplicate gene names detected! Forcing `gene_labels='id'`. "
         "Alternatively, try `gene_labels='both'`, `allow_duplicates=True`, or "
         "load the matrix with `sparse=False`",
-        preprocessing.io.load_10X, os.path.join(data_dir, "test_10X_duplicate_gene_names"))
+        preprocessing.io.load_10X,
+        os.path.join(data_dir, "test_10X_duplicate_gene_names"))
 
 
 def test_10X():
@@ -92,3 +93,60 @@ def test_csv():
                      "test_small_duplicate_gene_names.csv"))
     assert 'DUPLICATE' in csv_df.columns
     assert 'DUPLICATE.1' in csv_df.columns
+
+
+def test_mtx():
+    df = load_10X()
+    csv_df = preprocessing.io.load_mtx(
+        os.path.join(data_dir, "test_10X", "matrix.mtx"),
+        gene_names=os.path.join(
+            data_dir, "gene_symbols.tsv"),
+        cell_names=os.path.join(
+            data_dir, "barcodes.tsv"),
+        skiprows=1,
+        usecols=range(1, 101))
+    assert np.sum(np.sum(df != csv_df)) == 0
+    assert np.all(df.columns == csv_df.columns)
+    assert np.all(df.index == csv_df.index)
+    assert isinstance(csv_df, pd.DataFrame)
+    assert not isinstance(csv_df, pd.SparseDataFrame)
+    csv_df = preprocessing.io.load_mtx(
+        os.path.join(data_dir, "test_10X", "matrix.mtx"),
+        gene_names=df.columns,
+        cell_names=df.index,
+        skiprows=1,
+        usecols=range(1, 101))
+    assert np.sum(np.sum(df != csv_df)) == 0
+    assert np.all(df.columns == csv_df.columns)
+    assert np.all(df.index == csv_df.index)
+    assert isinstance(csv_df, pd.DataFrame)
+    assert not isinstance(csv_df, pd.SparseDataFrame)
+    csv_df = preprocessing.io.load_mtx(
+        os.path.join(data_dir, "test_10X", "matrix.mtx"),
+        gene_names=None,
+        cell_names=None,
+        sparse=True,
+        skiprows=1,
+        usecols=range(1, 101))
+    assert np.sum(np.sum(df.values != csv_df.values)) == 0
+    assert isinstance(csv_df, pd.SparseDataFrame)
+    csv_df = preprocessing.io.load_mtx(
+        os.path.join(data_dir,
+                     "test_small_duplicate_gene_names.csv"))
+    assert 'DUPLICATE' in csv_df.columns
+    assert 'DUPLICATE.1' in csv_df.columns
+
+
+def test_fcs():
+    path = fcsparser.test_sample_path
+    meta, data = fcsparser.parse(path)
+    X = preprocessing.io.load_fcs(path)
+    assert 'Time' not in X.columns
+    assert len(set(X.columns).difference(data.columns)) == 0
+    assert np.all(X.index == data.index)
+    assert np.all(X.values == data[X.columns].values)
+    X = preprocessing.io.load_fcs(path, sparse=True)
+    assert 'Time' not in X.columns
+    assert len(set(X.columns).difference(data.columns)) == 0
+    assert np.all(X.index == data.index)
+    assert np.all(X.to_dense().values == data[X.columns].values)
