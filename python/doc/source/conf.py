@@ -51,7 +51,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'scutils'
+project = 'scpreprocess'
 copyright = '2018 Krishnaswamy Lab, Yale University'
 author = 'Jay Stanley and Scott Gigante, Krishnaswamy Lab, Yale University'
 
@@ -105,7 +105,7 @@ html_static_path = ['ystatic']
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'scutilsdoc'
+htmlhelp_basename = 'scpreprocessdoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -132,7 +132,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'scutils.tex', 'scutils Documentation',
+    (master_doc, 'scpreprocess.tex', 'scpreprocess Documentation',
      'Jay Stanley and Scott Gigante, Krishnaswamy Lab, Yale University', 'manual'),
 ]
 
@@ -142,7 +142,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'scutils', 'scutils Documentation',
+    (master_doc, 'scpreprocess', 'scpreprocess Documentation',
      [author], 1)
 ]
 
@@ -153,7 +153,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'scutils', 'scutils Documentation',
-     author, 'scutils', 'One line description of project.',
+    (master_doc, 'scpreprocess', 'scpreprocess Documentation',
+     author, 'scpreprocess', 'One line description of project.',
      'Miscellaneous'),
 ]

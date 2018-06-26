@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.preprocessing import normalize
-import scutils
+import scpreprocess
 from functools import partial
 from load_tests.utils import (
     all_close,
@@ -20,7 +20,7 @@ def test_libsize_norm():
     assert np.allclose(Y.sum(1), np.median(np.sum(X, 1)))
     check_all_matrix_types(
         X, check_transform_equivalent, Y=Y,
-        transform=scutils.normalize.library_size_normalize,
+        transform=scpreprocess.normalize.library_size_normalize,
         check=all_close)
 
 
@@ -35,10 +35,10 @@ def test_batch_mean_center():
     assert np.allclose(np.mean(Y[sample_idx == 1], axis=0), 0)
     check_dense_matrix_types(X, check_transform_equivalent, Y=Y,
                              transform=partial(
-                                 scutils.normalize.batch_mean_center,
+                                 scpreprocess.normalize.batch_mean_center,
                                  sample_idx=sample_idx))
     check_sparse_matrix_types(X, check_transform_raises,
                               transform=partial(
-                                  scutils.normalize.batch_mean_center,
+                                  scpreprocess.normalize.batch_mean_center,
                                   sample_idx=sample_idx),
                               exception=ValueError)

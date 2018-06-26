@@ -4,7 +4,7 @@ Reference
 I/O
 ---
 
-.. automodule:: scutils.io
+.. automodule:: scpreprocess.io
     :members:
     :undoc-members:
     :inherited-members:
@@ -13,7 +13,7 @@ I/O
 Filtering
 ---------
 
-.. automodule:: scutils.filter
+.. automodule:: scpreprocess.filter
     :members:
     :undoc-members:
     :inherited-members:
@@ -22,7 +22,7 @@ Filtering
 Normalization
 -------------
 
-.. automodule:: scutils.normalize
+.. automodule:: scpreprocess.normalize
     :members:
     :undoc-members:
     :inherited-members:
@@ -31,7 +31,7 @@ Normalization
 Transformation
 --------------
 
-.. automodule:: scutils.transform
+.. automodule:: scpreprocess.transform
     :members:
     :undoc-members:
     :inherited-members:
@@ -40,7 +40,7 @@ Transformation
 Measurements
 ------------
 
-.. automodule:: scutils.measure
+.. automodule:: scpreprocess.measure
     :members:
     :undoc-members:
     :inherited-members:
@@ -49,7 +49,7 @@ Measurements
 Plotting
 --------
 
-.. automodule:: scutils.plot
+.. automodule:: scpreprocess.plot
     :members:
     :undoc-members:
     :inherited-members:
@@ -58,7 +58,7 @@ Plotting
 Utilities
 ---------
 
-.. automodule:: scutils.utils
+.. automodule:: scpreprocess.utils
     :members:
     :undoc-members:
     :inherited-members:
