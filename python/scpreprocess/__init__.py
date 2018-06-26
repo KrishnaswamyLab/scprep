@@ -2,9 +2,9 @@
 # (C) 2018 Krishnaswamy Lab GPLv2
 
 from .version import __version__
-import scutils.io
-import scutils.filter
-import scutils.normalize
-import scutils.transform
-import scutils.measure
-import scutils.plot
+import scpreprocess.io
+import scpreprocess.filter
+import scpreprocess.normalize
+import scpreprocess.transform
+import scpreprocess.measure
+import scpreprocess.plot
