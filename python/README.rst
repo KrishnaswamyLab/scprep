@@ -23,7 +23,7 @@ Tools for loading and preprocessing biological matrices in Python.
 Installation
 ------------
 
-preprocessing is NOT available on `pip`. Install by running the following in a terminal::
+preprocessing is available on `pip`. Install by running the following in a terminal::
 
         pip install --user scpreprocess
 
