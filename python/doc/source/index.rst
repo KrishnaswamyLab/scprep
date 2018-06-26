@@ -1,18 +1,18 @@
 ===========================================================================
-scpreprocess
+scprep
 ===========================================================================
 
 .. raw:: html
 
-    <a href="https://pypi.org/project/scpreprocess/"><img src="https://img.shields.io/pypi/v/scpreprocess.svg" alt="Latest PyPi version"></a>
+    <a href="https://pypi.org/project/scprep/"><img src="https://img.shields.io/pypi/v/scprep.svg" alt="Latest PyPi version"></a>
 
 .. raw:: html
 
-    <a href="https://travis-ci.com/KrishnaswamyLab/scpreprocess"><img src="https://api.travis-ci.com/KrishnaswamyLab/scpreprocess.svg?branch=master" alt="Travis CI Build"></a>
+    <a href="https://travis-ci.com/KrishnaswamyLab/scprep"><img src="https://api.travis-ci.com/KrishnaswamyLab/scprep.svg?branch=master" alt="Travis CI Build"></a>
 
 .. raw:: html
 
-    <a href="https://scpreprocess.readthedocs.io/"><img src="https://img.shields.io/readthedocs/scpreprocess.svg" alt="Read the Docs"></img></a>
+    <a href="https://scprep.readthedocs.io/"><img src="https://img.shields.io/readthedocs/scprep.svg" alt="Read the Docs"></img></a>
 
 .. raw:: html
 
@@ -20,7 +20,7 @@ scpreprocess
 
 .. raw:: html
 
-    <a href="https://github.com/KrishnaswamyLab/scpreprocess/"><img src="https://img.shields.io/github/stars/KrishnaswamyLab/scpreprocess.svg?style=social&label=Stars" alt="GitHub stars"></a>
+    <a href="https://github.com/KrishnaswamyLab/scprep/"><img src="https://img.shields.io/github/stars/KrishnaswamyLab/scprep.svg?style=social&label=Stars" alt="GitHub stars"></a>
 
 Tools for building and manipulating graphs in Python.
 

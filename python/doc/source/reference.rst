@@ -4,7 +4,7 @@ Reference
 I/O
 ---
 
-.. automodule:: scpreprocess.io
+.. automodule:: scprep.io
     :members:
     :undoc-members:
     :inherited-members:
@@ -13,7 +13,7 @@ I/O
 Filtering
 ---------
 
-.. automodule:: scpreprocess.filter
+.. automodule:: scprep.filter
     :members:
     :undoc-members:
     :inherited-members:
@@ -22,7 +22,7 @@ Filtering
 Normalization
 -------------
 
-.. automodule:: scpreprocess.normalize
+.. automodule:: scprep.normalize
     :members:
     :undoc-members:
     :inherited-members:
@@ -31,7 +31,7 @@ Normalization
 Transformation
 --------------
 
-.. automodule:: scpreprocess.transform
+.. automodule:: scprep.transform
     :members:
     :undoc-members:
     :inherited-members:
@@ -40,7 +40,7 @@ Transformation
 Measurements
 ------------
 
-.. automodule:: scpreprocess.measure
+.. automodule:: scprep.measure
     :members:
     :undoc-members:
     :inherited-members:
@@ -49,7 +49,7 @@ Measurements
 Plotting
 --------
 
-.. automodule:: scpreprocess.plot
+.. automodule:: scprep.plot
     :members:
     :undoc-members:
     :inherited-members:
@@ -58,7 +58,7 @@ Plotting
 Utilities
 ---------
 
-.. automodule:: scpreprocess.utils
+.. automodule:: scprep.utils
     :members:
     :undoc-members:
     :inherited-members:

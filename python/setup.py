@@ -21,25 +21,25 @@ if sys.version_info[:2] < (2, 7) or (3, 0) <= sys.version_info[:2] < (3, 5):
     raise RuntimeError("Python version 2.7 or >=3.5 required.")
 
 version_py = os.path.join(os.path.dirname(
-    __file__), 'scpreprocess', 'version.py')
+    __file__), 'scprep', 'version.py')
 version = open(version_py).read().strip().split(
     '=')[-1].replace('"', '').strip()
 
 readme = open('README.rst').read()
 
-setup(name='scpreprocess',
+setup(name='scprep',
       version=version,
-      description='scpreprocess',
+      description='scprep',
       author='Jay Stanley and Scott Gigante, Krishnaswamy Lab, Yale University',
       author_email='jay.stanley@yale.edu',
-      packages=['scpreprocess', ],
+      packages=['scprep', ],
       license='GNU General Public License Version 2',
       install_requires=install_requires,
       extras_require={'test': test_requires},
       test_suite='nose2.collector.collector',
       long_description=readme,
-      url='https://github.com/KrishnaswamyLab/scpreprocess',
-      download_url="https://github.com/KrishnaswamyLab/scpreprocess/archive/v{}.tar.gz".format(
+      url='https://github.com/KrishnaswamyLab/scprep',
+      download_url="https://github.com/KrishnaswamyLab/scprep/archive/v{}.tar.gz".format(
           version),
       keywords=['big-data',
                 'computational-biology',
