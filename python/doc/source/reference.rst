@@ -1,28 +1,55 @@
 Reference
 =========
 
-API
+I/O
 ---
 
-.. automodule:: graphtools.api
+.. automodule:: scutils.io
     :members:
     :undoc-members:
     :inherited-members:
     :show-inheritance:
 
-Graph Classes
+Filtering
+---------
+
+.. automodule:: scutils.filter
+    :members:
+    :undoc-members:
+    :inherited-members:
+    :show-inheritance:
+
+Normalization
 -------------
 
-.. automodule:: graphtools.graphs
+.. automodule:: scutils.normalize
     :members:
     :undoc-members:
     :inherited-members:
     :show-inheritance:
 
-Base Classes
+Transformation
+--------------
+
+.. automodule:: scutils.transform
+    :members:
+    :undoc-members:
+    :inherited-members:
+    :show-inheritance:
+
+Measurements
 ------------
 
-.. automodule:: graphtools.base
+.. automodule:: scutils.measure
+    :members:
+    :undoc-members:
+    :inherited-members:
+    :show-inheritance:
+
+Plotting
+--------
+
+.. automodule:: scutils.plot
     :members:
     :undoc-members:
     :inherited-members:
@@ -31,16 +58,7 @@ Base Classes
 Utilities
 ---------
 
-.. automodule:: graphtools.utils
-    :members:
-    :undoc-members:
-    :inherited-members:
-    :show-inheritance:
-
-Logging
--------
-
-.. automodule:: graphtools.logging
+.. automodule:: scutils.utils
     :members:
     :undoc-members:
     :inherited-members:

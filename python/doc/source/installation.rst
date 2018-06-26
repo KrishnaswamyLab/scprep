@@ -4,15 +4,15 @@ Installation
 Installation with `pip`
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Install graphtools using::
+Install scutils using::
 
-       pip install --user graphtools
+       pip install --user scutils
 
 Installation from source
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 Install from source using::
 
-       git clone git://github.com/KrishnaswamyLab/graphtools.git
-       cd graphtools
+       git clone git://github.com/KrishnaswamyLab/scutils.git
+       cd scutils
        python setup.py install --user
