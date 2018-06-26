@@ -113,34 +113,28 @@ def test_mtx():
             data_dir, "gene_symbols.tsv"),
         cell_names=os.path.join(
             data_dir, "barcodes.tsv"),
-        skiprows=1,
-        usecols=range(1, 101))
-    assert np.sum(np.sum(df != mtx_df)) == 0
+        cell_axis="column")
+    assert np.sum(np.sum(df.values != mtx_df.values)) == 0
     assert np.all(df.columns == mtx_df.columns)
     assert np.all(df.index == mtx_df.index)
-    assert isinstance(mtx_df, pd.DataFrame)
-    assert not isinstance(mtx_df, pd.SparseDataFrame)
+    assert isinstance(mtx_df, pd.SparseDataFrame)
     mtx_df = scutils.io.load_mtx(
         os.path.join(data_dir, "test_10X", "matrix.mtx"),
         gene_names=df.columns,
-        cell_names=df.index)
-    assert np.sum(np.sum(df != mtx_df)) == 0
+        cell_names=df.index,
+        cell_axis="column")
+    assert np.sum(np.sum(df.values != mtx_df.values)) == 0
     assert np.all(df.columns == mtx_df.columns)
     assert np.all(df.index == mtx_df.index)
-    assert isinstance(mtx_df, pd.DataFrame)
-    assert not isinstance(mtx_df, pd.SparseDataFrame)
+    assert isinstance(mtx_df, pd.SparseDataFrame)
     mtx_df = scutils.io.load_mtx(
         os.path.join(data_dir, "test_10X", "matrix.mtx"),
         gene_names=None,
         cell_names=None,
-        sparse=True)
-    assert np.sum(np.sum(df.values != mtx_df.values)) == 0
-    assert isinstance(mtx_df, pd.SparseDataFrame)
-    mtx_df = scutils.io.load_mtx(
-        os.path.join(data_dir,
-                     "test_small_duplicate_gene_names.csv"))
-    assert 'DUPLICATE' in mtx_df.columns
-    assert 'DUPLICATE.1' in mtx_df.columns
+        sparse=False,
+        cell_axis="column")
+    assert np.sum(np.sum(df.values != mtx_df)) == 0
+    assert isinstance(mtx_df, np.ndarray)
 
 
 def test_fcs():
