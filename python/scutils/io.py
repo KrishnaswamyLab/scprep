@@ -409,10 +409,14 @@ def load_10X_zip(filename, sparse=True, gene_labels='symbol',
         else:
             dirname = files[0].strip("\\/")
             if os.path.join(dirname, "barcodes.tsv") in files[1:]:
+                print("{} not found".format(
+                    os.path.join(dirname, "barcodes.tsv")))
                 valid = False
             elif os.path.join(dirname, "genes.tsv") in files[1:]:
+                print("{} not found".format(os.path.join(dirname, "genes.tsv")))
                 valid = False
             elif os.path.join(dirname, "matrix.mtx") in files[1:]:
+                print("{} not found".format(os.path.join(dirname, "matrix.mtx")))
                 valid = False
             else:
                 valid = True
