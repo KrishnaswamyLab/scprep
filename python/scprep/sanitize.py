@@ -4,5 +4,5 @@
 from __future__ import print_function, division
 
 
-def check_numeric(data):
-    return data.astype('float')
+def check_numeric(data, copy=False):
+    return data.astype('float', copy=copy)
