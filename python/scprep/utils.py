@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import numbers
 from scipy import sparse
+import warnings
 
 
 def matrix_any(condition):
@@ -27,6 +28,8 @@ def select_cols(data, idx):
                              sparse.dia_matrix)):
             data = data.tocsr()
         data = data[:, idx]
+    if data.shape[1] == 0:
+        warnings.warn("Selecting 0 columns.", UserWarning)
     return data
 
 
@@ -39,4 +42,6 @@ def select_rows(data, idx):
                              sparse.dia_matrix)):
             data = data.tocsr()
         data = data[idx, :]
+    if data.shape[0] == 0:
+        warnings.warn("Selecting 0 rows.", UserWarning)
     return data
