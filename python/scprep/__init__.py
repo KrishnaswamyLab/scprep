@@ -8,3 +8,4 @@ import scprep.normalize
 import scprep.transform
 import scprep.measure
 import scprep.plot
+import scprep.sanitize
