@@ -7,4 +7,4 @@ fcsparser
 matplotlib
 tables
 sphinx
-sphinx-napoleon
+sphinxcontrib-napoleon
