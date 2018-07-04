@@ -17,3 +17,6 @@
   script:
     - cd python
     - python -m nose2 -v
+    - cd doc
+    - pip install -r source/requirements.txt
+    - make html
