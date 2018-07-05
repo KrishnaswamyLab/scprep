@@ -6,9 +6,6 @@
 
   sudo: required
 
-  before_install:
-    - pip install nose2 fcsparser tables matplotlib
-
   install:
     - cd python
     - python setup.py install
@@ -16,7 +13,14 @@
 
   script:
     - cd python
+    - pip install -U .[test,doc]
     - python -m nose2 -v
     - cd doc
     - pip install -r source/requirements.txt
     - make html
+    - cd ../..
+
+  after_success:
+    - cd python
+    - coveralls
+    - cd ..
