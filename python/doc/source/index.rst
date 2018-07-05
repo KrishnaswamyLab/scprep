@@ -34,3 +34,8 @@ Quick Start
 ===========
 
 TODO
+
+Help
+====
+
+If you have any questions or require assistance using scprep, please contact us at https://krishnaswamylab.org/get-help
