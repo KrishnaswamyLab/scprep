@@ -55,5 +55,5 @@ def plot_gene_set_expression(data, genes, bins=100,
         cell_sums, cutoff, percentile, required=False)
     plt.hist(cell_sums, bins=bins)
     if cutoff is not None:
-        plt.vline(cutoff, color='red')
+        plt.axvline(cutoff, color='red')
     plt.show(block=False)
