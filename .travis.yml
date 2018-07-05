@@ -14,9 +14,8 @@
   script:
     - cd python
     - pip install -U .[test,doc]
-    - python -m nose2 -v
+    - python setup.py test
     - cd doc
-    - pip install -r source/requirements.txt
     - make html
     - cd ../..
 
