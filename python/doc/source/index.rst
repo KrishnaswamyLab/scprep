@@ -16,6 +16,10 @@ scprep
 
 .. raw:: html
 
+    <a href="https://coveralls.io/github/KrishnaswamyLab/scprep?branch=master"><img src="https://coveralls.io/repos/github/KrishnaswamyLab/scprep/badge.svg?branch=master" alt="Coverage Status"></img></a>
+
+.. raw:: html
+
     <a href="https://twitter.com/KrishnaswamyLab"><img src="https://img.shields.io/twitter/follow/KrishnaswamyLab.svg?style=social&label=Follow" alt="Twitter"></a>
 
 .. raw:: html
