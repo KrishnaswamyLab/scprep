@@ -133,5 +133,3 @@ def get_gene_set(data, starts_with=None, ends_with=None, regex=None):
         regex_match = np.vectorize(lambda x: bool(regex.match(x)))
         mask = np.logical_and(mask, regex_match(data))
     return data[mask]
-
-get_gene_set(X, starts_with="D")
