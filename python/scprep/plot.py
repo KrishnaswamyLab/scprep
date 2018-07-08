@@ -8,8 +8,8 @@ except ImportError:
 from .measure import library_size, gene_set_expression, _get_percentile_cutoff
 
 
+@decorator
 def with_matplotlib(fun):
-    @decorator(fun)
     def wrapped_fun(*args, **kwargs):
         try:
             plt

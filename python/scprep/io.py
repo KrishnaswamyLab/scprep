@@ -28,8 +28,8 @@ except NameError:
     FileNotFoundError = OSError
 
 
+@decorator
 def with_fcsparser(fun):
-    @decorator(fun)
     def wrapped_fun(*args, **kwargs):
         try:
             fcsparser
@@ -41,8 +41,8 @@ def with_fcsparser(fun):
     return wrapped_fun
 
 
+@decorator
 def with_tables(fun):
-    @decorator(fun)
     def wrapped_fun(*args, **kwargs):
         try:
             tables
