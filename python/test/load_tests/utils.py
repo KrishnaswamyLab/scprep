@@ -16,16 +16,16 @@ def to_array(X):
     return X
 
 
-def all_equal(X, Y):
+def assert_all_equal(X, Y):
     X = to_array(X)
     Y = to_array(Y)
-    return np.all(X == Y)
+    np.testing.assert_array_equal(X, Y)
 
 
-def all_close(X, Y):
+def assert_all_close(X, Y, rtol=1e-05, atol=1e-08):
     X = to_array(X)
     Y = to_array(Y)
-    return np.allclose(X, Y)
+    np.testing.assert_allclose(X, Y, rtol=rtol, atol=atol)
 
 
 def check_matrix_types(X, test_fun, matrix_funs, *args, **kwargs):
@@ -68,19 +68,19 @@ def check_all_matrix_types(X, test_fun, *args, **kwargs):
     check_sparse_matrix_types(X, test_fun, *args, **kwargs)
 
 
-def check_output_equivalent(X, Y, transform, check=all_equal, **kwargs):
+def check_output_equivalent(X, Y, transform, check=assert_all_equal, **kwargs):
     try:
         Y2 = transform(X, **kwargs)
     except Exception as e:
         print("transformation failed on {}".format(type(X).__name__))
         raise(e)
-    assert check(Y, Y2), "{} failed on {}".format(
+    check(Y, Y2), "{} failed on {}".format(
         transform,
         type(X).__name__)
     return Y2
 
 
-def check_transform_equivalent(X, Y, transform, check=all_equal, **kwargs):
+def check_transform_equivalent(X, Y, transform, check=assert_all_equal, **kwargs):
     Y2 = check_output_equivalent(X, Y, transform, check=check, **kwargs)
     assert matrix_class_equivalent(X, Y2), \
         "{} produced inconsistent matrix output".format(

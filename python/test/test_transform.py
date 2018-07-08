@@ -1,9 +1,7 @@
 import numpy as np
-from scipy import sparse
-import pandas as pd
 import scprep
 from load_tests.utils import (
-    all_equal, all_close,
+    assert_all_close,
     check_all_matrix_types,
     generate_positive_sparse_matrix,
     matrix_class_equivalent,
@@ -40,7 +38,7 @@ def test_log_transform():
     check_all_matrix_types(
         X, check_transform_equivalent,
         Y=Y, transform=scprep.transform.log,
-        base=2)
+        base=2, pseudocount=5)
 
 
 def test_arcsinh_transform():
@@ -49,4 +47,4 @@ def test_arcsinh_transform():
     check_all_matrix_types(
         X, check_transform_equivalent,
         Y=Y, transform=scprep.transform.arcsinh,
-        check=all_close)
+        check=assert_all_close)

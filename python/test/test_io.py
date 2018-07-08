@@ -4,7 +4,6 @@ import pandas as pd
 import numpy as np
 import os
 import fcsparser
-import shutil
 
 # TODO: write tests for hdf5
 
@@ -16,7 +15,7 @@ else:
 
 def load_10X(**kwargs):
     return scprep.io.load_10X(os.path.join(data_dir, "test_10X"),
-                                    **kwargs)
+                              **kwargs)
 
 
 def test_10X_duplicate_gene_names():
@@ -51,8 +50,8 @@ def test_10X_zip():
         os.path.join(data_dir, "test_10X.zip"))
     assert isinstance(zip_df, pd.SparseDataFrame)
     assert np.sum(np.sum(df != zip_df)) == 0
-    assert np.all(df.columns == zip_df.columns)
-    assert np.all(df.index == zip_df.index)
+    np.testing.assert_array_equal(df.columns, zip_df.columns)
+    np.testing.assert_array_equal(df.index, zip_df.index)
 
 
 def test_csv():
@@ -62,8 +61,8 @@ def test_csv():
         gene_names=True,
         cell_names=True)
     assert np.sum(np.sum(df != csv_df)) == 0
-    assert np.all(df.columns == csv_df.columns)
-    assert np.all(df.index == csv_df.index)
+    np.testing.assert_array_equal(df.columns, csv_df.columns)
+    np.testing.assert_array_equal(df.index, csv_df.index)
     assert isinstance(csv_df, pd.DataFrame)
     assert not isinstance(csv_df, pd.SparseDataFrame)
     csv_df = scprep.io.load_csv(
@@ -75,8 +74,8 @@ def test_csv():
         skiprows=1,
         usecols=range(1, 101))
     assert np.sum(np.sum(df != csv_df)) == 0
-    assert np.all(df.columns == csv_df.columns)
-    assert np.all(df.index == csv_df.index)
+    np.testing.assert_array_equal(df.columns, csv_df.columns)
+    np.testing.assert_array_equal(df.index, csv_df.index)
     assert isinstance(csv_df, pd.DataFrame)
     assert not isinstance(csv_df, pd.SparseDataFrame)
     csv_df = scprep.io.load_csv(
@@ -86,8 +85,8 @@ def test_csv():
         skiprows=1,
         usecols=range(1, 101))
     assert np.sum(np.sum(df != csv_df)) == 0
-    assert np.all(df.columns == csv_df.columns)
-    assert np.all(df.index == csv_df.index)
+    np.testing.assert_array_equal(df.columns, csv_df.columns)
+    np.testing.assert_array_equal(df.index, csv_df.index)
     assert isinstance(csv_df, pd.DataFrame)
     assert not isinstance(csv_df, pd.SparseDataFrame)
     csv_df = scprep.io.load_csv(
@@ -116,8 +115,8 @@ def test_mtx():
             data_dir, "barcodes.tsv"),
         cell_axis="column")
     assert np.sum(np.sum(df.values != mtx_df.values)) == 0
-    assert np.all(df.columns == mtx_df.columns)
-    assert np.all(df.index == mtx_df.index)
+    np.testing.assert_array_equal(df.columns, mtx_df.columns)
+    np.testing.assert_array_equal(df.index, mtx_df.index)
     assert isinstance(mtx_df, pd.SparseDataFrame)
     mtx_df = scprep.io.load_mtx(
         os.path.join(data_dir, "test_10X", "matrix.mtx"),
@@ -125,8 +124,8 @@ def test_mtx():
         cell_names=df.index,
         cell_axis="column")
     assert np.sum(np.sum(df.values != mtx_df.values)) == 0
-    assert np.all(df.columns == mtx_df.columns)
-    assert np.all(df.index == mtx_df.index)
+    np.testing.assert_array_equal(df.columns, mtx_df.columns)
+    np.testing.assert_array_equal(df.index, mtx_df.index)
     assert isinstance(mtx_df, pd.SparseDataFrame)
     mtx_df = scprep.io.load_mtx(
         os.path.join(data_dir, "test_10X", "matrix.mtx"),
@@ -144,10 +143,11 @@ def test_fcs():
     _, X = scprep.io.load_fcs(path)
     assert 'Time' not in X.columns
     assert len(set(X.columns).difference(data.columns)) == 0
-    assert np.all(X.index == data.index)
-    assert np.all(X.values == data[X.columns].values)
+    np.testing.assert_array_equal(X.index, data.index)
+    np.testing.assert_array_equal(X.values, data[X.columns].values)
     _, X = scprep.io.load_fcs(path, sparse=True)
     assert 'Time' not in X.columns
     assert len(set(X.columns).difference(data.columns)) == 0
-    assert np.all(X.index == data.index)
-    assert np.all(X.to_dense().values == data[X.columns].values)
+    np.testing.assert_array_equal(X.index, data.index)
+    np.testing.assert_array_equal(
+        X.to_dense().values, data[X.columns].values)
