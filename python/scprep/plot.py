@@ -1,4 +1,5 @@
 import numpy as np
+from functools import wraps
 try:
     import matplotlib.pyplot as plt
 except ImportError:
@@ -8,6 +9,7 @@ from .measure import library_size, gene_set_expression, _get_percentile_cutoff
 
 
 def with_matplotlib(fun):
+    @wraps(fun)
     def wrapped_fun(*args, **kwargs):
         try:
             plt

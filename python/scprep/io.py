@@ -11,6 +11,7 @@ import os
 import zipfile
 import tempfile
 import shutil
+from functools import wraps
 try:
     import fcsparser
 except ImportError:
@@ -28,6 +29,7 @@ except NameError:
 
 
 def with_fcsparser(fun):
+    @wraps(fun)
     def wrapped_fun(*args, **kwargs):
         try:
             fcsparser
@@ -40,6 +42,7 @@ def with_fcsparser(fun):
 
 
 def with_tables(fun):
+    @wraps(fun)
     def wrapped_fun(*args, **kwargs):
         try:
             tables
