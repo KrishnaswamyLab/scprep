@@ -211,7 +211,10 @@ def load_csv(filename, cell_axis='row', delimiter=',',
 
     Returns
     -------
-    data : pd.DataFrame
+    data : array-like, shape=[n_samples, n_features]
+        If either gene or cell names are given, data will be a pd.DataFrame or
+        pd.SparseDataFrame. If no names are given, data will be a np.ndarray
+        or scipy.sparse.spmatrix
     """
     if cell_axis not in ['row', 'column', 'col']:
         raise ValueError(
@@ -285,7 +288,10 @@ def load_tsv(filename, cell_axis='row', delimiter='\t',
 
     Returns
     -------
-    data : pd.DataFrame
+    data : array-like, shape=[n_samples, n_features]
+        If either gene or cell names are given, data will be a pd.DataFrame or
+        pd.SparseDataFrame. If no names are given, data will be a np.ndarray
+        or scipy.sparse.spmatrix
     """
     return load_csv(filename, cell_axis=cell_axis, delimiter=delimiter,
                     gene_names=gene_names, cell_names=cell_names,
@@ -317,7 +323,10 @@ def load_fcs(filename, gene_names=True, cell_names=True,
 
     Returns
     -------
-    data : pd.DataFrame
+    data : array-like, shape=[n_samples, n_features]
+        If either gene or cell names are given, data will be a pd.DataFrame or
+        pd.SparseDataFrame. If no names are given, data will be a np.ndarray
+        or scipy.sparse.spmatrix
     """
     if cell_names is True:
         cell_names = None
@@ -355,7 +364,10 @@ def load_mtx(mtx_file, cell_axis='row',
 
     Returns
     -------
-    data : pd.DataFrame
+    data : array-like, shape=[n_samples, n_features]
+        If either gene or cell names are given, data will be a pd.DataFrame or
+        pd.SparseDataFrame. If no names are given, data will be a np.ndarray
+        or scipy.sparse.spmatrix
     """
     if cell_axis not in ['row', 'column', 'col']:
         raise ValueError(
@@ -442,8 +454,9 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol',
 
     Returns
     -------
-    data: pandas.DataFrame shape = (n_cell, n_genes)
-        imported data matrix
+    data: array-like, shape=[n_samples, n_features]
+        If sparse, data will be a pd.SparseDataFrame. Otherwise, data will
+        be a pd.DataFrame.
     """
 
     if gene_labels not in ['id', 'symbol', 'both']:
@@ -502,8 +515,9 @@ def load_10X_zip(filename, sparse=True, gene_labels='symbol',
 
     Returns
     -------
-    data: pandas.DataFrame shape = (n_cell, n_genes)
-        imported data matrix
+    data: array-like, shape=[n_samples, n_features]
+        If sparse, data will be a pd.SparseDataFrame. Otherwise, data will
+        be a pd.DataFrame.
     """
     tmpdir = tempfile.mkdtemp()
     with zipfile.ZipFile(filename) as handle:
@@ -555,8 +569,9 @@ def load_10x_HDF5(filename, genome, sparse=True, gene_labels='symbol',
 
     Returns
     -------
-    data: pandas.DataFrame shape = (n_cell, n_genes)
-        imported data matrix
+    data: array-like, shape=[n_samples, n_features]
+        If sparse, data will be a pd.SparseDataFrame. Otherwise, data will
+        be a pd.DataFrame.
     """
     with tables.open_file(filename, 'r') as f:
         try:
