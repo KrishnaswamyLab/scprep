@@ -1,7 +1,7 @@
 import scprep
 import pandas as pd
 import numpy as np
-from sklearn.utils.testing import assert_warns_message
+from sklearn.utils.testing import assert_warns_message, assert_raise_message
 from scipy import sparse
 import os
 from load_tests.utils import (
@@ -107,8 +107,8 @@ def test_gene_expression_filter_warning():
         "Got 0.9. Did you mean 90.0?",
         scprep.filter.filter_gene_set_expression,
         data, genes, percentile=0.90, keep_cells='below')
-    assert_warns_message(
-        UserWarning,
+    assert_raise_message(
+        ValueError,
         "Only one of `cutoff` and `percentile` should be given.",
         scprep.filter.filter_gene_set_expression,
         data, genes, percentile=0.90, cutoff=50)
