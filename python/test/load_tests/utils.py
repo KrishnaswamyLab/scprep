@@ -82,9 +82,10 @@ def check_output_equivalent(X, Y, transform, check=assert_all_equal, **kwargs):
     return Y2
 
 
-def check_transform_equivalent(X, Y, transform, check=assert_all_equal, **kwargs):
+def check_transform_equivalent(X, Y, transform, check=assert_all_equal,
+                               **kwargs):
     Y2 = check_output_equivalent(X, Y, transform, check=check, **kwargs)
-    assert matrix_class_equivalent(X, Y2),
+    assert matrix_class_equivalent(X, Y2), \
         "{} produced inconsistent matrix output".format(
             type(X).__name__)
 
@@ -107,7 +108,7 @@ def matrix_class_equivalent(X, Y):
 
 def generate_positive_sparse_matrix(shape=[500, 500], seed=42):
     np.random.seed(seed)
-    X = np.random.normal(0, 1, shape) *
+    X = np.random.normal(0, 1, shape) * \
         np.random.poisson(0.1, shape)
     X = np.abs(X)
     return X
