@@ -14,5 +14,5 @@ Installation from source
 Install from source using::
 
     git clone git://github.com/KrishnaswamyLab/scprep.git
-    cd scprep
+    cd scprep/python
     python setup.py install --user
