@@ -64,11 +64,6 @@ def log(data, pseudocount=1, base=10):
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
-
-    Returns
-    -------
-    data : array-like, shape=[n_samples, n_features]
-        Log transformed output data
     pseudocount : int, optional (default: 1)
         Pseudocount to add to values before log transform.
         If data is sparse, pseudocount must be 1 such that
@@ -76,10 +71,14 @@ def log(data, pseudocount=1, base=10):
     base : {2, 'e', 10}, optional (default: 10)
         Logarithm base.
 
+    Returns
+    -------
+    data : array-like, shape=[n_samples, n_features]
+        Log transformed output data
+
     Raises
     ------
     ValueError : if data has zero or negative values
-    ValueError : if base is not in {2, 'e', 10}
     RuntimeWarning : if data is sparse and pseudocount != 1
     """
     if matrix_any(data < 0):
