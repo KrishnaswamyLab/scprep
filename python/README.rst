@@ -29,7 +29,7 @@ Installation
 
 preprocessing is available on `pip`. Install by running the following in a terminal::
 
-        pip install --user scprep
+    pip install --user scprep
 
 Usage example
 -------------
