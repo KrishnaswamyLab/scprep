@@ -20,6 +20,8 @@ def library_size_normalize(data):
     ----------
     data : ndarray [n,p]
         2 dimensional input data array with n cells and p dimensions
+    rescale : {'mean', 'median'}, int or `None`, optional (default: 'median')
+        Rescaling strategy. TODO.
 
     Returns
     -------
@@ -79,6 +81,23 @@ def library_size_normalize(data):
 
 
 def batch_mean_center(data, sample_idx=None):
+    """Performs batch mean-centering on the data
+
+    The features of the data are all centered such that
+    the column means are zero. Each batch is centered separately.
+
+    Parameters
+    ----------
+    data : array-like, shape=[n_samples, n_features]
+        Input data
+    sample_idx : list-like, optional
+        Batch indices. If `None`, data is assumed to be a single batch
+
+    Returns
+    -------
+    data : array-like, shape=[n_samples, n_features]
+        Batch mean-centered output data.
+    """
     if sparse.issparse(data) or isinstance(data, pd.SparseDataFrame):
         raise ValueError("Cannot mean center sparse data. "
                          "Convert to dense matrix first.")

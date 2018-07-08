@@ -61,6 +61,11 @@ def _parse_header(header, n_expected, header_type="gene_names"):
         Expected header length
 
     header_type : argument name for error printing
+
+    Returns
+    -------
+    columns : list-like or `None`
+        Parsed column names.
     """
     if header is None or header is False:
         return None
@@ -168,6 +173,8 @@ def _matrix_to_data_frame(data, gene_names=None, cell_names=None, sparse=None):
 
 
 def _read_csv_sparse(filename, chunksize=1000000, fill_value=0.0, **kwargs):
+    """Read a csv file into a pandas.SparseDataFrame
+    """
     chunks = pd.read_csv(filename, chunksize=chunksize, **kwargs)
     data = pd.concat(chunk.to_sparse(fill_value=fill_value)
                      for chunk in chunks)

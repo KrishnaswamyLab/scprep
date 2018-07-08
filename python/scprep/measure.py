@@ -23,12 +23,12 @@ def gene_set_expression(data, genes):
     return library_size(gene_data)
 
 
-def _get_percentile_cutoff(data, cutoff, percentile, required=False):
+def _get_percentile_cutoff(data, cutoff=None, percentile=None, required=False):
     if percentile is not None:
         if cutoff is not None:
-            warnings.warn(
-                "Only one of `cutoff` and `percentile` should be given.",
-                UserWarning)
+            raise ValueError(
+                "Only one of `cutoff` and `percentile` should be given."
+                " Got cutoff={}, percentile={}".format(cutoff, percentile))
         if percentile < 1:
             warnings.warn(
                 "`percentile` expects values between 0 and 100. "
