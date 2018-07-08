@@ -68,9 +68,9 @@ def check_all_matrix_types(X, test_fun, *args, **kwargs):
     check_sparse_matrix_types(X, test_fun, *args, **kwargs)
 
 
-def check_output_equivalent(X, Y, transform, check=all_equal):
+def check_output_equivalent(X, Y, transform, check=all_equal, **kwargs):
     try:
-        Y2 = transform(X)
+        Y2 = transform(X, **kwargs)
     except Exception as e:
         print("transformation failed on {}".format(type(X).__name__))
         raise(e)
@@ -80,8 +80,8 @@ def check_output_equivalent(X, Y, transform, check=all_equal):
     return Y2
 
 
-def check_transform_equivalent(X, Y, transform, check=all_equal):
-    Y2 = check_output_equivalent(X, Y, transform, check=check)
+def check_transform_equivalent(X, Y, transform, check=all_equal, **kwargs):
+    Y2 = check_output_equivalent(X, Y, transform, check=check, **kwargs)
     assert matrix_class_equivalent(X, Y2), \
         "{} produced inconsistent matrix output".format(
         type(X).__name__)
