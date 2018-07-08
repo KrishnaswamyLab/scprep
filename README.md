@@ -33,7 +33,8 @@ You can use `scprep` with your single cell data as follows::
     # Filter by mitochondrial expression to remove dead cells
     mt_genes = scprep.utils.get_gene_set(data, starts_with="MT")
     scprep.plot.plot_gene_set_expression(data, mt_genes, percentile=90)
-    data = scprep.filter.filter_gene_set_expression(data, mt_genes, percentile=90)
+    data = scprep.filter.filter_gene_set_expression(data, mt_genes, 
+                                                    percentile=90)
     # Library size normalize
     data = scprep.normalize.library_size_normalize(data)
     # Square root transform
