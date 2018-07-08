@@ -9,7 +9,7 @@ from .measure import library_size, gene_set_expression, _get_percentile_cutoff
 
 
 @decorator
-def with_matplotlib(fun):
+def _with_matplotlib(fun):
     def wrapped_fun(*args, **kwargs):
         try:
             plt
@@ -21,7 +21,7 @@ def with_matplotlib(fun):
     return wrapped_fun
 
 
-@with_matplotlib
+@_with_matplotlib
 def plot_library_size(data, cutoff=None, bins=100, log=True):
     """Plot the library size histogram.
 
@@ -53,7 +53,7 @@ def plot_library_size(data, cutoff=None, bins=100, log=True):
     plt.show(block=False)
 
 
-@with_matplotlib
+@_with_matplotlib
 def plot_gene_set_expression(data, genes, bins=100,
                              cutoff=None, percentile=None):
     """Plot the hsitogram of the expression of a gene set.

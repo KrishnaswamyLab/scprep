@@ -29,7 +29,7 @@ except NameError:
 
 
 @decorator
-def with_fcsparser(fun):
+def _with_fcsparser(fun):
     def wrapped_fun(*args, **kwargs):
         try:
             fcsparser
@@ -42,7 +42,7 @@ def with_fcsparser(fun):
 
 
 @decorator
-def with_tables(fun):
+def _with_tables(fun):
     def wrapped_fun(*args, **kwargs):
         try:
             tables
@@ -292,7 +292,7 @@ def load_tsv(filename, cell_axis='row', delimiter='\t',
                     sparse=sparse, **kwargs)
 
 
-@with_fcsparser
+@_with_fcsparser
 def load_fcs(filename, gene_names=True, cell_names=True,
              sparse=None,
              metadata_channels=['Time', 'Event_length', 'DNA1', 'DNA2',
@@ -531,7 +531,7 @@ def load_10X_zip(filename, sparse=True, gene_labels='symbol',
     return data
 
 
-@with_tables
+@_with_tables
 def load_10x_HDF5(filename, genome, sparse=True, gene_labels='symbol',
                   allow_duplicates=None):
     """Basic IO for HDF5 10X data produced from the 10X Cellranger pipeline.
