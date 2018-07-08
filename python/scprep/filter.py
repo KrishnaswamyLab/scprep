@@ -108,7 +108,7 @@ def filter_gene_set_expression(data, genes,
     data : array-like, shape=[n_samples, n_features]
         Input data
     genes : list-like
-        Integer columns indices or string gene names included in gene set
+        Integer column indices or string gene names included in gene set
     cutoff : float, optional (default: 2000)
         Value above or below which to remove cells. Only one of `cutoff`
         and `percentile` should be specified.

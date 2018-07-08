@@ -16,7 +16,7 @@ def test_sqrt_transform():
     Y = np.sqrt(X)
     check_all_matrix_types(
         X, check_transform_equivalent,
-        Y=Y, transform=scprep.transform.sqrt_transform)
+        Y=Y, transform=scprep.transform.sqrt)
 
 
 def test_log_transform():
@@ -24,7 +24,7 @@ def test_log_transform():
     Y = np.log(X + 1)
     check_all_matrix_types(
         X, check_transform_equivalent,
-        Y=Y, transform=scprep.transform.log_transform)
+        Y=Y, transform=scprep.transform.log)
 
 
 def test_arcsinh_transform():
@@ -32,5 +32,5 @@ def test_arcsinh_transform():
     Y = np.arcsinh(X / 5)
     check_all_matrix_types(
         X, check_transform_equivalent,
-        Y=Y, transform=scprep.transform.arcsinh_transform,
+        Y=Y, transform=scprep.transform.arcsinh,
         check=all_close)

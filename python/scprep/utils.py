@@ -6,12 +6,42 @@ import warnings
 
 
 def matrix_any(condition):
-    """np.any doesn't handle data frames
+    """Check if a condition is true anywhere in a data matrix
+
+    np.any doesn't handle matrices of type pd.DataFrame
+
+    Parameters
+    ----------
+    condition : array-like
+        Boolean matrix
+
+    Returns
+    -------
+    any : bool
+        True if condition contains any True values, False otherwise
     """
     return np.sum(np.sum(condition)) > 0
 
 
 def select_cols(data, idx):
+    """Select columns from a data matrix
+
+    Parameters
+    ----------
+    data : array-like, shape=[n_samples, n_features]
+        Input data
+    idx : list-like, shape=[m_features]
+        Integer indices or string column names to be selected
+
+    Returns
+    -------
+    data : array-like, shape=[n_samples, m_features]
+        Subsetted output data
+
+    Raises
+    ------
+    UserWarning : if no columns are selected
+    """
     if isinstance(data, pd.DataFrame):
         try:
             data = data.loc[:, idx]
@@ -34,6 +64,24 @@ def select_cols(data, idx):
 
 
 def select_rows(data, idx):
+    """Select rows from a data matrix
+
+    Parameters
+    ----------
+    data : array-like, shape=[n_samples, n_features]
+        Input data
+    idx : list-like, shape=[m_samples]
+        Integer indices or string index names to be selected
+
+    Returns
+    -------
+    data : array-like, shape=[m_samples, r_features]
+        Subsetted output data
+
+    Raises
+    ------
+    UserWarning : if no rows are selected
+    """
     if isinstance(data, pd.DataFrame):
         data = data.loc[idx]
     else:
