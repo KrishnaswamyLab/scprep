@@ -40,7 +40,9 @@ def check_matrix_types(X, test_fun, matrix_funs, *args, **kwargs):
         try:
             test_fun(Y, *args, **kwargs)
         except Exception as e:
-            raise type(e)(str(type(Y)))
+            print("{} with {} input to {}".format(
+                type(e).__name__, type(Y).__name__, test_fun.__name__))
+            raise e
 
 
 def check_dense_matrix_types(X, test_fun, *args, **kwargs):
@@ -82,9 +84,9 @@ def check_output_equivalent(X, Y, transform, check=assert_all_equal, **kwargs):
 
 def check_transform_equivalent(X, Y, transform, check=assert_all_equal, **kwargs):
     Y2 = check_output_equivalent(X, Y, transform, check=check, **kwargs)
-    assert matrix_class_equivalent(X, Y2), \
+    assert matrix_class_equivalent(X, Y2),
         "{} produced inconsistent matrix output".format(
-        type(X).__name__)
+            type(X).__name__)
 
 
 def check_transform_raises(X, transform, exception=ValueError):
@@ -105,7 +107,7 @@ def matrix_class_equivalent(X, Y):
 
 def generate_positive_sparse_matrix(shape=[500, 500], seed=42):
     np.random.seed(seed)
-    X = np.random.normal(0, 1, shape) * \
+    X = np.random.normal(0, 1, shape) *
         np.random.poisson(0.1, shape)
     X = np.abs(X)
     return X
