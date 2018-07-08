@@ -9,16 +9,14 @@ from .measure import library_size, gene_set_expression, _get_percentile_cutoff
 
 
 @decorator
-def _with_matplotlib(fun):
-    def wrapped_fun(*args, **kwargs):
-        try:
-            plt
-        except NameError:
-            raise ImportError(
-                "matplotlib not found. "
-                "Please install it with e.g. `pip install --user matplotlib`")
-        return fun(*args, **kwargs)
-    return wrapped_fun
+def _with_matplotlib(fun, *args, **kwargs):
+    try:
+        plt
+    except NameError:
+        raise ImportError(
+            "matplotlib not found. "
+            "Please install it with e.g. `pip install --user matplotlib`")
+    return fun(*args, **kwargs)
 
 
 @_with_matplotlib

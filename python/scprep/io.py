@@ -29,29 +29,25 @@ except NameError:
 
 
 @decorator
-def _with_fcsparser(fun):
-    def wrapped_fun(*args, **kwargs):
-        try:
-            fcsparser
-        except NameError:
-            raise ImportError(
-                "fcsparser not found. "
-                "Please install it with e.g. `pip install --user fcsparser`")
-        return fun(*args, **kwargs)
-    return wrapped_fun
+def _with_fcsparser(fun, *args, **kwargs):
+    try:
+        fcsparser
+    except NameError:
+        raise ImportError(
+            "fcsparser not found. "
+            "Please install it with e.g. `pip install --user fcsparser`")
+    return fun(*args, **kwargs)
 
 
 @decorator
-def _with_tables(fun):
-    def wrapped_fun(*args, **kwargs):
-        try:
-            tables
-        except NameError:
-            raise ImportError(
-                "tables not found. "
-                "Please install it with e.g. `pip install --user tables`")
-        return fun(*args, **kwargs)
-    return wrapped_fun
+def _with_tables(fun, *args, **kwargs):
+    try:
+        tables
+    except NameError:
+        raise ImportError(
+            "tables not found. "
+            "Please install it with e.g. `pip install --user tables`")
+    return fun(*args, **kwargs)
 
 
 def _parse_header(header, n_expected, header_type="gene_names"):
@@ -318,11 +314,13 @@ def load_fcs(filename, gene_names=True, cell_names=True,
     sparse : bool, optional (default: None)
         If True, loads the data as a pd.SparseDataFrame. This uses less memory
         but more CPU.
-    metadata_channels : list-like, optional (default: ['Time', 'Event_length', 'DNA1', 'DNA2', 'Cisplatin', 'beadDist', 'bead1'])
+    metadata_channels : list-like, optional, shape=[n_meta] (default: ['Time', 'Event_length', 'DNA1', 'DNA2', 'Cisplatin', 'beadDist', 'bead1'])
         Channels to be excluded from the data
 
     Returns
     -------
+    metadata : array-like, shape=[n_samples, n_meta]
+        Values from metadata channels
     data : array-like, shape=[n_samples, n_features]
         If either gene or cell names are given, data will be a pd.DataFrame or
         pd.SparseDataFrame. If no names are given, data will be a np.ndarray
