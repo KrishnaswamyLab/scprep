@@ -1,8 +1,12 @@
 import numpy as np
 import scprep
+from scipy import sparse
+import pandas as pd
+from sklearn.utils.testing import assert_warns_message
 from load_tests.utils import (
     assert_all_close,
     check_all_matrix_types,
+    check_dense_matrix_types,
     generate_positive_sparse_matrix,
     matrix_class_equivalent,
     check_transform_equivalent
@@ -35,7 +39,18 @@ def test_log_transform():
         Y=Y, transform=scprep.transform.log,
         base=2)
     Y = np.log2(X + 5)
-    check_all_matrix_types(
+    assert_warns_message(
+        RuntimeWarning,
+        "log transform on sparse data requires pseudocount=1",
+        scprep.transform.log,
+        data=sparse.csr_matrix(X), base=2, pseudocount=5)
+    assert_warns_message(
+        RuntimeWarning,
+        "log transform on sparse data requires pseudocount=1",
+        scprep.transform.log,
+        data=pd.SparseDataFrame(X, default_fill_value=0.0),
+        base=2, pseudocount=5)
+    check_dense_matrix_types(
         X, check_transform_equivalent,
         Y=Y, transform=scprep.transform.log,
         base=2, pseudocount=5)
