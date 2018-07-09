@@ -3,6 +3,7 @@ import scprep
 from scipy import sparse
 import pandas as pd
 from sklearn.utils.testing import assert_warns_message
+import warnings
 from load_tests.utils import (
     assert_all_close,
     check_all_matrix_types,
@@ -68,8 +69,10 @@ def test_arcsinh_transform():
 def test_deprecated():
     X = generate_positive_sparse_matrix()
     Y = scprep.transform.sqrt(X)
-    check_transform_equivalent(
-        X, Y=Y, transform=scprep.transform.sqrt_transform)
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=FutureWarning)
+        check_transform_equivalent(
+            X, Y=Y, transform=scprep.transform.sqrt_transform)
     assert_warns_message(
         FutureWarning,
         "scprep.transform.sqrt_transform is deprecated. Please use "
@@ -77,8 +80,10 @@ def test_deprecated():
         scprep.transform.sqrt_transform,
         data=X)
     Y = scprep.transform.log(X)
-    check_transform_equivalent(
-        X, Y=Y, transform=scprep.transform.log_transform)
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=FutureWarning)
+        check_transform_equivalent(
+            X, Y=Y, transform=scprep.transform.log_transform)
     assert_warns_message(
         FutureWarning,
         "scprep.transform.log_transform is deprecated. Please use "
@@ -86,8 +91,10 @@ def test_deprecated():
         scprep.transform.log_transform,
         data=X)
     Y = scprep.transform.arcsinh(X)
-    check_transform_equivalent(X,
-                               Y=Y, transform=scprep.transform.arcsinh_transform)
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=FutureWarning)
+        check_transform_equivalent(
+            X, Y=Y, transform=scprep.transform.arcsinh_transform)
     assert_warns_message(
         FutureWarning,
         "scprep.transform.arcsinh_transform is deprecated. Please use "
