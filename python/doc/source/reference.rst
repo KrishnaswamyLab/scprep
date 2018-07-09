@@ -1,8 +1,8 @@
 Reference
 =========
 
-I/O
----
+Data Input/Output
+-----------------
 
 .. automodule:: scprep.io
     :members:

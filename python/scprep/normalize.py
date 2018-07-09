@@ -87,7 +87,7 @@ def library_size_normalize(data, rescale='median'):
     if columns is not None:
         # pandas dataframe
         if sparse.issparse(data_norm):
-            data_norm = pd.SparseDataFrame(data_norm, default_fill_value=0)
+            data_norm = pd.SparseDataFrame(data_norm, default_fill_value=0.0)
         else:
             data_norm = pd.DataFrame(data_norm)
         data_norm.columns = columns

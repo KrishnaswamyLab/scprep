@@ -76,7 +76,7 @@ def select_rows(data, idx):
 
     Returns
     -------
-    data : array-like, shape=[m_samples, r_features]
+    data : array-like, shape=[m_samples, n_features]
         Subsetted output data
 
     Raises
@@ -94,6 +94,39 @@ def select_rows(data, idx):
     if data.shape[0] == 0:
         warnings.warn("Selecting 0 rows.", UserWarning)
     return data
+
+
+def _get_string_subset(data, starts_with=None, ends_with=None, regex=None):
+    """Get a subset from a string array
+
+    Parameters
+    ----------
+    data : array-like, shape=[n_samples, n_features] or [n_features]
+        Input pd.DataFrame, or list of names
+    starts_with : str or None, optional (default: None)
+        If not None, only return names that start with this prefix
+    ends_with : str or None, optional (default: None)
+        If not None, only return names that end with this suffix
+    regex : str or None, optional (default: None)
+        If not None, only return names that match this regular expression
+
+    Returns
+    -------
+    data : list-like, shape<=[n_features]
+        List of matching strings
+    """
+    mask = np.full_like(data, True, dtype=bool)
+    if starts_with is not None:
+        start_match = np.vectorize(lambda x: x.startswith(starts_with))
+        mask = np.logical_and(mask, start_match(data))
+    if ends_with is not None:
+        end_match = np.vectorize(lambda x: x.endswith(ends_with))
+        mask = np.logical_and(mask, end_match(data))
+    if regex is not None:
+        regex = re.compile(regex)
+        regex_match = np.vectorize(lambda x: bool(regex.search(x)))
+        mask = np.logical_and(mask, regex_match(data))
+    return data[mask]
 
 
 def get_gene_set(data, starts_with=None, ends_with=None, regex=None):
@@ -119,17 +152,36 @@ def get_gene_set(data, starts_with=None, ends_with=None, regex=None):
         try:
             data = data.columns
         except AttributeError:
-            raise TypeError("data must be a list of gene name or a pandas "
+            raise TypeError("data must be a list of gene names or a pandas "
                             "DataFrame. Got {}".format(type(data).__name__))
-    mask = np.full_like(data, True, dtype=bool)
-    if starts_with is not None:
-        start_match = np.vectorize(lambda x: x.startswith(starts_with))
-        mask = np.logical_and(mask, start_match(data))
-    if ends_with is not None:
-        end_match = np.vectorize(lambda x: x.endswith(ends_with))
-        mask = np.logical_and(mask, end_match(data))
-    if regex is not None:
-        regex = re.compile(regex)
-        regex_match = np.vectorize(lambda x: bool(regex.match(x)))
-        mask = np.logical_and(mask, regex_match(data))
-    return data[mask]
+    return _get_string_subset(data, starts_with=starts_with,
+                              ends_with=ends_with, regex=regex)
+
+
+def get_cell_set(data, starts_with=None, ends_with=None, regex=None):
+    """Get a list of cells from data
+
+    Parameters
+    ----------
+    data : array-like, shape=[n_samples, n_features] or [n_features]
+        Input pd.DataFrame, or list of cell names
+    starts_with : str or None, optional (default: None)
+        If not None, only return cell names that start with this prefix
+    ends_with : str or None, optional (default: None)
+        If not None, only return cell names that end with this suffix
+    regex : str or None, optional (default: None)
+        If not None, only return cell names that match this regular expression
+
+    Returns
+    -------
+    cells : list-like, shape<=[n_features]
+        List of matching cells
+    """
+    if len(data.shape) > 1:
+        try:
+            data = data.index
+        except AttributeError:
+            raise TypeError("data must be a list of cell names or a pandas "
+                            "DataFrame. Got {}".format(type(data).__name__))
+    return _get_string_subset(data, starts_with=starts_with,
+                              ends_with=ends_with, regex=regex)
