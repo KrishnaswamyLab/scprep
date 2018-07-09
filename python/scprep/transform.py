@@ -129,13 +129,16 @@ def arcsinh(data, cofactor=5):
 def sqrt_transform(*args, **kwargs):
     warnings.warn("scprep.transform.sqrt_transform is deprecated. Please use "
                   "scprep.transform.sqrt in future.", FutureWarning)
+    return sqrt(*args, **kwargs)
 
 
 def log_transform(*args, **kwargs):
     warnings.warn("scprep.transform.log_transform is deprecated. Please use "
                   "scprep.transform.log in future.", FutureWarning)
+    return log(*args, **kwargs)
 
 
 def arcsinh_transform(*args, **kwargs):
     warnings.warn("scprep.transform.arcsinh_transform is deprecated. Please "
                   "use scprep.transform.arcsinh in future.", FutureWarning)
+    return arcsinh(*args, **kwargs)
