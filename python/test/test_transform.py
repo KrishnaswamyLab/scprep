@@ -68,7 +68,8 @@ def test_arcsinh_transform():
 def test_deprecated():
     X = generate_positive_sparse_matrix()
     Y = scprep.transform.sqrt(X)
-    check_transform_equivalent(Y=Y, transform=scprep.transform.sqrt_transform)
+    check_transform_equivalent(
+        X, Y=Y, transform=scprep.transform.sqrt_transform)
     assert_warns_message(
         FutureWarning,
         "scprep.transform.sqrt_transform is deprecated. Please use "
@@ -76,7 +77,8 @@ def test_deprecated():
         scprep.transform.sqrt_transform,
         data=X)
     Y = scprep.transform.log(X)
-    check_transform_equivalent(Y=Y, transform=scprep.transform.log_transform)
+    check_transform_equivalent(
+        X, Y=Y, transform=scprep.transform.log_transform)
     assert_warns_message(
         FutureWarning,
         "scprep.transform.log_transform is deprecated. Please use "
@@ -84,8 +86,8 @@ def test_deprecated():
         scprep.transform.log_transform,
         data=X)
     Y = scprep.transform.arcsinh(X)
-    check_transform_equivalent(
-        Y=Y, transform=scprep.transform.arcsinh_transform)
+    check_transform_equivalent(X,
+                               Y=Y, transform=scprep.transform.arcsinh_transform)
     assert_warns_message(
         FutureWarning,
         "scprep.transform.arcsinh_transform is deprecated. Please use "
