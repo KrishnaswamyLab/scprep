@@ -76,7 +76,7 @@ def select_rows(data, idx):
 
     Returns
     -------
-    data : array-like, shape=[m_samples, r_features]
+    data : array-like, shape=[m_samples, n_features]
         Subsetted output data
 
     Raises
