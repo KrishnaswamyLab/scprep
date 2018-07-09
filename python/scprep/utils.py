@@ -124,7 +124,7 @@ def _get_string_subset(data, starts_with=None, ends_with=None, regex=None):
         mask = np.logical_and(mask, end_match(data))
     if regex is not None:
         regex = re.compile(regex)
-        regex_match = np.vectorize(lambda x: bool(regex.match(x)))
+        regex_match = np.vectorize(lambda x: bool(regex.search(x)))
         mask = np.logical_and(mask, regex_match(data))
     return data[mask]
 
