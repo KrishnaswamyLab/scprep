@@ -40,14 +40,14 @@ def test_get_gene_set():
 
 def test_get_cell_set():
     X = load_10X()
-    cell_idx = np.argwhere([g.startswith("A") for g in X.columns]).flatten()
-    cell_names = X.columns[cell_idx]
+    cell_idx = np.argwhere([g.startswith("A") for g in X.index]).flatten()
+    cell_names = X.index[cell_idx]
     assert np.all(scprep.utils.get_cell_set(X, starts_with="A") == cell_names)
     assert np.all(scprep.utils.get_cell_set(X, regex="^A") == cell_names)
     assert np.all(scprep.utils.get_cell_set(
-        X.columns, regex="^A") == cell_names)
-    cell_idx = np.argwhere([g.endswith("G-1") for g in X.columns]).flatten()
-    cell_names = X.columns[cell_idx]
+        X.index, regex="^A") == cell_names)
+    cell_idx = np.argwhere([g.endswith("G-1") for g in X.index]).flatten()
+    cell_names = X.index[cell_idx]
     assert np.all(scprep.utils.get_cell_set(X, ends_with="G-1") == cell_names)
     assert np.all(scprep.utils.get_cell_set(X, regex="G\\-1$") == cell_names)
     assert_raise_message(
