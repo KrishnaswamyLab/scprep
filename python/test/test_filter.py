@@ -61,6 +61,16 @@ def test_remove_empty_genes_sparse():
         Y=sanitized_data, transform=scprep.filter.remove_empty_genes)
 
 
+def test_remove_rare_genes():
+    data = load_10X(sparse=False)
+    sanitized_data = scprep.filter.remove_rare_genes(data)
+    assert sanitized_data.shape[0] == data.shape[0]
+    assert not np.any(sanitized_data.sum(0) < 5)
+    check_all_matrix_types(
+        data, check_output_equivalent,
+        Y=sanitized_data, transform=scprep.filter.remove_rare_genes)
+
+
 def test_library_size_filter():
     data = load_10X(sparse=True)
     sanitized_data = scprep.filter.filter_library_size(data, 100)
