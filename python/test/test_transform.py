@@ -9,7 +9,6 @@ from load_tests.utils import (
     check_all_matrix_types,
     check_dense_matrix_types,
     generate_positive_sparse_matrix,
-    matrix_class_equivalent,
     check_transform_equivalent
 )
 
