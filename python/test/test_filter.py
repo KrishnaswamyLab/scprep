@@ -98,6 +98,7 @@ def test_gene_expression_filter():
             percentile=10, keep_cells='above'))
 
 
+
 def test_gene_expression_filter_warning():
     data = load_10X(sparse=True)
     genes = np.arange(10)
@@ -127,10 +128,20 @@ def test_gene_expression_filter_warning():
         scprep.filter.filter_gene_set_expression,
         data, genes, percentile=0.90, keep_cells='below')
     assert_raise_message(
+        ValueError,
+        "One of either `cutoff` or `percentile` must be given.",
+        scprep.filter.filter_gene_set_expression,
+        data, genes, cutoff=None, percentile=None)
+    assert_raise_message(
         KeyError,
         "the label [not_a_gene] is not in the [columns]",
         scprep.filter.filter_gene_set_expression,
         data, no_genes, percentile=90.0, keep_cells='below')
+    assert_warns_message(
+        UserWarning,
+        "Selecting 0 columns",
+        scprep.utils.select_cols, data, (data.sum(axis=0) < 0))
+
 
 
 
