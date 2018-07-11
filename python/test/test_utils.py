@@ -1,21 +1,7 @@
 import scprep
-import os
 from sklearn.utils.testing import assert_raise_message
 import numpy as np
-from load_tests.utils import (
-    check_all_matrix_types,
-    check_transform_equivalent
-)
-
-if os.getcwd().strip("/\\").endswith("test"):
-    data_dir = os.path.join("..", "..", "data", "test_data")
-else:
-    data_dir = os.path.join("..", "data", "test_data")
-
-
-def load_10X(**kwargs):
-    return scprep.io.load_10X(os.path.join(data_dir, "test_10X"),
-                              **kwargs)
+from load_tests.data import load_10X
 
 
 def test_get_gene_set():

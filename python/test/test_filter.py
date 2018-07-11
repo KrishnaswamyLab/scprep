@@ -3,22 +3,12 @@ import pandas as pd
 import numpy as np
 from sklearn.utils.testing import assert_warns_message, assert_raise_message
 from scipy import sparse
-import os
 from load_tests.utils import (
     check_all_matrix_types,
     check_output_equivalent,
 )
+from load_tests.data import load_10X
 from functools import partial
-
-if os.getcwd().strip("/").endswith("test"):
-    data_dir = os.path.join("..", "..", "data", "test_data")
-else:
-    data_dir = os.path.join("..", "data", "test_data")
-
-
-def load_10X(**kwargs):
-    return scprep.io.load_10X(
-        os.path.join(data_dir, "test_10X"), **kwargs)
 
 
 def test_remove_empty_cells():

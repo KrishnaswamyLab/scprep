@@ -4,18 +4,7 @@ import pandas as pd
 import numpy as np
 import os
 import fcsparser
-
-# TODO: write tests for hdf5
-
-if os.getcwd().strip("/\\").endswith("test"):
-    data_dir = os.path.join("..", "..", "data", "test_data")
-else:
-    data_dir = os.path.join("..", "data", "test_data")
-
-
-def load_10X(**kwargs):
-    return scprep.io.load_10X(os.path.join(data_dir, "test_10X"),
-                              **kwargs)
+from load_tests.data import data_dir, load_10X
 
 
 def test_10X_duplicate_gene_names():
