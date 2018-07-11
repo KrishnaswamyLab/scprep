@@ -113,7 +113,7 @@ def test_gene_expression_filter_warning():
     genes = np.arange(10)
     assert_warns_message(
         UserWarning,
-        "`percentile` expects values between 0 and 100. "
+        "`percentile` expects values between 0 and 100."
         "Got 0.9. Did you mean 90.0?",
         scprep.filter.filter_gene_set_expression,
         data, genes, percentile=0.90, keep_cells='below')
@@ -122,6 +122,12 @@ def test_gene_expression_filter_warning():
         "Only one of `cutoff` and `percentile` should be given.",
         scprep.filter.filter_gene_set_expression,
         data, genes, percentile=0.90, cutoff=50)
+    assert_raise_message(
+        ValueError,
+        "Expected `keep_cells` in ['above', 'below']."
+        "Got neither",
+        scprep.filter.filter_gene_set_expression,
+        data, genes, percentile=90.0, keep_cells='neither')
 
 
 def test_large_sparse_dataframe_library_size():

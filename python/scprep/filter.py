@@ -127,7 +127,7 @@ def filter_gene_set_expression(data, genes,
     elif keep_cells == 'below':
         keep_cells_idx = cell_sums < cutoff
     else:
-        raise ValueError("Expected `keep_cells in ['above', 'below']. "
+        raise ValueError("Expected `keep_cells` in ['above', 'below']."
                          "Got {}".format(keep_cells))
     data = select_rows(data, keep_cells_idx)
     return data
