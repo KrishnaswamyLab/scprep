@@ -118,6 +118,12 @@ def test_gene_expression_filter_warning():
         "Got neither",
         scprep.filter.filter_gene_set_expression,
         data, genes, percentile=90.0, keep_cells='neither')
+    assert_raise_message(
+        ValueError,
+        "One of either `cutoff` or `percentile` must be given.",
+        scprep.filter.filter_gene_set_expression,
+        data, genes, percentile=None, cutoff=None)
+
 
 
 def test_large_sparse_dataframe_library_size():
