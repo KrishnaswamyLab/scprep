@@ -63,6 +63,11 @@ def test_arcsinh_transform():
         X, check_transform_equivalent,
         Y=Y, transform=scprep.transform.arcsinh,
         check=assert_all_close)
+    assert_raise_message(
+        ValueError,
+        "Expected cofactor > 0 or None. "
+        "Got 0",
+        scprep.transform.arcsinh, data=X, cofactor=0)
 
 
 def test_deprecated():
@@ -110,8 +115,13 @@ def test_sqrt():
 
 
 def test_log():
-    X = np.arange(10) * -1
+    X = np.arange(10)
     assert_raise_message(
         ValueError,
         "Cannot log transform negative values",
-        scprep.transform.log, data=X)
+        scprep.transform.log, data=X*-1)
+    assert_raise_message(
+        ValueError,
+        "Expected base in [2, 'e', 10]. Got none",
+        scprep.transform.log, data=X, base='none')
+
