@@ -2,7 +2,7 @@ import numpy as np
 import scprep
 from scipy import sparse
 import pandas as pd
-from sklearn.utils.testing import assert_warns_message
+from sklearn.utils.testing import assert_warns_message, assert_raise_message
 import warnings
 from load_tests.utils import (
     assert_all_close,
@@ -98,5 +98,20 @@ def test_deprecated():
         FutureWarning,
         "scprep.transform.arcsinh_transform is deprecated. Please use "
         "scprep.transform.arcsinh in future.",
-        scprep.transform.arcsinh_transform,
-        data=X)
+        scprep.transform.arcsinh_transform, data=X)
+
+
+def test_sqrt():
+    X = np.arange(10) * -1
+    assert_raise_message(
+        ValueError,
+        "Cannot square root transform negative values",
+        scprep.transform.sqrt, data=X)
+
+
+def test_log():
+    X = np.arange(10) * -1
+    assert_raise_message(
+        ValueError,
+        "Cannot log transform negative values",
+        scprep.transform.log, data=X)
