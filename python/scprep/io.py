@@ -601,14 +601,14 @@ def load_10X_HDF5(filename, genome=None, sparse=True, gene_labels='symbol',
         if allow_duplicates is None:
             allow_duplicates = not sparse
         gene_names = _parse_10x_genes(
-            symbols=[g.decode() for g in getattr(group, 'gene_names').read()],
-            ids=[g.decode() for g in getattr(group, 'genes').read()],
+            symbols=[g.decode() for g in group.gene_names.read()],
+            ids=[g.decode() for g in group.genes.read()],
             gene_labels=gene_labels, allow_duplicates=allow_duplicates)
-        cell_names = [b.decode() for b in getattr(group, 'barcodes').read()]
-        data = getattr(group, 'data').read()
-        indices = getattr(group, 'indices').read()
-        indptr = getattr(group, 'indptr').read()
-        shape = getattr(group, 'shape').read()
+        cell_names = [b.decode() for b in group.barcodes.read()]
+        data = group.data.read()
+        indices = group.indices.read()
+        indptr = group.indptr.read()
+        shape = group.shape.read()
         data = sp.csc_matrix((data, indices, indptr), shape=shape)
         data = _matrix_to_data_frame(data.T,
                                      gene_names=gene_names,

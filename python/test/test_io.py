@@ -43,6 +43,16 @@ def test_10X_zip():
     np.testing.assert_array_equal(X.index, X_zip.index)
 
 
+def test_10X_HDF5():
+    X = data.load_10X()
+    X_hdf5 = scprep.io.load_10X_HDF5(
+        os.path.join(data.data_dir, "test_10X.h5"))
+    assert isinstance(X_hdf5, pd.SparseDataFrame)
+    assert np.sum(np.sum(X != X_hdf5)) == 0
+    np.testing.assert_array_equal(X.columns, X_hdf5.columns)
+    np.testing.assert_array_equal(X.index, X_hdf5.index)
+
+
 def test_csv_and_tsv():
     X = data.load_10X()
     filename = os.path.join(data.data_dir, "test_small.csv")
