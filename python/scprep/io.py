@@ -593,8 +593,11 @@ def load_10X_HDF5(filename, genome=None, sparse=True, gene_labels='symbol',
         try:
             group = f.get_node(f.root, genome)
         except tables.NoSuchNodeError:
+            genomes = [node._v_name for node in f.list_nodes(f.root)]
+            print_genomes = ", ".join(genomes)
             raise ValueError(
-                "Genome {} not found in {}.".format(genome, filename))
+                "Genome {} not found in {}. "
+                "Available genomes: {}".format(genome, filename, print_genomes))
         if allow_duplicates is None:
             allow_duplicates = not sparse
         gene_names = _parse_10x_genes(
