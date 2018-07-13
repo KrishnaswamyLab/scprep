@@ -2,6 +2,7 @@
 # (C) 2018 Krishnaswamy Lab GPLv2
 
 from __future__ import print_function, division
+import pandas as pd
 
 
 def check_numeric(data, dtype='float', copy=False):
@@ -25,4 +26,14 @@ def check_numeric(data, dtype='float', copy=False):
     ------
     TypeError : if `data` cannot be coerced to `dtype`
     """
-    return data.astype(dtype, copy=copy)
+    try:
+        return data.astype(dtype, copy=copy)
+    except TypeError as e:
+        if isinstance(data, pd.SparseDataFrame):
+            if not copy:
+                raise TypeError("pd.SparseDataFrame does not support "
+                                "copy=False. Please use copy=True.")
+            else:
+                return data.astype(dtype)
+        else:
+            raise e
