@@ -45,17 +45,18 @@ def test_10X_zip():
 
 def test_10X_HDF5():
     X = data.load_10X()
-    X_hdf5 = scprep.io.load_10X_HDF5(
-        os.path.join(data.data_dir, "test_10X.h5"))
+    h5_file = os.path.join(data.data_dir, "test_10X.h5")
+    X_hdf5 = scprep.io.load_10X_HDF5(h5_file)
     assert isinstance(X_hdf5, pd.SparseDataFrame)
     assert np.sum(np.sum(X != X_hdf5)) == 0
     np.testing.assert_array_equal(X.columns, X_hdf5.columns)
     np.testing.assert_array_equal(X.index, X_hdf5.index)
     assert_raise_message(
         ValueError,
-        "Genome invalid not found in test_10X.h5. Available genomes: GRCh38",
+        "Genome invalid not found in {}. "
+        "Available genomes: GRCh38".format(h5_file),
         scprep.io.load_10X_HDF5,
-        filename=os.path.join(data.data_dir, "test_10X.h5"),
+        filename=h5_file,
         genome="invalid")
 
 
