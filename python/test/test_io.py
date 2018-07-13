@@ -158,12 +158,12 @@ def test_mtx():
 def test_fcs():
     path = fcsparser.test_sample_path
     meta, data = fcsparser.parse(path)
-    _, X = scprep.io.load_fcs(path)
+    _, _, X = scprep.io.load_fcs(path)
     assert 'Time' not in X.columns
     assert len(set(X.columns).difference(data.columns)) == 0
     np.testing.assert_array_equal(X.index, data.index)
     np.testing.assert_array_equal(X.values, data[X.columns].values)
-    _, X = scprep.io.load_fcs(path, sparse=True)
+    _, _, X = scprep.io.load_fcs(path, sparse=True)
     assert 'Time' not in X.columns
     assert len(set(X.columns).difference(data.columns)) == 0
     np.testing.assert_array_equal(X.index, data.index)
