@@ -28,13 +28,13 @@ def test_check_numeric_inplace():
         "pd.SparseDataFrame does not support "
         "copy=False. Please use copy=True.",
         scprep.sanitize.check_numeric,
-        data=X, copy=True
+        data=X, copy=False
     )
 
 
 def test_check_numeric_bad_dtype():
     assert_raise_message(
         ValueError,
-        "could not convert string to float: 'hello'",
+        "could not convert string to float: ",
         scprep.sanitize.check_numeric,
         np.array(['hello', 'world']))
