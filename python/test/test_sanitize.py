@@ -21,6 +21,7 @@ def test_check_numeric_inplace():
         matrix._scipy_matrix_types +
         matrix._numpy_matrix_types +
         matrix._pandas_dense_matrix_types,
+        transform=scprep.sanitize.check_numeric,
         copy=False)
     assert_raise_message(
         TypeError,

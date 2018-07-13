@@ -138,8 +138,8 @@ def test_gene_expression_filter_warning():
         scprep.utils.select_cols, X, (X.sum(axis=0) < 0))
 
 
-def test_large_sparse_Xframe_library_size():
-    X = pd.SparseXFrame(sparse.coo_matrix((10**7, 2 * 10**4)),
-                        default_fill_value=0.0)
+def test_large_sparse_dataframe_library_size():
+    X = pd.SparseDataFrame(sparse.coo_matrix((10**7, 2 * 10**4)),
+                           default_fill_value=0.0)
     cell_sums = scprep.filter.library_size(X)
     assert cell_sums.shape[0] == X.shape[0]

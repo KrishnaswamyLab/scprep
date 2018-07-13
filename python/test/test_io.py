@@ -13,7 +13,7 @@ def test_10X_duplicate_gene_names():
         "Duplicate gene names detected! Forcing `gene_labels='id'`. "
         "Alternatively, try `gene_labels='both'`, `allow_duplicates=True`, or "
         "load the matrix with `sparse=False`",
-        scprep.io.data.load_10X,
+        scprep.io.load_10X,
         os.path.join(data.data_dir, "test_10X_duplicate_gene_names"))
 
 
@@ -35,7 +35,7 @@ def test_10X():
 
 def test_10X_zip():
     X = data.load_10X()
-    X_zip = scprep.io.data.load_10X_zip(
+    X_zip = scprep.io.load_10X_zip(
         os.path.join(data.data_dir, "test_10X.zip"))
     assert isinstance(X_zip, pd.SparseDataFrame)
     assert np.sum(np.sum(X != X_zip)) == 0
