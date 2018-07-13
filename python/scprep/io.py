@@ -298,7 +298,9 @@ def load_tsv(filename, cell_axis='row', delimiter='\t',
 def load_fcs(filename, gene_names=True, cell_names=True,
              sparse=None,
              metadata_channels=['Time', 'Event_length', 'DNA1', 'DNA2',
-                                'Cisplatin', 'beadDist', 'bead1']):
+                                'Cisplatin', 'beadDist', 'bead1'],
+             reformat_meta=True,
+             **kwargs):
     """Load a fcs file
 
     Parameters
@@ -316,10 +318,16 @@ def load_fcs(filename, gene_names=True, cell_names=True,
         but more CPU.
     metadata_channels : list-like, optional, shape=[n_meta] (default: ['Time', 'Event_length', 'DNA1', 'DNA2', 'Cisplatin', 'beadDist', 'bead1'])
         Channels to be excluded from the data
+    reformat_meta : bool, optional (default: True)
+        If true, the meta data is reformatted with the channel information
+        organized into a DataFrame and moved into the '_channels_' key
+    **kwargs : optional arguments for `fcsparser.parse`.
 
     Returns
     -------
-    metadata : array-like, shape=[n_samples, n_meta]
+    channel_metadata : dict
+        FCS metadata
+    cell_metadata : array-like, shape=[n_samples, n_meta]
         Values from metadata channels
     data : array-like, shape=[n_samples, n_features]
         If either gene or cell names are given, data will be a pd.DataFrame or
@@ -331,14 +339,15 @@ def load_fcs(filename, gene_names=True, cell_names=True,
     if gene_names is True:
         gene_names = None
     # Parse the fcs file
-    meta, data = fcsparser.parse(filename)
+    channel_metadata, data = fcsparser.parse(
+        filename, reformat_meta=reformat_meta, **kwargs)
     metadata_channels = data.columns.intersection(metadata_channels)
     data_channels = data.columns.difference(metadata_channels)
-    metadata = data[metadata_channels]
+    cell_metadata = data[metadata_channels]
     data = data[data_channels]
     data = _matrix_to_data_frame(data, gene_names=gene_names,
                                  cell_names=cell_names, sparse=sparse)
-    return metadata, data
+    return channel_metadata, cell_metadata, data
 
 
 def load_mtx(mtx_file, cell_axis='row',
