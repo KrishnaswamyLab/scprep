@@ -51,6 +51,12 @@ def test_10X_HDF5():
     assert np.sum(np.sum(X != X_hdf5)) == 0
     np.testing.assert_array_equal(X.columns, X_hdf5.columns)
     np.testing.assert_array_equal(X.index, X_hdf5.index)
+    assert_raise_message(
+        ValueError,
+        "Genome invalid not found in test_10X.h5. Available genomes: GRCh38",
+        scprep.io.load_10X_HDF5,
+        filename=os.path.join(data.data_dir, "test_10X.h5"),
+        genome="invalid")
 
 
 def test_csv_and_tsv():
