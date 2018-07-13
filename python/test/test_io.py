@@ -1,5 +1,5 @@
 import scprep
-from sklearn.utils.testing import assert_warns_message
+from sklearn.utils.testing import assert_warns_message, assert_raise_message
 import pandas as pd
 import numpy as np
 import os
@@ -43,21 +43,42 @@ def test_10X_zip():
     np.testing.assert_array_equal(df.index, zip_df.index)
 
 
-def test_csv():
+def test_csv_and_tsv():
     df = load_10X()
+    filename = os.path.join(data_dir, "test_small.csv")
     csv_df = scprep.io.load_csv(
         os.path.join(data_dir, "test_small.csv"),
-        gene_names=True,
-        cell_names=True)
+        gene_names=True, cell_names=True)
+    csv_df2 = scprep.io.load_csv(
+        os.path.join(data_dir, "test_small.csv"),
+        gene_names=True, cell_names=None, index_col=0)
+    csv_df3 = scprep.io.load_csv(
+        os.path.join(data_dir, "test_small.csv"),
+        gene_names=None, cell_names=True, header=0)
+    csv_df4 = scprep.io.load_csv(
+        os.path.join(data_dir, "test_small.csv"),
+        gene_names=True, cell_names=True, cell_axis='col')
+    tsv_df = scprep.io.load_tsv(
+        os.path.join(data_dir, "test_small.tsv"))
     assert np.sum(np.sum(df != csv_df)) == 0
+    assert np.sum(np.sum(csv_df != csv_df2)) == 0
+    assert np.sum(np.sum(csv_df != csv_df3)) == 0
+    assert np.sum(np.sum(csv_df != csv_df4.T)) == 0
+    assert np.sum(np.sum(csv_df != tsv_df)) == 0
     np.testing.assert_array_equal(df.columns, csv_df.columns)
     np.testing.assert_array_equal(df.index, csv_df.index)
+    np.testing.assert_array_equal(csv_df.columns, csv_df2.columns)
+    np.testing.assert_array_equal(csv_df.index, csv_df2.index)
+    np.testing.assert_array_equal(csv_df.columns, csv_df3.columns)
+    np.testing.assert_array_equal(csv_df.index, csv_df3.index)
+    np.testing.assert_array_equal(csv_df.columns, csv_df4.index)
+    np.testing.assert_array_equal(csv_df.index, csv_df4.columns)
     assert isinstance(csv_df, pd.DataFrame)
     assert not isinstance(csv_df, pd.SparseDataFrame)
     csv_df = scprep.io.load_csv(
         os.path.join(data_dir, "test_small.csv"),
         gene_names=os.path.join(
-            data_dir, "gene_symbols.tsv"),
+            data_dir, "gene_symbols.csv"),
         cell_names=os.path.join(
             data_dir, "barcodes.tsv"),
         skiprows=1,
@@ -92,6 +113,14 @@ def test_csv():
                      "test_small_duplicate_gene_names.csv"))
     assert 'DUPLICATE' in csv_df.columns
     assert 'DUPLICATE.1' in csv_df.columns
+    assert_raise_message(
+        ValueError,
+        "cell_axis neither not recognized. "
+        "Expected 'row' or 'column'",
+        scprep.io.load_csv, filename,
+        cell_axis='neither')
+
+
 
 
 def test_mtx():
@@ -99,7 +128,7 @@ def test_mtx():
     mtx_df = scprep.io.load_mtx(
         os.path.join(data_dir, "test_10X", "matrix.mtx"),
         gene_names=os.path.join(
-            data_dir, "gene_symbols.tsv"),
+            data_dir, "gene_symbols.csv"),
         cell_names=os.path.join(
             data_dir, "barcodes.tsv"),
         cell_axis="column")
@@ -140,3 +169,20 @@ def test_fcs():
     np.testing.assert_array_equal(X.index, data.index)
     np.testing.assert_array_equal(
         X.to_dense().values, data[X.columns].values)
+
+
+
+
+#def test_load_tsv():
+
+
+
+def test_parse_header():
+    header = np.arange(10)
+    n_expected = 5
+    assert_raise_message(
+        ValueError,
+        "Expected 5 entries in gene_names. Got 10",
+        scprep.io._parse_header, header, n_expected)
+
+

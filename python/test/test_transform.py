@@ -2,7 +2,7 @@ import numpy as np
 import scprep
 from scipy import sparse
 import pandas as pd
-from sklearn.utils.testing import assert_warns_message
+from sklearn.utils.testing import assert_warns_message, assert_raise_message
 import warnings
 from load_tests.utils import (
     assert_all_close,
@@ -63,6 +63,11 @@ def test_arcsinh_transform():
         X, check_transform_equivalent,
         Y=Y, transform=scprep.transform.arcsinh,
         check=assert_all_close)
+    assert_raise_message(
+        ValueError,
+        "Expected cofactor > 0 or None. "
+        "Got 0",
+        scprep.transform.arcsinh, data=X, cofactor=0)
 
 
 def test_deprecated():
@@ -98,5 +103,29 @@ def test_deprecated():
         FutureWarning,
         "scprep.transform.arcsinh_transform is deprecated. Please use "
         "scprep.transform.arcsinh in future.",
-        scprep.transform.arcsinh_transform,
-        data=X)
+        scprep.transform.arcsinh_transform, data=X)
+
+
+def test_sqrt_negative_value():
+    X = np.arange(10) * -1
+    assert_raise_message(
+        ValueError,
+        "Cannot square root transform negative values",
+        scprep.transform.sqrt, data=X)
+
+
+def test_log():
+    X = np.arange(10)
+    assert_raise_message(
+        ValueError,
+        "Cannot log transform negative values",
+        scprep.transform.log, data=X*-1)
+    assert_raise_message(
+        ValueError,
+        "Expected base in [2, 'e', 10]. Got 0",
+        scprep.transform.log, data=X, base=0)
+    assert_raise_message(
+        ValueError,
+        "Expected base in [2, 'e', 10]. Got none",
+        scprep.transform.log, data=X, base='none')
+
