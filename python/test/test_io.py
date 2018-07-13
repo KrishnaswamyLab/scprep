@@ -171,18 +171,18 @@ def test_fcs():
         X.to_dense().values, data[X.columns].values)
 
 
-
-
-#def test_load_tsv():
-
-
-
 def test_parse_header():
-    header = np.arange(10)
-    n_expected = 5
+    header1 = np.arange(10)
+    header2 = os.path.join(data_dir, "gene_symbols.csv")
     assert_raise_message(
         ValueError,
         "Expected 5 entries in gene_names. Got 10",
-        scprep.io._parse_header, header, n_expected)
+        scprep.io._parse_header, header1, 5)
+    assert_raise_message(
+        ValueError,
+        "Expected 50 entries in "
+        "/Users/daniel/Sync/scprep/data/test_data/gene_symbols.csv. "
+        "Got 100",
+        scprep.io._parse_header, header2, 50)
 
 
