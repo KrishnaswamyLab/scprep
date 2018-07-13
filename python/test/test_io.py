@@ -121,8 +121,6 @@ def test_csv_and_tsv():
         cell_axis='neither')
 
 
-
-
 def test_mtx():
     df = load_10X()
     mtx_df = scprep.io.load_mtx(
@@ -180,9 +178,5 @@ def test_parse_header():
         scprep.io._parse_header, header1, 5)
     assert_raise_message(
         ValueError,
-        "Expected 50 entries in "
-        "/Users/daniel/Sync/scprep/data/test_data/gene_symbols.csv. "
-        "Got 100",
+        "Expected 50 entries in {}. Got 100".format(os.path.abspath(header2)),
         scprep.io._parse_header, header2, 50)
-
-
