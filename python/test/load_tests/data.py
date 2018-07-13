@@ -1,5 +1,6 @@
 import scprep
 import os
+import numpy as np
 
 data_dir = os.getcwd().split(os.path.sep)
 while data_dir[-1] in ["load_tests", "test", "python"]:
@@ -14,3 +15,11 @@ data_dir = os.path.join(*data_dir)
 def load_10X(**kwargs):
     return scprep.io.load_10X(
         os.path.join(data_dir, "test_10X"), **kwargs)
+
+
+def generate_positive_sparse_matrix(shape=[500, 500], seed=42):
+    np.random.seed(seed)
+    X = np.random.normal(0, 1, shape) * \
+        np.random.poisson(0.1, shape)
+    X = np.abs(X)
+    return X

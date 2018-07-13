@@ -1,9 +1,7 @@
 import numpy as np
 from scipy import sparse
 import pandas as pd
-from functools import partial
 from nose.tools import assert_raises
-import warnings
 
 
 def to_array(X):
@@ -28,48 +26,6 @@ def assert_all_close(X, Y, rtol=1e-05, atol=1e-08):
     np.testing.assert_allclose(X, Y, rtol=rtol, atol=atol)
 
 
-def check_matrix_types(X, test_fun, matrix_funs, *args, **kwargs):
-    for fun in matrix_funs:
-        with warnings.catch_warnings():
-            warnings.filterwarnings(
-                "ignore",
-                category=sparse.SparseEfficiencyWarning,
-                message="Constructing a DIA matrix with [0-9]*"
-                " diagonals is inefficient")
-            Y = fun(X.copy())
-        try:
-            test_fun(Y, *args, **kwargs)
-        except Exception as e:
-            print("{} with {} input to {}".format(
-                type(e).__name__, type(Y).__name__, test_fun.__name__))
-            raise e
-
-
-def check_dense_matrix_types(X, test_fun, *args, **kwargs):
-    check_matrix_types(X, test_fun, *args, matrix_funs=[
-        np.array,
-        pd.DataFrame],
-        **kwargs)
-
-
-def check_sparse_matrix_types(X, test_fun, *args, **kwargs):
-    check_matrix_types(X, test_fun, *args, matrix_funs=[
-        sparse.csr_matrix,
-        sparse.csc_matrix,
-        sparse.bsr_matrix,
-        sparse.csc_matrix,
-        sparse.lil_matrix,
-        sparse.dok_matrix,
-        sparse.dia_matrix,
-        partial(pd.SparseDataFrame, default_fill_value=0.0)],
-        **kwargs)
-
-
-def check_all_matrix_types(X, test_fun, *args, **kwargs):
-    check_dense_matrix_types(X, test_fun, *args, **kwargs)
-    check_sparse_matrix_types(X, test_fun, *args, **kwargs)
-
-
 def check_output_equivalent(X, Y, transform, check=assert_all_equal, **kwargs):
     try:
         Y2 = transform(X, **kwargs)
@@ -80,6 +36,17 @@ def check_output_equivalent(X, Y, transform, check=assert_all_equal, **kwargs):
         transform,
         type(X).__name__)
     return Y2
+
+
+def check_output_unchanged(X, transform, check=assert_all_equal, **kwargs):
+    try:
+        Y = transform(X, **kwargs)
+    except Exception as e:
+        print("transformation failed on {}".format(type(X).__name__))
+        raise(e)
+    check(Y, X), "{} failed on {}".format(
+        transform,
+        type(X).__name__)
 
 
 def check_transform_equivalent(X, Y, transform, check=assert_all_equal,
@@ -104,11 +71,3 @@ def matrix_class_equivalent(X, Y):
     if isinstance(X, pd.SparseDataFrame):
         assert X.density == Y.density
     return True
-
-
-def generate_positive_sparse_matrix(shape=[500, 500], seed=42):
-    np.random.seed(seed)
-    X = np.random.normal(0, 1, shape) * \
-        np.random.poisson(0.1, shape)
-    X = np.abs(X)
-    return X

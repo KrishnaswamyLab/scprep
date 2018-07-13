@@ -1,11 +1,11 @@
 import scprep
 from sklearn.utils.testing import assert_raise_message
 import numpy as np
-from load_tests.data import load_10X
+from load_tests import data
 
 
 def test_get_gene_set():
-    X = load_10X()
+    X = data.load_10X()
     gene_idx = np.argwhere([g.startswith("D") for g in X.columns]).flatten()
     gene_names = X.columns[gene_idx]
     assert np.all(scprep.utils.get_gene_set(X, starts_with="D") == gene_names)
@@ -25,7 +25,7 @@ def test_get_gene_set():
 
 
 def test_get_cell_set():
-    X = load_10X()
+    X = data.load_10X()
     cell_idx = np.argwhere([g.startswith("A") for g in X.index]).flatten()
     cell_names = X.index[cell_idx]
     assert np.all(scprep.utils.get_cell_set(X, starts_with="A") == cell_names)
