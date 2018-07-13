@@ -106,7 +106,7 @@ def test_deprecated():
         scprep.transform.arcsinh_transform, data=X)
 
 
-def test_sqrt():
+def test_sqrt_negative_value():
     X = np.arange(10) * -1
     assert_raise_message(
         ValueError,
@@ -120,6 +120,10 @@ def test_log():
         ValueError,
         "Cannot log transform negative values",
         scprep.transform.log, data=X*-1)
+    assert_raise_message(
+        ValueError,
+        "Expected base in [2, 'e', 10]. Got 0",
+        scprep.transform.log, data=X, base=0)
     assert_raise_message(
         ValueError,
         "Expected base in [2, 'e', 10]. Got none",
