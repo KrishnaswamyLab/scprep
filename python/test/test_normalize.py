@@ -14,6 +14,13 @@ def test_libsize_norm():
         X, utils.check_transform_equivalent, Y=Y,
         transform=scprep.normalize.library_size_normalize,
         check=utils.assert_all_close)
+    mean = np.mean(X.sum(axis=1))
+    Y = normalize(X, 'l1') * mean
+    utils.assert_all_close(Y.sum(1), np.mean(np.sum(X, 1)))
+    matrix.check_all_matrix_types(
+        X, utils.check_transform_equivalent, Y=Y,
+        transform=scprep.normalize.library_size_normalize,
+        check=utils.assert_all_close, rescale='mean')
 
 
 def test_batch_mean_center():
