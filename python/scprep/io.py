@@ -534,14 +534,9 @@ def load_10X_zip(filename, sparse=True, gene_labels='symbol',
         else:
             dirname = files[0].strip("/")
             subdir_files = [f.split("/")[-1] for f in files]
-            if "barcodes.tsv" not in subdir_files:
-                valid = False
-            elif "genes.tsv" not in subdir_files:
-                valid = False
-            elif "matrix.mtx" not in subdir_files:
-                valid = False
-            else:
-                valid = True
+            valid = ("barcodes.tsv" in subdir_files and
+                     "genes.tsv" in subdir_files and
+                     "matrix.mtx" in subdir_files)
         if not valid:
             raise ValueError(
                 "Expected a single zipped folder containing 'matrix.mtx', "
