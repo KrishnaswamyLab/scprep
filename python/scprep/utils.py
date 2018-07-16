@@ -84,7 +84,14 @@ def select_rows(data, idx):
     UserWarning : if no rows are selected
     """
     if isinstance(data, pd.DataFrame):
-        data = data.loc[idx]
+        try:
+            data = data.loc[idx]
+        except KeyError:
+            if isinstance(idx, numbers.Integral) or \
+                    issubclass(np.array(idx).dtype.type, numbers.Integral):
+                data = data.iloc[idx]
+            else:
+                raise
     else:
         if isinstance(data, (sparse.coo_matrix,
                              sparse.bsr_matrix,
@@ -185,3 +192,71 @@ def get_cell_set(data, starts_with=None, ends_with=None, regex=None):
                             "DataFrame. Got {}".format(type(data).__name__))
     return _get_string_subset(data, starts_with=starts_with,
                               ends_with=ends_with, regex=regex)
+
+
+def combine_batches(data, batch_labels, append_to_cell_names=False):
+    """Combine data matrices from multiple batches and store a batch label
+
+    Parameters
+    ----------
+    data : list of array-like, shape=[n_batch]
+        All matrices must be of the same format and have the same number of
+        columns (or genes.)
+    batch_labels : list of `str`, shape=[n_batch]
+        List of names assigned to each batch
+    append_to_cell_names : bool, optional (default: False)
+        If input is a pandas dataframe, add the batch label corresponding to
+        each cell to its existing index (or cell name / barcode.)
+
+    Returns
+    -------
+    data : data matrix, shape=[n_samples, n_features]
+        Number of samples is the sum of numbers of samples of all batches.
+        Number of features is the same as each of the batches.
+    sample_idx : list-like, shape=[n_samples]
+        Batch labels corresponding to each sample
+    """
+    if not len(data) == len(batch_labels):
+        raise ValueError("Expected data ({}) and batch_labels ({}) to be the "
+                         "same length.".format(len(data), len(batch_labels)))
+    matrix_type = type(data[0])
+    if not issubclass(matrix_type, (np.ndarray,
+                                    pd.DataFrame,
+                                    sparse.spmatrix)):
+        raise ValueError("Expected data to contain pandas DataFrames, "
+                         "scipy sparse matrices or numpy arrays. "
+                         "Got {}".format(matrix_type.__name__))
+
+    matrix_shape = data[0].shape[1]
+    for d in data[1:]:
+        if not isinstance(d, matrix_type):
+            types = ", ".join([type(d).__name__ for d in data])
+            raise TypeError("Expected data all of the same class. "
+                            "Got {}".format(types))
+
+    if not d.shape[1] == matrix_shape:
+        shapes = ", ".join([str(d.shape[1]) for d in data])
+        raise ValueError("Expected data all with the same number of "
+                         "columns. Got {}".format(shapes))
+
+    if append_to_cell_names and not issubclass(matrix_type, pd.DataFrame):
+        warnings.warn("append_to_cell_names only valid for pd.DataFrame input."
+                      " Got {}".format(matrix_type.__name__), UserWarning)
+
+    sample_idx = np.concatenate([np.repeat(batch_labels[i], d.shape[0])
+                                 for i, d in enumerate(data)])
+    if issubclass(matrix_type, pd.DataFrame):
+        if append_to_cell_names:
+            index = np.concatenate(
+                [np.core.defchararray.add(np.array(d.index, dtype=str),
+                                          "_" + str(batch_labels[i]))
+                 for i, d in enumerate(data)])
+        data = pd.concat(data)
+        if append_to_cell_names:
+            data.index = index
+    elif issubclass(matrix_type, sparse.spmatrix):
+        data = sparse.vstack(data)
+    elif issubclass(matrix_type, np.ndarray):
+        data = np.vstack(data)
+
+    return data, sample_idx

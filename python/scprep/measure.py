@@ -73,10 +73,10 @@ def _get_percentile_cutoff(data, cutoff=None, percentile=None, required=False):
         if cutoff is not None:
             raise ValueError(
                 "Only one of `cutoff` and `percentile` should be given."
-                " Got cutoff={}, percentile={}".format(cutoff, percentile))
+                "Got cutoff={}, percentile={}".format(cutoff, percentile))
         if percentile < 1:
             warnings.warn(
-                "`percentile` expects values between 0 and 100. "
+                "`percentile` expects values between 0 and 100."
                 "Got {}. Did you mean {}?".format(percentile,
                                                   percentile * 100),
                 UserWarning)

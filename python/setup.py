@@ -12,6 +12,7 @@ install_requires = [
 ]
 
 test_requires = [
+    'nose',
     'nose2',
     'fcsparser',
     'tables',

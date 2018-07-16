@@ -1,25 +1,12 @@
 import scprep
-import os
-from sklearn.utils.testing import assert_raise_message
+from sklearn.utils.testing import assert_raise_message, assert_warns_message
 import numpy as np
-from load_tests.utils import (
-    check_all_matrix_types,
-    check_transform_equivalent
-)
-
-if os.getcwd().strip("/\\").endswith("test"):
-    data_dir = os.path.join("..", "..", "data", "test_data")
-else:
-    data_dir = os.path.join("..", "data", "test_data")
-
-
-def load_10X(**kwargs):
-    return scprep.io.load_10X(os.path.join(data_dir, "test_10X"),
-                              **kwargs)
+import pandas as pd
+from load_tests import data, matrix, utils
 
 
 def test_get_gene_set():
-    X = load_10X()
+    X = data.load_10X()
     gene_idx = np.argwhere([g.startswith("D") for g in X.columns]).flatten()
     gene_names = X.columns[gene_idx]
     assert np.all(scprep.utils.get_gene_set(X, starts_with="D") == gene_names)
@@ -39,7 +26,7 @@ def test_get_gene_set():
 
 
 def test_get_cell_set():
-    X = load_10X()
+    X = data.load_10X()
     cell_idx = np.argwhere([g.startswith("A") for g in X.index]).flatten()
     cell_names = X.index[cell_idx]
     assert np.all(scprep.utils.get_cell_set(X, starts_with="A") == cell_names)
@@ -56,3 +43,90 @@ def test_get_cell_set():
         "DataFrame. Got ndarray",
         scprep.utils.get_cell_set,
         data=X.values, regex="G\\-1$")
+
+
+def test_combine_batches():
+    X = data.load_10X()
+    Y = pd.concat([X, scprep.utils.select_rows(
+        X, np.arange(X.shape[0] // 2))])
+    Y2, sample_idx = scprep.utils.combine_batches(
+        [X, scprep.utils.select_rows(
+            X, np.arange(X.shape[0] // 2))],
+        batch_labels=[0, 1])
+    assert utils.matrix_class_equivalent(Y, Y2)
+    utils.assert_all_equal(Y, Y2)
+    assert np.all(Y.index == Y2.index)
+    assert np.all(sample_idx == np.concatenate(
+        [np.repeat(0, X.shape[0]), np.repeat(1, X.shape[0] // 2)]))
+    Y2, sample_idx = scprep.utils.combine_batches(
+        [X, scprep.utils.select_rows(
+            X, np.arange(X.shape[0] // 2))],
+        batch_labels=[0, 1],
+        append_to_cell_names=True)
+    assert np.all(Y.index == np.array([i[:-2] for i in Y2.index]))
+    assert np.all(np.core.defchararray.add(
+        "_", sample_idx.astype(str)) == np.array(
+        [i[-2:] for i in Y2.index], dtype=str))
+    transform = lambda X: scprep.utils.combine_batches(
+        [X, scprep.utils.select_rows(X, np.arange(X.shape[0] // 2))],
+        batch_labels=[0, 1])[0]
+    matrix.check_matrix_types(
+        X,
+        utils.check_transform_equivalent,
+        matrix._indexable_matrix_types,
+        Y=Y,
+        transform=transform,
+        check=utils.assert_all_equal,
+        matrix_form_unchanged=False)
+
+
+def test_combine_batches_errors():
+    X = data.load_10X()
+    assert_warns_message(
+        UserWarning,
+        "append_to_cell_names only valid for pd.DataFrame input. "
+        "Got coo_matrix",
+        scprep.utils.combine_batches,
+        [X.to_coo(), X.iloc[:X.shape[0] // 2].to_coo()],
+        batch_labels=[0, 1],
+        append_to_cell_names=True)
+    assert_raise_message(
+        TypeError,
+        "Expected data all of the same class. Got SparseDataFrame, coo_matrix",
+        scprep.utils.combine_batches,
+        [X, X.iloc[:X.shape[0] // 2].to_coo()],
+        batch_labels=[0, 1])
+    assert_raise_message(
+        ValueError,
+        "Expected data all with the same number of columns. "
+        "Got {}, {}".format(X.shape[1], X.shape[1] // 2),
+        scprep.utils.combine_batches,
+        [X, scprep.utils.select_cols(X, np.arange(X.shape[1] // 2))],
+        batch_labels=[0, 1])
+    assert_raise_message(
+        ValueError,
+        "Expected data (2) and batch_labels (1) to be the same length.",
+        scprep.utils.combine_batches,
+        [X, scprep.utils.select_rows(X, np.arange(X.shape[0] // 2))],
+        batch_labels=[0])
+    assert_raise_message(
+        ValueError,
+        "Expected data to contain pandas DataFrames, "
+        "scipy sparse matrices or numpy arrays. Got str",
+        scprep.utils.combine_batches,
+        ["hello", "world"],
+        batch_labels=[0, 1])
+
+
+def test_select_error():
+    X = data.load_10X()
+    assert_raise_message(KeyError,
+                         "the label [not_a_cell] is not in the [index]",
+                         scprep.utils.select_rows,
+                         X,
+                         'not_a_cell')
+    assert_raise_message(KeyError,
+                         "the label [not_a_gene] is not in the [columns]",
+                         scprep.utils.select_cols,
+                         X,
+                         'not_a_gene')
