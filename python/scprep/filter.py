@@ -77,7 +77,7 @@ def remove_empty_cells(data, sample_labels=None):
     return data
 
 
-def filter_library_size(data, cutoff=2000, percentile=None,
+def filter_library_size(data, cutoff=None, percentile=None,
                         keep_cells='above', sample_labels=None):
     """Remove all cells with library size below a certain value
 
@@ -88,7 +88,7 @@ def filter_library_size(data, cutoff=2000, percentile=None,
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
-    cutoff : float, optional (default: 2000)
+    cutoff : float, optional (default: None)
         Minimum library size required to retain a cell. Only one of `cutoff`
         and `percentile` should be specified.
     percentile : int, optional (Default: None)
