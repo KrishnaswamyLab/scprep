@@ -9,7 +9,6 @@ _scipy_matrix_types = [
     sparse.csr_matrix,
     sparse.csc_matrix,
     sparse.bsr_matrix,
-    sparse.csc_matrix,
     sparse.lil_matrix,
     sparse.dok_matrix,
     sparse.dia_matrix,
@@ -25,6 +24,16 @@ _pandas_dense_matrix_types = [
 
 _pandas_sparse_matrix_types = [
     partial(pd.SparseDataFrame, default_fill_value=0.0),
+]
+
+_indexable_matrix_types = [
+    sparse.csr_matrix,
+    sparse.csc_matrix,
+    sparse.lil_matrix,
+    sparse.dok_matrix,
+    np.array,
+    pd.DataFrame,
+    pd.SparseDataFrame
 ]
 
 

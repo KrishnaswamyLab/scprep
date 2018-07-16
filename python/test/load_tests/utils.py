@@ -47,13 +47,18 @@ def check_output_unchanged(X, transform, check=assert_all_equal, **kwargs):
     check(Y, X), "{} failed on {}".format(
         transform,
         type(X).__name__)
+    assert matrix_class_equivalent(X, Y), \
+        "{} produced inconsistent matrix output".format(
+            type(X).__name__)
 
 
 def check_transform_equivalent(X, Y, transform, check=assert_all_equal,
+                               matrix_form_unchanged=True,
                                **kwargs):
     Y2 = check_output_equivalent(X, Y, transform, check=check, **kwargs)
-    assert matrix_class_equivalent(X, Y2), \
-        "{} produced inconsistent matrix output".format(
+    if matrix_form_unchanged:
+        assert matrix_class_equivalent(X, Y2), \
+            "{} produced inconsistent matrix output".format(
             type(X).__name__)
 
 
