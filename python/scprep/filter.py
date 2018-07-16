@@ -51,13 +51,17 @@ def remove_rare_genes(data, cutoff=0, min_cells=5):
     return data
 
 
-def remove_empty_cells(data):
+def remove_empty_cells(data, sample_labels=None):
     """Remove all cells with zero library size
 
     Parameters
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
+    sample_labels : list-like or None, optional, shape=[n_samples] (default: None)
+        Labels associated with the rows of `data`. If provided, these
+        will be filtered such that they retain a one-to-one mapping
+        with the rows of the output data.
 
     Returns
     -------
@@ -67,10 +71,13 @@ def remove_empty_cells(data):
     cell_sums = measure.library_size(data)
     keep_cells_idx = cell_sums > 0
     data = utils.select_rows(data, keep_cells_idx)
+    if sample_labels is not None:
+        sample_labels = sample_labels[keep_cells_idx]
+        data = data, sample_labels
     return data
 
 
-def filter_library_size(data, cutoff=2000):
+def filter_library_size(data, cutoff=2000, sample_labels=None):
     """Remove all cells with library size below a certain value
 
     It is recommended to use :func:`~scprep.plot.plot_library_size` to
@@ -82,21 +89,32 @@ def filter_library_size(data, cutoff=2000):
         Input data
     cutoff : float, optional (default: 2000)
         Minimum library size required to retain a cell
+    sample_labels : list-like or None, optional, shape=[n_samples] (default: None)
+        Labels associated with the rows of `data`. If provided, these
+        will be filtered such that they retain a one-to-one mapping
+        with the rows of the output data.
 
     Returns
     -------
     data : array-like, shape=[m_samples, n_features]
         Filtered output data, where m_samples <= n_samples
+    sample_labels : list-like, shape=[m_samples]
+        Filtered sample labels, if provided
     """
     cell_sums = measure.library_size(data)
     keep_cells_idx = cell_sums > cutoff
     data = utils.select_rows(data, keep_cells_idx)
+    if sample_labels is not None:
+        sample_labels = sample_labels[keep_cells_idx]
+        data = data, sample_labels
     return data
 
 
 def filter_gene_set_expression(data, genes,
                                cutoff=None, percentile=None,
-                               keep_cells='below'):
+                               library_size_normalize=True,
+                               keep_cells='below',
+                               sample_labels=None):
     """Remove cells with total expression of a gene set below a certain value
 
     It is recommended to use :func:`~scprep.plot.plot_gene_set_expression` to
@@ -111,14 +129,22 @@ def filter_gene_set_expression(data, genes,
     cutoff : float, optional (default: 2000)
         Value above or below which to remove cells. Only one of `cutoff`
         and `percentile` should be specified.
-    percentile : int (Default: None)
+    percentile : int, optional (Default: None)
         Percentile above or below which to remove cells.
         Must be an integer between 0 and 100. Only one of `cutoff`
         and `percentile` should be specified.
-    keep_cells : {'above', 'below'}
+    library_size_normalize : bool, optional (default: True)
+        Divide gene set expression by library size
+    keep_cells : {'above', 'below'}, optional (default: 'below')
         Keep cells above or below the cutoff
+    sample_labels : list-like or None, optional, shape=[n_samples] (default: None)
+        Labels associated with the rows of `data`. If provided, these
+        will be filtered such that they retain a one-to-one mapping
+        with the rows of the output data.
     """
-    cell_sums = measure.gene_set_expression(data, genes)
+    cell_sums = measure.gene_set_expression(
+        data, genes,
+        library_size_normalize=library_size_normalize)
     cutoff = measure._get_percentile_cutoff(
         cell_sums, cutoff, percentile, required=True)
     if keep_cells == 'above':
@@ -129,4 +155,7 @@ def filter_gene_set_expression(data, genes,
         raise ValueError("Expected `keep_cells` in ['above', 'below']."
                          "Got {}".format(keep_cells))
     data = utils.select_rows(data, keep_cells_idx)
+    if sample_labels is not None:
+        sample_labels = sample_labels[keep_cells_idx]
+        data = data, sample_labels
     return data

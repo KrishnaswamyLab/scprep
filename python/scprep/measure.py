@@ -30,7 +30,7 @@ def library_size(data):
     return library_size
 
 
-def gene_set_expression(data, genes):
+def gene_set_expression(data, genes, library_size_normalize=True):
     """Measure the expression of a set of genes in each cell.
 
     Parameters
@@ -39,6 +39,8 @@ def gene_set_expression(data, genes):
         Input data
     genes : list-like, shape<=[n_features]
         Integer column indices or string gene names included in gene set
+    library_size_normalize : bool, optional (default: True)
+        Divide gene set expression by library size
 
     Returns
     -------
@@ -46,7 +48,12 @@ def gene_set_expression(data, genes):
         Sum over genes for each cell
     """
     gene_data = select_cols(data, genes)
-    return library_size(gene_data)
+    gene_set_expression = library_size(gene_data)
+    if library_size_normalize:
+        libsize = library_size(data)
+        libsize[libsize == 0] = 1
+        gene_set_expression /= libsize * np.median(np.array(libsize))
+    return gene_set_expression
 
 
 def _get_percentile_cutoff(data, cutoff=None, percentile=None, required=False):
