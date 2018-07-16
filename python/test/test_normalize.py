@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.preprocessing import normalize
+from sklearn.utils.testing import assert_warns_message, assert_raise_message
 import scprep
 from functools import partial
 from load_tests import utils, matrix, data
@@ -32,6 +33,12 @@ def test_libsize_norm():
         X, utils.check_transform_equivalent, Y=Y,
         transform=scprep.normalize.library_size_normalize,
         check=utils.assert_all_close, rescale=1)
+    assert_raise_message(
+        ValueError,
+        "Expected rescale in ['median', 'mean'], a number or `None`. "
+        "Got qwerty",
+        scprep.normalize.library_size_normalize,
+        X, rescale='qwerty')
 
 
 def test_batch_mean_center():
