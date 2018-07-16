@@ -77,7 +77,8 @@ def remove_empty_cells(data, sample_labels=None):
     return data
 
 
-def filter_library_size(data, cutoff=2000, sample_labels=None):
+def filter_library_size(data, cutoff=2000, percentile=None,
+                        keep_cells='above', sample_labels=None):
     """Remove all cells with library size below a certain value
 
     It is recommended to use :func:`~scprep.plot.plot_library_size` to
@@ -88,7 +89,14 @@ def filter_library_size(data, cutoff=2000, sample_labels=None):
     data : array-like, shape=[n_samples, n_features]
         Input data
     cutoff : float, optional (default: 2000)
-        Minimum library size required to retain a cell
+        Minimum library size required to retain a cell. Only one of `cutoff`
+        and `percentile` should be specified.
+    percentile : int, optional (Default: None)
+        Percentile above or below which to remove cells.
+        Must be an integer between 0 and 100. Only one of `cutoff`
+        and `percentile` should be specified.
+    keep_cells : {'above', 'below'}, optional (default: 'above')
+        Keep cells above or below the cutoff
     sample_labels : list-like or None, optional, shape=[n_samples] (default: None)
         Labels associated with the rows of `data`. If provided, these
         will be filtered such that they retain a one-to-one mapping
@@ -102,7 +110,15 @@ def filter_library_size(data, cutoff=2000, sample_labels=None):
         Filtered sample labels, if provided
     """
     cell_sums = measure.library_size(data)
-    keep_cells_idx = cell_sums > cutoff
+    cutoff = measure._get_percentile_cutoff(
+        cell_sums, cutoff, percentile, required=True)
+    if keep_cells == 'above':
+        keep_cells_idx = cell_sums > cutoff
+    elif keep_cells == 'below':
+        keep_cells_idx = cell_sums < cutoff
+    else:
+        raise ValueError("Expected `keep_cells` in ['above', 'below']. "
+                         "Got {}".format(keep_cells))
     data = utils.select_rows(data, keep_cells_idx)
     if sample_labels is not None:
         sample_labels = sample_labels[keep_cells_idx]
@@ -152,7 +168,7 @@ def filter_gene_set_expression(data, genes,
     elif keep_cells == 'below':
         keep_cells_idx = cell_sums < cutoff
     else:
-        raise ValueError("Expected `keep_cells` in ['above', 'below']."
+        raise ValueError("Expected `keep_cells` in ['above', 'below']. "
                          "Got {}".format(keep_cells))
     data = utils.select_rows(data, keep_cells_idx)
     if sample_labels is not None:

@@ -78,6 +78,22 @@ def test_library_size_filter():
             scprep.filter.filter_library_size, cutoff=100))
 
 
+def test_library_size_filter_below():
+    X = data.load_10X(sparse=True)
+    X_filtered = scprep.filter.filter_library_size(X, 100, keep_cells='below')
+    assert X_filtered.shape[1] == X.shape[1]
+    assert not np.any(X_filtered.sum(1) >= 100)
+
+
+def test_library_size_filter_error():
+    X = data.load_10X(sparse=True)
+    assert_raise_message(
+        ValueError,
+        "Expected `keep_cells` in ['above', 'below']. Got invalid",
+        scprep.filter.filter_library_size,
+        X, 100, keep_cells='invalid')
+
+
 def test_library_size_filter_sample_label():
     X = data.load_10X(sparse=False)
     sample_labels = pd.DataFrame(np.arange(X.shape[0]), index=X.index)
@@ -165,7 +181,7 @@ def test_gene_expression_filter_warning():
         X, genes, percentile=0.90, cutoff=50)
     assert_raise_message(
         ValueError,
-        "Expected `keep_cells` in ['above', 'below']."
+        "Expected `keep_cells` in ['above', 'below']. "
         "Got neither",
         scprep.filter.filter_gene_set_expression,
         X, genes, percentile=90.0, keep_cells='neither')
