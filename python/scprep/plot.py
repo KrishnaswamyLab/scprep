@@ -5,7 +5,7 @@ try:
 except ImportError:
     pass
 
-from .measure import library_size, gene_set_expression, _get_percentile_cutoff
+from . import measure
 
 
 @decorator
@@ -60,7 +60,7 @@ def histogram(data,
     if log == 'y' or log is True:
         plt.yscale('log')
 
-    cutoff = _get_percentile_cutoff(
+    cutoff = measure._get_percentile_cutoff(
         data, cutoff, percentile, required=False)
     if cutoff is not None:
         plt.axvline(cutoff, color='red')
@@ -95,7 +95,7 @@ def plot_library_size(data,
     figsize : tuple or None, optional (default: None)
         If not None, sets the figure size (width, height)
     """
-    histogram(library_size(data),
+    histogram(measure.library_size(data),
               cutoff=cutoff, percentile=percentile,
               bins=bins, log=log, ax=ax, figsize=figsize)
 
@@ -130,6 +130,6 @@ def plot_gene_set_expression(data, genes,
     figsize : tuple or None, optional (default: None)
         If not None, sets the figure size (width, height)
     """
-    histogram(gene_set_expression(data, genes),
+    histogram(measure.gene_set_expression(data, genes),
               cutoff=cutoff, percentile=percentile,
               bins=bins, log=log, ax=ax, figsize=figsize)
