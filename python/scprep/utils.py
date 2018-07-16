@@ -249,7 +249,7 @@ def combine_batches(data, batch_labels, append_to_cell_names=False):
         if append_to_cell_names:
             index = np.concatenate(
                 [np.core.defchararray.add(np.array(d.index, dtype=str),
-                                          str(batch_labels[i]))
+                                          "_" + str(batch_labels[i]))
                  for i, d in enumerate(data)])
         data = pd.concat(data)
         if append_to_cell_names:

@@ -63,9 +63,10 @@ def test_combine_batches():
             X, np.arange(X.shape[0] // 2))],
         batch_labels=[0, 1],
         append_to_cell_names=True)
-    assert np.all(Y.index == np.array([i[:-1] for i in Y2.index]))
-    assert np.all(sample_idx.astype(str) == np.array(
-        [i[-1] for i in Y2.index], dtype=str))
+    assert np.all(Y.index == np.array([i[:-2] for i in Y2.index]))
+    assert np.all(np.core.defchararray.add(
+        "_", sample_idx.astype(str)) == np.array(
+        [i[-2:] for i in Y2.index], dtype=str))
     transform = lambda X: scprep.utils.combine_batches(
         [X, scprep.utils.select_rows(X, np.arange(X.shape[0] // 2))],
         batch_labels=[0, 1])[0]
@@ -115,3 +116,17 @@ def test_combine_batches_errors():
         scprep.utils.combine_batches,
         ["hello", "world"],
         batch_labels=[0, 1])
+
+
+def test_select_error():
+    X = data.load_10X()
+    assert_raise_message(KeyError,
+                         "the label [not_a_cell] is not in the [index]",
+                         scprep.utils.select_rows,
+                         X,
+                         'not_a_cell')
+    assert_raise_message(KeyError,
+                         "the label [not_a_gene] is not in the [columns]",
+                         scprep.utils.select_cols,
+                         X,
+                         'not_a_gene')
