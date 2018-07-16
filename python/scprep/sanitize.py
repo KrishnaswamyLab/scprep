@@ -5,7 +5,7 @@ from __future__ import print_function, division
 import pandas as pd
 
 
-def check_numeric(data, dtype='float', copy=False):
+def check_numeric(data, dtype='float', copy=None):
     """Check a matrix contains only numeric data
 
     Parameters
@@ -14,8 +14,9 @@ def check_numeric(data, dtype='float', copy=False):
         Input data
     dtype : str or `np.dtype`, optional (default: 'float')
         Data type to which to coerce the data
-    copy : bool, optional (default: False)
-        Copy the data before coercion.
+    copy : bool or None, optional (default: None)
+        Copy the data before coercion. If None, default to
+        False for all datatypes except pandas.SparseDataFrame
 
     Returns
     -------
@@ -26,6 +27,8 @@ def check_numeric(data, dtype='float', copy=False):
     ------
     TypeError : if `data` cannot be coerced to `dtype`
     """
+    if copy is None:
+        copy = isinstance(data, pd.SparseDataFrame)
     try:
         return data.astype(dtype, copy=copy)
     except TypeError as e:
