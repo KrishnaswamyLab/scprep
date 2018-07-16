@@ -213,7 +213,7 @@ def combine_batches(data, batch_labels, append_to_cell_names=False):
     data : data matrix, shape=[n_samples, n_features]
         Number of samples is the sum of numbers of samples of all batches.
         Number of features is the same as each of the batches.
-    sample_idx : list-like, shape=[n_samples]
+    sample_labels : list-like, shape=[n_samples]
         Batch labels corresponding to each sample
     """
     if not len(data) == len(batch_labels):
@@ -243,8 +243,8 @@ def combine_batches(data, batch_labels, append_to_cell_names=False):
         warnings.warn("append_to_cell_names only valid for pd.DataFrame input."
                       " Got {}".format(matrix_type.__name__), UserWarning)
 
-    sample_idx = np.concatenate([np.repeat(batch_labels[i], d.shape[0])
-                                 for i, d in enumerate(data)])
+    sample_labels = np.concatenate([np.repeat(batch_labels[i], d.shape[0])
+                                    for i, d in enumerate(data)])
     if issubclass(matrix_type, pd.DataFrame):
         if append_to_cell_names:
             index = np.concatenate(
@@ -259,4 +259,4 @@ def combine_batches(data, batch_labels, append_to_cell_names=False):
     elif issubclass(matrix_type, np.ndarray):
         data = np.vstack(data)
 
-    return data, sample_idx
+    return data, sample_labels
