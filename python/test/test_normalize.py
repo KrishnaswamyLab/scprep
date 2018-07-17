@@ -61,3 +61,16 @@ def test_batch_mean_center():
             scprep.normalize.batch_mean_center,
             sample_idx=sample_idx),
         exception=ValueError)
+    X = data.generate_positive_sparse_matrix()
+    Y = X.copy()
+    Y -= np.mean(Y, axis=0)[None, :]
+    matrix.check_dense_matrix_types(
+        X, utils.check_transform_equivalent, Y=Y,
+        transform=partial(
+            scprep.normalize.batch_mean_center))
+    matrix.check_sparse_matrix_types(
+        X, utils.check_transform_raises,
+        transform=partial(
+            scprep.normalize.batch_mean_center),
+        exception=ValueError)
+
