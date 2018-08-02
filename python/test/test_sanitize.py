@@ -28,8 +28,16 @@ def test_check_numeric_inplace():
         "pd.SparseDataFrame does not support "
         "copy=False. Please use copy=True.",
         scprep.sanitize.check_numeric,
-        data=X, copy=False
-    )
+        data=X, copy=False)
+    class TypeErrorClass(object):
+        def astype(self, dtype):
+            return
+    X = TypeErrorClass()
+    assert_raise_message(
+        TypeError,
+        "astype() got an unexpected keyword argument 'copy'",
+        scprep.sanitize.check_numeric,
+        data=X, copy=None)
 
 
 def test_check_numeric_bad_dtype():

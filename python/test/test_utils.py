@@ -49,23 +49,23 @@ def test_combine_batches():
     X = data.load_10X()
     Y = pd.concat([X, scprep.utils.select_rows(
         X, np.arange(X.shape[0] // 2))])
-    Y2, sample_idx = scprep.utils.combine_batches(
+    Y2, sample_labels = scprep.utils.combine_batches(
         [X, scprep.utils.select_rows(
             X, np.arange(X.shape[0] // 2))],
         batch_labels=[0, 1])
     assert utils.matrix_class_equivalent(Y, Y2)
     utils.assert_all_equal(Y, Y2)
     assert np.all(Y.index == Y2.index)
-    assert np.all(sample_idx == np.concatenate(
+    assert np.all(sample_labels == np.concatenate(
         [np.repeat(0, X.shape[0]), np.repeat(1, X.shape[0] // 2)]))
-    Y2, sample_idx = scprep.utils.combine_batches(
+    Y2, sample_labels = scprep.utils.combine_batches(
         [X, scprep.utils.select_rows(
             X, np.arange(X.shape[0] // 2))],
         batch_labels=[0, 1],
         append_to_cell_names=True)
     assert np.all(Y.index == np.array([i[:-2] for i in Y2.index]))
     assert np.all(np.core.defchararray.add(
-        "_", sample_idx.astype(str)) == np.array(
+        "_", sample_labels.astype(str)) == np.array(
         [i[-2:] for i in Y2.index], dtype=str))
     transform = lambda X: scprep.utils.combine_batches(
         [X, scprep.utils.select_rows(X, np.arange(X.shape[0] // 2))],
@@ -130,3 +130,26 @@ def test_select_error():
                          scprep.utils.select_cols,
                          X,
                          'not_a_gene')
+    scprep.utils.select_rows(
+        X, pd.DataFrame(np.random.choice([True, False], [X.shape[0], 1]),
+                        index=X.index))
+    assert_raise_message(ValueError,
+                         "Expected idx to be 1D. Got shape ",
+                         scprep.utils.select_rows,
+                         X,
+                         pd.DataFrame([X.index, X.index]))
+
+
+def test_toarray():
+    X = data.generate_positive_sparse_matrix(shape=(50, 50))
+
+    def test_fun(X):
+        assert isinstance(scprep.utils.toarray(X), np.ndarray)
+    matrix.check_all_matrix_types(X,
+                                  test_fun)
+    test_fun(np.matrix(X))
+    assert_raise_message(TypeError,
+                         "Expected pandas DataFrame, scipy sparse matrix or "
+                         "numpy matrix. Got ",
+                         scprep.utils.toarray,
+                         "hello")

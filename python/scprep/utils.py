@@ -6,6 +6,34 @@ import warnings
 import re
 
 
+def toarray(x):
+    """Convert an array-like to a np.ndarray
+
+    Parameters
+    ----------
+    x : array-like
+        Array-like to be converted
+
+    Returns
+    -------
+    x : np.ndarray
+    """
+    if isinstance(x, pd.SparseDataFrame):
+        x = x.to_coo().toarray()
+    elif isinstance(x, pd.DataFrame):
+        x = x.values
+    elif isinstance(x, sparse.spmatrix):
+        x = x.toarray()
+    elif isinstance(x, np.matrix):
+        x = np.array(x)
+    elif isinstance(x, np.ndarray):
+        pass
+    else:
+        raise TypeError("Expected pandas DataFrame, scipy sparse matrix or "
+                        "numpy matrix. Got {}".format(type(x)))
+    return x
+
+
 def matrix_any(condition):
     """Check if a condition is true anywhere in a data matrix
 
@@ -83,6 +111,11 @@ def select_rows(data, idx):
     ------
     UserWarning : if no rows are selected
     """
+    if isinstance(idx, pd.DataFrame):
+        if idx.shape[1] > 1:
+            raise ValueError(
+                "Expected idx to be 1D. Got shape {}".format(idx.shape))
+        idx = idx.iloc[:, 0]
     if isinstance(data, pd.DataFrame):
         try:
             data = data.loc[idx]
@@ -213,7 +246,7 @@ def combine_batches(data, batch_labels, append_to_cell_names=False):
     data : data matrix, shape=[n_samples, n_features]
         Number of samples is the sum of numbers of samples of all batches.
         Number of features is the same as each of the batches.
-    sample_idx : list-like, shape=[n_samples]
+    sample_labels : list-like, shape=[n_samples]
         Batch labels corresponding to each sample
     """
     if not len(data) == len(batch_labels):
@@ -243,8 +276,8 @@ def combine_batches(data, batch_labels, append_to_cell_names=False):
         warnings.warn("append_to_cell_names only valid for pd.DataFrame input."
                       " Got {}".format(matrix_type.__name__), UserWarning)
 
-    sample_idx = np.concatenate([np.repeat(batch_labels[i], d.shape[0])
-                                 for i, d in enumerate(data)])
+    sample_labels = np.concatenate([np.repeat(batch_labels[i], d.shape[0])
+                                    for i, d in enumerate(data)])
     if issubclass(matrix_type, pd.DataFrame):
         if append_to_cell_names:
             index = np.concatenate(
@@ -259,4 +292,4 @@ def combine_batches(data, batch_labels, append_to_cell_names=False):
     elif issubclass(matrix_type, np.ndarray):
         data = np.vstack(data)
 
-    return data, sample_idx
+    return data, sample_labels

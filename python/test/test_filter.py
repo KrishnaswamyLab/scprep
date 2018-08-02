@@ -17,6 +17,16 @@ def test_remove_empty_cells():
         Y=X_filtered, transform=scprep.filter.remove_empty_cells)
 
 
+def test_remove_empty_cells_sample_label():
+    X = data.load_10X(sparse=False)
+    sample_labels = np.arange(X.shape[0])
+    sample_labels_filt = sample_labels[X.sum(1) > 0]
+    X_filtered, sample_labels = scprep.filter.remove_empty_cells(
+        X, sample_labels=sample_labels)
+    assert X_filtered.shape[0] == len(sample_labels)
+    assert np.all(sample_labels == sample_labels_filt)
+
+
 def test_remove_empty_cells_sparse():
     X = data.load_10X(sparse=True)
     X_filtered = scprep.filter.remove_empty_cells(X)
@@ -61,18 +71,55 @@ def test_library_size_filter():
     X = data.load_10X(sparse=True)
     X_filtered = scprep.filter.filter_library_size(X, 100)
     assert X_filtered.shape[1] == X.shape[1]
-    assert not np.any(X_filtered.sum(1) < 100)
+    assert not np.any(X_filtered.sum(1) <= 100)
     matrix.check_all_matrix_types(
         X, utils.check_output_equivalent,
         Y=X_filtered, transform=partial(
             scprep.filter.filter_library_size, cutoff=100))
 
 
-def test_gene_expression_filter():
+def test_library_size_filter_below():
+    X = data.load_10X(sparse=True)
+    X_filtered = scprep.filter.filter_library_size(X, 100, keep_cells='below')
+    assert X_filtered.shape[1] == X.shape[1]
+    assert not np.any(X_filtered.sum(1) >= 100)
+
+
+def test_library_size_filter_error():
+    X = data.load_10X(sparse=True)
+    assert_raise_message(
+        ValueError,
+        "Expected `keep_cells` in ['above', 'below']. Got invalid",
+        scprep.filter.filter_library_size,
+        X, 100, keep_cells='invalid')
+
+
+def test_library_size_filter_sample_label():
+    X = data.load_10X(sparse=False)
+    sample_labels = pd.DataFrame(np.random.choice([0, 1], X.shape[0]),
+                                 index=X.index)
+    sample_labels_filt = sample_labels.loc[X.sum(1) > 100]
+    X_filtered, sample_labels_filt2 = scprep.filter.filter_library_size(
+        X, cutoff=100, sample_labels=sample_labels)
+    assert X_filtered.shape[0] == len(sample_labels_filt2)
+    assert np.all(np.all(sample_labels_filt2 == sample_labels_filt))
+    X_filtered, sample_labels_filt2 = scprep.filter.filter_library_size(
+        X, percentile=20, sample_labels=sample_labels, filter_per_sample=True)
+    for label in np.unique(sample_labels):
+        pct = np.percentile(
+            X[(sample_labels == label).iloc[:, 0]].values.sum(1), 20)
+        min_filt = np.min(
+            X_filtered.loc[(sample_labels_filt2 == label).iloc[:, 0]].values.sum(1))
+        print(min_filt, pct)
+        assert min_filt > pct
+
+
+def test_gene_expression_filter_below():
     X = data.load_10X(sparse=True)
     genes = np.arange(10)
     X_filtered = scprep.filter.filter_gene_set_expression(
-        X, genes, percentile=90, keep_cells='below')
+        X, genes, percentile=90, keep_cells='below',
+        library_size_normalize=False)
     gene_cols = np.array(X.columns)[genes]
     assert X_filtered.shape[1] == X.shape[1]
     assert np.max(np.sum(X[gene_cols], axis=1)) > np.max(
@@ -81,9 +128,17 @@ def test_gene_expression_filter():
         X, utils.check_output_equivalent,
         Y=X_filtered, transform=partial(
             scprep.filter.filter_gene_set_expression, genes=genes,
-            percentile=90, keep_cells='below'))
+            percentile=90, keep_cells='below',
+            library_size_normalize=False))
+
+
+def test_gene_expression_filter_above():
+    X = data.load_10X(sparse=True)
+    genes = np.arange(10)
+    gene_cols = np.array(X.columns)[genes]
     X_filtered = scprep.filter.filter_gene_set_expression(
-        X, genes, percentile=10, keep_cells='above')
+        X, genes, percentile=10, keep_cells='above',
+        library_size_normalize=False)
     assert X_filtered.shape[1] == X.shape[1]
     assert np.min(np.sum(X[gene_cols], axis=1)) < np.min(
         np.sum(X_filtered[gene_cols], axis=1))
@@ -91,7 +146,31 @@ def test_gene_expression_filter():
         X, utils.check_output_equivalent,
         Y=X_filtered, transform=partial(
             scprep.filter.filter_gene_set_expression, genes=genes,
-            percentile=10, keep_cells='above'))
+            percentile=10, keep_cells='above',
+            library_size_normalize=False))
+
+
+def test_gene_expression_libsize():
+    X = data.load_10X(sparse=True)
+    genes = np.arange(10)
+    X_filtered = scprep.filter.filter_gene_set_expression(
+        X, genes, percentile=10, keep_cells='above',
+        library_size_normalize=True)
+    X_libsize = scprep.normalize.library_size_normalize(X)
+    Y = scprep.filter.filter_gene_set_expression(
+        X_libsize, genes, percentile=10, keep_cells='above',
+        library_size_normalize=False)
+    assert X_filtered.shape == Y.shape
+    assert np.all(X_filtered.index == Y.index)
+
+
+def test_gene_expression_filter_sample_label():
+    X = data.load_10X(sparse=False)
+    genes = np.arange(10)
+    sample_labels = pd.DataFrame(np.arange(X.shape[0]), index=X.index)
+    X_filtered, sample_labels = scprep.filter.filter_gene_set_expression(
+        X, genes, percentile=90, sample_labels=sample_labels)
+    assert X_filtered.shape[0] == len(sample_labels)
 
 
 def test_gene_expression_filter_warning():
@@ -112,7 +191,7 @@ def test_gene_expression_filter_warning():
         X, genes, percentile=0.90, cutoff=50)
     assert_raise_message(
         ValueError,
-        "Expected `keep_cells` in ['above', 'below']."
+        "Expected `keep_cells` in ['above', 'below']. "
         "Got neither",
         scprep.filter.filter_gene_set_expression,
         X, genes, percentile=90.0, keep_cells='neither')

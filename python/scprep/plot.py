@@ -104,6 +104,7 @@ def plot_library_size(data,
 def plot_gene_set_expression(data, genes,
                              bins=100, log=False,
                              cutoff=None, percentile=None,
+                             library_size_normalize=True,
                              ax=None, figsize=None):
     """Plot the hsitogram of the expression of a gene set.
 
@@ -125,11 +126,14 @@ def plot_gene_set_expression(data, genes,
     percentile : float or `None`, optional (default: `None`)
         Percentile between 0 and 100 at which to draw a vertical line.
         Only one of `cutoff` and `percentile` may be given.
+    library_size_normalize : bool, optional (default: True)
+        Divide gene set expression by library size
     ax : `matplotlib.Axes` or None, optional (default: None)
         Axis to plot on. If None, a new axis will be created.
     figsize : tuple or None, optional (default: None)
         If not None, sets the figure size (width, height)
     """
-    histogram(measure.gene_set_expression(data, genes),
-              cutoff=cutoff, percentile=percentile,
-              bins=bins, log=log, ax=ax, figsize=figsize)
+    histogram(measure.gene_set_expression(
+        data, genes, library_size_normalize=library_size_normalize),
+        cutoff=cutoff, percentile=percentile,
+        bins=bins, log=log, ax=ax, figsize=figsize)
