@@ -150,6 +150,6 @@ def test_toarray():
     test_fun(np.matrix(X))
     assert_raise_message(TypeError,
                          "Expected pandas DataFrame, scipy sparse matrix or "
-                         "numpy matrix. Got <class 'str'>",
+                         "numpy matrix. Got ",
                          scprep.utils.toarray,
                          "hello")
