@@ -96,12 +96,22 @@ def test_library_size_filter_error():
 
 def test_library_size_filter_sample_label():
     X = data.load_10X(sparse=False)
-    sample_labels = pd.DataFrame(np.arange(X.shape[0]), index=X.index)
+    sample_labels = pd.DataFrame(np.random.choice([0, 1], X.shape[0]),
+                                 index=X.index)
     sample_labels_filt = sample_labels.loc[X.sum(1) > 100]
-    X_filtered, sample_labels = scprep.filter.filter_library_size(
+    X_filtered, sample_labels_filt2 = scprep.filter.filter_library_size(
         X, cutoff=100, sample_labels=sample_labels)
-    assert X_filtered.shape[0] == len(sample_labels)
-    assert np.all(sample_labels == sample_labels_filt)
+    assert X_filtered.shape[0] == len(sample_labels_filt2)
+    assert np.all(np.all(sample_labels_filt2 == sample_labels_filt))
+    X_filtered, sample_labels_filt2 = scprep.filter.filter_library_size(
+        X, percentile=20, sample_labels=sample_labels, filter_per_sample=True)
+    for label in np.unique(sample_labels):
+        pct = np.percentile(
+            X[(sample_labels == label).iloc[:, 0]].values.sum(1), 20)
+        min_filt = np.min(
+            X_filtered.loc[(sample_labels_filt2 == label).iloc[:, 0]].values.sum(1))
+        print(min_filt, pct)
+        assert min_filt > pct
 
 
 def test_gene_expression_filter_below():

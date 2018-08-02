@@ -2,6 +2,7 @@
 # (C) 2018 Krishnaswamy Lab GPLv2
 
 import numpy as np
+import pandas as pd
 
 from . import utils, measure
 
@@ -77,9 +78,89 @@ def remove_empty_cells(data, sample_labels=None):
     return data
 
 
+def _get_filter_idx(data, values,
+                    cutoff, percentile,
+                    keep_cells):
+    cutoff = measure._get_percentile_cutoff(
+        values, cutoff, percentile, required=True)
+    if keep_cells == 'above':
+        keep_cells_idx = values > cutoff
+    elif keep_cells == 'below':
+        keep_cells_idx = values < cutoff
+    else:
+        raise ValueError("Expected `keep_cells` in ['above', 'below']. "
+                         "Got {}".format(keep_cells))
+    return keep_cells_idx
+
+
+def filter_values(data, values,
+                  cutoff=None, percentile=None,
+                  keep_cells='above', sample_labels=None,
+                  filter_per_sample=False):
+    """Remove all cells with `values` above or below a certain threshold
+
+    It is recommended to use :func:`~scprep.plot.histogram` to
+    choose a cutoff prior to filtering.
+
+    Parameters
+    ----------
+    data : array-like, shape=[n_samples, n_features]
+        Input data
+    values : list-like, shape=[n_samples]
+        Value upon which to filter
+    cutoff : float, optional (default: None)
+        Minimum library size required to retain a cell. Only one of `cutoff`
+        and `percentile` should be specified.
+    percentile : int, optional (Default: None)
+        Percentile above or below which to remove cells.
+        Must be an integer between 0 and 100. Only one of `cutoff`
+        and `percentile` should be specified.
+    keep_cells : {'above', 'below'}, optional (default: 'above')
+        Keep cells above or below the cutoff
+    sample_labels : list-like or None, optional, shape=[n_samples] (default: None)
+        Labels associated with the rows of `data`. If provided, these
+        will be filtered such that they retain a one-to-one mapping
+        with the rows of the output data.
+    filter_per_sample : bool, optional (default: False)
+        If True, filters separately for each unique sample label. Only used
+        if `sample_labels` is not `None` and `percentile` is given.
+
+    Returns
+    -------
+    data : array-like, shape=[m_samples, n_features]
+        Filtered output data, where m_samples <= n_samples
+    sample_labels : list-like, shape=[m_samples]
+        Filtered sample labels, if provided
+    """
+    if filter_per_sample and percentile is not None and \
+            sample_labels is not None:
+        # filter separately and combine
+        sample_labels_array = utils.toarray(sample_labels).flatten()
+        keep_cells_idx = np.full_like(
+            sample_labels_array, True,
+            dtype=bool)
+        for label in np.unique(sample_labels_array):
+            sample_idx = sample_labels_array == label
+            keep_cells_idx[sample_idx] = _get_filter_idx(
+                utils.select_rows(data, sample_idx),
+                values[sample_idx],
+                cutoff, percentile, keep_cells)
+            keep_cells_idx = keep_cells_idx.flatten()
+    else:
+        keep_cells_idx = _get_filter_idx(data, values,
+                                         cutoff, percentile,
+                                         keep_cells)
+    data = utils.select_rows(data, keep_cells_idx)
+    if sample_labels is not None:
+        sample_labels = sample_labels[keep_cells_idx]
+        data = data, sample_labels
+    return data
+
+
 def filter_library_size(data, cutoff=None, percentile=None,
-                        keep_cells='above', sample_labels=None):
-    """Remove all cells with library size below a certain value
+                        keep_cells='above', sample_labels=None,
+                        filter_per_sample=False):
+    """Remove all cells with library size above or below a certain threshold
 
     It is recommended to use :func:`~scprep.plot.plot_library_size` to
     choose a cutoff prior to filtering.
@@ -101,6 +182,8 @@ def filter_library_size(data, cutoff=None, percentile=None,
         Labels associated with the rows of `data`. If provided, these
         will be filtered such that they retain a one-to-one mapping
         with the rows of the output data.
+    filter_per_sample : bool, optional (default: False)
+        If True, filters separately for each unique sample label.
 
     Returns
     -------
@@ -110,28 +193,20 @@ def filter_library_size(data, cutoff=None, percentile=None,
         Filtered sample labels, if provided
     """
     cell_sums = measure.library_size(data)
-    cutoff = measure._get_percentile_cutoff(
-        cell_sums, cutoff, percentile, required=True)
-    if keep_cells == 'above':
-        keep_cells_idx = cell_sums > cutoff
-    elif keep_cells == 'below':
-        keep_cells_idx = cell_sums < cutoff
-    else:
-        raise ValueError("Expected `keep_cells` in ['above', 'below']. "
-                         "Got {}".format(keep_cells))
-    data = utils.select_rows(data, keep_cells_idx)
-    if sample_labels is not None:
-        sample_labels = sample_labels[keep_cells_idx]
-        data = data, sample_labels
-    return data
+    return filter_values(data, cell_sums,
+                         cutoff=cutoff, percentile=percentile,
+                         keep_cells=keep_cells,
+                         sample_labels=sample_labels,
+                         filter_per_sample=filter_per_sample)
 
 
 def filter_gene_set_expression(data, genes,
                                cutoff=None, percentile=None,
                                library_size_normalize=True,
                                keep_cells='below',
-                               sample_labels=None):
-    """Remove cells with total expression of a gene set below a certain value
+                               sample_labels=None,
+                               filter_per_sample=False):
+    """Remove cells with total expression of a gene set above or below a certain threshold
 
     It is recommended to use :func:`~scprep.plot.plot_gene_set_expression` to
     choose a cutoff prior to filtering.
@@ -157,21 +232,14 @@ def filter_gene_set_expression(data, genes,
         Labels associated with the rows of `data`. If provided, these
         will be filtered such that they retain a one-to-one mapping
         with the rows of the output data.
+    filter_per_sample : bool, optional (default: False)
+        If True, filters separately for each unique sample label.
     """
     cell_sums = measure.gene_set_expression(
         data, genes,
         library_size_normalize=library_size_normalize)
-    cutoff = measure._get_percentile_cutoff(
-        cell_sums, cutoff, percentile, required=True)
-    if keep_cells == 'above':
-        keep_cells_idx = cell_sums > cutoff
-    elif keep_cells == 'below':
-        keep_cells_idx = cell_sums < cutoff
-    else:
-        raise ValueError("Expected `keep_cells` in ['above', 'below']. "
-                         "Got {}".format(keep_cells))
-    data = utils.select_rows(data, keep_cells_idx)
-    if sample_labels is not None:
-        sample_labels = sample_labels[keep_cells_idx]
-        data = data, sample_labels
-    return data
+    return filter_values(data, cell_sums,
+                         cutoff=cutoff, percentile=percentile,
+                         keep_cells=keep_cells,
+                         sample_labels=sample_labels,
+                         filter_per_sample=filter_per_sample)

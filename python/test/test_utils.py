@@ -130,3 +130,23 @@ def test_select_error():
                          scprep.utils.select_cols,
                          X,
                          'not_a_gene')
+    assert_raise_message(ValueError,
+                         "Expected idx to be 1D. Got shape ",
+                         scprep.utils.select_rows,
+                         X,
+                         pd.DataFrame([X.index, X.index]))
+
+
+def test_toarray():
+    X = data.generate_positive_sparse_matrix(shape=(50, 50))
+
+    def test_fun(X):
+        assert isinstance(scprep.utils.toarray(X), np.ndarray)
+    matrix.check_all_matrix_types(X,
+                                  test_fun)
+    test_fun(np.matrix(X))
+    assert_raise_message(TypeError,
+                         "Expected pandas DataFrame, scipy sparse matrix or "
+                         "numpy matrix. Got <class 'str'>",
+                         scprep.utils.toarray,
+                         "hello")

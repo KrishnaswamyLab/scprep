@@ -6,6 +6,34 @@ import warnings
 import re
 
 
+def toarray(x):
+    """Convert an array-like to a np.ndarray
+
+    Parameters
+    ----------
+    x : array-like
+        Array-like to be converted
+
+    Returns
+    -------
+    x : np.ndarray
+    """
+    if isinstance(x, pd.SparseDataFrame):
+        x = x.to_coo().toarray()
+    elif isinstance(x, pd.DataFrame):
+        x = x.values
+    elif isinstance(x, sparse.spmatrix):
+        x = x.toarray()
+    elif isinstance(x, np.matrix):
+        x = np.array(x)
+    elif isinstance(x, np.ndarray):
+        pass
+    else:
+        raise TypeError("Expected pandas DataFrame, scipy sparse matrix or "
+                        "numpy matrix. Got {}".format(type(x)))
+    return x
+
+
 def matrix_any(condition):
     """Check if a condition is true anywhere in a data matrix
 
@@ -83,6 +111,11 @@ def select_rows(data, idx):
     ------
     UserWarning : if no rows are selected
     """
+    if isinstance(idx, pd.DataFrame):
+        if idx.shape[1] > 1:
+            raise ValueError(
+                "Expected idx to be 1D. Got shape {}".format(idx.shape))
+        idx = idx.iloc[:, 0]
     if isinstance(data, pd.DataFrame):
         try:
             data = data.loc[idx]
