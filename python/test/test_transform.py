@@ -35,12 +35,12 @@ def test_log_transform():
     Y = np.log2(X + 5)
     assert_warns_message(
         RuntimeWarning,
-        "log transform on sparse data requires pseudocount=1",
+        "log transform on sparse data requires pseudocount = 1",
         scprep.transform.log,
         data=sparse.csr_matrix(X), base=2, pseudocount=5)
     assert_warns_message(
         RuntimeWarning,
-        "log transform on sparse data requires pseudocount=1",
+        "log transform on sparse data requires pseudocount = 1",
         scprep.transform.log,
         data=pd.SparseDataFrame(X, default_fill_value=0.0),
         base=2, pseudocount=5)
@@ -108,11 +108,11 @@ def test_sqrt_negative_value():
         scprep.transform.sqrt, data=X)
 
 
-def test_log():
+def test_log_error():
     X = np.arange(10)
     assert_raise_message(
         ValueError,
-        "Cannot log transform negative values",
+        "Required pseudocount + min(data) (-9) > 0. Got pseudocount = 1",
         scprep.transform.log, data=X * -1)
     assert_raise_message(
         ValueError,
