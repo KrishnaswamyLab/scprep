@@ -130,6 +130,9 @@ def test_select_error():
                          scprep.utils.select_cols,
                          X,
                          'not_a_gene')
+    scprep.utils.select_rows(
+        X, pd.DataFrame(np.random.choice([True, False], [X.shape[0], 1]),
+                        index=X.index))
     assert_raise_message(ValueError,
                          "Expected idx to be 1D. Got shape ",
                          scprep.utils.select_rows,
