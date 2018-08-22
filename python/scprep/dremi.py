@@ -123,11 +123,11 @@ def generate_DREMI_plots(d, mi, x, y, xb, yb, mesh_points, density, bin_density,
     # Plot raw data
     ax = axes[0]
     ax.scatter(x,y, c='k')
-    ax.set_title('Input\ndata')
+    ax.set_title('Input\ndata', fontsize=18)
     ax.set_xticks([])
     ax.set_yticks([])
-    ax.set_xlabel('Feature 1')
-    ax.set_ylabel('Feature 2')
+    ax.set_xlabel('Feature 1', fontsize=16)
+    ax.set_ylabel('Feature 2', fontsize=16)
 
     # Plot kNN density
     ax = axes[1]
@@ -139,26 +139,26 @@ def generate_DREMI_plots(d, mi, x, y, xb, yb, mesh_points, density, bin_density,
 
     ax.set_xticks([])
     ax.set_yticks([])
-    ax.set_title('kNN\nDensity')
-    ax.set_xlabel('Feature 1')
+    ax.set_title('kNN\nDensity', fontsize=18)
+    ax.set_xlabel('Feature 1', fontsize=16)
 
     # Plot joint probability
     ax = axes[2]
-    raw_density_data = np.log(bin_density)[::-1,:]
-    cg = sns.heatmap(raw_density_data, cmap='inferno', ax=ax, cbar=False)
+    raw_density_data = np.log(bin_density)
+    cg = sns.heatmap(raw_density_data.T, cmap='inferno', ax=ax, cbar=False)
     cg.set_xticks([])
     cg.set_yticks([])
-    cg.set_title('Joint Prob.\nMI=%.2f'%mi)
-    cg.set_xlabel('Feature 1')
+    cg.set_title('Joint Prob.\nMI=%.2f'%mi, fontsize=18)
+    cg.set_xlabel('Feature 1', fontsize=16)
 
     # Plot conditional probability
     ax = axes[3]
-    raw_density_data = np.log(bin_density_norm)[::-1,:]
-    cg = sns.heatmap(raw_density_data, cmap='inferno', ax=ax, cbar=False)
+    raw_density_data = np.log(bin_density_norm)
+    cg = sns.heatmap(raw_density_data.T, cmap='inferno', ax=ax, cbar=False)
     cg.set_xticks([])
     cg.set_yticks([])
-    cg.set_title('Conditional Prob.\nDREMI=%.2f'%d)
-    cg.set_xlabel('Feature 1')
+    cg.set_title('Conditional Prob.\nDREMI=%.2f'%d, fontsize=18)
+    cg.set_xlabel('Feature 1', fontsize=16)
 
     fig.subplots_adjust(wspace=-1)
     fig.tight_layout()
