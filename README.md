@@ -12,7 +12,7 @@ Tools for loading and preprocessing biological matrices in Python and MATLAB.
 
 ### Installation
 
-preprocessing is available on `pip`. Install by running the following in a terminal::
+Scprep is available on `pip`. Install by running the following in a terminal::
 
     pip install --user scprep
 
