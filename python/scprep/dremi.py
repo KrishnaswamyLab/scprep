@@ -50,8 +50,8 @@ def knnDREMI(x, y, k=10, bins=20, mesh=3, plot_data=None):
     dremi : float
         kNN condtional Density resampled estimate of mutual information"""
 
-    if not (isinstance(k, int)) and (isinstance(bins, int)) and (isinstance(mesh, int)) and
-           (k > 0) and (bins > 0) and (mesh > 0):
+    if not (isinstance(k, int)) and (isinstance(bins, int)) and (isinstance(mesh, int)) \
+           and (k > 0) and (bins > 0) and (mesh > 0):
         raise ValueError('k, bins, and mesh must all be positive ints.')
     if sparse.issparse(x) or sparse.issparse(y):
         x = x.toarray()
@@ -126,12 +126,19 @@ def generate_DREMI_plots(dremi, x, y, mi, bin_density, bin_density_norm, figsize
 
     # Plot kNN density
     ax = axes[1]
-    raw_density_data = np.log(density).reshape((n_mesh * n_bins,n_mesh * n_bins))[::-1,:]
-    cg = sns.heatmap(raw_density_data, cmap='inferno', ax=ax, cbar=False)
-    cg.set_xticks([])
-    cg.set_yticks([])
-    cg.set_title('kNN\nDensity')
-    cg.set_xlabel('Feature 1')
+    for b in yb:
+        ax.axhline(b, c='grey')
+    for b in xb:
+        ax.axvline(b, c='grey')
+        #plt.scatter(mesh_intersects[:,0], mesh_intersects[:,1])
+    ax.scatter(mesh_points[:,0], mesh_points[:,1], c=np.log(density), cmap='inferno', s=4)
+    #ax.scatter(x,y, c='k')
+
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_title('kNN\nDensity')
+    ax.set_xlabel('Feature 1')
+    ax.set_xlim(xlim); ax.set_ylim(ylim)
 
     # Plot joint probability
     ax = axes[2]

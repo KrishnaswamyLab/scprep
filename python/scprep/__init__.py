@@ -9,3 +9,4 @@ import scprep.transform
 import scprep.measure
 import scprep.plot
 import scprep.sanitize
+import scprep.dremi
