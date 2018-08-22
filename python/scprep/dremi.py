@@ -108,11 +108,11 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1, plot_data=None):
     conditional_entropy_norm = np.sum(cond_entropies * cond_sums_norm)
     dremi = marginal_entropy_norm - conditional_entropy_norm
     if plot_data is True:
-        return dremi, x, y, mi, bin_density, bin_density_norm
+        return d, mi, x, y, xb, yb, bin_density, bin_density_norm
     else:
-        return dremi
+        return d
 
-def generate_DREMI_plots(dremi, x, y, mi, bin_density, bin_density_norm, figsize=(12,3.5), filename=None):
+def generate_DREMI_plots(d, mi, x, y, xb, yb, bin_density, bin_density_norm, figsize=(12,3.5), filename=None):
     fig, axes = plt.subplots(1,4, figsize=(12,3.5))
     mpl.rcParams['font.sans-serif'] = "Arial"
     # Plot raw data
