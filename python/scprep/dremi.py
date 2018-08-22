@@ -12,7 +12,7 @@ from sklearn.neighbors import NearestNeighbors
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
-def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1, plot_data=None):
+def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1, plot_data=None, plot_filename=None):
     """Calculates k-Nearest Neighbor conditional Density Resampled Estimate of Mutual
     Information as defined in Van Dijk et al. 2018 (doi:10.1016/j.cell.2018.05.061)
 
@@ -40,10 +40,11 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1, plot_data=None):
         In each bin, density will be calculcated around (mesh ** 2) points
     n_jobs : int, optional (default: 1)
         Used for kNN calculation
-    plot_data : bool, optional
-        If True, DREMI will return three matrices: knn_density, joint_probability,
-        and conditional probability. These are useful for creating figures like those
-        seen in Fig 5C/D of van Dijk et al. 2018. (doi:10.1016/j.cell.2018.05.061)
+    plot_data : bool, optional (default())
+        If True, DREMI create plots of the data like those seen in
+        Fig 5C/D of van Dijk et al. 2018. (doi:10.1016/j.cell.2018.05.061).
+    plot_filename : str, optional (default: None)
+        If this parameter is set, DREMI will save the plots to the above file.
 
     Returns
     -------
@@ -108,11 +109,15 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1, plot_data=None):
     conditional_entropy_norm = np.sum(cond_entropies * cond_sums_norm)
     d = marginal_entropy_norm - conditional_entropy_norm
     if plot_data is True:
-        return d, mi, x, y, xb, yb, bin_density, bin_density_norm
+        generate_DREMI_plots(d, mi, x, y, xb, yb, mesh_points, density, bin_density, bin_density_norm, filename=plot_filename)
     else:
         return d
 
-def generate_DREMI_plots(d, mi, x, y, xb, yb, bin_density, bin_density_norm, figsize=(12,3.5), filename=None):
+def generate_DREMI_plots(d, mi, x, y, xb, yb, mesh_points, density, bin_density, bin_density_norm, figsize=(12,3.5), filename=None):
+    import seaborn as sns
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+
     fig, axes = plt.subplots(1,4, figsize=(12,3.5))
     mpl.rcParams['font.sans-serif'] = "Arial"
     # Plot raw data
@@ -130,15 +135,12 @@ def generate_DREMI_plots(d, mi, x, y, xb, yb, bin_density, bin_density_norm, fig
         ax.axhline(b, c='grey')
     for b in xb:
         ax.axvline(b, c='grey')
-        #plt.scatter(mesh_intersects[:,0], mesh_intersects[:,1])
     ax.scatter(mesh_points[:,0], mesh_points[:,1], c=np.log(density), cmap='inferno', s=4)
-    #ax.scatter(x,y, c='k')
 
     ax.set_xticks([])
     ax.set_yticks([])
     ax.set_title('kNN\nDensity')
     ax.set_xlabel('Feature 1')
-    ax.set_xlim(xlim); ax.set_ylim(ylim)
 
     # Plot joint probability
     ax = axes[2]
@@ -155,7 +157,7 @@ def generate_DREMI_plots(d, mi, x, y, xb, yb, bin_density, bin_density_norm, fig
     cg = sns.heatmap(raw_density_data, cmap='inferno', ax=ax, cbar=False)
     cg.set_xticks([])
     cg.set_yticks([])
-    cg.set_title('Conditional Prob.\nDREMI=%.2f'%dremi)
+    cg.set_title('Conditional Prob.\nDREMI=%.2f'%d)
     cg.set_xlabel('Feature 1')
 
     fig.subplots_adjust(wspace=-1)

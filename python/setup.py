@@ -9,6 +9,7 @@ install_requires = [
     'future',
     'pandas',
     'decorator',
+    'seaborn'
 ]
 
 test_requires = [
