@@ -12,7 +12,7 @@ from sklearn.neighbors import NearestNeighbors
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
-def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, plot_data=None):
+def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1, plot_data=None):
     """Calculates k-Nearest Neighbor conditional Density Resampled Estimate of Mutual
     Information as defined in Van Dijk et al. 2018 (doi:10.1016/j.cell.2018.05.061)
 
