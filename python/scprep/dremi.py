@@ -106,7 +106,7 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1, plot_data=None):
     marginal_entropy_norm = entropy(np.sum(bin_density_norm, axis=1))
     cond_sums_norm = np.mean(bin_density_norm)
     conditional_entropy_norm = np.sum(cond_entropies * cond_sums_norm)
-    dremi = marginal_entropy_norm - conditional_entropy_norm
+    d = marginal_entropy_norm - conditional_entropy_norm
     if plot_data is True:
         return d, mi, x, y, xb, yb, bin_density, bin_density_norm
     else:
