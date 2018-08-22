@@ -9,8 +9,7 @@ from scipy.special import entr
 from scipy import sparse
 
 from sklearn.neighbors import NearestNeighbors
-import matplotlib as mpl
-import matplotlib.pyplot as plt
+
 
 def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1, plot_data=None, plot_filename=None):
     """Calculates k-Nearest Neighbor conditional Density Resampled Estimate of Mutual
@@ -91,22 +90,23 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1, plot_data=None, plot_fil
 
     # Calculate conditional entropy
     # NB: not using thresholding here; entr(M) calcs -x*log(x) elementwise
-    bin_density_norm = bin_density / np.sum(bin_density, axis=0) # columns sum to 1
+    bin_density_norm = bin_density / np.sum(bin_density, axis=1).reshape((-1,1)) # columns sum to 1
     cond_entropies = entropy(bin_density_norm) # calc entropy of each column
 
     # Mutual information (not normalized)
-    marginal_entropy = entropy(np.sum(bin_density, axis=1)) # entropy of Y (?)
-    cond_sums = np.sum(bin_density, axis=1) # distribution of X
+    marginal_entropy = entropy(np.sum(bin_density, axis=0)) # entropy of Y
 
     # Multiply the entropy of each column by the density of each column
     # Conditional entropy is the entropy in Y that isn't exmplained by X
+    cond_sums = np.sum(bin_density, axis=1) # distribution of X
     conditional_entropy = np.sum(cond_entropies * cond_sums)
     mi = marginal_entropy - conditional_entropy
 
     # DREMI
-    marginal_entropy_norm = entropy(np.sum(bin_density_norm, axis=1))
+    marginal_entropy_norm = entropy(np.sum(bin_density_norm, axis=0))
     cond_sums_norm = np.mean(bin_density_norm)
     conditional_entropy_norm = np.sum(cond_entropies * cond_sums_norm)
+
     d = marginal_entropy_norm - conditional_entropy_norm
     if plot_data is True:
         generate_DREMI_plots(d, mi, x, y, xb, yb, mesh_points, density, bin_density, bin_density_norm, filename=plot_filename)
@@ -145,7 +145,7 @@ def generate_DREMI_plots(d, mi, x, y, xb, yb, mesh_points, density, bin_density,
     # Plot joint probability
     ax = axes[2]
     raw_density_data = np.log(bin_density)
-    cg = sns.heatmap(raw_density_data.T, cmap='inferno', ax=ax, cbar=False)
+    cg = sns.heatmap(raw_density_data.T[::-1,:], cmap='inferno', ax=ax, cbar=False)
     cg.set_xticks([])
     cg.set_yticks([])
     cg.set_title('Joint Prob.\nMI=%.2f'%mi, fontsize=18)
@@ -154,7 +154,7 @@ def generate_DREMI_plots(d, mi, x, y, xb, yb, mesh_points, density, bin_density,
     # Plot conditional probability
     ax = axes[3]
     raw_density_data = np.log(bin_density_norm)
-    cg = sns.heatmap(raw_density_data.T, cmap='inferno', ax=ax, cbar=False)
+    cg = sns.heatmap(raw_density_data.T[::-1,:], cmap='inferno', ax=ax, cbar=False)
     cg.set_xticks([])
     cg.set_yticks([])
     cg.set_title('Conditional Prob.\nDREMI=%.2f'%d, fontsize=18)
