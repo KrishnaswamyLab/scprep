@@ -683,4 +683,3 @@ def load_10X_HDF5(filename, genome=None, sparse=True, gene_labels='symbol',
                                      cell_names=cell_names,
                                      sparse=sparse)
         return data
-//
