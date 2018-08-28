@@ -20,6 +20,10 @@ try:
     import tables
 except ImportError:
     pass
+try:
+    import h5py
+except ImportError:
+    pass
 
 try:
     FileNotFoundError
@@ -40,13 +44,17 @@ def _with_fcsparser(fun, *args, **kwargs):
 
 
 @decorator
-def _with_tables(fun, *args, **kwargs):
+def _with_tables_or_h5py(fun, *args, **kwargs):
     try:
         tables
     except NameError:
-        raise ImportError(
-            "tables not found. "
-            "Please install it with e.g. `pip install --user tables`")
+        try:
+            h5py
+        except NameError:
+            raise ImportError(
+                "Found neither tables nor h5py. "
+                "Please install one of them with e.g. "
+                "`pip install --user tables` or `pip install --user h5py`")
     return fun(*args, **kwargs)
 
 
@@ -547,9 +555,70 @@ def load_10X_zip(filename, sparse=True, gene_labels='symbol',
     return data
 
 
-@_with_tables
+@_with_tables_or_h5py
+def _h5_open_file(filename, mode, backend=None):
+    if backend is None:
+        try:
+            tables
+            backend = 'tables'
+        except NameError:
+            backend = 'h5py'
+    if backend == 'tables':
+        return tables.open_file(filename, mode)
+    elif backend == 'h5py':
+        return h5py.File(filename, mode)
+    else:
+        raise ValueError(
+            "Expected backend in ['tables', 'h5py']. Got {}".format(backend))
+
+
+def _h5_is_tables(obj):
+    try:
+        return isinstance(obj, (tables.File, tables.Group))
+    except NameError:
+        return False
+
+
+def _h5_is_h5py(obj):
+    try:
+        return isinstance(obj, (h5py.File, h5py.Group))
+    except NameError:
+        return False
+
+
+def _h5_list_nodes(f):
+    if _h5_is_h5py(f):
+        return [node for node in f.keys()]
+    elif _h5_is_tables(f):
+        return [node._v_name for node in f.list_nodes(f.root)]
+    else:
+        raise TypeError(
+            "Expected h5py.File or tables.File. Got {}".format(type(f)))
+
+
+def _h5_get_node(f, node):
+    if _h5_is_h5py(f):
+        return f[node]
+    elif _h5_is_tables(f):
+        return f.get_node(f.root, node)
+    else:
+        raise TypeError(
+            "Expected h5py.File or tables.File. Got {}".format(type(f)))
+
+
+def _h5_get_values(group, dataset):
+    if _h5_is_h5py(group):
+        return group[dataset].value
+    elif _h5_is_tables(group):
+        return group[dataset].read()
+    else:
+        raise TypeError(
+            "Expected h5py.Group or tables.Group. Got {}".format(type(group)))
+
+
+@_with_tables_or_h5py
 def load_10X_HDF5(filename, genome=None, sparse=True, gene_labels='symbol',
-                  allow_duplicates=None):
+                  allow_duplicates=None, backend=None):
     """Basic IO for HDF5 10X data produced from the 10X Cellranger pipeline.
 
     Equivalent to `load_10X` but for HDF5 format.
@@ -570,6 +639,9 @@ def load_10X_HDF5(filename, genome=None, sparse=True, gene_labels='symbol',
     allow_duplicates : bool, optional (default: None)
         Whether or not to allow duplicate gene names. If None, duplicates are
         allowed for dense input but not for sparse input.
+    backend : string, {'tables', 'h5py' or None} optional, default: None
+        Selects the HDF5 backend. By default, selects whichever is available,
+        using tables if both are available.
 
     Returns
     -------
@@ -577,36 +649,38 @@ def load_10X_HDF5(filename, genome=None, sparse=True, gene_labels='symbol',
         If sparse, data will be a pd.SparseDataFrame. Otherwise, data will
         be a pd.DataFrame.
     """
-    with tables.open_file(filename, 'r') as f:
+    with _h5_open_file(filename, 'r', backend=backend) as f:
         if genome is None:
-            genomes = [node._v_name for node in f.list_nodes(f.root)]
+            genomes = _h5_list_nodes(f)
             print_genomes = ", ".join(genomes)
             genome = genomes[0]
             if len(genomes) > 1:
                 print("Available genomes: {}. Selecting {} by default".format(
                     print_genomes, genome))
         try:
-            group = f.get_node(f.root, genome)
-        except tables.NoSuchNodeError:
-            genomes = [node._v_name for node in f.list_nodes(f.root)]
+            group = _h5_get_node(f, genome)
+        except (AttributeError, KeyError):
+            genomes = _h5_list_nodes(f)
             print_genomes = ", ".join(genomes)
             raise ValueError(
                 "Genome {} not found in {}. "
-                "Available genomes: {}".format(genome, filename, print_genomes))
+                "Available genomes: {}".format(genome, filename,
+                                               print_genomes))
         if allow_duplicates is None:
             allow_duplicates = not sparse
         gene_names = _parse_10x_genes(
-            symbols=[g.decode() for g in group.gene_names.read()],
-            ids=[g.decode() for g in group.genes.read()],
+            symbols=[g.decode() for g in _h5_get_values(group, 'gene_names')],
+            ids=[g.decode() for g in _h5_get_values(group, 'genes')],
             gene_labels=gene_labels, allow_duplicates=allow_duplicates)
-        cell_names = [b.decode() for b in group.barcodes.read()]
-        data = group.data.read()
-        indices = group.indices.read()
-        indptr = group.indptr.read()
-        shape = group.shape.read()
+        cell_names = [b.decode() for b in _h5_get_values(group, 'barcodes')]
+        data = _h5_get_values(group, 'data')
+        indices = _h5_get_values(group, 'indices')
+        indptr = _h5_get_values(group, 'indptr')
+        shape = _h5_get_values(group, 'shape')
         data = sp.csc_matrix((data, indices, indptr), shape=shape)
         data = _matrix_to_data_frame(data.T,
                                      gene_names=gene_names,
                                      cell_names=cell_names,
                                      sparse=sparse)
         return data
+//

@@ -45,8 +45,15 @@ def test_10X_zip():
 
 def test_10X_HDF5():
     X = data.load_10X()
+    # tables backend
     h5_file = os.path.join(data.data_dir, "test_10X.h5")
     X_hdf5 = scprep.io.load_10X_HDF5(h5_file)
+    assert isinstance(X_hdf5, pd.SparseDataFrame)
+    assert np.sum(np.sum(X != X_hdf5)) == 0
+    np.testing.assert_array_equal(X.columns, X_hdf5.columns)
+    np.testing.assert_array_equal(X.index, X_hdf5.index)
+    # hdf5 backend
+    X_hdf5 = scprep.io.load_10X_HDF5(h5_file, backend='h5py')
     assert isinstance(X_hdf5, pd.SparseDataFrame)
     assert np.sum(np.sum(X != X_hdf5)) == 0
     np.testing.assert_array_equal(X.columns, X_hdf5.columns)
@@ -58,6 +65,12 @@ def test_10X_HDF5():
         scprep.io.load_10X_HDF5,
         filename=h5_file,
         genome="invalid")
+    assert_raise_message(
+        ValueError,
+        "Expected backend in ['tables', 'h5py']. Got invalid",
+        scprep.io.load_10X_HDF5,
+        filename=h5_file,
+        backend="invalid")
 
 
 def test_csv_and_tsv():
