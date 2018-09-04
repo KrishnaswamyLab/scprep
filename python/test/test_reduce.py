@@ -10,10 +10,10 @@ def test_pca():
     matrix.check_dense_matrix_types(
         X, utils.check_output_equivalent,
         Y=Y, transform=scprep.reduce.pca,
-        seed=42)
-    Y = decomposition.PCA(50, svd_solver='full').fit_transform(X)
+        n_pca=100, seed=42)
+    Y = decomposition.PCA(49, svd_solver='full').fit_transform(X)
     matrix.check_sparse_matrix_types(
         X, utils.check_output_equivalent,
         Y=Y, transform=scprep.reduce.pca,
         check=partial(utils.assert_all_close, rtol=1e-3, atol=1e-5),
-        n_pca=50, svd_multiples=8, seed=42)
+        n_pca=49, svd_multiples=8, seed=42)
