@@ -60,7 +60,7 @@ def histogram(data,
                                 "Got {}".format(type(ax)))
             else:
                 raise e
-    if log:
+    if log == 'x' or log is True:
         bins = np.logspace(np.log10(max(np.min(data), 1)),
                            np.log10(np.max(data)),
                            bins)
@@ -75,7 +75,7 @@ def histogram(data,
         data, cutoff, percentile, required=False)
     if cutoff is not None:
         ax.axvline(cutoff, color='red')
-    fig.show(block=False)
+    fig.show()
 
 
 @_with_matplotlib
