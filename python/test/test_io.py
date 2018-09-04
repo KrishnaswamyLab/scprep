@@ -6,6 +6,12 @@ import numpy as np
 import os
 import fcsparser
 
+try:
+    FileNotFoundError
+except NameError:
+    # py2 compatibility
+    FileNotFoundError = OSError
+
 
 def test_10X_duplicate_gene_names():
     assert_warns_message(
