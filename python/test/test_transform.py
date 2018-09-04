@@ -1,10 +1,10 @@
+from load_tests import utils, matrix, data
 import numpy as np
 import scprep
 from scipy import sparse
 import pandas as pd
 from sklearn.utils.testing import assert_warns_message, assert_raise_message
 import warnings
-from load_tests import utils, matrix, data
 
 
 def test_sqrt_transform():

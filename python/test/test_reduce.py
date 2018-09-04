@@ -1,6 +1,6 @@
+from load_tests import utils, matrix, data
 import scprep
 from sklearn import decomposition
-from load_tests import utils, matrix, data
 from functools import partial
 
 

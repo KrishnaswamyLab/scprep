@@ -1,8 +1,8 @@
+from load_tests import data, matrix, utils
 import scprep
 from sklearn.utils.testing import assert_raise_message, assert_warns_message
 import numpy as np
 import pandas as pd
-from load_tests import data, matrix, utils
 
 
 def test_get_gene_set():

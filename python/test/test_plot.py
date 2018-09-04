@@ -1,9 +1,7 @@
-import matplotlib as mpl
-mpl.use("Agg")
+from load_tests import data
 import scprep
 import matplotlib.pyplot as plt
 from sklearn.utils.testing import assert_raise_message
-from load_tests import data
 
 
 def test_plot_histogram():
