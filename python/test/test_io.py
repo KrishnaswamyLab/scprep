@@ -46,6 +46,18 @@ def test_10X():
         "Choose from ['symbol', 'id', 'both']",
         data.load_10X,
         gene_labels='invalid')
+    assert_raise_message(
+        FileNotFoundError,
+        "{} is not a directory".format(
+            os.path.join(data.data_dir, "test_10X.zip")),
+        scprep.io.load_10X,
+        os.path.join(data.data_dir, "test_10X.zip"))
+    assert_raise_message(
+        FileNotFoundError,
+        "'matrix.mtx', 'genes.tsv', and 'barcodes.tsv' must be present "
+        "in {}".format(data.data_dir),
+        scprep.io.load_10X,
+        data.data_dir)
 
 
 def test_10X_zip():
