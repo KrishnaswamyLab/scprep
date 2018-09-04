@@ -5,34 +5,7 @@ import numpy as np
 from scipy import sparse
 import pandas as pd
 import warnings
-from .utils import matrix_any
-
-
-def _transform(data, fun):
-    """Perform a numerical transformation to data
-
-    Parameters
-    ----------
-    data : array-like, shape=[n_samples, n_features]
-        Input data
-    fun : callable
-        Numerical transformation function, `np.ufunc` or similar.
-
-    Returns
-    -------
-    data : array-like, shape=[n_samples, n_features]
-        Transformed output data
-    """
-    if sparse.issparse(data):
-        if isinstance(data, (sparse.lil_matrix, sparse.dok_matrix)):
-            data = data.tocsr()
-        else:
-            # avoid modifying in place
-            data = data.copy()
-        data.data = fun(data.data)
-    else:
-        data = fun(data)
-    return data
+from . import utils
 
 
 def sqrt(data):
@@ -52,9 +25,9 @@ def sqrt(data):
     ------
     ValueError : if data has negative values
     """
-    if matrix_any(data < 0):
+    if not utils.matrix_non_negative(data, allow_equal=True):
         raise ValueError("Cannot square root transform negative values")
-    return _transform(data, np.sqrt)
+    return utils.matrix_transform(data, np.sqrt)
 
 
 def log(data, pseudocount=1, base=10):
@@ -81,13 +54,20 @@ def log(data, pseudocount=1, base=10):
     ValueError : if data has zero or negative values
     RuntimeWarning : if data is sparse and pseudocount != 1
     """
-    if matrix_any(data < 0):
-        raise ValueError("Cannot log transform negative values")
-    if pseudocount != 1 and (sparse.issparse(data) or
-                             isinstance(data, pd.SparseDataFrame)):
-        warnings.warn("log transform on sparse data requires pseudocount=1",
+    data_min = utils.matrix_min(data)
+    if pseudocount + data_min <= 0:
+        raise ValueError("Required pseudocount + min(data) ({}) > 0. "
+                         "Got pseudocount = {}".format(utils.matrix_min(data),
+                                                       pseudocount))
+    elif pseudocount != data_min + 1 and \
+            (sparse.issparse(data) or isinstance(data, pd.SparseDataFrame)):
+        req = "min(data) + 1 ({})".format(data_min +
+                                          1) if data_min != 0 else "1"
+        warnings.warn("log transform on sparse data requires "
+                      "pseudocount = {}. Got {}".format(
+                          req, data_min + 1, pseudocount),
                       RuntimeWarning)
-        pseudocount = 1
+        pseudocount = data_min + 1
     if base == 2:
         log = np.log2
     elif base == 'e':
@@ -96,7 +76,7 @@ def log(data, pseudocount=1, base=10):
         log = np.log10
     else:
         raise ValueError("Expected base in [2, 'e', 10]. Got {}".format(base))
-    return _transform(data, lambda data: log(data + pseudocount))
+    return utils.matrix_transform(data, lambda data: log(data + pseudocount))
 
 
 def arcsinh(data, cofactor=5):
@@ -123,7 +103,7 @@ def arcsinh(data, cofactor=5):
                          "Got {}".format(cofactor))
     if cofactor is not None:
         data = data / cofactor
-    return _transform(data, np.arcsinh)
+    return utils.matrix_transform(data, np.arcsinh)
 
 
 def sqrt_transform(*args, **kwargs):

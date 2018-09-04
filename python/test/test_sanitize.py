@@ -1,7 +1,7 @@
+from load_tests import utils, matrix, data
 import scprep
 import numpy as np
 from sklearn.utils.testing import assert_raise_message
-from load_tests import utils, matrix, data
 
 
 def test_check_numeric_copy():
@@ -29,7 +29,9 @@ def test_check_numeric_inplace():
         "copy=False. Please use copy=True.",
         scprep.sanitize.check_numeric,
         data=X, copy=False)
+
     class TypeErrorClass(object):
+
         def astype(self, dtype):
             return
     X = TypeErrorClass()

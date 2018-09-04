@@ -1,9 +1,9 @@
+from load_tests import utils, matrix, data
 import scprep
 import pandas as pd
 import numpy as np
 from sklearn.utils.testing import assert_warns_message, assert_raise_message
 from scipy import sparse
-from load_tests import utils, matrix, data
 from functools import partial
 
 
