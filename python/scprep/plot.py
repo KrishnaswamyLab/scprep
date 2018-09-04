@@ -82,7 +82,8 @@ def histogram(data,
 def plot_library_size(data,
                       bins=100, log=True,
                       cutoff=None, percentile=None,
-                      ax=None, figsize=None):
+                      ax=None, figsize=None,
+                      **kwargs):
     """Plot the library size histogram.
 
     Parameters
@@ -105,6 +106,7 @@ def plot_library_size(data,
         Axis to plot on. If None, a new axis will be created.
     figsize : tuple or None, optional (default: None)
         If not None, sets the figure size (width, height)
+    **kwargs : additional arguments for `matplotlib.pyplot.hist`
     """
     histogram(measure.library_size(data),
               cutoff=cutoff, percentile=percentile,
@@ -116,8 +118,9 @@ def plot_gene_set_expression(data, genes,
                              bins=100, log=False,
                              cutoff=None, percentile=None,
                              library_size_normalize=True,
-                             ax=None, figsize=None):
-    """Plot the hsitogram of the expression of a gene set.
+                             ax=None, figsize=None,
+                             **kwargs):
+    """Plot the histogram of the expression of a gene set.
 
     Parameters
     ----------
@@ -143,6 +146,7 @@ def plot_gene_set_expression(data, genes,
         Axis to plot on. If None, a new axis will be created.
     figsize : tuple or None, optional (default: None)
         If not None, sets the figure size (width, height)
+    **kwargs : additional arguments for `matplotlib.pyplot.hist`
     """
     histogram(measure.gene_set_expression(
         data, genes, library_size_normalize=library_size_normalize),
