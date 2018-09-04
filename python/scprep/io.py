@@ -421,9 +421,7 @@ def _combine_gene_id(symbols, ids):
 
 def _parse_10x_genes(symbols, ids, gene_labels='symbol',
                      allow_duplicates=True):
-    if gene_labels not in ['symbol', 'id', 'both']:
-        raise ValueError("gene_labels='{}' not recognized. Choose from "
-                         "['symbol', 'id', 'both']")
+    assert gene_labels in ['symbol', 'id', 'both']
     if gene_labels == 'both':
         columns = _combine_gene_id(symbols, ids)
     if gene_labels == 'symbol':
@@ -475,7 +473,9 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol',
     """
 
     if gene_labels not in ['id', 'symbol', 'both']:
-        raise ValueError("gene_labels not in ['id', 'symbol', 'both']")
+        raise ValueError(
+            "gene_labels='{}' not recognized. "
+            "Choose from ['symbol', 'id', 'both']".format(gene_labels))
 
     if not os.path.isdir(data_dir):
         raise FileNotFoundError(
@@ -534,6 +534,12 @@ def load_10X_zip(filename, sparse=True, gene_labels='symbol',
         If sparse, data will be a pd.SparseDataFrame. Otherwise, data will
         be a pd.DataFrame.
     """
+
+    if gene_labels not in ['id', 'symbol', 'both']:
+        raise ValueError(
+            "gene_labels='{}' not recognized. "
+            "Choose from ['symbol', 'id', 'both']".format(gene_labels))
+
     tmpdir = tempfile.mkdtemp()
     with zipfile.ZipFile(filename) as handle:
         files = handle.namelist()
@@ -649,6 +655,12 @@ def load_10X_HDF5(filename, genome=None, sparse=True, gene_labels='symbol',
         If sparse, data will be a pd.SparseDataFrame. Otherwise, data will
         be a pd.DataFrame.
     """
+
+    if gene_labels not in ['id', 'symbol', 'both']:
+        raise ValueError(
+            "gene_labels='{}' not recognized. "
+            "Choose from ['symbol', 'id', 'both']".format(gene_labels))
+
     with _h5_open_file(filename, 'r', backend=backend) as f:
         if genome is None:
             genomes = _h5_list_nodes(f)
