@@ -10,7 +10,7 @@ try:
     FileNotFoundError
 except NameError:
     # py2 compatibility
-    FileNotFoundError = OSError
+    FileNotFoundError = IOError
 
 
 def test_10X_duplicate_gene_names():

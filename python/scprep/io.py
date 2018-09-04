@@ -29,7 +29,7 @@ try:
     FileNotFoundError
 except NameError:
     # py2 compatibility
-    FileNotFoundError = OSError
+    FileNotFoundError = IOError
 
 
 @decorator
@@ -489,7 +489,7 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol',
         barcodes = pd.read_csv(os.path.join(data_dir, "barcodes.tsv"),
                                delimiter='\t', header=None)
 
-    except (FileNotFoundError, OSError):
+    except (FileNotFoundError, IOError):
         raise FileNotFoundError(
             "'matrix.mtx', 'genes.tsv', and 'barcodes.tsv' must be present "
             "in {}".format(data_dir))
