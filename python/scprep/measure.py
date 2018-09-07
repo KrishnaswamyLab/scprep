@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import warnings
 
-from .utils import select_cols
+from . import utils
 
 
 def library_size(data):
@@ -18,15 +18,7 @@ def library_size(data):
     library_size : list-like, shape=[n_samples]
         Sum over all genes for each cell
     """
-    if isinstance(data, pd.SparseDataFrame):
-        # densifies matrix if you take the sum
-        library_size = pd.Series(
-            np.array(data.to_coo().sum(axis=1)).reshape(-1),
-            index=data.index)
-    else:
-        library_size = data.sum(axis=1)
-    if isinstance(library_size, np.matrix):
-        library_size = np.array(library_size).reshape(-1)
+    library_size = utils.matrix_sum(data, axis=1)
     return library_size
 
 
@@ -47,7 +39,7 @@ def gene_set_expression(data, genes, library_size_normalize=True):
     gene_set_expression : list-like, shape=[n_samples]
         Sum over genes for each cell
     """
-    gene_data = select_cols(data, genes)
+    gene_data = utils.select_cols(data, genes)
     gene_set_expression = library_size(gene_data)
     if library_size_normalize:
         libsize = library_size(data)

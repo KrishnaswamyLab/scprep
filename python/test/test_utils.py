@@ -153,3 +153,39 @@ def test_toarray():
                          "numpy matrix. Got ",
                          scprep.utils.toarray,
                          "hello")
+
+
+def test_matrix_sum():
+    X = data.generate_positive_sparse_matrix(shape=(50, 100))
+    sums = np.array(X.sum(0)).flatten()
+
+    def test_fun(X):
+        assert np.allclose(np.array(scprep.utils.matrix_sum(X, axis=0)), sums)
+
+    matrix.check_all_matrix_types(X,
+                                  test_fun)
+    test_fun(np.matrix(X))
+
+    sums = np.array(X.sum(1)).flatten()
+
+    def test_fun(X):
+        assert np.allclose(
+            np.array(scprep.utils.matrix_sum(X, axis=1)), sums)
+
+    matrix.check_all_matrix_types(X,
+                                  test_fun)
+    test_fun(np.matrix(X))
+
+    sums = np.array(X.sum(None)).flatten()
+
+    def test_fun(X):
+        assert np.allclose(scprep.utils.matrix_sum(X, axis=None), sums)
+
+    matrix.check_all_matrix_types(X,
+                                  test_fun)
+    test_fun(np.matrix(X))
+    assert_raise_message(ValueError,
+                         "Expected axis in [0, 1, None]. Got 5",
+                         scprep.utils.matrix_sum,
+                         data,
+                         5)
