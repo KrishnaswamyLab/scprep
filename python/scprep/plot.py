@@ -83,7 +83,7 @@ def histogram(data,
         data, cutoff, percentile, required=False)
     if cutoff is not None:
         ax.axvline(cutoff, color='red')
-    if _is_gui_backend():
+    if _mpl_is_gui_backend():
         fig.show()
 
 
