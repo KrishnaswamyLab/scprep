@@ -65,6 +65,43 @@ def matrix_transform(data, fun):
     return data
 
 
+def matrix_sum(data, axis=None):
+    """Get the column-wise, row-wise, or total sum of values in a matrix
+
+    Parameters
+    ----------
+    data : array-like, shape=[n_samples, n_features]
+        Input data
+    axis : int or None, optional (default: None)
+        Axis across which to sum. axis=0 gives column sums,
+        axis=1 gives row sums. None gives the total sum.
+
+    Returns
+    -------
+    sums : array-like or float
+        Sums along desired axis.
+    """
+    if axis not in [0, 1, None]:
+        raise ValueError("Expected axis in [0, 1, None]. Got {}".format(axis))
+    if isinstance(data, pd.DataFrame):
+        if isinstance(data, pd.SparseDataFrame):
+            if axis is None:
+                sums = data.to_coo().sum()
+            else:
+                index = data.index if axis == 1 else data.columns
+                sums = pd.Series(np.array(data.to_coo().sum(axis)).flatten(),
+                                 index=index)
+        elif axis is None:
+            sums = data.values.sum()
+        else:
+            sums = data.sum(axis)
+    else:
+        sums = np.sum(data, axis=axis)
+        if isinstance(sums, np.matrix):
+            sums = np.array(sums).flatten()
+    return sums
+
+
 def matrix_min(data):
     """Get the minimum value from a data matrix.
 
