@@ -161,26 +161,21 @@ def test_matrix_sum():
 
     def test_fun(X):
         assert np.allclose(np.array(scprep.utils.matrix_sum(X, axis=0)), sums)
-
     matrix.check_all_matrix_types(X,
                                   test_fun)
     test_fun(np.matrix(X))
-
     sums = np.array(X.sum(1)).flatten()
 
     def test_fun(X):
         assert np.allclose(
             np.array(scprep.utils.matrix_sum(X, axis=1)), sums)
-
     matrix.check_all_matrix_types(X,
                                   test_fun)
     test_fun(np.matrix(X))
-
     sums = np.array(X.sum(None)).flatten()
 
     def test_fun(X):
         assert np.allclose(scprep.utils.matrix_sum(X, axis=None), sums)
-
     matrix.check_all_matrix_types(X,
                                   test_fun)
     test_fun(np.matrix(X))
