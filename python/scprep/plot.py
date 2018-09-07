@@ -20,6 +20,14 @@ def _with_matplotlib(fun, *args, **kwargs):
     return fun(*args, **kwargs)
 
 
+def _mpl_is_gui_backend():
+    backend = mpl.get_backend()
+    if backend in ['module://ipykernel.pylab.backend_inline', 'agg']:
+        return False
+    else:
+        return True
+
+
 @_with_matplotlib
 def histogram(data,
               bins=100, log=True,
@@ -75,7 +83,8 @@ def histogram(data,
         data, cutoff, percentile, required=False)
     if cutoff is not None:
         ax.axvline(cutoff, color='red')
-    fig.show()
+    if _is_gui_backend():
+        fig.show()
 
 
 @_with_matplotlib
