@@ -161,8 +161,9 @@ def _matrix_to_data_frame(data, gene_names=None, cell_names=None, sparse=None):
                 if not isinstance(data, pd.SparseDataFrame):
                     data = data.to_sparse(fill_value=0.0)
             else:
-                data = pd.SparseDataFrame(data, default_fill_value=0.0,
-                                          index=cell_names, columns=gene_names)
+                data = pd.SparseDataFrame(data, default_fill_value=0.0)
+                data.index = cell_names
+                data.columns = gene_names
         else:
             # return pandas.DataFrame
             if isinstance(data, pd.DataFrame):
