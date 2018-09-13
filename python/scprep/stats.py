@@ -273,11 +273,11 @@ def plot_knnDREMI(dremi, mutual_info, x, y, n_bins, n_mesh,
 
 def _vector_coerce_dense(x):
     x = utils.toarray(x)
-    x_nu = x.flatten()
-    if not len(x_nu) == x.shape[0]:
+    x_1d = x.flatten()
+    if not len(x_1d) == x.shape[0]:
         raise ValueError(
             "x must be a 1D array. Got shape {}".format(x.shape))
-    return x_nu
+    return x_1d
 
 
 def _vector_coerce_two_dense(x, y):
