@@ -1,5 +1,5 @@
 # author: Daniel Burkhardt <daniel.burkhardt@yale.edu>
-# (C) 2017 Krishnaswamy Lab GPLv2
+# (C) 2018 Krishnaswamy Lab GPLv2
 
 from __future__ import print_function, division
 from sklearn.preprocessing import normalize

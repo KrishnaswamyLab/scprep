@@ -9,6 +9,7 @@ install_requires = [
     'future',
     'pandas',
     'decorator',
+    'seaborn'
 ]
 
 test_requires = [
@@ -40,8 +41,8 @@ readme = open('README.rst').read()
 setup(name='scprep',
       version=version,
       description='scprep',
-      author='Jay Stanley and Scott Gigante, Krishnaswamy Lab, Yale University',
-      author_email='jay.stanley@yale.edu',
+      author='Jay Stanley, Scott Gigante, and Daniel Burkhardt, Krishnaswamy Lab, Yale University',
+      author_email='krishnaswamylab@gmail.com',
       packages=['scprep', ],
       license='GNU General Public License Version 2',
       install_requires=install_requires,
