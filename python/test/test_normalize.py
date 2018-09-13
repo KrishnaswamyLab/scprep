@@ -5,7 +5,6 @@ import scprep
 from functools import partial
 from load_tests import utils, matrix, data
 
-
 def test_libsize_norm():
     X = data.generate_positive_sparse_matrix()
     median = np.median(X.sum(axis=1))
@@ -24,7 +23,7 @@ def test_libsize_norm():
         transform=scprep.normalize.library_size_normalize,
         check=utils.assert_all_close, rescale='mean')
     X = data.generate_positive_sparse_matrix()
-    Y = normalize(X, 'l1') 
+    Y = normalize(X, 'l1')
     matrix.check_all_matrix_types(
         X, utils.check_transform_equivalent, Y=Y,
         transform=scprep.normalize.library_size_normalize,
@@ -73,4 +72,3 @@ def test_batch_mean_center():
         transform=partial(
             scprep.normalize.batch_mean_center),
         exception=ValueError)
-

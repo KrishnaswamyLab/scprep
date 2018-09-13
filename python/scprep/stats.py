@@ -11,8 +11,6 @@ from scipy import sparse
 from sklearn.neighbors import NearestNeighbors
 from sklearn.metrics import mutual_info_score
 
-
-
 def EMD(x, y, bins=100):
     """
     Calculates an approximation of Earth Mover's Distance (also called Wasserstein distance)
@@ -35,6 +33,9 @@ def EMD(x, y, bins=100):
     emd : float
         Earth Mover's Distance between x and y.
     """
+    x = coerce_dense(x)
+    y = coerce_dense(y)
+
     countsx, _ = np.histogram(x, bins=bins)
     countsx = countsx / countsx.sum()
     countsx = countsx.cumsum()
@@ -66,6 +67,9 @@ def mutual_information(x, y, bins=8):
     mi : float
         Earth Mover's Distance between x and y.
     """
+    x = coerce_dense(x)
+    y = coerce_dense(y)
+
     c_xy = np.histogram2d(x, y, bins)[0]
     mi = mutual_info_score(None, None, contingency=c_xy)
     return mi
@@ -108,13 +112,12 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1, plot_data=None, plot_fil
     -------
     dremi : float
         kNN condtional Density resampled estimate of mutual information"""
+    x = coerce_dense(x)
+    y = coerce_dense(y)
 
     if not (isinstance(k, int)) and (isinstance(bins, int)) and (isinstance(mesh, int)) \
            and (k > 0) and (bins > 0) and (mesh > 0):
         raise ValueError('k, bins, and mesh must all be positive ints.')
-    if sparse.issparse(x) or sparse.issparse(y):
-        x = x.toarray()
-        y = y.toarray()
 
     # 0. Z-score X and Y
     x = zscore(x)
@@ -229,3 +232,15 @@ def generate_DREMI_plots(d, mi, x, y, xb, yb, mesh_points, density, bin_density,
         fig.savefig(filename, dpi=150)
     else:
         plt.show()
+
+
+def coerce_dense(x):
+    if isinstance(x, pd.SparseSeries):
+        x_nu = x.to_dense()
+    elif sparse.issparse(x):
+        x_nu = x.toarray().flatten()
+    else:
+        x_nu = np.array(x).flatten()
+    if not len(x_nu) == len(x):
+        raise ValueError('x and y must be 1d arrays. Got an array of shape: %s'%str(x.shape))
+    return x_nu
