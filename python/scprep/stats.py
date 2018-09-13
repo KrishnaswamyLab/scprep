@@ -150,13 +150,14 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
     y = stats.zscore(y)
 
     # 1. Create bin and mesh points
-    xb = np.linspace(min(x), max(x), n_bins + 1)  # plus 1 for edges
-    yb = np.linspace(min(y), max(y), n_bins + 1)
-    xm = np.linspace(min(x), max(x), ((n_mesh + 1) * n_bins) + 1)
-    ym = np.linspace(min(y), max(y), ((n_mesh + 1) * n_bins) + 1)
+    x_bins = np.linspace(min(x), max(x), n_bins + 1)  # plus 1 for edges
+    y_bins = np.linspace(min(y), max(y), n_bins + 1)
+    x_mesh = np.linspace(min(x), max(x), ((n_mesh + 1) * n_bins) + 1)
+    y_mesh = np.linspace(min(y), max(y), ((n_mesh + 1) * n_bins) + 1)
 
     # calculate the kNN density around the mesh points
-    mesh_points = np.vstack([np.tile(xm, len(ym)), np.repeat(ym, len(xm))]).T
+    mesh_points = np.vstack([np.tile(x_mesh, len(y_mesh)),
+                             np.repeat(y_mesh, len(x_mesh))]).T
 
     # Next, we find the nearest points in the data from the mesh
     knn = neighbors.NearestNeighbors(n_neighbors=k, n_jobs=n_jobs).fit(
@@ -169,12 +170,13 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
     density = k / area
 
     # get list of all mesh points that are not bin intersections
-    mesh_mask = np.logical_or(
-        np.isin(mesh_points[:, 0], xb), np.isin(mesh_points[:, 1], yb))
+    mesh_mask = np.logical_or(np.isin(mesh_points[:, 0], x_bins),
+                              np.isin(mesh_points[:, 1], y_bins))
     # Sum the densities of each point over the bins
     bin_density, _, _ = np.histogram2d(mesh_points[~mesh_mask, 0],
                                        mesh_points[~mesh_mask, 1],
-                                       bins=[xb, yb], weights=density[~mesh_mask])
+                                       bins=[x_bins, y_bins],
+                                       weights=density[~mesh_mask])
     bin_density = bin_density.T
     # sum the whole grid should be 1
     bin_density = bin_density / np.sum(bin_density)
@@ -194,7 +196,7 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
     # Conditional entropy is the entropy in Y that isn't exmplained by X
     cond_sums = np.sum(bin_density, axis=0)  # distribution of X
     conditional_entropy = np.sum(cond_entropies * cond_sums)
-    mi = marginal_entropy - conditional_entropy
+    mutual_info = marginal_entropy - conditional_entropy
 
     # DREMI
     marginal_entropy_norm = stats.entropy(np.sum(bin_density_norm, axis=1),
@@ -202,16 +204,17 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
     cond_sums_norm = np.mean(bin_density_norm)
     conditional_entropy_norm = np.sum(cond_entropies * cond_sums_norm)
 
-    d = marginal_entropy_norm - conditional_entropy_norm
+    dremi = marginal_entropy_norm - conditional_entropy_norm
 
     if plot_data is True:
-        plot_knnDREMI(d, mi, x, y, xb, yb, mesh_points, density,
-                      bin_density, bin_density_norm, **kwargs)
-    return d
+        plot_knnDREMI(dremi, mutual_info,
+                      x, y, x_bins, y_bins, mesh_points,
+                      density, bin_density, bin_density_norm, **kwargs)
+    return dremi
 
 
 @plot._with_matplotlib
-def plot_knnDREMI(d, mi, x, y, xb, yb, mesh_points,
+def plot_knnDREMI(dremi, mutual_info, x, y, x_bins, y_bins, mesh_points,
                   density, bin_density, bin_density_norm,
                   figsize=(12, 3.5), filename=None,
                   xlabel="Feature 1", ylabel="Feature 2",
@@ -229,10 +232,10 @@ def plot_knnDREMI(d, mi, x, y, xb, yb, mesh_points,
     # Plot kNN density
     axes[1].scatter(mesh_points[:, 0], mesh_points[:, 1],
                     c=np.log(density), cmap="inferno", s=8, alpha=0.5)
-    for b in yb:
+    for b in y_bins:
         axes[1].axhline(b, c="grey", linewidth=0.5)
 
-    for b in xb:
+    for b in x_bins:
         axes[1].axvline(b, c="grey", linewidth=0.5)
     axes[1].set_xlim(np.min(mesh_points[:, 0]), np.max(mesh_points[:, 0]))
     axes[1].set_ylim(np.min(mesh_points[:, 1]), np.max(mesh_points[:, 1]))
@@ -248,7 +251,7 @@ def plot_knnDREMI(d, mi, x, y, xb, yb, mesh_points,
                    cmap="inferno")
     axes[2].set_xticks([])
     axes[2].set_yticks([])
-    axes[2].set_title("Joint Prob.\nMI={:.2f}".format(mi),
+    axes[2].set_title("Joint Prob.\nMI={:.2f}".format(mutual_info),
                       fontsize=title_fontsize)
     axes[2].set_xlabel(xlabel, fontsize=label_fontsize)
 
@@ -258,7 +261,7 @@ def plot_knnDREMI(d, mi, x, y, xb, yb, mesh_points,
                    cmap="inferno")
     axes[3].set_xticks([])
     axes[3].set_yticks([])
-    axes[3].set_title("Conditional Prob.\nDREMI={:.2f}".format(d),
+    axes[3].set_title("Conditional Prob.\nDREMI={:.2f}".format(dremi),
                       fontsize=title_fontsize)
     axes[3].set_xlabel(xlabel, fontsize=label_fontsize)
 
