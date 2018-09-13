@@ -5,6 +5,7 @@ from __future__ import print_function, division
 import numpy as np
 import pandas as pd
 from scipy import sparse, stats
+import numbers
 
 from sklearn import neighbors, metrics
 
@@ -120,13 +121,26 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
     -------
     dremi : float
         kNN condtional Density resampled estimate of mutual information
+
+    Examples
+    --------
+    >>> import scprep
+    >>> data = scprep.io.load_csv("my_data.csv")
+    >>> dremi = scprep.stats.knnDREMI(data['GENE1'], data['GENE2'],
+    ...                               plot_data=True,
+    ...                               plot_filename='dremi.png')
     """
     x, y = _vector_coerce_two_dense(x, y)
 
-    if not (isinstance(k, int)) and (isinstance(n_bins, int)) and \
-            (isinstance(n_mesh, int)) and (k > 0) \
-            and (n_bins > 0) and (n_mesh > 0):
-        raise ValueError('k, n_bins, and n_mesh must all be positive ints.')
+    if not isinstance(k, numbers.Integral):
+        raise ValueError(
+            "Expected k as an integer. Got {}".format(type(k)))
+    if not isinstance(n_bins, numbers.Integral):
+        raise ValueError(
+            "Expected n_bins as an integer. Got {}".format(type(n_bins)))
+    if not isinstance(n_mesh, numbers.Integral):
+        raise ValueError(
+            "Expected n_mesh as an integer. Got {}".format(type(n_mesh)))
 
     # 0. Z-score X and Y
     x = stats.zscore(x)
@@ -203,11 +217,9 @@ def generate_DREMI_plots(d, mi, x, y, xb, yb, mesh_points,
                          density, bin_density, bin_density_norm,
                          figsize=(12, 3.5), filename=None):
     import seaborn as sns
-    import matplotlib as mpl
     import matplotlib.pyplot as plt
 
-    fig, axes = plt.subplots(1, 4, figsize=(12, 3.5))
-    mpl.rcParams['font.sans-serif'] = "Arial"
+    fig, axes = plt.subplots(1, 4, figsize=figsize)
     # Plot raw data
     ax = axes[0]
     ax.scatter(x, y, c='k', s=4)
@@ -238,7 +250,7 @@ def generate_DREMI_plots(d, mi, x, y, xb, yb, mesh_points,
                      cmap='inferno', ax=ax, cbar=False)
     cg.set_xticks([])
     cg.set_yticks([])
-    cg.set_title('Joint Prob.\nMI=%.2f' % mi, fontsize=18)
+    cg.set_title('Joint Prob.\nMI={:.2f}'.format(mi), fontsize=18)
     cg.set_xlabel('Feature 1', fontsize=16)
 
     # Plot conditional probability
@@ -248,7 +260,7 @@ def generate_DREMI_plots(d, mi, x, y, xb, yb, mesh_points,
                      cmap='inferno', ax=ax, cbar=False)
     cg.set_xticks([])
     cg.set_yticks([])
-    cg.set_title('Conditional Prob.\nDREMI=%.2f' % d, fontsize=18)
+    cg.set_title('Conditional Prob.\nDREMI={:.2f}'.format(d), fontsize=18)
     cg.set_xlabel('Feature 1', fontsize=16)
 
     fig.subplots_adjust(wspace=-1)
@@ -257,7 +269,7 @@ def generate_DREMI_plots(d, mi, x, y, xb, yb, mesh_points,
     if filename is not None:
         fig.savefig(filename, dpi=150)
     else:
-        plt.show()
+        fig.show()
 
 
 def _vector_coerce_dense(x):
