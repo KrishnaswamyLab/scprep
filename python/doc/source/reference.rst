@@ -49,6 +49,14 @@ Plotting
     :inherited-members:
     :show-inheritance:
 
+Dimensionality Reduction
+------------------------
+
+.. automodule:: scprep.reduce
+    :members:
+    :inherited-members:
+    :show-inheritance:
+
 Utilities
 ---------
 

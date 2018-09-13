@@ -34,6 +34,119 @@ def toarray(x):
     return x
 
 
+def matrix_transform(data, fun):
+    """Perform a numerical transformation to data
+
+    Parameters
+    ----------
+    data : array-like, shape=[n_samples, n_features]
+        Input data
+    fun : callable
+        Numerical transformation function, `np.ufunc` or similar.
+
+    Returns
+    -------
+    data : array-like, shape=[n_samples, n_features]
+        Transformed output data
+    """
+    if isinstance(data, pd.SparseDataFrame):
+        data = data.copy()
+        for col in data.columns:
+            data[col] = fun(data[col])
+    elif sparse.issparse(data):
+        if isinstance(data, (sparse.lil_matrix, sparse.dok_matrix)):
+            data = data.tocsr()
+        else:
+            # avoid modifying in place
+            data = data.copy()
+        data.data = fun(data.data)
+    else:
+        data = fun(data)
+    return data
+
+
+def matrix_sum(data, axis=None):
+    """Get the column-wise, row-wise, or total sum of values in a matrix
+
+    Parameters
+    ----------
+    data : array-like, shape=[n_samples, n_features]
+        Input data
+    axis : int or None, optional (default: None)
+        Axis across which to sum. axis=0 gives column sums,
+        axis=1 gives row sums. None gives the total sum.
+
+    Returns
+    -------
+    sums : array-like or float
+        Sums along desired axis.
+    """
+    if axis not in [0, 1, None]:
+        raise ValueError("Expected axis in [0, 1, None]. Got {}".format(axis))
+    if isinstance(data, pd.DataFrame):
+        if isinstance(data, pd.SparseDataFrame):
+            if axis is None:
+                sums = data.to_coo().sum()
+            else:
+                index = data.index if axis == 1 else data.columns
+                sums = pd.Series(np.array(data.to_coo().sum(axis)).flatten(),
+                                 index=index)
+        elif axis is None:
+            sums = data.values.sum()
+        else:
+            sums = data.sum(axis)
+    else:
+        sums = np.sum(data, axis=axis)
+        if isinstance(sums, np.matrix):
+            sums = np.array(sums).flatten()
+    return sums
+
+
+def matrix_min(data):
+    """Get the minimum value from a data matrix.
+
+    Pandas SparseDataFrame does not handle np.min.
+
+    Parameters
+    ----------
+    data : array-like, shape=[n_samples, n_features]
+        Input data
+
+    Returns
+    -------
+    minimum : float
+        Minimum entry in `data`.
+    """
+    if isinstance(data, pd.SparseDataFrame):
+        data = [np.min(data[col]) for col in data.columns]
+    elif isinstance(data, pd.DataFrame):
+        data = np.min(data)
+    elif isinstance(data, sparse.lil_matrix):
+        data = [np.min(d) for d in data.data] + [0]
+    elif isinstance(data, sparse.dok_matrix):
+        data = list(data.values()) + [0]
+    elif isinstance(data, sparse.dia_matrix):
+        data = [np.min(data.data), 0]
+    return np.min(data)
+
+
+def matrix_non_negative(data, allow_equal=True):
+    """Check if all values in a matrix are non-negative
+
+    Parameters
+    ----------
+    data : array-like, shape=[n_samples, n_features]
+        Input data
+    allow_equal : bool, optional (default: True)
+        If True, min(data) can be equal to 0
+
+    Returns
+    -------
+    is_non_negative : bool
+    """
+    return matrix_min(data) >= 0 if allow_equal else matrix_min(data) > 0
+
+
 def matrix_any(condition):
     """Check if a condition is true anywhere in a data matrix
 

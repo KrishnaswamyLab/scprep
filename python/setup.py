@@ -17,6 +17,7 @@ test_requires = [
     'nose2',
     'fcsparser',
     'tables',
+    'h5py',
     'matplotlib',
     'coverage',
     'coveralls',

@@ -1,10 +1,16 @@
+from load_tests import data
 import scprep
 from sklearn.utils.testing import assert_warns_message, assert_raise_message
 import pandas as pd
 import numpy as np
 import os
 import fcsparser
-from load_tests import data
+
+try:
+    FileNotFoundError
+except NameError:
+    # py2 compatibility
+    FileNotFoundError = IOError
 
 
 def test_10X_duplicate_gene_names():
@@ -14,7 +20,16 @@ def test_10X_duplicate_gene_names():
         "Alternatively, try `gene_labels='both'`, `allow_duplicates=True`, or "
         "load the matrix with `sparse=False`",
         scprep.io.load_10X,
-        os.path.join(data.data_dir, "test_10X_duplicate_gene_names"))
+        os.path.join(data.data_dir, "test_10X_duplicate_gene_names"),
+        gene_labels="symbol",
+        sparse=True)
+    assert_warns_message(
+        RuntimeWarning,
+        "Duplicate gene names detected! Forcing dense matrix",
+        scprep.io.load_10X,
+        os.path.join(data.data_dir, "test_10X_duplicate_gene_names"),
+        allow_duplicates=True,
+        sparse=True)
 
 
 def test_10X():
@@ -31,22 +46,62 @@ def test_10X():
     assert X.shape == (100, 100)
     assert isinstance(X, pd.SparseDataFrame)
     assert X.columns[0] == "Arl8b (ENSMUSG00000030105)"
+    assert_raise_message(
+        ValueError,
+        "gene_labels='invalid' not recognized. "
+        "Choose from ['symbol', 'id', 'both']",
+        data.load_10X,
+        gene_labels='invalid')
+    assert_raise_message(
+        FileNotFoundError,
+        "{} is not a directory".format(
+            os.path.join(data.data_dir, "test_10X.zip")),
+        scprep.io.load_10X,
+        os.path.join(data.data_dir, "test_10X.zip"))
+    assert_raise_message(
+        FileNotFoundError,
+        "'matrix.mtx', 'genes.tsv', and 'barcodes.tsv' must be present "
+        "in {}".format(data.data_dir),
+        scprep.io.load_10X,
+        data.data_dir)
 
 
 def test_10X_zip():
     X = data.load_10X()
+    filename = os.path.join(data.data_dir, "test_10X.zip")
     X_zip = scprep.io.load_10X_zip(
-        os.path.join(data.data_dir, "test_10X.zip"))
+        filename)
     assert isinstance(X_zip, pd.SparseDataFrame)
     assert np.sum(np.sum(X != X_zip)) == 0
     np.testing.assert_array_equal(X.columns, X_zip.columns)
     np.testing.assert_array_equal(X.index, X_zip.index)
+    assert_raise_message(
+        ValueError,
+        "gene_labels='invalid' not recognized. "
+        "Choose from ['symbol', 'id', 'both']",
+        scprep.io.load_10X_zip,
+        filename,
+        gene_labels='invalid')
+    assert_raise_message(
+        ValueError,
+        "Expected a single zipped folder containing 'matrix.mtx', "
+        "'genes.tsv', and 'barcodes.tsv'. Got ",
+        scprep.io.load_10X_zip,
+        os.path.join(data.data_dir, "test_10X_invalid.zip")
+    )
 
 
 def test_10X_HDF5():
     X = data.load_10X()
+    # tables backend
     h5_file = os.path.join(data.data_dir, "test_10X.h5")
     X_hdf5 = scprep.io.load_10X_HDF5(h5_file)
+    assert isinstance(X_hdf5, pd.SparseDataFrame)
+    assert np.sum(np.sum(X != X_hdf5)) == 0
+    np.testing.assert_array_equal(X.columns, X_hdf5.columns)
+    np.testing.assert_array_equal(X.index, X_hdf5.index)
+    # hdf5 backend
+    X_hdf5 = scprep.io.load_10X_HDF5(h5_file, backend='h5py')
     assert isinstance(X_hdf5, pd.SparseDataFrame)
     assert np.sum(np.sum(X != X_hdf5)) == 0
     np.testing.assert_array_equal(X.columns, X_hdf5.columns)
@@ -58,6 +113,19 @@ def test_10X_HDF5():
         scprep.io.load_10X_HDF5,
         filename=h5_file,
         genome="invalid")
+    assert_raise_message(
+        ValueError,
+        "Expected backend in ['tables', 'h5py']. Got invalid",
+        scprep.io.load_10X_HDF5,
+        filename=h5_file,
+        backend="invalid")
+    assert_raise_message(
+        ValueError,
+        "gene_labels='invalid' not recognized. "
+        "Choose from ['symbol', 'id', 'both']",
+        scprep.io.load_10X_HDF5,
+        filename=h5_file,
+        gene_labels='invalid')
 
 
 def test_csv_and_tsv():
@@ -140,8 +208,9 @@ def test_csv_and_tsv():
 
 def test_mtx():
     X = data.load_10X()
+    filename = os.path.join(data.data_dir, "test_10X", "matrix.mtx")
     X_mtx = scprep.io.load_mtx(
-        os.path.join(data.data_dir, "test_10X", "matrix.mtx"),
+        filename,
         gene_names=os.path.join(
             data.data_dir, "gene_symbols.csv"),
         cell_names=os.path.join(
@@ -152,7 +221,7 @@ def test_mtx():
     np.testing.assert_array_equal(X.index, X_mtx.index)
     assert isinstance(X_mtx, pd.SparseDataFrame)
     X_mtx = scprep.io.load_mtx(
-        os.path.join(data.data_dir, "test_10X", "matrix.mtx"),
+        filename,
         gene_names=X.columns,
         cell_names=X.index,
         cell_axis="column")
@@ -161,13 +230,27 @@ def test_mtx():
     np.testing.assert_array_equal(X.index, X_mtx.index)
     assert isinstance(X_mtx, pd.SparseDataFrame)
     X_mtx = scprep.io.load_mtx(
-        os.path.join(data.data_dir, "test_10X", "matrix.mtx"),
+        filename,
         gene_names=None,
         cell_names=None,
         sparse=False,
         cell_axis="column")
     assert np.sum(np.sum(X.values != X_mtx)) == 0
     assert isinstance(X_mtx, np.ndarray)
+    assert_raise_message(
+        ValueError,
+        "cell_axis neither not recognized. "
+        "Expected 'row' or 'column'",
+        scprep.io.load_mtx, filename,
+        cell_axis='neither')
+    X = scprep.io.load_mtx(
+        filename,
+        gene_names=np.arange(X.shape[1]).astype('str'),
+        cell_names=np.arange(X.shape[0]))
+    assert X.shape == (100, 100)
+    assert isinstance(X, pd.SparseDataFrame)
+    assert X.columns[0] == "0"
+    assert X.index[0] == 0
 
 
 def test_fcs():
