@@ -20,7 +20,9 @@ def toarray(x):
     """
     if isinstance(x, pd.SparseDataFrame):
         x = x.to_coo().toarray()
-    elif isinstance(x, pd.DataFrame):
+    elif isinstance(x, pd.SparseSeries):
+        x = x.to_dense().values
+    elif isinstance(x, (pd.DataFrame, pd.Series)):
         x = x.values
     elif isinstance(x, sparse.spmatrix):
         x = x.toarray()

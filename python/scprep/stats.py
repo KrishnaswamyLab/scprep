@@ -2,12 +2,16 @@
 # (C) 2018 Krishnaswamy Lab GPLv2
 
 from __future__ import print_function, division
-import numpy as np
-import pandas as pd
-from scipy import sparse, stats
 import numbers
-
+import numpy as np
+from scipy import stats
 from sklearn import neighbors, metrics
+from . import plot, utils
+
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    pass
 
 
 def EMD(x, y, bins=100):
@@ -77,7 +81,7 @@ def mutual_information(x, y, bins=8):
 
 
 def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
-             plot_data=None, plot_filename=None):
+             plot_data=None, **kwargs):
     """kNN conditional Density Resampled Estimate of Mutual Information
 
     Calculates k-Nearest Neighbor conditional Density Resampled Estimate of
@@ -114,8 +118,7 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
     plot_data : bool, optional (default())
         If True, DREMI create plots of the data like those seen in
         Fig 5C/D of van Dijk et al. 2018. (doi:10.1016/j.cell.2018.05.061).
-    plot_filename : str, optional (default: None)
-        If this parameter is set, DREMI will save the plots to the above file.
+    **kwargs : additional arguments for `scprep.stats.plot_knnDREMI`
 
     Returns
     -------
@@ -206,77 +209,76 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
     d = marginal_entropy_norm - conditional_entropy_norm
 
     if plot_data is True:
-        generate_DREMI_plots(d, mi, x, y, xb, yb, mesh_points, density, bin_density, bin_density_norm, filename=plot_filename)
+        plot_knnDREMI(d, mi, x, y, xb, yb, mesh_points, density,
+                      bin_density, bin_density_norm, **kwargs)
     return d
 
 
-def generate_DREMI_plots(d, mi, x, y, xb, yb, mesh_points,
-                         density, bin_density, bin_density_norm,
-                         figsize=(12, 3.5), filename=None):
-    import seaborn as sns
-    import matplotlib.pyplot as plt
-
+@plot._with_matplotlib
+def plot_knnDREMI(d, mi, x, y, xb, yb, mesh_points,
+                  density, bin_density, bin_density_norm,
+                  figsize=(12, 3.5), filename=None,
+                  xlabel="Feature 1", ylabel="Feature 2",
+                  title_fontsize=18, label_fontsize=16,
+                  dpi=150):
     fig, axes = plt.subplots(1, 4, figsize=figsize)
     # Plot raw data
-    ax = axes[0]
-    ax.scatter(x, y, c='k', s=4)
-    ax.set_title('Input\ndata', fontsize=18)
-    ax.set_xticks([])
-    ax.set_yticks([])
-    ax.set_xlabel('Feature 1', fontsize=16)
-    ax.set_ylabel('Feature 2', fontsize=16)
+    axes[0].scatter(x, y, c="k", s=4)
+    axes[0].set_title("Input\ndata", fontsize=title_fontsize)
+    axes[0].set_xticks([])
+    axes[0].set_yticks([])
+    axes[0].set_xlabel(xlabel, fontsize=label_fontsize)
+    axes[0].set_ylabel(ylabel, fontsize=label_fontsize)
 
     # Plot kNN density
-    ax = axes[1]
+    axes[1].scatter(mesh_points[:, 0], mesh_points[:, 1],
+                    c=np.log(density), cmap="inferno", s=8, alpha=0.5)
     for b in yb:
-        ax.axhline(b, c='grey')
-    for b in xb:
-        ax.axvline(b, c='grey')
-    ax.scatter(mesh_points[:, 0], mesh_points[:, 1],
-               c=np.log(density), cmap='inferno', s=4)
+        axes[1].axhline(b, c="grey", linewidth=0.5)
 
-    ax.set_xticks([])
-    ax.set_yticks([])
-    ax.set_title('kNN\nDensity', fontsize=18)
-    ax.set_xlabel('Feature 1', fontsize=16)
+    for b in xb:
+        axes[1].axvline(b, c="grey", linewidth=0.5)
+    axes[1].set_xlim(np.min(mesh_points[:, 0]), np.max(mesh_points[:, 0]))
+    axes[1].set_ylim(np.min(mesh_points[:, 1]), np.max(mesh_points[:, 1]))
+
+    axes[1].set_xticks([])
+    axes[1].set_yticks([])
+    axes[1].set_title("kNN\nDensity", fontsize=title_fontsize)
+    axes[1].set_xlabel(xlabel, fontsize=label_fontsize)
 
     # Plot joint probability
-    ax = axes[2]
     raw_density_data = bin_density
-    cg = sns.heatmap(raw_density_data[::-1, :],
-                     cmap='inferno', ax=ax, cbar=False)
-    cg.set_xticks([])
-    cg.set_yticks([])
-    cg.set_title('Joint Prob.\nMI={:.2f}'.format(mi), fontsize=18)
-    cg.set_xlabel('Feature 1', fontsize=16)
+    axes[2].imshow(raw_density_data[::-1, :],
+                   cmap="inferno")
+    axes[2].set_xticks([])
+    axes[2].set_yticks([])
+    axes[2].set_title("Joint Prob.\nMI={:.2f}".format(mi),
+                      fontsize=title_fontsize)
+    axes[2].set_xlabel(xlabel, fontsize=label_fontsize)
 
     # Plot conditional probability
-    ax = axes[3]
     raw_density_data = bin_density_norm
-    cg = sns.heatmap(raw_density_data[::-1, :],
-                     cmap='inferno', ax=ax, cbar=False)
-    cg.set_xticks([])
-    cg.set_yticks([])
-    cg.set_title('Conditional Prob.\nDREMI={:.2f}'.format(d), fontsize=18)
-    cg.set_xlabel('Feature 1', fontsize=16)
+    axes[3].imshow(raw_density_data[::-1, :],
+                   cmap="inferno")
+    axes[3].set_xticks([])
+    axes[3].set_yticks([])
+    axes[3].set_title("Conditional Prob.\nDREMI={:.2f}".format(d),
+                      fontsize=title_fontsize)
+    axes[3].set_xlabel(xlabel, fontsize=label_fontsize)
 
     fig.subplots_adjust(wspace=-1)
     fig.tight_layout()
     fig.subplots_adjust(left=0.1)
     if filename is not None:
-        fig.savefig(filename, dpi=150)
-    else:
+        fig.savefig(filename, dpi=dpi)
+    if plot._mpl_is_gui_backend():
         fig.show()
 
 
 def _vector_coerce_dense(x):
-    if isinstance(x, pd.SparseSeries):
-        x_nu = x.to_dense()
-    elif sparse.issparse(x):
-        x_nu = x.toarray().flatten()
-    else:
-        x_nu = np.array(x).flatten()
-    if not len(x_nu) == len(x):
+    x = utils.toarray(x)
+    x_nu = x.flatten()
+    if not len(x_nu) == x.shape[0]:
         raise ValueError(
             "x must be a 1D array. Got shape {}".format(x.shape))
     return x_nu
@@ -290,4 +292,6 @@ def _vector_coerce_two_dense(x, y):
         if "x must be a 1D array. Got shape " in str(e):
             raise ValueError("Expected x and y to be 1D arrays. "
                              "Got shapes x {}, y {}".format(x.shape, y.shape))
+        else:
+            raise
     return x, y
