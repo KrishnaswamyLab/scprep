@@ -9,7 +9,66 @@ from scipy.special import entr
 from scipy import sparse
 
 from sklearn.neighbors import NearestNeighbors
+from sklearn.metrics import mutual_info_score
 
+
+
+def EMD(x, y, bins=100):
+    """
+    Calculates an approximation of Earth Mover's Distance (also called Wasserstein distance)
+    for 2 variables. This can be thought of as the distance between two probability
+    distributions. This metric is useful for identifying differentially expressed genes between
+    two groups of cells. For more information see https://en.wikipedia.org/wiki/Wasserstein_metric.
+
+
+    Parameters
+    ----------
+    x : array-like, shape=[n_samples]
+        Input data (feature 1)
+    y : array-like, shape=[n_samples]
+        Input data (feature 2)
+    bins : int or array-like, (default: 8)
+        Passed to np.histogram to calculate CDFs for each variable.
+
+    Returns
+    -------
+    emd : float
+        Earth Mover's Distance between x and y.
+    """
+    countsx, _ = np.histogram(x, bins=bins)
+    countsx = countsx / countsx.sum()
+    countsx = countsx.cumsum()
+
+    countsy, _ = np.histogram(y, bins=bins)
+    countsy = countsy / countsy.sum()
+    countsy = countsy.cumsum()
+
+    emd = np.abs(countsx - countsy).sum()
+    return emd
+
+def mutual_information(x, y, bins=8):
+    """
+    Helper function for sklearn.metric.mutual_info_score that builds your contingency table
+    for you using a set number of bins
+
+
+    Parameters
+    ----------
+    x : array-like, shape=[n_samples]
+        Input data (feature 1)
+    y : array-like, shape=[n_samples]
+        Input data (feature 2)
+    bins : int or array-like, (default: 8)
+        Passed to np.histogram2d to calculate a contingency table.
+
+    Returns
+    -------
+    mi : float
+        Earth Mover's Distance between x and y.
+    """
+    c_xy = np.histogram2d(x, y, bins)[0]
+    mi = mutual_info_score(None, None, contingency=c_xy)
+    return mi
 
 def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1, plot_data=None, plot_filename=None):
     """Calculates k-Nearest Neighbor conditional Density Resampled Estimate of Mutual
