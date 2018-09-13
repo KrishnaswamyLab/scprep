@@ -155,14 +155,7 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
     xm = np.linspace(min(x), max(x), ((n_mesh + 1) * n_bins) + 1)
     ym = np.linspace(min(y), max(y), ((n_mesh + 1) * n_bins) + 1)
 
-    #   get list of all mesh points that are not bin intersections
-    #   we will calculate the kNN density around these points
-    intersects_x = np.hstack(
-        [np.tile(np.hstack([[True], np.repeat([False], n_mesh)]), n_bins), [True]])
-    intersects_y = np.hstack(
-        [np.tile(np.hstack([[True], np.repeat([False], n_mesh)]), n_bins), [True]])
-    xm = xm[~intersects_x]
-    ym = ym[~intersects_y]
+    # calculate the kNN density around the mesh points
     mesh_points = np.vstack([np.tile(xm, len(ym)), np.repeat(ym, len(xm))]).T
 
     # Next, we find the nearest points in the data from the mesh
@@ -175,10 +168,13 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
     area = np.pi * (dists[:, -1] ** 2)
     density = k / area
 
+    # get list of all mesh points that are not bin intersections
+    mesh_mask = np.logical_or(
+        np.isin(mesh_points[:, 0], xb), np.isin(mesh_points[:, 1], yb))
     # Sum the densities of each point over the bins
-    # Sum the densities of each point over the bins
-    bin_density, _, _ = np.histogram2d(mesh_points[:, 0], mesh_points[
-                                       :, 1], bins=[xb, yb], weights=density)
+    bin_density, _, _ = np.histogram2d(mesh_points[~mesh_mask, 0],
+                                       mesh_points[~mesh_mask, 1],
+                                       bins=[xb, yb], weights=density[~mesh_mask])
     bin_density = bin_density.T
     # sum the whole grid should be 1
     bin_density = bin_density / np.sum(bin_density)
