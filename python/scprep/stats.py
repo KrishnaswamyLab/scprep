@@ -208,13 +208,13 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
 
     if plot_data is True:
         plot_knnDREMI(dremi, mutual_info,
-                      x, y, x_bins, y_bins, mesh_points,
+                      x, y, n_bins, n_mesh,
                       density, bin_density, bin_density_norm, **kwargs)
     return dremi
 
 
 @plot._with_matplotlib
-def plot_knnDREMI(dremi, mutual_info, x, y, x_bins, y_bins, mesh_points,
+def plot_knnDREMI(dremi, mutual_info, x, y, n_bins, n_mesh,
                   density, bin_density, bin_density_norm,
                   figsize=(12, 3.5), filename=None,
                   xlabel="Feature 1", ylabel="Feature 2",
@@ -230,15 +230,14 @@ def plot_knnDREMI(dremi, mutual_info, x, y, x_bins, y_bins, mesh_points,
     axes[0].set_ylabel(ylabel, fontsize=label_fontsize)
 
     # Plot kNN density
-    axes[1].scatter(mesh_points[:, 0], mesh_points[:, 1],
-                    c=np.log(density), cmap="inferno", s=8, alpha=0.5)
-    for b in y_bins:
-        axes[1].axhline(b, c="grey", linewidth=0.5)
+    n = ((n_mesh + 1) * n_bins) + 1
+    axes[1].imshow(np.log(density.reshape(n, n)),
+                   cmap='inferno', origin="lower", aspect="auto")
+    for b in np.linspace(0, n, n_bins + 1):
+        axes[1].axhline(b - 0.5, c="grey", linewidth=1)
 
-    for b in x_bins:
-        axes[1].axvline(b, c="grey", linewidth=0.5)
-    axes[1].set_xlim(np.min(mesh_points[:, 0]), np.max(mesh_points[:, 0]))
-    axes[1].set_ylim(np.min(mesh_points[:, 1]), np.max(mesh_points[:, 1]))
+    for b in np.linspace(0, n, n_bins + 1):
+        axes[1].axvline(b - 0.5, c="grey", linewidth=1)
 
     axes[1].set_xticks([])
     axes[1].set_yticks([])
@@ -247,8 +246,8 @@ def plot_knnDREMI(dremi, mutual_info, x, y, x_bins, y_bins, mesh_points,
 
     # Plot joint probability
     raw_density_data = bin_density
-    axes[2].imshow(raw_density_data[::-1, :],
-                   cmap="inferno")
+    axes[2].imshow(raw_density_data,
+                   cmap="inferno", origin="lower", aspect="auto")
     axes[2].set_xticks([])
     axes[2].set_yticks([])
     axes[2].set_title("Joint Prob.\nMI={:.2f}".format(mutual_info),
@@ -257,17 +256,15 @@ def plot_knnDREMI(dremi, mutual_info, x, y, x_bins, y_bins, mesh_points,
 
     # Plot conditional probability
     raw_density_data = bin_density_norm
-    axes[3].imshow(raw_density_data[::-1, :],
-                   cmap="inferno")
+    axes[3].imshow(raw_density_data,
+                   cmap="inferno", origin="lower", aspect="auto")
     axes[3].set_xticks([])
     axes[3].set_yticks([])
     axes[3].set_title("Conditional Prob.\nDREMI={:.2f}".format(dremi),
                       fontsize=title_fontsize)
     axes[3].set_xlabel(xlabel, fontsize=label_fontsize)
 
-    fig.subplots_adjust(wspace=-1)
     fig.tight_layout()
-    fig.subplots_adjust(left=0.1)
     if filename is not None:
         fig.savefig(filename, dpi=dpi)
     if plot._mpl_is_gui_backend():
