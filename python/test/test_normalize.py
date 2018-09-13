@@ -1,9 +1,9 @@
+from load_tests import utils, matrix, data
 import numpy as np
 from sklearn.preprocessing import normalize
 from sklearn.utils.testing import assert_warns_message, assert_raise_message
 import scprep
 from functools import partial
-from load_tests import utils, matrix, data
 
 
 def test_libsize_norm():
@@ -24,7 +24,7 @@ def test_libsize_norm():
         transform=scprep.normalize.library_size_normalize,
         check=utils.assert_all_close, rescale='mean')
     X = data.generate_positive_sparse_matrix()
-    Y = normalize(X, 'l1') 
+    Y = normalize(X, 'l1')
     matrix.check_all_matrix_types(
         X, utils.check_transform_equivalent, Y=Y,
         transform=scprep.normalize.library_size_normalize,
@@ -36,9 +36,16 @@ def test_libsize_norm():
     assert_raise_message(
         ValueError,
         "Expected rescale in ['median', 'mean'], a number or `None`. "
-        "Got qwerty",
+        "Got invalid",
         scprep.normalize.library_size_normalize,
-        X, rescale='qwerty')
+        X, rescale='invalid')
+    X[:X.shape[0] // 2 + 1] = 0
+    assert_warns_message(
+        UserWarning,
+        "Median library size is zero. "
+        "Rescaling to mean instead.",
+        scprep.normalize.library_size_normalize,
+        X, rescale='median')
 
 
 def test_batch_mean_center():
@@ -73,4 +80,3 @@ def test_batch_mean_center():
         transform=partial(
             scprep.normalize.batch_mean_center),
         exception=ValueError)
-

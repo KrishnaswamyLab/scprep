@@ -12,12 +12,10 @@ import zipfile
 import tempfile
 import shutil
 from decorator import decorator
+from . import hdf5
+
 try:
     import fcsparser
-except ImportError:
-    pass
-try:
-    import tables
 except ImportError:
     pass
 
@@ -25,7 +23,7 @@ try:
     FileNotFoundError
 except NameError:
     # py2 compatibility
-    FileNotFoundError = OSError
+    FileNotFoundError = IOError
 
 
 @decorator
@@ -36,17 +34,6 @@ def _with_fcsparser(fun, *args, **kwargs):
         raise ImportError(
             "fcsparser not found. "
             "Please install it with e.g. `pip install --user fcsparser`")
-    return fun(*args, **kwargs)
-
-
-@decorator
-def _with_tables(fun, *args, **kwargs):
-    try:
-        tables
-    except NameError:
-        raise ImportError(
-            "tables not found. "
-            "Please install it with e.g. `pip install --user tables`")
     return fun(*args, **kwargs)
 
 
@@ -75,7 +62,7 @@ def _parse_header(header, n_expected, header_type="gene_names"):
         else:
             delimiter = ","
         columns = pd.read_csv(header, delimiter=delimiter,
-                              header=None).values.reshape(-1)
+                              header=None).values.flatten().astype(str)
         if not len(columns) == n_expected:
             raise ValueError("Expected {} entries in {}. Got {}".format(
                 n_expected, header, len(columns)))
@@ -153,8 +140,9 @@ def _matrix_to_data_frame(data, gene_names=None, cell_names=None, sparse=None):
                 if not isinstance(data, pd.SparseDataFrame):
                     data = data.to_sparse(fill_value=0.0)
             else:
-                data = pd.SparseDataFrame(data, default_fill_value=0.0,
-                                          index=cell_names, columns=gene_names)
+                data = pd.SparseDataFrame(data, default_fill_value=0.0)
+                data.index = cell_names
+                data.columns = gene_names
         else:
             # return pandas.DataFrame
             if isinstance(data, pd.DataFrame):
@@ -413,9 +401,7 @@ def _combine_gene_id(symbols, ids):
 
 def _parse_10x_genes(symbols, ids, gene_labels='symbol',
                      allow_duplicates=True):
-    if gene_labels not in ['symbol', 'id', 'both']:
-        raise ValueError("gene_labels='{}' not recognized. Choose from "
-                         "['symbol', 'id', 'both']")
+    assert gene_labels in ['symbol', 'id', 'both']
     if gene_labels == 'both':
         columns = _combine_gene_id(symbols, ids)
     if gene_labels == 'symbol':
@@ -467,7 +453,9 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol',
     """
 
     if gene_labels not in ['id', 'symbol', 'both']:
-        raise ValueError("gene_labels not in ['id', 'symbol', 'both']")
+        raise ValueError(
+            "gene_labels='{}' not recognized. "
+            "Choose from ['symbol', 'id', 'both']".format(gene_labels))
 
     if not os.path.isdir(data_dir):
         raise FileNotFoundError(
@@ -481,7 +469,7 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol',
         barcodes = pd.read_csv(os.path.join(data_dir, "barcodes.tsv"),
                                delimiter='\t', header=None)
 
-    except (FileNotFoundError, OSError):
+    except (FileNotFoundError, IOError):
         raise FileNotFoundError(
             "'matrix.mtx', 'genes.tsv', and 'barcodes.tsv' must be present "
             "in {}".format(data_dir))
@@ -489,7 +477,8 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol',
     cell_names = barcodes[0]
     if allow_duplicates is None:
         allow_duplicates = not sparse
-    gene_names = _parse_10x_genes(genes['symbol'], genes['id'],
+    gene_names = _parse_10x_genes(genes['symbol'].values.astype(str),
+                                  genes['id'].values.astype(str),
                                   gene_labels=gene_labels,
                                   allow_duplicates=allow_duplicates)
 
@@ -526,6 +515,12 @@ def load_10X_zip(filename, sparse=True, gene_labels='symbol',
         If sparse, data will be a pd.SparseDataFrame. Otherwise, data will
         be a pd.DataFrame.
     """
+
+    if gene_labels not in ['id', 'symbol', 'both']:
+        raise ValueError(
+            "gene_labels='{}' not recognized. "
+            "Choose from ['symbol', 'id', 'both']".format(gene_labels))
+
     tmpdir = tempfile.mkdtemp()
     with zipfile.ZipFile(filename) as handle:
         files = handle.namelist()
@@ -547,9 +542,9 @@ def load_10X_zip(filename, sparse=True, gene_labels='symbol',
     return data
 
 
-@_with_tables
+@hdf5.with_HDF5
 def load_10X_HDF5(filename, genome=None, sparse=True, gene_labels='symbol',
-                  allow_duplicates=None):
+                  allow_duplicates=None, backend=None):
     """Basic IO for HDF5 10X data produced from the 10X Cellranger pipeline.
 
     Equivalent to `load_10X` but for HDF5 format.
@@ -570,6 +565,9 @@ def load_10X_HDF5(filename, genome=None, sparse=True, gene_labels='symbol',
     allow_duplicates : bool, optional (default: None)
         Whether or not to allow duplicate gene names. If None, duplicates are
         allowed for dense input but not for sparse input.
+    backend : string, {'tables', 'h5py' or None} optional, default: None
+        Selects the HDF5 backend. By default, selects whichever is available,
+        using tables if both are available.
 
     Returns
     -------
@@ -577,33 +575,43 @@ def load_10X_HDF5(filename, genome=None, sparse=True, gene_labels='symbol',
         If sparse, data will be a pd.SparseDataFrame. Otherwise, data will
         be a pd.DataFrame.
     """
-    with tables.open_file(filename, 'r') as f:
+
+    if gene_labels not in ['id', 'symbol', 'both']:
+        raise ValueError(
+            "gene_labels='{}' not recognized. "
+            "Choose from ['symbol', 'id', 'both']".format(gene_labels))
+
+    with hdf5.open_file(filename, 'r', backend=backend) as f:
         if genome is None:
-            genomes = [node._v_name for node in f.list_nodes(f.root)]
+            genomes = hdf5.list_nodes(f)
             print_genomes = ", ".join(genomes)
             genome = genomes[0]
             if len(genomes) > 1:
                 print("Available genomes: {}. Selecting {} by default".format(
                     print_genomes, genome))
         try:
-            group = f.get_node(f.root, genome)
-        except tables.NoSuchNodeError:
-            genomes = [node._v_name for node in f.list_nodes(f.root)]
+            group = hdf5.get_node(f, genome)
+        except (AttributeError, KeyError):
+            genomes = hdf5.list_nodes(f)
             print_genomes = ", ".join(genomes)
             raise ValueError(
                 "Genome {} not found in {}. "
-                "Available genomes: {}".format(genome, filename, print_genomes))
+                "Available genomes: {}".format(genome, filename,
+                                               print_genomes))
         if allow_duplicates is None:
             allow_duplicates = not sparse
         gene_names = _parse_10x_genes(
-            symbols=[g.decode() for g in group.gene_names.read()],
-            ids=[g.decode() for g in group.genes.read()],
+            symbols=[g.decode() for g in hdf5.get_values(
+                hdf5.get_node(group, 'gene_names'))],
+            ids=[g.decode()
+                 for g in hdf5.get_values(hdf5.get_node(group, 'genes'))],
             gene_labels=gene_labels, allow_duplicates=allow_duplicates)
-        cell_names = [b.decode() for b in group.barcodes.read()]
-        data = group.data.read()
-        indices = group.indices.read()
-        indptr = group.indptr.read()
-        shape = group.shape.read()
+        cell_names = [b.decode()
+                      for b in hdf5.get_values(hdf5.get_node(group, 'barcodes'))]
+        data = hdf5.get_values(hdf5.get_node(group, 'data'))
+        indices = hdf5.get_values(hdf5.get_node(group, 'indices'))
+        indptr = hdf5.get_values(hdf5.get_node(group, 'indptr'))
+        shape = hdf5.get_values(hdf5.get_node(group, 'shape'))
         data = sp.csc_matrix((data, indices, indptr), shape=shape)
         data = _matrix_to_data_frame(data.T,
                                      gene_names=gene_names,

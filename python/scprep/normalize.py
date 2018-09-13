@@ -7,6 +7,7 @@ import numpy as np
 from scipy import sparse
 import pandas as pd
 import numbers
+import warnings
 from . import measure
 
 
@@ -43,6 +44,11 @@ def library_size_normalize(data, rescale='median'):
 
     if rescale == 'median':
         rescale = np.median(np.array(measure.library_size(data)))
+        if rescale == 0:
+            warnings.warn("Median library size is zero. "
+                          "Rescaling to mean instead.",
+                          UserWarning)
+            rescale = np.mean(np.array(measure.library_size(data)))
     elif rescale == 'mean':
         rescale = np.mean(np.array(measure.library_size(data)))
     elif isinstance(rescale, numbers.Number):

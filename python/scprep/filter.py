@@ -23,7 +23,7 @@ def remove_empty_genes(data):
     data : array-like, shape=[n_samples, m_features]
         Filtered output data, where m_features <= n_features
     """
-    gene_sums = np.array(data.sum(axis=0)).reshape(-1)
+    gene_sums = np.array(utils.matrix_sum(data, axis=0)).reshape(-1)
     keep_genes_idx = gene_sums > 0
     data = utils.select_cols(data, keep_genes_idx)
     return data
@@ -46,7 +46,7 @@ def remove_rare_genes(data, cutoff=0, min_cells=5):
     data : array-like, shape=[n_samples, m_features]
         Filtered output data, where m_features <= n_features
     """
-    gene_sums = np.array((data > cutoff).sum(axis=0)).reshape(-1)
+    gene_sums = np.array(utils.matrix_sum(data > cutoff, axis=0)).reshape(-1)
     keep_genes_idx = gene_sums >= min_cells
     data = utils.select_cols(data, keep_genes_idx)
     return data
