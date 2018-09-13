@@ -206,11 +206,8 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
     d = marginal_entropy_norm - conditional_entropy_norm
 
     if plot_data is True:
-        generate_DREMI_plots(d, mi, x, y, xb, yb, mesh_points, density,
-                             bin_density, bin_density_norm,
-                             filename=plot_filename)
-    else:
-        return d
+        generate_DREMI_plots(d, mi, x, y, xb, yb, mesh_points, density, bin_density, bin_density_norm, filename=plot_filename)
+    return d
 
 
 def generate_DREMI_plots(d, mi, x, y, xb, yb, mesh_points,
