@@ -175,8 +175,7 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1, plot_data=None, plot_fil
 
     if plot_data is True:
         generate_DREMI_plots(d, mi, x, y, xb, yb, mesh_points, density, bin_density, bin_density_norm, filename=plot_filename)
-    else:
-        return d
+    return d
 
 def generate_DREMI_plots(d, mi, x, y, xb, yb, mesh_points, density, bin_density, bin_density_norm, figsize=(12,3.5), filename=None):
     import seaborn as sns
