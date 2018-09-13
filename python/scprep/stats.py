@@ -4,19 +4,19 @@
 from __future__ import print_function, division
 import numpy as np
 import pandas as pd
-from scipy.stats import entropy, zscore
-from scipy.special import entr
-from scipy import sparse
+from scipy import sparse, stats
 
-from sklearn.neighbors import NearestNeighbors
-from sklearn.metrics import mutual_info_score
+from sklearn import neighbors, metrics
+
 
 def EMD(x, y, bins=100):
-    """
-    Calculates an approximation of Earth Mover's Distance (also called Wasserstein distance)
-    for 2 variables. This can be thought of as the distance between two probability
-    distributions. This metric is useful for identifying differentially expressed genes between
-    two groups of cells. For more information see https://en.wikipedia.org/wiki/Wasserstein_metric.
+    """Earth Mover's Distance between samples
+
+    Calculates an approximation of Earth Mover's Distance (also called
+    Wasserstein distance) for 2 variables. This can be thought of as the
+    distance between two probability distributions. This metric is useful for
+    identifying differentially expressed genes between two groups of cells. For
+    more information see https://en.wikipedia.org/wiki/Wasserstein_metric.
 
 
     Parameters
@@ -33,8 +33,7 @@ def EMD(x, y, bins=100):
     emd : float
         Earth Mover's Distance between x and y.
     """
-    x = coerce_dense(x)
-    y = coerce_dense(y)
+    x, y = _vector_coerce_two_dense(x, y)
 
     countsx, _ = np.histogram(x, bins=bins)
     countsx = countsx / countsx.sum()
@@ -47,10 +46,12 @@ def EMD(x, y, bins=100):
     emd = np.abs(countsx - countsy).sum()
     return emd
 
+
 def mutual_information(x, y, bins=8):
-    """
-    Helper function for sklearn.metric.mutual_info_score that builds your contingency table
-    for you using a set number of bins
+    """Mutual information score with set number of bins
+
+    Helper function for sklearn.metrics.mutual_info_score that builds your
+    contingency table for you using a set number of bins
 
 
     Parameters
@@ -65,28 +66,35 @@ def mutual_information(x, y, bins=8):
     Returns
     -------
     mi : float
-        Earth Mover's Distance between x and y.
+        Mutual information between x and y.
     """
-    x = coerce_dense(x)
-    y = coerce_dense(y)
+    x, y = _vector_coerce_two_dense(x, y)
 
     c_xy = np.histogram2d(x, y, bins)[0]
-    mi = mutual_info_score(None, None, contingency=c_xy)
+    mi = metrics.mutual_info_score(None, None, contingency=c_xy)
     return mi
 
-def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1, plot_data=None, plot_filename=None):
-    """Calculates k-Nearest Neighbor conditional Density Resampled Estimate of Mutual
-    Information as defined in Van Dijk et al. 2018 (doi:10.1016/j.cell.2018.05.061)
 
-    kNN-DREMI is an adaptation of DREMI (Krishnaswamy et al. 2014, doi:10.1126/science.1250689)
-    for single cell RNA-sequencing data. DREMI captures the functional relationship between two
-    genes across their entire dynamic range. The key change to kNN-DREMI is the replacement of
-    the heat diffusion-based kernel-density estimator from (Botev et al., 2010) by a k-nearest
-    neighbor-based density estimator (Sricharan et al., 2012), which has been shown
-    to be an effective method for sparse and high dimensional datasets.
+def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
+             plot_data=None, plot_filename=None):
+    """kNN conditional Density Resampled Estimate of Mutual Information
 
-    Note that kNN-DREMI, like Mutual Information and DREMI, is not symmetric. Here we are
-    estimating I(Y|X). There are many good articles about mutual information on the web.
+    Calculates k-Nearest Neighbor conditional Density Resampled Estimate of
+    Mutual Information as defined in Van Dijk et al. 2018
+    (doi:10.1016/j.cell.2018.05.061)
+
+    kNN-DREMI is an adaptation of DREMI (Krishnaswamy et al. 2014,
+    doi:10.1126/science.1250689) for single cell RNA-sequencing data. DREMI
+    captures the functional relationship between two genes across their entire
+    dynamic range. The key change to kNN-DREMI is the replacement of the heat
+    diffusion-based kernel-density estimator from (Botev et al., 2010) by a
+    k-nearest neighbor-based density estimator (Sricharan et al., 2012), which
+    has been shown to be an effective method for sparse and high dimensional
+    datasets.
+
+    Note that kNN-DREMI, like Mutual Information and DREMI, is not symmetric.
+    Here we are estimating I(Y|X). There are many good articles about mutual
+    information on the web.
 
     Parameters
     ----------
@@ -111,83 +119,98 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1, plot_data=None, plot_fil
     Returns
     -------
     dremi : float
-        kNN condtional Density resampled estimate of mutual information"""
-    x = coerce_dense(x)
-    y = coerce_dense(y)
+        kNN condtional Density resampled estimate of mutual information
+    """
+    x, y = _vector_coerce_two_dense(x, y)
 
-    if not (isinstance(k, int)) and (isinstance(bins, int)) and (isinstance(mesh, int)) \
-           and (k > 0) and (bins > 0) and (mesh > 0):
-        raise ValueError('k, bins, and mesh must all be positive ints.')
+    if not (isinstance(k, int)) and (isinstance(n_bins, int)) and \
+            (isinstance(n_mesh, int)) and (k > 0) \
+            and (n_bins > 0) and (n_mesh > 0):
+        raise ValueError('k, n_bins, and n_mesh must all be positive ints.')
 
     # 0. Z-score X and Y
-    x = zscore(x)
-    y = zscore(y)
+    x = stats.zscore(x)
+    y = stats.zscore(y)
 
     # 1. Create bin and mesh points
-    xb = np.linspace(min(x), max(x), n_bins + 1) # plus 1 for edges
+    xb = np.linspace(min(x), max(x), n_bins + 1)  # plus 1 for edges
     yb = np.linspace(min(y), max(y), n_bins + 1)
-    xm = np.linspace(min(x), max(x), ((n_mesh + 1 )* n_bins ) + 1)
-    ym = np.linspace(min(y), max(y), ((n_mesh + 1 )* n_bins ) + 1)
+    xm = np.linspace(min(x), max(x), ((n_mesh + 1) * n_bins) + 1)
+    ym = np.linspace(min(y), max(y), ((n_mesh + 1) * n_bins) + 1)
 
     #   get list of all mesh points that are not bin intersections
     #   we will calculate the kNN density around these points
-    mesh_all = np.vstack([np.tile(xm, len(ym)), np.repeat(ym, len(xm))]).T
-    intersects_x = np.hstack([np.tile(np.hstack([[True], np.repeat([False], n_mesh)]), n_bins), [True]])
-    intersects_y = np.hstack([np.tile(np.hstack([[True], np.repeat([False], n_mesh)]), n_bins), [True]])
+    intersects_x = np.hstack(
+        [np.tile(np.hstack([[True], np.repeat([False], n_mesh)]), n_bins), [True]])
+    intersects_y = np.hstack(
+        [np.tile(np.hstack([[True], np.repeat([False], n_mesh)]), n_bins), [True]])
     xm = xm[~intersects_x]
     ym = ym[~intersects_y]
     mesh_points = np.vstack([np.tile(xm, len(ym)), np.repeat(ym, len(xm))]).T
 
     # Next, we find the nearest points in the data from the mesh
-    knn = NearestNeighbors(n_neighbors=k, n_jobs=n_jobs).fit(np.vstack([x,y]).T) # this is the data
-    dists, _ = knn.kneighbors(mesh_points) # get dists of closests points in data to mesh
+    knn = neighbors.NearestNeighbors(n_neighbors=k, n_jobs=n_jobs).fit(
+        np.vstack([x, y]).T)  # this is the data
+    # get dists of closests points in data to mesh
+    dists, _ = knn.kneighbors(mesh_points)
 
     # Get area, density of each point
-    area = np.pi * (dists[:,-1] ** 2)
+    area = np.pi * (dists[:, -1] ** 2)
     density = k / area
 
     # Sum the densities of each point over the bins
     # Sum the densities of each point over the bins
-    bin_density ,_ ,_ = np.histogram2d(mesh_points[:,0], mesh_points[:,1], bins=[xb,yb], weights=density)
+    bin_density, _, _ = np.histogram2d(mesh_points[:, 0], mesh_points[
+                                       :, 1], bins=[xb, yb], weights=density)
     bin_density = bin_density.T
-    bin_density = bin_density / np.sum(bin_density) # sum the whole grid should be 1
+    # sum the whole grid should be 1
+    bin_density = bin_density / np.sum(bin_density)
 
     # Calculate conditional entropy
     # NB: not using thresholding here; entr(M) calcs -x*log(x) elementwise
-    bin_density_norm = bin_density_norm = bin_density / np.sum(bin_density, axis=0) # columns sum to 1
-    cond_entropies = entropy(bin_density_norm, base=2) # calc entropy of each column
+    bin_density_norm = bin_density_norm = bin_density / \
+        np.sum(bin_density, axis=0)  # columns sum to 1
+    # calc entropy of each column
+    cond_entropies = stats.entropy(bin_density_norm, base=2)
 
     # Mutual information (not normalized)
-    marginal_entropy = entropy(np.sum(bin_density, axis=1), base=2) # entropy of Y
+    marginal_entropy = stats.entropy(
+        np.sum(bin_density, axis=1), base=2)  # entropy of Y
 
     # Multiply the entropy of each column by the density of each column
     # Conditional entropy is the entropy in Y that isn't exmplained by X
-    cond_sums = np.sum(bin_density, axis=0) # distribution of X
+    cond_sums = np.sum(bin_density, axis=0)  # distribution of X
     conditional_entropy = np.sum(cond_entropies * cond_sums)
     mi = marginal_entropy - conditional_entropy
 
     # DREMI
-    marginal_entropy_norm = entropy(np.sum(bin_density_norm, axis=1), base=2)
+    marginal_entropy_norm = stats.entropy(np.sum(bin_density_norm, axis=1),
+                                          base=2)
     cond_sums_norm = np.mean(bin_density_norm)
     conditional_entropy_norm = np.sum(cond_entropies * cond_sums_norm)
 
     d = marginal_entropy_norm - conditional_entropy_norm
 
     if plot_data is True:
-        generate_DREMI_plots(d, mi, x, y, xb, yb, mesh_points, density, bin_density, bin_density_norm, filename=plot_filename)
+        generate_DREMI_plots(d, mi, x, y, xb, yb, mesh_points, density,
+                             bin_density, bin_density_norm,
+                             filename=plot_filename)
     else:
         return d
 
-def generate_DREMI_plots(d, mi, x, y, xb, yb, mesh_points, density, bin_density, bin_density_norm, figsize=(12,3.5), filename=None):
+
+def generate_DREMI_plots(d, mi, x, y, xb, yb, mesh_points,
+                         density, bin_density, bin_density_norm,
+                         figsize=(12, 3.5), filename=None):
     import seaborn as sns
     import matplotlib as mpl
     import matplotlib.pyplot as plt
 
-    fig, axes = plt.subplots(1,4, figsize=(12,3.5))
+    fig, axes = plt.subplots(1, 4, figsize=(12, 3.5))
     mpl.rcParams['font.sans-serif'] = "Arial"
     # Plot raw data
     ax = axes[0]
-    ax.scatter(x,y, c='k', s=4)
+    ax.scatter(x, y, c='k', s=4)
     ax.set_title('Input\ndata', fontsize=18)
     ax.set_xticks([])
     ax.set_yticks([])
@@ -200,7 +223,8 @@ def generate_DREMI_plots(d, mi, x, y, xb, yb, mesh_points, density, bin_density,
         ax.axhline(b, c='grey')
     for b in xb:
         ax.axvline(b, c='grey')
-    ax.scatter(mesh_points[:,0], mesh_points[:,1], c=np.log(density), cmap='inferno', s=4)
+    ax.scatter(mesh_points[:, 0], mesh_points[:, 1],
+               c=np.log(density), cmap='inferno', s=4)
 
     ax.set_xticks([])
     ax.set_yticks([])
@@ -210,19 +234,21 @@ def generate_DREMI_plots(d, mi, x, y, xb, yb, mesh_points, density, bin_density,
     # Plot joint probability
     ax = axes[2]
     raw_density_data = bin_density
-    cg = sns.heatmap(raw_density_data[::-1,:], cmap='inferno', ax=ax, cbar=False)
+    cg = sns.heatmap(raw_density_data[::-1, :],
+                     cmap='inferno', ax=ax, cbar=False)
     cg.set_xticks([])
     cg.set_yticks([])
-    cg.set_title('Joint Prob.\nMI=%.2f'%mi, fontsize=18)
+    cg.set_title('Joint Prob.\nMI=%.2f' % mi, fontsize=18)
     cg.set_xlabel('Feature 1', fontsize=16)
 
     # Plot conditional probability
     ax = axes[3]
     raw_density_data = bin_density_norm
-    cg = sns.heatmap(raw_density_data[::-1,:], cmap='inferno', ax=ax, cbar=False)
+    cg = sns.heatmap(raw_density_data[::-1, :],
+                     cmap='inferno', ax=ax, cbar=False)
     cg.set_xticks([])
     cg.set_yticks([])
-    cg.set_title('Conditional Prob.\nDREMI=%.2f'%d, fontsize=18)
+    cg.set_title('Conditional Prob.\nDREMI=%.2f' % d, fontsize=18)
     cg.set_xlabel('Feature 1', fontsize=16)
 
     fig.subplots_adjust(wspace=-1)
@@ -234,7 +260,7 @@ def generate_DREMI_plots(d, mi, x, y, xb, yb, mesh_points, density, bin_density,
         plt.show()
 
 
-def coerce_dense(x):
+def _vector_coerce_dense(x):
     if isinstance(x, pd.SparseSeries):
         x_nu = x.to_dense()
     elif sparse.issparse(x):
@@ -242,5 +268,17 @@ def coerce_dense(x):
     else:
         x_nu = np.array(x).flatten()
     if not len(x_nu) == len(x):
-        raise ValueError('x and y must be 1d arrays. Got an array of shape: %s'%str(x.shape))
+        raise ValueError(
+            "x must be a 1D array. Got shape {}".format(x.shape))
     return x_nu
+
+
+def _vector_coerce_two_dense(x, y):
+    try:
+        x = _vector_coerce_dense(x)
+        y = _vector_coerce_dense(y)
+    except ValueError as e:
+        if "x must be a 1D array. Got shape " in str(e):
+            raise ValueError("Expected x and y to be 1D arrays. "
+                             "Got shapes x {}, y {}".format(x.shape, y.shape))
+    return x, y
