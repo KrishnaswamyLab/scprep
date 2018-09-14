@@ -10,7 +10,7 @@ from functools import partial
 def test_EMD():
     X = data.generate_positive_sparse_matrix(
         shape=(500, 2), seed=42, poisson_mean=5)
-    Y = scprep.stats.EMD(X[:, 0], X[:, 1], bins=40)
+    Y = scprep.stats.EMD(X[:, 0], X[:, 1])
     assert isinstance(Y, float)
     np.testing.assert_allclose(Y, 0.5537161)
     matrix.check_all_matrix_types(
