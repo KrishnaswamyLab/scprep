@@ -14,7 +14,7 @@ except ImportError:
     pass
 
 
-def EMD(x, y, bins=40):
+def EMD(x, y):
     """Earth Mover's Distance between samples
 
     Calculates an approximation of Earth Mover's Distance (also called
@@ -29,8 +29,6 @@ def EMD(x, y, bins=40):
         Input data (feature 1)
     y : array-like, shape=[n_samples]
         Input data (feature 2)
-    bins : int or array-like, (default: 40)
-        Passed to np.histogram to calculate CDFs for each variable.
 
     Returns
     -------
