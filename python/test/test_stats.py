@@ -1,8 +1,8 @@
+from load_tests import utils, matrix, data
 import numpy as np
 from sklearn.utils.testing import assert_warns_message, assert_raise_message
 import scprep
 from functools import partial
-from load_tests import utils, matrix, data
 
 
 def test_EMD():
