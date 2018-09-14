@@ -41,6 +41,14 @@ Measurements
     :inherited-members:
     :show-inheritance:
 
+Statistics
+----------
+
+.. automodule:: scprep.stats
+    :members:
+    :inherited-members:
+    :show-inheritance:
+
 Plotting
 --------
 
@@ -61,6 +69,14 @@ Utilities
 ---------
 
 .. automodule:: scprep.utils
+    :members:
+    :inherited-members:
+    :show-inheritance:
+
+HDF5
+----
+
+.. automodule:: scprep.hdf5
     :members:
     :inherited-members:
     :show-inheritance:
