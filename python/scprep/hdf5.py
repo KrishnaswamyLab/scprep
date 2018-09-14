@@ -146,7 +146,7 @@ def get_values(dataset):
 
     Parameters
     ----------
-    dataset : tables.CArray or h5py.???
+    dataset : tables.CArray or h5py.Dataset
 
     Returns
     -------
