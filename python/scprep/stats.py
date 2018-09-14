@@ -14,7 +14,7 @@ except ImportError:
     pass
 
 
-def EMD(x, y, bins=100):
+def EMD(x, y, bins=40):
     """Earth Mover's Distance between samples
 
     Calculates an approximation of Earth Mover's Distance (also called
@@ -23,40 +23,36 @@ def EMD(x, y, bins=100):
     identifying differentially expressed genes between two groups of cells. For
     more information see https://en.wikipedia.org/wiki/Wasserstein_metric.
 
-
     Parameters
     ----------
     x : array-like, shape=[n_samples]
         Input data (feature 1)
     y : array-like, shape=[n_samples]
         Input data (feature 2)
-    bins : int or array-like, (default: 8)
+    bins : int or array-like, (default: 40)
         Passed to np.histogram to calculate CDFs for each variable.
 
     Returns
     -------
     emd : float
         Earth Mover's Distance between x and y.
+
+    Examples
+    --------
+    >>> import scprep
+    >>> data = scprep.io.load_csv("my_data.csv")
+    >>> dremi = scprep.stats.EMD(data['GENE1'], data['GENE2'])
     """
     x, y = _vector_coerce_two_dense(x, y)
-
-    countsx, _ = np.histogram(x, bins=bins)
-    countsx = countsx / countsx.sum()
-    countsx = countsx.cumsum()
-
-    countsy, _ = np.histogram(y, bins=bins)
-    countsy = countsy / countsy.sum()
-    countsy = countsy.cumsum()
-
-    emd = np.abs(countsx - countsy).sum()
-    return emd
+    return stats.wasserstein_distance(x, y)
 
 
 def mutual_information(x, y, bins=8):
     """Mutual information score with set number of bins
 
     Helper function for sklearn.metrics.mutual_info_score that builds your
-    contingency table for you using a set number of bins
+    contingency table for you using a set number of bins.
+    Credit: Warran Weckesser https://stackoverflow.com/a/20505476/3996580
 
 
     Parameters
@@ -72,16 +68,21 @@ def mutual_information(x, y, bins=8):
     -------
     mi : float
         Mutual information between x and y.
+
+    Examples
+    --------
+    >>> import scprep
+    >>> data = scprep.io.load_csv("my_data.csv")
+    >>> dremi = scprep.stats.mutual_information(data['GENE1'], data['GENE2'])
     """
     x, y = _vector_coerce_two_dense(x, y)
-
     c_xy = np.histogram2d(x, y, bins)[0]
     mi = metrics.mutual_info_score(None, None, contingency=c_xy)
     return mi
 
 
 def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
-             plot_data=None, **kwargs):
+             plot=False, **kwargs):
     """kNN conditional Density Resampled Estimate of Mutual Information
 
     Calculates k-Nearest Neighbor conditional Density Resampled Estimate of
@@ -114,8 +115,8 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
     n_mesh : int, range=[0:inf), optional (default: 3)
         In each bin, density will be calculcated around (mesh ** 2) points
     n_jobs : int, optional (default: 1)
-        Used for kNN calculation
-    plot_data : bool, optional (default())
+        Number of threads used for kNN calculation
+    plot : bool, optional (default: False)
         If True, DREMI create plots of the data like those seen in
         Fig 5C/D of van Dijk et al. 2018. (doi:10.1016/j.cell.2018.05.061).
     **kwargs : additional arguments for `scprep.stats.plot_knnDREMI`
@@ -130,8 +131,8 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
     >>> import scprep
     >>> data = scprep.io.load_csv("my_data.csv")
     >>> dremi = scprep.stats.knnDREMI(data['GENE1'], data['GENE2'],
-    ...                               plot_data=True,
-    ...                               plot_filename='dremi.png')
+    ...                               plot=True,
+    ...                               filename='dremi.png')
     """
     x, y = _vector_coerce_two_dense(x, y)
 
@@ -206,7 +207,7 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
 
     dremi = marginal_entropy_norm - conditional_entropy_norm
 
-    if plot_data is True:
+    if plot is True:
         plot_knnDREMI(dremi, mutual_info,
                       x, y, n_bins, n_mesh,
                       density, bin_density, bin_density_norm, **kwargs)
@@ -220,6 +221,30 @@ def plot_knnDREMI(dremi, mutual_info, x, y, n_bins, n_mesh,
                   xlabel="Feature 1", ylabel="Feature 2",
                   title_fontsize=18, label_fontsize=16,
                   dpi=150):
+    """Plot results of DREMI
+
+    Create plots of the data like those seen in
+    Fig 5C/D of van Dijk et al. 2018. (doi:10.1016/j.cell.2018.05.061).
+    Note that this function is not designed to be called manually. Instead create
+    plots by running `scprep.stats.knnDREMI` with `plot=True`.
+
+    Parameters
+    ----------
+    figsize : tuple, optional (default: (12, 3.5))
+        Matplotlib figure size
+    filename : str or `None`, optional (default: None)
+        If given, saves the results to a file
+    xlabel : str, optional (default: "Feature 1")
+        The name of the gene shown on the x axis
+    ylabel : str, optional (default: "Feature 2")
+        The name of the gene shown on the y axis
+    title_fontsize : int, optional (default: 18)
+        Font size for figure titles
+    label_fontsize : int, optional (default: 16)
+        Font size for axis labels
+    dpi : int, optional (default: 150)
+        Dots per inch for saved figure
+    """
     fig, axes = plt.subplots(1, 4, figsize=figsize)
     # Plot raw data
     axes[0].scatter(x, y, c="k", s=4)
