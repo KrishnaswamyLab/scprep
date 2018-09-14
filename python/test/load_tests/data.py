@@ -17,10 +17,11 @@ def load_10X(**kwargs):
         os.path.join(data_dir, "test_10X"), **kwargs)
 
 
-def generate_positive_sparse_matrix(shape=[500, 500], seed=42, l=0.1):
+def generate_positive_sparse_matrix(shape=[500, 500], seed=42,
+                                    poisson_mean=0.1):
     """ Returns an ndarray of shape=shape filled mostly with zeros """
     np.random.seed(seed)
     X = np.random.normal(0, 1, shape) * \
-        np.random.poisson(l, shape)
+        np.random.poisson(poisson_mean, shape)
     X = np.abs(X)
     return X
