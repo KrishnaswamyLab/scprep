@@ -138,6 +138,27 @@ def test_select_error():
                          scprep.utils.select_rows,
                          X,
                          pd.DataFrame([X.index, X.index]))
+    assert_raise_message(ValueError,
+                         "Expected idx to be 1D. Got shape ",
+                         scprep.utils.select_cols,
+                         X,
+                         pd.DataFrame([X.index, X.index]))
+
+
+def test_matrix_any():
+    X = data.generate_positive_sparse_matrix(shape=(50, 50))
+    assert not np.any(X == 500000)
+
+    def test_fun(X):
+        assert not scprep.utils.matrix_any(X == 500000)
+    matrix.check_all_matrix_types(X,
+                                  test_fun)
+
+    def test_fun(X):
+        assert scprep.utils.matrix_any(X == 500000)
+    X[0, 0] = 500000
+    matrix.check_all_matrix_types(X,
+                                  test_fun)
 
 
 def test_toarray():
@@ -161,26 +182,21 @@ def test_matrix_sum():
 
     def test_fun(X):
         assert np.allclose(np.array(scprep.utils.matrix_sum(X, axis=0)), sums)
-
     matrix.check_all_matrix_types(X,
                                   test_fun)
     test_fun(np.matrix(X))
-
     sums = np.array(X.sum(1)).flatten()
 
     def test_fun(X):
         assert np.allclose(
             np.array(scprep.utils.matrix_sum(X, axis=1)), sums)
-
     matrix.check_all_matrix_types(X,
                                   test_fun)
     test_fun(np.matrix(X))
-
     sums = np.array(X.sum(None)).flatten()
 
     def test_fun(X):
         assert np.allclose(scprep.utils.matrix_sum(X, axis=None), sums)
-
     matrix.check_all_matrix_types(X,
                                   test_fun)
     test_fun(np.matrix(X))

@@ -20,7 +20,9 @@ def toarray(x):
     """
     if isinstance(x, pd.SparseDataFrame):
         x = x.to_coo().toarray()
-    elif isinstance(x, pd.DataFrame):
+    elif isinstance(x, pd.SparseSeries):
+        x = x.to_dense().values
+    elif isinstance(x, (pd.DataFrame, pd.Series)):
         x = x.values
     elif isinstance(x, sparse.spmatrix):
         x = x.toarray()
@@ -184,6 +186,11 @@ def select_cols(data, idx):
     ------
     UserWarning : if no columns are selected
     """
+    if isinstance(idx, pd.DataFrame):
+        if len(idx.shape) > 1 and idx.shape[1] > 1:
+            raise ValueError(
+                "Expected idx to be 1D. Got shape {}".format(idx.shape))
+        idx = idx.iloc[:, 0]
     if isinstance(data, pd.DataFrame):
         try:
             data = data.loc[:, idx]
@@ -200,7 +207,7 @@ def select_cols(data, idx):
                              sparse.dia_matrix)):
             data = data.tocsr()
         data = data[:, idx]
-    if data.shape[1] == 0:
+    if len(data.shape) > 1 and data.shape[1] == 0:
         warnings.warn("Selecting 0 columns.", UserWarning)
     return data
 
@@ -225,7 +232,7 @@ def select_rows(data, idx):
     UserWarning : if no rows are selected
     """
     if isinstance(idx, pd.DataFrame):
-        if idx.shape[1] > 1:
+        if len(idx.shape) > 1 and idx.shape[1] > 1:
             raise ValueError(
                 "Expected idx to be 1D. Got shape {}".format(idx.shape))
         idx = idx.iloc[:, 0]
@@ -244,7 +251,7 @@ def select_rows(data, idx):
                              sparse.dia_matrix)):
             data = data.tocsr()
         data = data[idx, :]
-    if data.shape[0] == 0:
+    if len(data.shape) > 1 and data.shape[0] == 0:
         warnings.warn("Selecting 0 rows.", UserWarning)
     return data
 

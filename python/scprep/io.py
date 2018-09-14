@@ -12,16 +12,10 @@ import zipfile
 import tempfile
 import shutil
 from decorator import decorator
+from . import hdf5
+
 try:
     import fcsparser
-except ImportError:
-    pass
-try:
-    import tables
-except ImportError:
-    pass
-try:
-    import h5py
 except ImportError:
     pass
 
@@ -40,21 +34,6 @@ def _with_fcsparser(fun, *args, **kwargs):
         raise ImportError(
             "fcsparser not found. "
             "Please install it with e.g. `pip install --user fcsparser`")
-    return fun(*args, **kwargs)
-
-
-@decorator
-def _with_tables_or_h5py(fun, *args, **kwargs):
-    try:
-        tables
-    except NameError:
-        try:
-            h5py
-        except NameError:
-            raise ImportError(
-                "Found neither tables nor h5py. "
-                "Please install one of them with e.g. "
-                "`pip install --user tables` or `pip install --user h5py`")
     return fun(*args, **kwargs)
 
 
@@ -83,7 +62,7 @@ def _parse_header(header, n_expected, header_type="gene_names"):
         else:
             delimiter = ","
         columns = pd.read_csv(header, delimiter=delimiter,
-                              header=None).values.reshape(-1)
+                              header=None).values.flatten().astype(str)
         if not len(columns) == n_expected:
             raise ValueError("Expected {} entries in {}. Got {}".format(
                 n_expected, header, len(columns)))
@@ -498,7 +477,8 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol',
     cell_names = barcodes[0]
     if allow_duplicates is None:
         allow_duplicates = not sparse
-    gene_names = _parse_10x_genes(genes['symbol'], genes['id'],
+    gene_names = _parse_10x_genes(genes['symbol'].values.astype(str),
+                                  genes['id'].values.astype(str),
                                   gene_labels=gene_labels,
                                   allow_duplicates=allow_duplicates)
 
@@ -562,68 +542,7 @@ def load_10X_zip(filename, sparse=True, gene_labels='symbol',
     return data
 
 
-@_with_tables_or_h5py
-def _h5_open_file(filename, mode, backend=None):
-    if backend is None:
-        try:
-            tables
-            backend = 'tables'
-        except NameError:
-            backend = 'h5py'
-    if backend == 'tables':
-        return tables.open_file(filename, mode)
-    elif backend == 'h5py':
-        return h5py.File(filename, mode)
-    else:
-        raise ValueError(
-            "Expected backend in ['tables', 'h5py']. Got {}".format(backend))
-
-
-def _h5_is_tables(obj):
-    try:
-        return isinstance(obj, (tables.File, tables.Group))
-    except NameError:
-        return False
-
-
-def _h5_is_h5py(obj):
-    try:
-        return isinstance(obj, (h5py.File, h5py.Group))
-    except NameError:
-        return False
-
-
-def _h5_list_nodes(f):
-    if _h5_is_h5py(f):
-        return [node for node in f.keys()]
-    elif _h5_is_tables(f):
-        return [node._v_name for node in f.list_nodes(f.root)]
-    else:
-        raise TypeError(
-            "Expected h5py.File or tables.File. Got {}".format(type(f)))
-
-
-def _h5_get_node(f, node):
-    if _h5_is_h5py(f):
-        return f[node]
-    elif _h5_is_tables(f):
-        return f.get_node(f.root, node)
-    else:
-        raise TypeError(
-            "Expected h5py.File or tables.File. Got {}".format(type(f)))
-
-
-def _h5_get_values(group, dataset):
-    if _h5_is_h5py(group):
-        return group[dataset].value
-    elif _h5_is_tables(group):
-        return group[dataset].read()
-    else:
-        raise TypeError(
-            "Expected h5py.Group or tables.Group. Got {}".format(type(group)))
-
-
-@_with_tables_or_h5py
+@hdf5.with_HDF5
 def load_10X_HDF5(filename, genome=None, sparse=True, gene_labels='symbol',
                   allow_duplicates=None, backend=None):
     """Basic IO for HDF5 10X data produced from the 10X Cellranger pipeline.
@@ -662,18 +581,18 @@ def load_10X_HDF5(filename, genome=None, sparse=True, gene_labels='symbol',
             "gene_labels='{}' not recognized. "
             "Choose from ['symbol', 'id', 'both']".format(gene_labels))
 
-    with _h5_open_file(filename, 'r', backend=backend) as f:
+    with hdf5.open_file(filename, 'r', backend=backend) as f:
         if genome is None:
-            genomes = _h5_list_nodes(f)
+            genomes = hdf5.list_nodes(f)
             print_genomes = ", ".join(genomes)
             genome = genomes[0]
             if len(genomes) > 1:
                 print("Available genomes: {}. Selecting {} by default".format(
                     print_genomes, genome))
         try:
-            group = _h5_get_node(f, genome)
+            group = hdf5.get_node(f, genome)
         except (AttributeError, KeyError):
-            genomes = _h5_list_nodes(f)
+            genomes = hdf5.list_nodes(f)
             print_genomes = ", ".join(genomes)
             raise ValueError(
                 "Genome {} not found in {}. "
@@ -682,14 +601,17 @@ def load_10X_HDF5(filename, genome=None, sparse=True, gene_labels='symbol',
         if allow_duplicates is None:
             allow_duplicates = not sparse
         gene_names = _parse_10x_genes(
-            symbols=[g.decode() for g in _h5_get_values(group, 'gene_names')],
-            ids=[g.decode() for g in _h5_get_values(group, 'genes')],
+            symbols=[g.decode() for g in hdf5.get_values(
+                hdf5.get_node(group, 'gene_names'))],
+            ids=[g.decode()
+                 for g in hdf5.get_values(hdf5.get_node(group, 'genes'))],
             gene_labels=gene_labels, allow_duplicates=allow_duplicates)
-        cell_names = [b.decode() for b in _h5_get_values(group, 'barcodes')]
-        data = _h5_get_values(group, 'data')
-        indices = _h5_get_values(group, 'indices')
-        indptr = _h5_get_values(group, 'indptr')
-        shape = _h5_get_values(group, 'shape')
+        cell_names = [b.decode()
+                      for b in hdf5.get_values(hdf5.get_node(group, 'barcodes'))]
+        data = hdf5.get_values(hdf5.get_node(group, 'data'))
+        indices = hdf5.get_values(hdf5.get_node(group, 'indices'))
+        indptr = hdf5.get_values(hdf5.get_node(group, 'indptr'))
+        shape = hdf5.get_values(hdf5.get_node(group, 'shape'))
         data = sp.csc_matrix((data, indices, indptr), shape=shape)
         data = _matrix_to_data_frame(data.T,
                                      gene_names=gene_names,

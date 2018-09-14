@@ -36,7 +36,6 @@ _indexable_matrix_types = [
     pd.SparseDataFrame
 ]
 
-
 def check_matrix_types(X, test_fun, matrix_funs, *args, **kwargs):
     for fun in matrix_funs:
         with warnings.catch_warnings():

@@ -9,4 +9,6 @@ import scprep.transform
 import scprep.measure
 import scprep.plot
 import scprep.sanitize
+import scprep.stats
 import scprep.reduce
+import scprep.hdf5
