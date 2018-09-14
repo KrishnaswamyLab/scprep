@@ -138,6 +138,27 @@ def test_select_error():
                          scprep.utils.select_rows,
                          X,
                          pd.DataFrame([X.index, X.index]))
+    assert_raise_message(ValueError,
+                         "Expected idx to be 1D. Got shape ",
+                         scprep.utils.select_cols,
+                         X,
+                         pd.DataFrame([X.index, X.index]))
+
+
+def test_matrix_any():
+    X = data.generate_positive_sparse_matrix(shape=(50, 50))
+    assert not np.any(X == 500000)
+
+    def test_fun(X):
+        assert not scprep.utils.matrix_any(X == 500000)
+    matrix.check_all_matrix_types(X,
+                                  test_fun)
+
+    def test_fun(X):
+        assert scprep.utils.matrix_any(X == 500000)
+    X[0, 0] = 500000
+    matrix.check_all_matrix_types(X,
+                                  test_fun)
 
 
 def test_toarray():
