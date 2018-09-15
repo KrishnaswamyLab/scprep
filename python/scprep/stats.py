@@ -39,7 +39,7 @@ def EMD(x, y):
     --------
     >>> import scprep
     >>> data = scprep.io.load_csv("my_data.csv")
-    >>> dremi = scprep.stats.EMD(data['GENE1'], data['GENE2'])
+    >>> emd = scprep.stats.EMD(data['GENE1'], data['GENE2'])
     """
     x, y = _vector_coerce_two_dense(x, y)
     return stats.wasserstein_distance(x, y)
@@ -71,7 +71,7 @@ def mutual_information(x, y, bins=8):
     --------
     >>> import scprep
     >>> data = scprep.io.load_csv("my_data.csv")
-    >>> dremi = scprep.stats.mutual_information(data['GENE1'], data['GENE2'])
+    >>> mi = scprep.stats.mutual_information(data['GENE1'], data['GENE2'])
     """
     x, y = _vector_coerce_two_dense(x, y)
     c_xy = np.histogram2d(x, y, bins)[0]
