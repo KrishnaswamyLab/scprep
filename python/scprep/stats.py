@@ -48,9 +48,9 @@ def EMD(x, y):
 def mutual_information(x, y, bins=8):
     """Mutual information score with set number of bins
 
-    Helper function for sklearn.metrics.mutual_info_score that builds your
-    contingency table for you using a set number of bins.
-    Credit: Warran Weckesser https://stackoverflow.com/a/20505476/3996580
+    Helper function for `sklearn.metrics.mutual_info_score` that builds a
+    contingency table over a set number of bins.
+    Credit: `Warran Weckesser <https://stackoverflow.com/a/20505476/3996580>`_.
 
 
     Parameters
@@ -84,21 +84,18 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
     """kNN conditional Density Resampled Estimate of Mutual Information
 
     Calculates k-Nearest Neighbor conditional Density Resampled Estimate of
-    Mutual Information as defined in Van Dijk et al. 2018
-    (doi:10.1016/j.cell.2018.05.061)
+    Mutual Information as defined in Van Dijk et al, 2018. [1]_
 
-    kNN-DREMI is an adaptation of DREMI (Krishnaswamy et al. 2014,
-    doi:10.1126/science.1250689) for single cell RNA-sequencing data. DREMI
-    captures the functional relationship between two genes across their entire
-    dynamic range. The key change to kNN-DREMI is the replacement of the heat
-    diffusion-based kernel-density estimator from (Botev et al., 2010) by a
-    k-nearest neighbor-based density estimator (Sricharan et al., 2012), which
-    has been shown to be an effective method for sparse and high dimensional
-    datasets.
+    kNN-DREMI is an adaptation of DREMI (Krishnaswamy et al. 2014, [2]_) for
+    single cell RNA-sequencing data. DREMI captures the functional relationship
+    between two genes across their entire dynamic range. The key change to
+    kNN-DREMI is the replacement of the heat diffusion-based kernel-density
+    estimator from Botev et al., 2010 [3]_ by a k-nearest neighbor-based
+    density estimator (Sricharan et al., 2012 [4]_), which has been shown to be
+    an effective method for sparse and high dimensional datasets.
 
     Note that kNN-DREMI, like Mutual Information and DREMI, is not symmetric.
-    Here we are estimating I(Y|X). There are many good articles about mutual
-    information on the web.
+    Here we are estimating I(Y|X).
 
     Parameters
     ----------
@@ -131,6 +128,20 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
     >>> dremi = scprep.stats.knnDREMI(data['GENE1'], data['GENE2'],
     ...                               plot=True,
     ...                               filename='dremi.png')
+
+    References
+    ----------
+    .. [1] van Dijk D *et al.* (2018),
+        *Recovering Gene Interactions from Single-Cell Data Using Data
+        Diffusion*, `Cell <https://doi.org/10.1016/j.cell.2018.05.061>`_.
+    .. [2] Krishnaswamy S  *et al.* (2014),
+        *Conditional density-based analysis of T cell signaling in single-cell
+        data*, `Science <https://doi.org/10.1126/science.1250689>`_.
+    .. [3] Botev ZI *et al*. (2010), *Kernel density estimation via diffusion*,
+        `The Annals of Statistics <https://doi.org/10.1214/10-AOS799>`_.
+    .. [4] Sricharan K *et al*. (2012), *Estimation of nonlinear functionals of
+        densities with confidence*, `IEEE Transactions on Information Theory
+        <https://doi.org/10.1109/TIT.2012.2195549>`_.
     """
     x, y = _vector_coerce_two_dense(x, y)
 
@@ -222,9 +233,9 @@ def plot_knnDREMI(dremi, mutual_info, x, y, n_bins, n_mesh,
     """Plot results of DREMI
 
     Create plots of the data like those seen in
-    Fig 5C/D of van Dijk et al. 2018. (doi:10.1016/j.cell.2018.05.061).
-    Note that this function is not designed to be called manually. Instead create
-    plots by running `scprep.stats.knnDREMI` with `plot=True`.
+    Fig 5C/D of van Dijk et al. 2018. [1]_
+    Note that this function is not designed to be called manually. Instead
+    create plots by running `scprep.stats.knnDREMI` with `plot=True`.
 
     Parameters
     ----------
