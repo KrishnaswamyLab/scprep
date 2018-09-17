@@ -216,7 +216,7 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
 
     dremi = marginal_entropy_norm - conditional_entropy_norm
 
-    if plot is True:
+    if plot:
         plot_knnDREMI(dremi, mutual_info,
                       x, y, n_bins, n_mesh,
                       density, bin_density, bin_density_norm, **kwargs)
