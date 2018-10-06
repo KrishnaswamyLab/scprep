@@ -1,4 +1,4 @@
-from load_tests import data
+from tools import data
 import scprep
 import matplotlib.pyplot as plt
 from sklearn.utils.testing import assert_raise_message

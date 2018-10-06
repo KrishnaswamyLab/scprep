@@ -1,4 +1,4 @@
-from load_tests import data
+from tools import data
 import scprep
 from sklearn.utils.testing import assert_warns_message, assert_raise_message
 import pandas as pd

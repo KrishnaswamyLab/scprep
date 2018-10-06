@@ -1,4 +1,4 @@
-from load_tests import utils, matrix, data
+from tools import utils, matrix, data
 import scprep
 import pandas as pd
 import numpy as np
@@ -12,8 +12,8 @@ def test_remove_empty_cells():
     X_filtered = scprep.filter.remove_empty_cells(X)
     assert X_filtered.shape[1] == X.shape[1]
     assert not np.any(X_filtered.sum(1) == 0)
-    matrix.check_all_matrix_types(
-        X, utils.check_output_equivalent,
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equals,
         Y=X_filtered, transform=scprep.filter.remove_empty_cells)
 
 
@@ -32,8 +32,8 @@ def test_remove_empty_cells_sparse():
     X_filtered = scprep.filter.remove_empty_cells(X)
     assert X_filtered.shape[1] == X.shape[1]
     assert not np.any(X_filtered.sum(1) == 0)
-    matrix.check_all_matrix_types(
-        X, utils.check_output_equivalent,
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equals,
         Y=X_filtered, transform=scprep.filter.remove_empty_cells)
 
 
@@ -42,8 +42,8 @@ def test_remove_empty_genes():
     X_filtered = scprep.filter.remove_empty_genes(X)
     assert X_filtered.shape[0] == X.shape[0]
     assert not np.any(X_filtered.sum(0) == 0)
-    matrix.check_all_matrix_types(
-        X, utils.check_output_equivalent,
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equals,
         Y=X_filtered, transform=scprep.filter.remove_empty_genes)
 
 
@@ -52,8 +52,8 @@ def test_remove_empty_genes_sparse():
     X_filtered = scprep.filter.remove_empty_genes(X)
     assert X_filtered.shape[0] == X.shape[0]
     assert not np.any(X_filtered.sum(0) == 0)
-    matrix.check_all_matrix_types(
-        X, utils.check_output_equivalent,
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equals,
         Y=X_filtered, transform=scprep.filter.remove_empty_genes)
 
 
@@ -62,8 +62,8 @@ def test_remove_rare_genes():
     X_filtered = scprep.filter.remove_rare_genes(X)
     assert X_filtered.shape[0] == X.shape[0]
     assert not np.any(X_filtered.sum(0) < 5)
-    matrix.check_all_matrix_types(
-        X, utils.check_output_equivalent,
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equals,
         Y=X_filtered, transform=scprep.filter.remove_rare_genes)
 
 
@@ -72,8 +72,8 @@ def test_library_size_filter():
     X_filtered = scprep.filter.filter_library_size(X, 100)
     assert X_filtered.shape[1] == X.shape[1]
     assert not np.any(X_filtered.sum(1) <= 100)
-    matrix.check_all_matrix_types(
-        X, utils.check_output_equivalent,
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equals,
         Y=X_filtered, transform=partial(
             scprep.filter.filter_library_size, cutoff=100))
 
@@ -124,8 +124,8 @@ def test_gene_expression_filter_below():
     assert X_filtered.shape[1] == X.shape[1]
     assert np.max(np.sum(X[gene_cols], axis=1)) > np.max(
         np.sum(X_filtered[gene_cols], axis=1))
-    matrix.check_all_matrix_types(
-        X, utils.check_output_equivalent,
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equals,
         Y=X_filtered, transform=partial(
             scprep.filter.filter_gene_set_expression, genes=genes,
             percentile=90, keep_cells='below',
@@ -142,8 +142,8 @@ def test_gene_expression_filter_above():
     assert X_filtered.shape[1] == X.shape[1]
     assert np.min(np.sum(X[gene_cols], axis=1)) < np.min(
         np.sum(X_filtered[gene_cols], axis=1))
-    matrix.check_all_matrix_types(
-        X, utils.check_output_equivalent,
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equals,
         Y=X_filtered, transform=partial(
             scprep.filter.filter_gene_set_expression, genes=genes,
             percentile=10, keep_cells='above',

@@ -1,4 +1,4 @@
-from load_tests import utils, matrix, data
+from tools import utils, matrix, data
 import numpy as np
 from scipy import stats
 from sklearn.utils.testing import assert_warns_message, assert_raise_message
@@ -13,8 +13,8 @@ def test_EMD():
     Y = scprep.stats.EMD(X[:, 0], X[:, 1])
     assert isinstance(Y, float)
     np.testing.assert_allclose(Y, 0.5537161)
-    matrix.check_all_matrix_types(
-        X, utils.check_output_equivalent, Y=Y,
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equals, Y=Y,
         transform=partial(_test_fun_2d, fun=scprep.stats.EMD),
         check=utils.assert_all_close)
     assert_raise_message(
@@ -45,8 +45,8 @@ def test_mutual_information():
     Y = scprep.stats.mutual_information(X[:, 0], X[:, 1], bins=20)
     assert isinstance(Y, float)
     np.testing.assert_allclose(Y, calc_MI(X[:, 0], X[:, 1], bins=20))
-    matrix.check_all_matrix_types(
-        X, utils.check_output_equivalent, Y=Y,
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equals, Y=Y,
         transform=partial(_test_fun_2d, fun=scprep.stats.mutual_information),
         check=utils.assert_all_close, bins=20)
 
@@ -58,8 +58,8 @@ def test_knnDREMI():
     assert isinstance(Y, float)
     np.testing.assert_allclose(Y, 0.16238906)
     scprep.stats.knnDREMI(X[:, 0], X[:, 1], plot=True)
-    matrix.check_all_matrix_types(
-        X, utils.check_output_equivalent, Y=Y,
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equals, Y=Y,
         transform=partial(_test_fun_2d, fun=scprep.stats.knnDREMI),
         check=utils.assert_all_close)
     assert_raise_message(
