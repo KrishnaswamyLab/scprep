@@ -51,7 +51,7 @@ process_data <- function(data, gene_names, condition_labels) {
 """
 
 def run_MAST(data, gene_names, condition_labels):
-    '''
+    """
     Takes a data matrix and performs pairwise differential expression analysis
     using a Hurdle model as implemented in [MAST](https://github.com/RGLab/MAST/).
     The current implementation uses the Cell Detection Rate (# non-zero genes per cell)
@@ -89,7 +89,6 @@ def run_MAST(data, gene_names, condition_labels):
     >>> cond = np.hstack([np.tile('cond1', ncells_in_cond1), np.tile('cond2', ncells_in_cond2)])
     >>> results = scprep.run.run_MAST(np.log2(data_ln + 1), gene_names = data.columns, condition = cond)
     """
-    '''
     _run_MAST = _rpy2_function(_MAST_r_script)
     results = pd.DataFrame.from_records(_run_MAST(data, gene_names=gene_names, condition_labels=condition_labels), index='primerid')
     results.index.names = ['gene_name']
