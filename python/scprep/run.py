@@ -51,5 +51,46 @@ process_data <- function(data, gene_names, condition_labels) {
 """
 
 def run_MAST(data, gene_names, condition_labels):
+    '''
+    Takes a data matrix and performs pairwise differential expression analysis
+    using a Hurdle model as implemented in [MAST](https://github.com/RGLab/MAST/).
+    The current implementation uses the Cell Detection Rate (# non-zero genes per cell)
+    as a factor in the analysis because this was found to be higher performing in
+    a comparison of differential expression tools (https://www.ncbi.nlm.nih.gov/pubmed/29481549).
+
+    Parameters
+    ----------
+    data : array-like, shape=[n_samples, n_features]
+        Input data from both samples
+    gene_names : array-like, shape=[n_features]
+        Names of each gene - must be unique
+    condition_labels : array-like, shape=[n_samples]
+        A vector of condition labels associated with each sample.
+        E.g. `['Expt', 'Expt', ... , 'Ctrl']`.
+        Note that `len(np.unique(condition_labels))` must be `2`.
+
+    Returns
+    -------
+    results : pandas.DataFrame
+        A table of results with columns `Pr(>Chisq)`, `coef`, `ci.hi`, `ci.lo`, and	`fdr`.
+        `Pr(>Chisq)`: the p-value associated with the gene
+        `coef`: the estimated log-Fold-Change (logFC) associated with the Hurdle model
+        `ci.hi`: upper bound of the confidence interval for logFC
+        `ci.lo`: lower bound of the confidence interval for logFC
+        `fdr`: false-discovery rate
+        The number of genes in the table is the number of significant genes at a
+        false discovery rate of 0.05.
+
+    Examples
+    --------
+    >>> import scprep
+    >>> data = scprep.io.load_csv("my_data.csv")
+    >>> data_ln = scprep.normalize.library_size_normalize(data)
+    >>> cond = np.hstack([np.tile('cond1', ncells_in_cond1), np.tile('cond2', ncells_in_cond2)])
+    >>> results = scprep.run.run_MAST(np.log2(data_ln + 1), gene_names = data.columns, condition = cond)
+    """
+    '''
     _run_MAST = _rpy2_function(_MAST_r_script)
-    return pd.DataFrame.from_records(_run_MAST(data, gene_names=gene_names, condition_labels=condition_labels))
+    results = pd.DataFrame.from_records(_run_MAST(data, gene_names=gene_names, condition_labels=condition_labels), index='primerid')
+    results.index.names = ['gene_name']
+    return results
