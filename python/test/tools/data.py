@@ -2,17 +2,56 @@ import scprep
 import os
 import numpy as np
 
-data_dir = os.getcwd().split(os.path.sep)
-while data_dir[-1] in ["test_utils", "test", "python"]:
-    data_dir = data_dir[:-1]
 
-data_dir = data_dir + ["data", "test_data"]
-end = data_dir[1:] if len(data_dir) > 2 else [data_dir[1]]
-data_dir = [data_dir[0]] + [os.path.sep] + end
-data_dir = os.path.join(*data_dir)
+def _os_agnostic_fullpath_join(path):
+    """Join a list of directory names that start from the root
+
+    Handles both Windows and Unix
+    >>> os.path.join(os.sep, 'C:' + os.sep, ...)
+    'C:\\...'
+    >>> os.path.join(os.sep, 'usr' + os.sep, ...)
+    '/usr/...'
+
+    Parameters
+    ----------
+    path : list of directory names, starting from the root
+
+    Returns
+    -------
+    path : absolute path string
+    """
+    end = path[1:]
+    if not isinstance(end, list):
+        end = list(end)
+    path = os.path.join(os.sep, path[0] + os.sep, *end)
+    return path
+
+
+def _get_data_dir():
+    """Get path to scprep data directory
+    """
+    data_dir = os.getcwd().split(os.path.sep)
+    while data_dir[-1] in ["test_utils", "test", "python"]:
+        data_dir = data_dir[:-1]
+    data_dir = data_dir + ["data", "test_data"]
+    data_dir = _os_agnostic_fullpath_join(data_dir)
+    return data_dir
+
+
+data_dir = _get_data_dir()
 
 
 def load_10X(**kwargs):
+    """Load sample 10X data
+
+    Parameters
+    ----------
+    **kwargs : keyword arguments for scprep.io.load_10X
+
+    Returns
+    -------
+    data : array-like 10X data
+    """
     return scprep.io.load_10X(
         os.path.join(data_dir, "test_10X"), **kwargs)
 
