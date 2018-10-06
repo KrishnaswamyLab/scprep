@@ -1,5 +1,6 @@
 import numpy as np
 from decorator import decorator
+import os
 try:
     import matplotlib.pyplot as plt
     import matplotlib as mpl
@@ -26,6 +27,25 @@ def _mpl_is_gui_backend():
         return False
     else:
         return True
+
+
+@_with_matplotlib
+def show(fig):
+    """Show a matplotlib Figure correctly, regardless of platform
+
+    If running a Jupyter notebook, we avoid running `fig.show`. If running
+    in Windows, it is necessary to run `plt.show` rather than `fig.show`.
+
+    Parameters
+    ----------
+    fig : matplotlib.Figure
+        Figure to show
+    """
+    if _mpl_is_gui_backend():
+        if os.platform == "Windows":
+            plt.show(block=True)
+        else:
+            fig.show()
 
 
 @_with_matplotlib
@@ -119,7 +139,7 @@ def plot_library_size(data,
     """
     histogram(measure.library_size(data),
               cutoff=cutoff, percentile=percentile,
-              bins=bins, log=log, ax=ax, figsize=figsize)
+              bins=bins, log=log, ax=ax, figsize=figsize, **kwargs)
 
 
 @_with_matplotlib
@@ -160,4 +180,4 @@ def plot_gene_set_expression(data, genes,
     histogram(measure.gene_set_expression(
         data, genes, library_size_normalize=library_size_normalize),
         cutoff=cutoff, percentile=percentile,
-        bins=bins, log=log, ax=ax, figsize=figsize)
+        bins=bins, log=log, ax=ax, figsize=figsize, **kwargs)
