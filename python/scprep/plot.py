@@ -79,6 +79,7 @@ def histogram(data,
     """
     if ax is None:
         fig, ax = plt.subplots(figsize=figsize)
+        show_fig = True
     else:
         try:
             fig = ax.get_figure()
@@ -88,6 +89,7 @@ def histogram(data,
                                 "Got {}".format(type(ax)))
             else:
                 raise e
+        show_fig = False
     if log == 'x' or log is True:
         bins = np.logspace(np.log10(max(np.min(data), 1)),
                            np.log10(np.max(data)),
@@ -103,8 +105,8 @@ def histogram(data,
         data, cutoff, percentile, required=False)
     if cutoff is not None:
         ax.axvline(cutoff, color='red')
-    if _mpl_is_gui_backend():
-        fig.show()
+    if show_fig:
+        show(fig)
 
 
 @_with_matplotlib
