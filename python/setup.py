@@ -9,7 +9,8 @@ install_requires = [
     'future',
     'pandas',
     'decorator',
-    'seaborn'
+    'seaborn',
+    'rpy2'
 ]
 
 test_requires = [
@@ -20,7 +21,7 @@ test_requires = [
     'h5py',
     'matplotlib',
     'coverage',
-    'coveralls',
+    'coveralls'
 ]
 
 doc_requires = [
