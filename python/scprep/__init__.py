@@ -12,3 +12,4 @@ import scprep.sanitize
 import scprep.stats
 import scprep.reduce
 import scprep.hdf5
+import scprep.run
