@@ -126,7 +126,7 @@ def get_node(f, node):
 
     Returns
     -------
-    g : tables.Group, h5py.Group, tables.CArray or ???
+    g : tables.Group, h5py.Group, tables.CArray or hdf5.Dataset
         Requested HDF5 node.
     """
     if _is_h5py(f, allow_dataset=False):
@@ -146,7 +146,7 @@ def get_values(dataset):
 
     Parameters
     ----------
-    dataset : tables.CArray or h5py.???
+    dataset : tables.CArray or h5py.Dataset
 
     Returns
     -------

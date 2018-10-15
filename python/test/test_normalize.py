@@ -1,35 +1,36 @@
-from load_tests import utils, matrix, data
+from tools import utils, matrix, data
 import numpy as np
 from sklearn.preprocessing import normalize
 from sklearn.utils.testing import assert_warns_message, assert_raise_message
 import scprep
 from functools import partial
 
+
 def test_libsize_norm():
     X = data.generate_positive_sparse_matrix()
     median = np.median(X.sum(axis=1))
     Y = normalize(X, 'l1') * median
     utils.assert_all_close(Y.sum(1), np.median(np.sum(X, 1)))
-    matrix.check_all_matrix_types(
-        X, utils.check_transform_equivalent, Y=Y,
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equivalent, Y=Y,
         transform=scprep.normalize.library_size_normalize,
         check=utils.assert_all_close)
     mean = np.mean(X.sum(axis=1))
     X = data.generate_positive_sparse_matrix()
     Y = normalize(X, 'l1') * mean
     utils.assert_all_close(Y.sum(1), np.mean(np.sum(X, 1)))
-    matrix.check_all_matrix_types(
-        X, utils.check_transform_equivalent, Y=Y,
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equivalent, Y=Y,
         transform=scprep.normalize.library_size_normalize,
         check=utils.assert_all_close, rescale='mean')
     X = data.generate_positive_sparse_matrix()
     Y = normalize(X, 'l1')
-    matrix.check_all_matrix_types(
-        X, utils.check_transform_equivalent, Y=Y,
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equivalent, Y=Y,
         transform=scprep.normalize.library_size_normalize,
         check=utils.assert_all_close, rescale=None)
-    matrix.check_all_matrix_types(
-        X, utils.check_transform_equivalent, Y=Y,
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equivalent, Y=Y,
         transform=scprep.normalize.library_size_normalize,
         check=utils.assert_all_close, rescale=1)
     assert_raise_message(
@@ -56,13 +57,13 @@ def test_batch_mean_center():
     Y[sample_idx == 1] -= np.mean(Y[sample_idx == 1], axis=0)[None, :]
     utils.assert_all_close(np.mean(Y[sample_idx == 0], axis=0), 0)
     utils.assert_all_close(np.mean(Y[sample_idx == 1], axis=0), 0)
-    matrix.check_dense_matrix_types(
-        X, utils.check_transform_equivalent, Y=Y,
+    matrix.test_dense_matrix_types(
+        X, utils.assert_transform_equivalent, Y=Y,
         transform=partial(
             scprep.normalize.batch_mean_center,
             sample_idx=sample_idx))
-    matrix.check_sparse_matrix_types(
-        X, utils.check_transform_raises,
+    matrix.test_sparse_matrix_types(
+        X, utils.assert_transform_raises,
         transform=partial(
             scprep.normalize.batch_mean_center,
             sample_idx=sample_idx),
@@ -70,12 +71,12 @@ def test_batch_mean_center():
     X = data.generate_positive_sparse_matrix()
     Y = X.copy()
     Y -= np.mean(Y, axis=0)[None, :]
-    matrix.check_dense_matrix_types(
-        X, utils.check_transform_equivalent, Y=Y,
+    matrix.test_dense_matrix_types(
+        X, utils.assert_transform_equivalent, Y=Y,
         transform=partial(
             scprep.normalize.batch_mean_center))
-    matrix.check_sparse_matrix_types(
-        X, utils.check_transform_raises,
+    matrix.test_sparse_matrix_types(
+        X, utils.assert_transform_raises,
         transform=partial(
             scprep.normalize.batch_mean_center),
         exception=ValueError)

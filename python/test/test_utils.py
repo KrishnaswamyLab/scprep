@@ -1,4 +1,4 @@
-from load_tests import data, matrix, utils
+from tools import data, matrix, utils
 import scprep
 from sklearn.utils.testing import assert_raise_message, assert_warns_message
 import numpy as np
@@ -53,7 +53,7 @@ def test_combine_batches():
         [X, scprep.utils.select_rows(
             X, np.arange(X.shape[0] // 2))],
         batch_labels=[0, 1])
-    assert utils.matrix_class_equivalent(Y, Y2)
+    assert utils.assert_matrix_class_equivalent(Y, Y2)
     utils.assert_all_equal(Y, Y2)
     assert np.all(Y.index == Y2.index)
     assert np.all(sample_labels == np.concatenate(
@@ -70,14 +70,13 @@ def test_combine_batches():
     transform = lambda X: scprep.utils.combine_batches(
         [X, scprep.utils.select_rows(X, np.arange(X.shape[0] // 2))],
         batch_labels=[0, 1])[0]
-    matrix.check_matrix_types(
+    matrix.test_matrix_types(
         X,
-        utils.check_transform_equivalent,
+        utils.assert_transform_equals,
         matrix._indexable_matrix_types,
         Y=Y,
         transform=transform,
-        check=utils.assert_all_equal,
-        matrix_form_unchanged=False)
+        check=utils.assert_all_equal)
 
 
 def test_combine_batches_errors():
@@ -151,14 +150,14 @@ def test_matrix_any():
 
     def test_fun(X):
         assert not scprep.utils.matrix_any(X == 500000)
-    matrix.check_all_matrix_types(X,
-                                  test_fun)
+    matrix.test_all_matrix_types(X,
+                                 test_fun)
 
     def test_fun(X):
         assert scprep.utils.matrix_any(X == 500000)
     X[0, 0] = 500000
-    matrix.check_all_matrix_types(X,
-                                  test_fun)
+    matrix.test_all_matrix_types(X,
+                                 test_fun)
 
 
 def test_toarray():
@@ -166,8 +165,8 @@ def test_toarray():
 
     def test_fun(X):
         assert isinstance(scprep.utils.toarray(X), np.ndarray)
-    matrix.check_all_matrix_types(X,
-                                  test_fun)
+    matrix.test_all_matrix_types(X,
+                                 test_fun)
     test_fun(np.matrix(X))
     assert_raise_message(TypeError,
                          "Expected pandas DataFrame, scipy sparse matrix or "
@@ -182,23 +181,23 @@ def test_matrix_sum():
 
     def test_fun(X):
         assert np.allclose(np.array(scprep.utils.matrix_sum(X, axis=0)), sums)
-    matrix.check_all_matrix_types(X,
-                                  test_fun)
+    matrix.test_all_matrix_types(X,
+                                 test_fun)
     test_fun(np.matrix(X))
     sums = np.array(X.sum(1)).flatten()
 
     def test_fun(X):
         assert np.allclose(
             np.array(scprep.utils.matrix_sum(X, axis=1)), sums)
-    matrix.check_all_matrix_types(X,
-                                  test_fun)
+    matrix.test_all_matrix_types(X,
+                                 test_fun)
     test_fun(np.matrix(X))
     sums = np.array(X.sum(None)).flatten()
 
     def test_fun(X):
         assert np.allclose(scprep.utils.matrix_sum(X, axis=None), sums)
-    matrix.check_all_matrix_types(X,
-                                  test_fun)
+    matrix.test_all_matrix_types(X,
+                                 test_fun)
     test_fun(np.matrix(X))
     assert_raise_message(ValueError,
                          "Expected axis in [0, 1, None]. Got 5",

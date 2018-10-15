@@ -39,7 +39,7 @@ def EMD(x, y):
     --------
     >>> import scprep
     >>> data = scprep.io.load_csv("my_data.csv")
-    >>> dremi = scprep.stats.EMD(data['GENE1'], data['GENE2'])
+    >>> emd = scprep.stats.EMD(data['GENE1'], data['GENE2'])
     """
     x, y = _vector_coerce_two_dense(x, y)
     return stats.wasserstein_distance(x, y)
@@ -48,9 +48,9 @@ def EMD(x, y):
 def mutual_information(x, y, bins=8):
     """Mutual information score with set number of bins
 
-    Helper function for sklearn.metrics.mutual_info_score that builds your
-    contingency table for you using a set number of bins.
-    Credit: Warran Weckesser https://stackoverflow.com/a/20505476/3996580
+    Helper function for `sklearn.metrics.mutual_info_score` that builds a
+    contingency table over a set number of bins.
+    Credit: `Warran Weckesser <https://stackoverflow.com/a/20505476/3996580>`_.
 
 
     Parameters
@@ -71,7 +71,7 @@ def mutual_information(x, y, bins=8):
     --------
     >>> import scprep
     >>> data = scprep.io.load_csv("my_data.csv")
-    >>> dremi = scprep.stats.mutual_information(data['GENE1'], data['GENE2'])
+    >>> mi = scprep.stats.mutual_information(data['GENE1'], data['GENE2'])
     """
     x, y = _vector_coerce_two_dense(x, y)
     c_xy = np.histogram2d(x, y, bins)[0]
@@ -80,25 +80,22 @@ def mutual_information(x, y, bins=8):
 
 
 def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
-             plot=False, **kwargs):
+             plot=False, return_drevi=False, **kwargs):
     """kNN conditional Density Resampled Estimate of Mutual Information
 
     Calculates k-Nearest Neighbor conditional Density Resampled Estimate of
-    Mutual Information as defined in Van Dijk et al. 2018
-    (doi:10.1016/j.cell.2018.05.061)
+    Mutual Information as defined in Van Dijk et al, 2018. [1]_
 
-    kNN-DREMI is an adaptation of DREMI (Krishnaswamy et al. 2014,
-    doi:10.1126/science.1250689) for single cell RNA-sequencing data. DREMI
-    captures the functional relationship between two genes across their entire
-    dynamic range. The key change to kNN-DREMI is the replacement of the heat
-    diffusion-based kernel-density estimator from (Botev et al., 2010) by a
-    k-nearest neighbor-based density estimator (Sricharan et al., 2012), which
-    has been shown to be an effective method for sparse and high dimensional
-    datasets.
+    kNN-DREMI is an adaptation of DREMI (Krishnaswamy et al. 2014, [2]_) for
+    single cell RNA-sequencing data. DREMI captures the functional relationship
+    between two genes across their entire dynamic range. The key change to
+    kNN-DREMI is the replacement of the heat diffusion-based kernel-density
+    estimator from Botev et al., 2010 [3]_ by a k-nearest neighbor-based
+    density estimator (Sricharan et al., 2012 [4]_), which has been shown to be
+    an effective method for sparse and high dimensional datasets.
 
     Note that kNN-DREMI, like Mutual Information and DREMI, is not symmetric.
-    Here we are estimating I(Y|X). There are many good articles about mutual
-    information on the web.
+    Here we are estimating I(Y|X).
 
     Parameters
     ----------
@@ -117,12 +114,18 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
     plot : bool, optional (default: False)
         If True, DREMI create plots of the data like those seen in
         Fig 5C/D of van Dijk et al. 2018. (doi:10.1016/j.cell.2018.05.061).
+    return_drevi : bool, optional (default: False)
+        If True, return the DREVI normalized density matrix in addition
+        to the DREMI score.
     **kwargs : additional arguments for `scprep.stats.plot_knnDREMI`
 
     Returns
     -------
     dremi : float
         kNN condtional Density resampled estimate of mutual information
+    drevi : np.ndarray
+        DREVI normalized density matrix. Only returned if `return_drevi`
+        is True.
 
     Examples
     --------
@@ -131,6 +134,20 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
     >>> dremi = scprep.stats.knnDREMI(data['GENE1'], data['GENE2'],
     ...                               plot=True,
     ...                               filename='dremi.png')
+
+    References
+    ----------
+    .. [1] van Dijk D *et al.* (2018),
+        *Recovering Gene Interactions from Single-Cell Data Using Data
+        Diffusion*, `Cell <https://doi.org/10.1016/j.cell.2018.05.061>`_.
+    .. [2] Krishnaswamy S  *et al.* (2014),
+        *Conditional density-based analysis of T cell signaling in single-cell
+        data*, `Science <https://doi.org/10.1126/science.1250689>`_.
+    .. [3] Botev ZI *et al*. (2010), *Kernel density estimation via diffusion*,
+        `The Annals of Statistics <https://doi.org/10.1214/10-AOS799>`_.
+    .. [4] Sricharan K *et al*. (2012), *Estimation of nonlinear functionals of
+        densities with confidence*, `IEEE Transactions on Information Theory
+        <https://doi.org/10.1109/TIT.2012.2195549>`_.
     """
     x, y = _vector_coerce_two_dense(x, y)
 
@@ -182,10 +199,10 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
 
     # Calculate conditional entropy
     # NB: not using thresholding here; entr(M) calcs -x*log(x) elementwise
-    bin_density_norm = bin_density_norm = bin_density / \
+    drevi = bin_density / \
         np.sum(bin_density, axis=0)  # columns sum to 1
     # calc entropy of each column
-    cond_entropies = stats.entropy(bin_density_norm, base=2)
+    cond_entropies = stats.entropy(drevi, base=2)
 
     # Mutual information (not normalized)
     marginal_entropy = stats.entropy(
@@ -198,23 +215,26 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
     mutual_info = marginal_entropy - conditional_entropy
 
     # DREMI
-    marginal_entropy_norm = stats.entropy(np.sum(bin_density_norm, axis=1),
+    marginal_entropy_norm = stats.entropy(np.sum(drevi, axis=1),
                                           base=2)
-    cond_sums_norm = np.mean(bin_density_norm)
+    cond_sums_norm = np.mean(drevi)
     conditional_entropy_norm = np.sum(cond_entropies * cond_sums_norm)
 
     dremi = marginal_entropy_norm - conditional_entropy_norm
 
-    if plot is True:
+    if plot:
         plot_knnDREMI(dremi, mutual_info,
                       x, y, n_bins, n_mesh,
-                      density, bin_density, bin_density_norm, **kwargs)
-    return dremi
+                      density, bin_density, drevi, **kwargs)
+    if return_drevi:
+        return dremi, drevi
+    else:
+        return dremi
 
 
 @plot._with_matplotlib
 def plot_knnDREMI(dremi, mutual_info, x, y, n_bins, n_mesh,
-                  density, bin_density, bin_density_norm,
+                  density, bin_density, drevi,
                   figsize=(12, 3.5), filename=None,
                   xlabel="Feature 1", ylabel="Feature 2",
                   title_fontsize=18, label_fontsize=16,
@@ -222,9 +242,9 @@ def plot_knnDREMI(dremi, mutual_info, x, y, n_bins, n_mesh,
     """Plot results of DREMI
 
     Create plots of the data like those seen in
-    Fig 5C/D of van Dijk et al. 2018. (doi:10.1016/j.cell.2018.05.061).
-    Note that this function is not designed to be called manually. Instead create
-    plots by running `scprep.stats.knnDREMI` with `plot=True`.
+    Fig 5C/D of van Dijk et al. 2018. [1]_
+    Note that this function is not designed to be called manually. Instead
+    create plots by running `scprep.stats.knnDREMI` with `plot=True`.
 
     Parameters
     ----------
@@ -268,8 +288,7 @@ def plot_knnDREMI(dremi, mutual_info, x, y, n_bins, n_mesh,
     axes[1].set_xlabel(xlabel, fontsize=label_fontsize)
 
     # Plot joint probability
-    raw_density_data = bin_density
-    axes[2].imshow(raw_density_data,
+    axes[2].imshow(bin_density,
                    cmap="inferno", origin="lower", aspect="auto")
     axes[2].set_xticks([])
     axes[2].set_yticks([])
@@ -278,8 +297,7 @@ def plot_knnDREMI(dremi, mutual_info, x, y, n_bins, n_mesh,
     axes[2].set_xlabel(xlabel, fontsize=label_fontsize)
 
     # Plot conditional probability
-    raw_density_data = bin_density_norm
-    axes[3].imshow(raw_density_data,
+    axes[3].imshow(drevi,
                    cmap="inferno", origin="lower", aspect="auto")
     axes[3].set_xticks([])
     axes[3].set_yticks([])

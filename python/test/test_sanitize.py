@@ -1,4 +1,4 @@
-from load_tests import utils, matrix, data
+from tools import utils, matrix, data
 import scprep
 import numpy as np
 from sklearn.utils.testing import assert_raise_message
@@ -6,18 +6,18 @@ from sklearn.utils.testing import assert_raise_message
 
 def test_check_numeric_copy():
     X = data.load_10X()
-    matrix.check_all_matrix_types(
+    matrix.test_all_matrix_types(
         X,
-        utils.check_output_unchanged,
+        utils.assert_transform_unchanged,
         transform=scprep.sanitize.check_numeric,
         copy=True)
 
 
 def test_check_numeric_inplace():
     X = data.load_10X()
-    matrix.check_matrix_types(
+    matrix.test_matrix_types(
         X,
-        utils.check_output_unchanged,
+        utils.assert_transform_unchanged,
         matrix._scipy_matrix_types +
         matrix._numpy_matrix_types +
         matrix._pandas_dense_matrix_types,

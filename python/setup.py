@@ -9,7 +9,6 @@ install_requires = [
     'future',
     'pandas',
     'decorator',
-    'seaborn'
 ]
 
 test_requires = [
@@ -26,6 +25,7 @@ test_requires = [
 doc_requires = [
     'sphinx',
     'sphinxcontrib-napoleon',
+    'autodocsumm',
 ]
 
 if sys.version_info[:2] < (2, 7) or (3, 0) <= sys.version_info[:2] < (3, 5):
