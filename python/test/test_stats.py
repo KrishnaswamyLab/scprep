@@ -57,7 +57,10 @@ def test_knnDREMI():
     Y = scprep.stats.knnDREMI(X[:, 0], X[:, 1])
     assert isinstance(Y, float)
     np.testing.assert_allclose(Y, 0.16238906)
-    scprep.stats.knnDREMI(X[:, 0], X[:, 1], plot=True)
+    Y2, drevi = scprep.stats.knnDREMI(X[:, 0], X[:, 1],
+                                      plot=True, return_drevi=True)
+    assert Y2 == Y
+    assert drevi.shape == (20, 20)
     matrix.test_all_matrix_types(
         X, utils.assert_transform_equals, Y=Y,
         transform=partial(_test_fun_2d, fun=scprep.stats.knnDREMI),
