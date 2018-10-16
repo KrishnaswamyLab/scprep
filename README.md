@@ -1,6 +1,7 @@
 # scprep
 
 [![Latest PyPI version](https://img.shields.io/pypi/v/scprep.svg)](https://pypi.org/project/scprep/)
+[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/scprep/README.html)
 [![Travis CI Build](https://api.travis-ci.com/KrishnaswamyLab/scprep.svg?branch=master)](https://travis-ci.com/KrishnaswamyLab/scprep)
 [![Read the Docs](https://img.shields.io/readthedocs/scprep.svg)](https://scprep.readthedocs.io/)
 [![Coverage Status](https://coveralls.io/repos/github/KrishnaswamyLab/scprep/badge.svg?branch=master)](https://coveralls.io/github/KrishnaswamyLab/scprep?branch=master)
@@ -15,6 +16,10 @@ Tools for loading and preprocessing biological matrices in Python and MATLAB.
 Scprep is available on `pip`. Install by running the following in a terminal::
 
     pip install --user scprep
+    
+Alternatively, Scprep can be installed using [Conda](https://conda.io/docs/) (most easily obtained via the [Miniconda Python distribution](https://conda.io/miniconda.html)):
+
+    conda install -c bioconda scprep
 
 ### Quick Start
 
