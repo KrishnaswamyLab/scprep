@@ -43,6 +43,6 @@ def pca(data, n_pca=100, svd_offset=100, svd_multiples=3, return_operator=False,
     pca_op = decomposition.PCA(n_pca, random_state=seed)
     data = pca_op.fit_transform(data)
     if return_operator == True:
-        return data, pca_op
+        return data, operator
     else:
         return data
