@@ -3,7 +3,7 @@ import pandas as pd
 from scipy import sparse
 
 
-def pca(data, n_pca=100, svd_offset=100, svd_multiples=3, seed=None):
+def pca(data, n_pca=100, svd_offset=100, svd_multiples=3, return_operator=False, seed=None):
     """Calculate randomized PCA using SVD first to handle sparse matrices
 
     Compute `svd_multiples * n_pca` SVD components to compute before
@@ -19,6 +19,8 @@ def pca(data, n_pca=100, svd_offset=100, svd_multiples=3, seed=None):
         Absolute minimum number of SVD components
     svd_multiples : int, optional (default: 5)
         Multiplies `n_pca` to get number of SVD components
+    return_operator : boolean, optional (default: False)
+        If true, also returns the operator used for PCA.
 
     Returns
     -------
@@ -38,5 +40,9 @@ def pca(data, n_pca=100, svd_offset=100, svd_multiples=3, seed=None):
         data = decomposition.TruncatedSVD(
             n_svd, random_state=seed).fit_transform(data)
     n_pca = min(n_pca, data.shape[1])
-    data = decomposition.PCA(n_pca, random_state=seed).fit_transform(data)
-    return data
+    pca_op = decomposition.PCA(n_pca, random_state=seed)
+    data = pca_op.fit_transform(data)
+    if return_operator == True:
+        return data, pca_op
+    else:
+        return data
