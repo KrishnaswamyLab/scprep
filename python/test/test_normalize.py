@@ -8,9 +8,14 @@ from functools import partial
 
 def test_libsize_norm():
     X = data.generate_positive_sparse_matrix()
-    median = np.median(X.sum(axis=1))
+    libsize = X.sum(axis=1)
+    median = np.median(libsize)
     Y = normalize(X, 'l1') * median
     utils.assert_all_close(Y.sum(1), np.median(np.sum(X, 1)))
+    Y2, libsize2 = scprep.normalize.library_size_normalize(
+        X, return_library_size=True)
+    assert np.all(Y == Y2)
+    assert np.all(libsize == libsize2)
     matrix.test_all_matrix_types(
         X, utils.assert_transform_equivalent, Y=Y,
         transform=scprep.normalize.library_size_normalize,

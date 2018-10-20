@@ -96,7 +96,8 @@ def _get_filter_idx(data, values,
 def filter_values(data, values,
                   cutoff=None, percentile=None,
                   keep_cells='above', sample_labels=None,
-                  filter_per_sample=False):
+                  filter_per_sample=False,
+                  return_values=False):
     """Remove all cells with `values` above or below a certain threshold
 
     It is recommended to use :func:`~scprep.plot.histogram` to
@@ -124,6 +125,8 @@ def filter_values(data, values,
     filter_per_sample : bool, optional (default: False)
         If True, filters separately for each unique sample label. Only used
         if `sample_labels` is not `None` and `percentile` is given.
+    return_values : bool, optional (default: False)
+        If True, also return the values corresponding to the retained cells
 
     Returns
     -------
@@ -131,6 +134,9 @@ def filter_values(data, values,
         Filtered output data, where m_samples <= n_samples
     sample_labels : list-like, shape=[m_samples]
         Filtered sample labels, if provided
+    filtered_values : list-like, shape=[m_samples]
+        Values corresponding to retained samples,
+        returned only if return_values is True
     """
     if filter_per_sample and percentile is not None and \
             sample_labels is not None:
@@ -151,15 +157,22 @@ def filter_values(data, values,
                                          cutoff, percentile,
                                          keep_cells)
     data = utils.select_rows(data, keep_cells_idx)
+    out = [data]
     if sample_labels is not None:
-        sample_labels = sample_labels[keep_cells_idx]
-        data = data, sample_labels
-    return data
+        out.append(sample_labels[keep_cells_idx])
+    if return_values:
+        out.append(values[keep_cells_idx])
+    if len(out) == 1:
+        out = out[0]
+    else:
+        out = tuple(out)
+    return out
 
 
 def filter_library_size(data, cutoff=None, percentile=None,
                         keep_cells='above', sample_labels=None,
-                        filter_per_sample=False):
+                        filter_per_sample=False,
+                        return_library_size=False):
     """Remove all cells with library size above or below a certain threshold
 
     It is recommended to use :func:`~scprep.plot.plot_library_size` to
@@ -184,6 +197,8 @@ def filter_library_size(data, cutoff=None, percentile=None,
         with the rows of the output data.
     filter_per_sample : bool, optional (default: False)
         If True, filters separately for each unique sample label.
+    return_library_size : bool, optional (default: False)
+        If True, also return the library sizes corresponding to the retained cells
 
     Returns
     -------
@@ -191,13 +206,17 @@ def filter_library_size(data, cutoff=None, percentile=None,
         Filtered output data, where m_samples <= n_samples
     sample_labels : list-like, shape=[m_samples]
         Filtered sample labels, if provided
+    filtered_library_size : list-like, shape=[m_samples]
+        Library sizes corresponding to retained samples,
+        returned only if return_library_size is True
     """
     cell_sums = measure.library_size(data)
     return filter_values(data, cell_sums,
                          cutoff=cutoff, percentile=percentile,
                          keep_cells=keep_cells,
                          sample_labels=sample_labels,
-                         filter_per_sample=filter_per_sample)
+                         filter_per_sample=filter_per_sample,
+                         return_values=return_library_size)
 
 
 def filter_gene_set_expression(data, genes,
@@ -205,7 +224,8 @@ def filter_gene_set_expression(data, genes,
                                library_size_normalize=True,
                                keep_cells='below',
                                sample_labels=None,
-                               filter_per_sample=False):
+                               filter_per_sample=False,
+                               return_expression=False):
     """Remove cells with total expression of a gene set above or below a certain threshold
 
     It is recommended to use :func:`~scprep.plot.plot_gene_set_expression` to
@@ -234,6 +254,18 @@ def filter_gene_set_expression(data, genes,
         with the rows of the output data.
     filter_per_sample : bool, optional (default: False)
         If True, filters separately for each unique sample label.
+    return_expression : bool, optional (default: False)
+        If True, also return the values corresponding to the retained cells
+
+    Returns
+    -------
+    data : array-like, shape=[m_samples, n_features]
+        Filtered output data, where m_samples <= n_samples
+    sample_labels : list-like, shape=[m_samples]
+        Filtered sample labels, if provided
+    filtered_expression : list-like, shape=[m_samples]
+        Gene set expression corresponding to retained samples,
+        returned only if return_expression is True
     """
     cell_sums = measure.gene_set_expression(
         data, genes,
@@ -242,4 +274,5 @@ def filter_gene_set_expression(data, genes,
                          cutoff=cutoff, percentile=percentile,
                          keep_cells=keep_cells,
                          sample_labels=sample_labels,
-                         filter_per_sample=filter_per_sample)
+                         filter_per_sample=filter_per_sample,
+                         return_values=return_expression)

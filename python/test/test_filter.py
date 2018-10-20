@@ -72,6 +72,9 @@ def test_library_size_filter():
     X_filtered = scprep.filter.filter_library_size(X, 100)
     assert X_filtered.shape[1] == X.shape[1]
     assert not np.any(X_filtered.sum(1) <= 100)
+    X_filtered, libsize = scprep.filter.filter_library_size(
+        X, 100, return_library_size=True)
+    assert np.all(scprep.measure.library_size(X_filtered) == libsize)
     matrix.test_all_matrix_types(
         X, utils.assert_transform_equals,
         Y=X_filtered, transform=partial(
