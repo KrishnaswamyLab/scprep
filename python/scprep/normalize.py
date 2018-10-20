@@ -8,10 +8,11 @@ from scipy import sparse
 import pandas as pd
 import numbers
 import warnings
-from . import measure
+from . import measure, utils
 
 
-def library_size_normalize(data, rescale='median'):
+def library_size_normalize(data, rescale='median',
+                           return_library_size=False):
     """Performs L1 normalization on input data
     Performs L1 normalization on input data such that the sum of expression
     values for each cell sums to 1
@@ -27,11 +28,16 @@ def library_size_normalize(data, rescale='median'):
         back up to the mean or median expression value. If a float,
         normalized cells are scaled up to the given value. If `None`, no
         rescaling is done and all cells will have normalized library size of 1.
+    return_library_size : bool, optional (default: False)
+        If True, also return the library size pre-normalization
 
     Returns
     -------
     data_norm : array-like, shape=[n_samples, n_features]
         Library size normalized output data
+    filtered_library_size : list-like, shape=[m_samples]
+        Library size of cells pre-normalization,
+        returned only if return_library_size is True
     """
     # pandas support
     columns, index = None, None
@@ -42,15 +48,18 @@ def library_size_normalize(data, rescale='median'):
     elif isinstance(data, pd.DataFrame):
         columns, index = data.columns, data.index
 
+    if return_library_size or rescale in ['median', 'mean']:
+        libsize = measure.library_size(data)
+
     if rescale == 'median':
-        rescale = np.median(np.array(measure.library_size(data)))
+        rescale = np.median(utils.toarray(libsize))
         if rescale == 0:
             warnings.warn("Median library size is zero. "
                           "Rescaling to mean instead.",
                           UserWarning)
-            rescale = np.mean(np.array(measure.library_size(data)))
+            rescale = np.mean(utils.toarray(libsize))
     elif rescale == 'mean':
-        rescale = np.mean(np.array(measure.library_size(data)))
+        rescale = np.mean(utils.toarray(libsize))
     elif isinstance(rescale, numbers.Number):
         pass
     elif rescale is None:
@@ -65,7 +74,7 @@ def library_size_normalize(data, rescale='median'):
             data[0, 0]
         except TypeError:
             data = sparse.csr_matrix(data)
-        # normalize in chunks - sklearn doesn't does with more
+        # normalize in chunks - sklearn doesn't handle more
         # than 2**31 non-zero elements
         #
         # determine maximum chunk size
@@ -98,6 +107,8 @@ def library_size_normalize(data, rescale='median'):
             data_norm = pd.DataFrame(data_norm)
         data_norm.columns = columns
         data_norm.index = index
+    if return_library_size:
+        data_norm = (data_norm, libsize)
     return data_norm
 
 
