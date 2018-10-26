@@ -426,9 +426,8 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol',
     matrices for secondary analysis. For both "raw" and "filtered" output,
     directories are created containing three files:
     'matrix.mtx', 'barcodes.tsv', 'genes.tsv'.
-    Running `phate.io.load_10X(data_dir)` will return a Pandas DataFrame with
-    genes as columns and cells as rows. The returned DataFrame will be ready to
-    use with PHATE.
+    Running `scprep.io.load_10X(data_dir)` will return a Pandas DataFrame with
+    genes as columns and cells as rows.
 
     Parameters
     ----------
