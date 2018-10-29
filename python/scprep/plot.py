@@ -52,8 +52,10 @@ def show(fig):
 def histogram(data,
               bins=100, log=True,
               cutoff=None, percentile=None,
-              ax=None, figsize=None, xlabel=None,
-              ylabel=None, **kwargs):
+              ax=None, figsize=None,
+              xlabel=None,
+              ylabel='Number of cells',
+              **kwargs):
     """Plot a histogram.
 
     Parameters
@@ -103,7 +105,7 @@ def histogram(data,
         ax.set_xscale('log')
     if log == 'y' or log is True:
         ax.set_yscale('log')
-        
+
     if xlabel is not None:
         ax.set_xlabel(xlabel)
     if ylabel is not None:
@@ -121,8 +123,8 @@ def histogram(data,
 def plot_library_size(data,
                       bins=100, log=True,
                       cutoff=None, percentile=None,
-                      ax=None, figsize=None, xlabel='Library size',
-                      ylabel='Number of cells',
+                      ax=None, figsize=None,
+                      xlabel='Library size',
                       **kwargs):
     """Plot the library size histogram.
 
@@ -147,13 +149,13 @@ def plot_library_size(data,
     figsize : tuple or None, optional (default: None)
         If not None, sets the figure size (width, height)
     [x,y]label : str, optional
-        These are the labels to write on the x and y axis.
+        Labels to display on the x and y axis.
     **kwargs : additional arguments for `matplotlib.pyplot.hist`
     """
     histogram(measure.library_size(data),
               cutoff=cutoff, percentile=percentile,
               bins=bins, log=log, ax=ax, figsize=figsize,
-              xlabel=xlabel, ylabel=ylabel, **kwargs)
+              xlabel=xlabel, **kwargs)
 
 
 @_with_matplotlib
@@ -162,6 +164,7 @@ def plot_gene_set_expression(data, genes,
                              cutoff=None, percentile=None,
                              library_size_normalize=True,
                              ax=None, figsize=None,
+                             xlabel='Gene expression',
                              **kwargs):
     """Plot the histogram of the expression of a gene set.
 
@@ -189,9 +192,12 @@ def plot_gene_set_expression(data, genes,
         Axis to plot on. If None, a new axis will be created.
     figsize : tuple or None, optional (default: None)
         If not None, sets the figure size (width, height)
+    [x,y]label : str, optional
+        Labels to display on the x and y axis.
     **kwargs : additional arguments for `matplotlib.pyplot.hist`
     """
     histogram(measure.gene_set_expression(
         data, genes, library_size_normalize=library_size_normalize),
         cutoff=cutoff, percentile=percentile,
-        bins=bins, log=log, ax=ax, figsize=figsize, **kwargs)
+        bins=bins, log=log, ax=ax, figsize=figsize,
+        xlabel=xlabel, **kwargs)
