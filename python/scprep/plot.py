@@ -1,6 +1,6 @@
 import numpy as np
 from decorator import decorator
-import os
+import platform
 try:
     import matplotlib.pyplot as plt
     import matplotlib as mpl
@@ -42,7 +42,7 @@ def show(fig):
         Figure to show
     """
     if _mpl_is_gui_backend():
-        if os.platform == "Windows":
+        if platform.system() == "Windows":
             plt.show(block=True)
         else:
             fig.show()
