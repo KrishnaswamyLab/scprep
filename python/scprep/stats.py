@@ -7,6 +7,7 @@ import numpy as np
 from scipy import stats
 from sklearn import neighbors, metrics
 from . import plot, utils
+import warnings
 
 try:
     import matplotlib.pyplot as plt
@@ -160,7 +161,13 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
     if not isinstance(n_mesh, numbers.Integral):
         raise ValueError(
             "Expected n_mesh as an integer. Got {}".format(type(n_mesh)))
-
+    
+    if np.count_nonzero(x) == 0 or np.count_nonzero(y) == 0:
+        warnings.warn(
+            "Attempting to calculate kNN-DREMI on array of all zeros. Returning `0`",       
+            UserWarning)
+        return 0
+    
     # 0. Z-score X and Y
     x = stats.zscore(x)
     y = stats.zscore(y)
