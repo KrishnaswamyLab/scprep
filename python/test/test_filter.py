@@ -92,10 +92,6 @@ def test_library_size_filter():
         X, utils.assert_transform_equals,
         Y=X_filtered, transform=partial(
             scprep.filter.filter_library_size, cutoff=100))
-
-
-def test_library_size_filter_below():
-    X = data.load_10X(sparse=True)
     X_filtered = scprep.filter.filter_library_size(X, 100, keep_cells='below')
     assert X_filtered.shape[1] == X.shape[1]
     assert not np.any(X_filtered.sum(1) >= 100)
