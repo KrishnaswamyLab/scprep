@@ -65,6 +65,7 @@ def test_knnDREMI():
         X, utils.assert_transform_equals, Y=Y,
         transform=partial(_test_fun_2d, fun=scprep.stats.knnDREMI),
         check=utils.assert_all_close)
+    assert scprep.stats.knnDREMI(X[:, 0], np.repeat(X[0, 1], X.shape[0])) == 0
     assert_raise_message(
         ValueError, "Expected k as an integer. Got ",
         scprep.stats.knnDREMI, X[:, 0], X[:, 1], k="invalid")
