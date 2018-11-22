@@ -3,6 +3,7 @@
 
 import numpy as np
 import pandas as pd
+from scipy import sparse
 
 from . import utils, measure
 
@@ -68,6 +69,8 @@ def remove_empty_cells(data, sample_labels=None):
     -------
     data : array-like, shape=[m_samples, n_features]
         Filtered output data, where m_samples <= n_samples
+    sample_labels : list-like, shape=[m_samples]
+        Filtered sample labels, if provided
     """
     cell_sums = measure.library_size(data)
     keep_cells_idx = cell_sums > 0
@@ -96,7 +99,8 @@ def _get_filter_idx(data, values,
 def filter_values(data, values,
                   cutoff=None, percentile=None,
                   keep_cells='above', sample_labels=None,
-                  filter_per_sample=False):
+                  filter_per_sample=False,
+                  return_values=False):
     """Remove all cells with `values` above or below a certain threshold
 
     It is recommended to use :func:`~scprep.plot.histogram` to
@@ -124,6 +128,8 @@ def filter_values(data, values,
     filter_per_sample : bool, optional (default: False)
         If True, filters separately for each unique sample label. Only used
         if `sample_labels` is not `None` and `percentile` is given.
+    return_values : bool, optional (default: False)
+        If True, also return the values corresponding to the retained cells
 
     Returns
     -------
@@ -131,6 +137,9 @@ def filter_values(data, values,
         Filtered output data, where m_samples <= n_samples
     sample_labels : list-like, shape=[m_samples]
         Filtered sample labels, if provided
+    filtered_values : list-like, shape=[m_samples]
+        Values corresponding to retained samples,
+        returned only if return_values is True
     """
     if filter_per_sample and percentile is not None and \
             sample_labels is not None:
@@ -151,15 +160,22 @@ def filter_values(data, values,
                                          cutoff, percentile,
                                          keep_cells)
     data = utils.select_rows(data, keep_cells_idx)
+    out = [data]
     if sample_labels is not None:
-        sample_labels = sample_labels[keep_cells_idx]
-        data = data, sample_labels
-    return data
+        out.append(sample_labels[keep_cells_idx])
+    if return_values:
+        out.append(values[keep_cells_idx])
+    if len(out) == 1:
+        out = out[0]
+    else:
+        out = tuple(out)
+    return out
 
 
 def filter_library_size(data, cutoff=None, percentile=None,
                         keep_cells='above', sample_labels=None,
-                        filter_per_sample=False):
+                        filter_per_sample=False,
+                        return_library_size=False):
     """Remove all cells with library size above or below a certain threshold
 
     It is recommended to use :func:`~scprep.plot.plot_library_size` to
@@ -184,6 +200,8 @@ def filter_library_size(data, cutoff=None, percentile=None,
         with the rows of the output data.
     filter_per_sample : bool, optional (default: False)
         If True, filters separately for each unique sample label.
+    return_library_size : bool, optional (default: False)
+        If True, also return the library sizes corresponding to the retained cells
 
     Returns
     -------
@@ -191,13 +209,17 @@ def filter_library_size(data, cutoff=None, percentile=None,
         Filtered output data, where m_samples <= n_samples
     sample_labels : list-like, shape=[m_samples]
         Filtered sample labels, if provided
+    filtered_library_size : list-like, shape=[m_samples]
+        Library sizes corresponding to retained samples,
+        returned only if return_library_size is True
     """
     cell_sums = measure.library_size(data)
     return filter_values(data, cell_sums,
                          cutoff=cutoff, percentile=percentile,
                          keep_cells=keep_cells,
                          sample_labels=sample_labels,
-                         filter_per_sample=filter_per_sample)
+                         filter_per_sample=filter_per_sample,
+                         return_values=return_library_size)
 
 
 def filter_gene_set_expression(data, genes,
@@ -205,7 +227,8 @@ def filter_gene_set_expression(data, genes,
                                library_size_normalize=True,
                                keep_cells='below',
                                sample_labels=None,
-                               filter_per_sample=False):
+                               filter_per_sample=False,
+                               return_expression=False):
     """Remove cells with total expression of a gene set above or below a certain threshold
 
     It is recommended to use :func:`~scprep.plot.plot_gene_set_expression` to
@@ -234,6 +257,18 @@ def filter_gene_set_expression(data, genes,
         with the rows of the output data.
     filter_per_sample : bool, optional (default: False)
         If True, filters separately for each unique sample label.
+    return_expression : bool, optional (default: False)
+        If True, also return the values corresponding to the retained cells
+
+    Returns
+    -------
+    data : array-like, shape=[m_samples, n_features]
+        Filtered output data, where m_samples <= n_samples
+    sample_labels : list-like, shape=[m_samples]
+        Filtered sample labels, if provided
+    filtered_expression : list-like, shape=[m_samples]
+        Gene set expression corresponding to retained samples,
+        returned only if return_expression is True
     """
     cell_sums = measure.gene_set_expression(
         data, genes,
@@ -242,4 +277,64 @@ def filter_gene_set_expression(data, genes,
                          cutoff=cutoff, percentile=percentile,
                          keep_cells=keep_cells,
                          sample_labels=sample_labels,
-                         filter_per_sample=filter_per_sample)
+                         filter_per_sample=filter_per_sample,
+                         return_values=return_expression)
+
+
+def _find_unique_cells(data):
+    """Identify unique cells
+
+    Parameters
+    ----------
+    data : array-like, shape=[n_samples, n_features]
+        Input data
+    sample_labels : list-like or None, optional, shape=[n_samples] (default: None)
+        Labels associated with the rows of `data`. If provided, these
+        will be filtered such that they retain a one-to-one mapping
+        with the rows of the output data.
+
+    Returns
+    -------
+    unique_idx : np.ndarray
+        Sorted array of unique element indices
+    """
+    if isinstance(data, pd.SparseDataFrame):
+        unique_idx = _find_unique_cells(data.to_coo())
+    elif isinstance(data, pd.DataFrame):
+        unique_idx = ~data.duplicated()
+    elif isinstance(data, np.ndarray):
+        _, unique_idx = np.unique(data, axis=0, return_index=True)
+        unique_idx = np.sort(unique_idx)
+    elif sparse.issparse(data):
+        _, unique_data = np.unique(data.tolil().data, return_index=True)
+        _, unique_index = np.unique(data.tolil().rows, return_index=True)
+        unique_idx = np.sort(
+            list(set(unique_index).union(set(unique_data))))
+    return unique_idx
+
+
+def remove_duplicates(data, sample_labels=None):
+    """Remove all duplicate cells
+
+    Parameters
+    ----------
+    data : array-like, shape=[n_samples, n_features]
+        Input data
+    sample_labels : list-like or None, optional, shape=[n_samples] (default: None)
+        Labels associated with the rows of `data`. If provided, these
+        will be filtered such that they retain a one-to-one mapping
+        with the rows of the output data.
+
+    Returns
+    -------
+    data : array-like, shape=[m_samples, n_features]
+        Filtered output data, where m_samples <= n_samples
+    sample_labels : list-like, shape=[m_samples]
+        Filtered sample labels, if provided
+    """
+    unique_idx = _find_unique_cells(data)
+    data = utils.select_rows(data, unique_idx)
+    if sample_labels is not None:
+        sample_labels = sample_labels[unique_idx]
+        data = data, sample_labels
+    return data

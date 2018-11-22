@@ -7,6 +7,8 @@ from sklearn.utils.testing import assert_raise_message
 def test_plot_histogram():
     X = data.load_10X()
     scprep.plot.plot_library_size(X, cutoff=1000, log=True)
+    scprep.plot.plot_library_size(
+        X, cutoff=1000, log=True, xlabel="x label", ylabel="y label")
     fig, ax = plt.subplots()
     scprep.plot.plot_gene_set_expression(
         X, genes=scprep.utils.get_gene_set(X, starts_with="D"),

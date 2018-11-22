@@ -7,6 +7,7 @@ import numpy as np
 from scipy import stats
 from sklearn import neighbors, metrics
 from . import plot, utils
+import warnings
 
 try:
     import matplotlib.pyplot as plt
@@ -150,6 +151,10 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
         <https://doi.org/10.1109/TIT.2012.2195549>`_.
     """
     x, y = _vector_coerce_two_dense(x, y)
+
+    if np.count_nonzero(x - x[0]) == 0 or np.count_nonzero(y - y[0]) == 0:
+        # constant input: mutual information is numerically zero
+        return 0
 
     if not isinstance(k, numbers.Integral):
         raise ValueError(

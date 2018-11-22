@@ -5,6 +5,9 @@ scprep
 .. image:: https://img.shields.io/pypi/v/scprep.svg
     :target: https://pypi.org/project/scprep/
     :alt: Latest PyPi version
+.. image:: https://anaconda.org/conda-forge/scprep/badges/version.svg
+    :target: https://anaconda.org/conda-forge/scprep/
+    :alt: Latest Conda version
 .. image:: https://api.travis-ci.com/KrishnaswamyLab/scprep.svg?branch=master
     :target: https://travis-ci.com/KrishnaswamyLab/scprep
     :alt: Travis CI Build
@@ -30,6 +33,10 @@ Installation
 preprocessing is available on `pip`. Install by running the following in a terminal::
 
     pip install --user scprep
+
+Alternatively, scprep can be installed using `Conda <https://conda.io/docs/>`_ (most easily obtained via the `Miniconda Python distribution <https://conda.io/miniconda.html>`_)::
+
+    conda install -c conda-forge scprep
 
 Usage example
 -------------
