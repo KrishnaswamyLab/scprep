@@ -15,16 +15,29 @@ def test_remove_empty_cells():
     matrix.test_all_matrix_types(
         X, utils.assert_transform_equals,
         Y=X_filtered, transform=scprep.filter.remove_empty_cells)
-
-
-def test_remove_empty_cells_sample_label():
-    X = data.load_10X(sparse=False)
     sample_labels = np.arange(X.shape[0])
     sample_labels_filt = sample_labels[X.sum(1) > 0]
-    X_filtered, sample_labels = scprep.filter.remove_empty_cells(
+    X_filtered_2, sample_labels = scprep.filter.remove_empty_cells(
         X, sample_labels=sample_labels)
-    assert X_filtered.shape[0] == len(sample_labels)
+    assert X_filtered_2.shape[0] == len(sample_labels)
     assert np.all(sample_labels == sample_labels_filt)
+    assert np.all(X_filtered_2 == X_filtered)
+
+
+def test_remove_duplicates():
+    X = data.load_10X(sparse=False)
+    unique_idx = np.sort(np.unique(X, axis=0, return_index=True)[1])
+    X_filtered = np.array(X)[unique_idx]
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equals,
+        Y=X_filtered, transform=scprep.filter.remove_duplicates)
+    sample_labels = np.arange(X.shape[0])
+    sample_labels_filt = sample_labels[unique_idx]
+    X_filtered_2, sample_labels = scprep.filter.remove_duplicates(
+        X, sample_labels=sample_labels)
+    assert X_filtered_2.shape[0] == len(sample_labels)
+    assert np.all(sample_labels == sample_labels_filt)
+    assert np.all(X_filtered_2 == X_filtered)
 
 
 def test_remove_empty_cells_sparse():
@@ -79,10 +92,6 @@ def test_library_size_filter():
         X, utils.assert_transform_equals,
         Y=X_filtered, transform=partial(
             scprep.filter.filter_library_size, cutoff=100))
-
-
-def test_library_size_filter_below():
-    X = data.load_10X(sparse=True)
     X_filtered = scprep.filter.filter_library_size(X, 100, keep_cells='below')
     assert X_filtered.shape[1] == X.shape[1]
     assert not np.any(X_filtered.sum(1) >= 100)
