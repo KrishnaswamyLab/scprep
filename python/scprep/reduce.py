@@ -5,12 +5,14 @@ from scipy import sparse
 import numpy as np
 import warnings
 
+from . import utils
+
 
 class SparseFriendlyPCA(sklearn.base.BaseEstimator):
     """Calculate PCA using random projections to handle sparse matrices
 
     Uses the Johnson-Lindenstrauss Lemma to determine the number of
-    dimensions of random projectiosn prior to subtracting the mean.
+    dimensions of random projections prior to subtracting the mean.
 
     Parameters
     ----------
@@ -23,7 +25,7 @@ class SparseFriendlyPCA(sklearn.base.BaseEstimator):
         memory costs
     orthogonalize : bool, optional (default: False)
         Orthongalize the random projection matrix. If True, this improves the
-        embedding at the cost of runtime (but not memory)
+        accuracy of the embedding at the cost of runtime (but not memory)
     random_state : int, RandomState instance or None, optional (default=None)
         If int, random_state is the seed used by the random number
         generator; If RandomState instance, random_state is the random number
@@ -36,12 +38,20 @@ class SparseFriendlyPCA(sklearn.base.BaseEstimator):
     def __init__(self, n_components=2, eps=0.15,
                  orthogonalize=False, random_state=None,
                  **kwargs):
-        self.pca_op = decomposition.PCA(n_components=n_components)
-        self.rproj_op = random_projection.GaussianRandomProjection(eps=eps)
+        self.pca_op = decomposition.PCA(n_components=n_components,
+                                        random_state=random_state)
+        self.rproj_op = random_projection.GaussianRandomProjection(
+            eps=eps, random_state=random_state)
         self.orthogonalize = orthogonalize
 
     @property
     def pseudoinverse(self):
+        """Pseudoinverse of the random projection
+
+        This inverts the projection operation for any vector in the span of the
+        random projection. For small enough `eps`, this should be close to the
+        correct inverse.
+        """
         try:
             return self._pseudoinverse
         except AttributeError:
@@ -55,15 +65,34 @@ class SparseFriendlyPCA(sklearn.base.BaseEstimator):
 
     @property
     def singular_values_(self):
+        """Singular values of the PCA decomposition
+        """
         return self.pca_op.singular_values_
 
     @property
     def explained_variance_(self):
+        """The amount of variance explained by each of the selected components.
+        """
         return self.pca_op.explained_variance_
 
     @property
     def explained_variance_ratio_(self):
+        """Percentage of variance explained by each of the selected components.
+
+        The sum of the ratios is equal to 1.0.
+        If n_components is `None` then the number of components grows as`eps`
+        gets smaller.
+        """
         return self.pca_op.explained_variance_ratio_
+
+    @property
+    def components_(self):
+        """Principal axes in feature space, representing the
+        directions of maximum variance in the data.
+
+        The components are sorted by explained_variance_.
+        """
+        return self.pca_op.components_.dot(self.pseudoinverse)
 
     def _fit(self, X):
         self.rproj_op.fit(X)
@@ -75,20 +104,56 @@ class SparseFriendlyPCA(sklearn.base.BaseEstimator):
         return X_rproj
 
     def fit(self, X):
+        """Fit the model with X.
+
+        Parameters
+        ----------
+        X : array-like, shape=(n_samples, n_features)
+        """
         self._fit(X)
         return self
 
     def transform(self, X):
+        """Apply dimensionality reduction to X.
+
+        Parameters
+        ----------
+        X : array-like, shape=(n_samples, n_features)
+
+        Returns
+        -------
+        X_new : array-like, shape=(n_samples, n_components)
+        """
         X_rproj = self.rproj_op.transform(X)
         X_pca = self.pca_op.transform(X_rproj)
         return X_pca
 
     def fit_transform(self, X):
+        """Fit the model with X and apply the dimensionality reduction on X.
+
+        Parameters
+        ----------
+        X : array-like, shape=(n_samples, n_features)
+
+        Returns
+        -------
+        X_new : array-like, shape=(n_samples, n_components)
+        """
         X_rproj = self._fit(X)
         X_pca = self.pca_op.transform(X_rproj)
         return X_pca
 
     def inverse_transform(self, X):
+        """Transform data back to its original space.
+
+        Parameters
+        ----------
+        X : array-like, shape=(n_samples, n_components)
+
+        Returns
+        -------
+        X_new : array-like, shape=(n_samples, n_features)
+        """
         X_rproj = self.pca_op.inverse_transform(X)
         X_ambient = X_rproj.dot(self.pseudoinverse)
         return X_ambient
@@ -116,9 +181,9 @@ def pca(data, n_components=100, eps=0.15,
         embedding at the cost of runtime (but not memory)
     seed : int, RandomState or None, optional (default: None)
         Random state.
-    n_pca : Deprecated
-    svd_offset : Deprecated
-    svd_multiples :Deprecated
+    n_pca : Deprecated.
+    svd_offset : Deprecated.
+    svd_multiples :Deprecated.
 
     Returns
     -------
@@ -126,8 +191,9 @@ def pca(data, n_components=100, eps=0.15,
         PCA reduction of `data`
     """
     if n_pca is not None:
-        warnings.warn("n_pca is deprecated. Setting n_components={}.".format(n_pca),
-                      FutureWarning)
+        warnings.warn(
+            "n_pca is deprecated. Setting n_components={}.".format(n_pca),
+            FutureWarning)
         n_components = n_pca
     if svd_offset is not None:
         warnings.warn("svd_offset is deprecated. Use eps in future.",
@@ -149,9 +215,16 @@ def pca(data, n_components=100, eps=0.15,
 
     # handle sparsity
     if sparse.issparse(data):
-        data = SparseFriendlyPCA(
-            n_components=n_components, eps=eps,
-            random_state=seed).fit_transform(data)
+        try:
+            data = SparseFriendlyPCA(
+                n_components=n_components, eps=eps,
+                random_state=seed).fit_transform(data)
+        except RuntimeError as e:
+            if "which is larger than the original space" in str(e):
+                # eps too small - the best we can do is make the data dense
+                return pca(utils.toarray(data), n_components=n_components,
+                           seed=seed)
     else:
-        data = decomposition.PCA(n_pca, random_state=seed).fit_transform(data)
+        data = decomposition.PCA(n_components,
+                                 random_state=seed).fit_transform(data)
     return data
