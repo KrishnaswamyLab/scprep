@@ -1,12 +1,12 @@
   language: python
   python:
-    - "2.7"
     - "3.5"
     - "3.6"
+    - "3.7-dev"
 
   sudo: required
 
-  cache: packages
+  cache: pip
 
   install:
     - cd python; python setup.py install; cd ..
