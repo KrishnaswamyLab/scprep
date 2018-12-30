@@ -155,7 +155,7 @@ class SparseFriendlyPCA(sklearn.base.BaseEstimator):
 
         The components are sorted by explained_variance_.
         """
-        return self.pca_op.components_.dot(self.pseudoinverse)
+        return self.proj_op.inverse_transform(self.pca_op.components_)
 
     def _fit(self, X):
         self.proj_op.fit(X)

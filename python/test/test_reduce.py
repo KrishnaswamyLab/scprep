@@ -11,6 +11,7 @@ class TestPCA(unittest.TestCase):
 
     def setUp(self):
         self.X = data.generate_positive_sparse_matrix(shape=[100, 3000])
+        self.X_sparse = sparse.csr_matrix(self.X)
         random_pca_op = decomposition.PCA(100, random_state=42)
         self.Y_random = random_pca_op.fit_transform(self.X)
         self.S_random = random_pca_op.singular_values_
@@ -47,7 +48,7 @@ class TestPCA(unittest.TestCase):
     def test_singular_values_sparse(self):
         utils.assert_all_close(
             self.S_full, scprep.reduce.pca(
-                sparse.csr_matrix(self.X), n_components=50,
+                self.X_sparse, n_components=50,
                 eps=0.15, seed=42, return_singular_values=True)[1], atol=1e-14)
 
     def test_sparse_rproj(self):
@@ -59,13 +60,13 @@ class TestPCA(unittest.TestCase):
 
     def test_eps_too_low(self):
         utils.assert_all_close(
-            self.Y_random, scprep.reduce.pca(self.Y_random, n_components=100,
+            self.Y_random, scprep.reduce.pca(self.X_sparse, n_components=100,
                                              eps=0.0001, seed=42))
 
     def test_invalid_method(self):
         assert_raise_message(
             ValueError, "Expected `method` in ['svd', 'orth_rproj', 'rproj']. "
-            "Got 'invalid'", scprep.reduce.pca, sparse.csr_matrix(self.X),
+            "Got 'invalid'", scprep.reduce.pca, self.X_sparse,
             method='invalid')
 
     def test_bad_n_components(self):
@@ -93,3 +94,25 @@ class TestPCA(unittest.TestCase):
             FutureWarning,
             "svd_multiples is deprecated. Please use `eps` instead.",
             scprep.reduce.pca, self.X, n_components=2, svd_multiples=100)
+
+    def test_rproj_operator(self):
+        pca_op = scprep.reduce.SparseFriendlyPCA(
+            n_components=50, eps=0.15, seed=42, method='rproj')
+        assert pca_op.fit(self.X_sparse) == pca_op
+        Y = pca_op.transform(self.X_sparse)
+        assert Y.shape == (self.X_sparse.shape[0], 50)
+        assert len(pca_op.singular_values_) == 50
+        assert len(pca_op.explained_variance_) == 50
+        assert len(pca_op.explained_variance_ratio_) == 50
+        assert pca_op.components_.shape == (50, self.X_sparse.shape[1])
+
+    def test_orth_operator(self):
+        pca_op = scprep.reduce.SparseFriendlyPCA(
+            n_components=50, eps=0.15, seed=42, method='orth_rproj')
+        assert pca_op.fit(self.X_sparse) == pca_op
+        Y = pca_op.transform(self.X_sparse)
+        assert Y.shape == (self.X_sparse.shape[0], 50)
+        assert len(pca_op.singular_values_) == 50
+        assert len(pca_op.explained_variance_) == 50
+        assert len(pca_op.explained_variance_ratio_) == 50
+        assert pca_op.components_.shape == (50, self.X_sparse.shape[1])
