@@ -11,23 +11,18 @@ class TestPCA(unittest.TestCase):
 
     def setUp(self):
         self.X = data.generate_positive_sparse_matrix(shape=[100, 3000])
-        self.Y_random = decomposition.PCA(
-            100, random_state=42).fit_transform(self.X)
-        self.Y_full = decomposition.PCA(
-            50, svd_solver='full').fit_transform(self.X)
+        random_pca_op = decomposition.PCA(100, random_state=42)
+        self.Y_random = random_pca_op.fit_transform(self.X)
+        self.S_random = random_pca_op.singular_values_
+        full_pca_op = decomposition.PCA(50, svd_solver='full')
+        self.Y_full = full_pca_op.fit_transform(self.X)
+        self.S_full = full_pca_op.singular_values_
 
     def test_dense(self):
         matrix.test_dense_matrix_types(
             self.X, utils.assert_transform_equals,
             Y=self.Y_random, transform=scprep.reduce.pca,
             n_components=100, seed=42)
-
-    def test_eps_too_low(self):
-        matrix.test_all_matrix_types(
-            self.X, utils.assert_transform_equals,
-            Y=self.Y_random, transform=scprep.reduce.pca,
-            check=utils.assert_all_close,
-            n_components=100, eps=0.0001, seed=42)
 
     def test_sparse_svd(self):
         matrix.test_sparse_matrix_types(
@@ -43,12 +38,29 @@ class TestPCA(unittest.TestCase):
             Y=self.Y_full, transform=scprep.reduce.pca,
             n_components=50, eps=0.15, seed=42, method='orth_rproj')
 
+    def test_singular_values_dense(self):
+        utils.assert_all_equal(
+            self.S_random, scprep.reduce.pca(
+                self.X, n_components=100,
+                seed=42, return_singular_values=True)[1])
+
+    def test_singular_values_sparse(self):
+        utils.assert_all_close(
+            self.S_full, scprep.reduce.pca(
+                sparse.csr_matrix(self.X), n_components=50,
+                eps=0.15, seed=42, return_singular_values=True)[1], atol=1e-14)
+
     def test_sparse_rproj(self):
         matrix.test_sparse_matrix_types(
             self.X, utils.assert_transform_equals,
             check=utils.assert_matrix_class_equivalent,
             Y=self.Y_full, transform=scprep.reduce.pca,
             n_components=50, eps=0.15, seed=42, method='rproj')
+
+    def test_eps_too_low(self):
+        utils.assert_all_close(
+            self.Y_random, scprep.reduce.pca(self.Y_random, n_components=100,
+                                             eps=0.0001, seed=42))
 
     def test_invalid_method(self):
         assert_raise_message(

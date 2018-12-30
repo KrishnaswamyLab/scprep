@@ -220,7 +220,7 @@ class SparseFriendlyPCA(sklearn.base.BaseEstimator):
 
 
 def pca(data, n_components=100, eps=0.15,
-        method='svd', seed=None,
+        method='svd', seed=None, return_singular_values=False,
         n_pca=None, svd_offset=None, svd_multiples=None):
     """Calculate PCA using random projections to handle sparse matrices
 
@@ -244,6 +244,8 @@ def pca(data, n_components=100, eps=0.15,
         computational cost (but not memory.)
     seed : int, RandomState or None, optional (default: None)
         Random state.
+    return_singular_values : bool, optional (default: False)
+        If True, also return the singular values
     n_pca : Deprecated.
     svd_offset : Deprecated.
     svd_multiples :Deprecated.
@@ -252,6 +254,9 @@ def pca(data, n_components=100, eps=0.15,
     -------
     data_pca : array-like, shape=[n_samples, n_components]
         PCA reduction of `data`
+    singular_values : list-like, shape=[n_components]
+        Singular values corresponding to principal components
+        returned only if return_values is True
     """
     if n_pca is not None:
         warnings.warn(
@@ -279,15 +284,20 @@ def pca(data, n_components=100, eps=0.15,
     # handle sparsity
     if sparse.issparse(data):
         try:
-            data = SparseFriendlyPCA(
+            pca_op = SparseFriendlyPCA(
                 n_components=n_components, eps=eps, method=method,
-                random_state=seed).fit_transform(data)
+                random_state=seed)
+            data = pca_op.fit_transform(data)
         except RuntimeError as e:
             if "which is larger than the original space" in str(e):
                 # eps too small - the best we can do is make the data dense
-                return pca(utils.toarray(data), n_components=n_components,
-                           seed=seed)
+                return pca(
+                    utils.toarray(data), n_components=n_components,
+                    seed=seed, return_singular_values=return_singular_values)
     else:
-        data = decomposition.PCA(n_components,
-                                 random_state=seed).fit_transform(data)
+        pca_op = decomposition.PCA(n_components, random_state=seed)
+        data = pca_op.fit_transform(data)
+
+    if return_singular_values:
+        data = (data, pca_op.singular_values_)
     return data
