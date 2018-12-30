@@ -105,6 +105,8 @@ class TestPCA(unittest.TestCase):
         assert len(pca_op.explained_variance_) == 50
         assert len(pca_op.explained_variance_ratio_) == 50
         assert pca_op.components_.shape == (50, self.X_sparse.shape[1])
+        assert pca_op.inverse_transform(
+            pca_op.components_[:, [0]].T).shape == (1, self.X_sparse.shape[1])
 
     def test_orth_operator(self):
         pca_op = scprep.reduce.SparseFriendlyPCA(
@@ -116,3 +118,5 @@ class TestPCA(unittest.TestCase):
         assert len(pca_op.explained_variance_) == 50
         assert len(pca_op.explained_variance_ratio_) == 50
         assert pca_op.components_.shape == (50, self.X_sparse.shape[1])
+        assert pca_op.inverse_transform(
+            pca_op.components_[:, [0]].T).shape == (1, self.X_sparse.shape[1])
