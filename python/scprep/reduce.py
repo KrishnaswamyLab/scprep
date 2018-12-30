@@ -8,41 +8,14 @@ import warnings
 from . import utils
 
 
-class SparseFriendlyPCA(sklearn.base.BaseEstimator):
-    """Calculate PCA using random projections to handle sparse matrices
+class InvertibleRandomProjection(random_projection.GaussianRandomProjection):
+    """Gaussian random projection with an inverse transform using the pseudoinverse."""
 
-    Uses the Johnson-Lindenstrauss Lemma to determine the number of
-    dimensions of random projections prior to subtracting the mean.
-
-    Parameters
-    ----------
-    n_components : int, optional (default: 2)
-        Number of components to keep.
-    eps : strictly positive float, optional (default=0.15)
-        Parameter to control the quality of the embedding according to the
-        Johnson-Lindenstrauss lemma when n_components is set to ‘auto’.
-        Smaller values lead to better embedding but higher computation and
-        memory costs
-    orthogonalize : bool, optional (default: False)
-        Orthongalize the random projection matrix. If True, this improves the
-        accuracy of the embedding at the cost of runtime (but not memory)
-    random_state : int, RandomState instance or None, optional (default=None)
-        If int, random_state is the seed used by the random number
-        generator; If RandomState instance, random_state is the random number
-        generator; If None, the random number generator is the RandomState
-        instance used by np.random.
-    kwargs
-        Additional keyword arguments for `sklearn.decomposition.PCA`
-    """
-
-    def __init__(self, n_components=2, eps=0.15,
-                 orthogonalize=False, random_state=None,
-                 **kwargs):
-        self.pca_op = decomposition.PCA(n_components=n_components,
-                                        random_state=random_state)
-        self.rproj_op = random_projection.GaussianRandomProjection(
-            eps=eps, random_state=random_state)
+    def __init__(self, n_components='auto', eps=0.1,
+                 orthogonalize=False, random_state=None):
         self.orthogonalize = orthogonalize
+        super().__init__(n_components=n_components, eps=eps,
+                         random_state=random_state)
 
     @property
     def pseudoinverse(self):
@@ -57,11 +30,101 @@ class SparseFriendlyPCA(sklearn.base.BaseEstimator):
         except AttributeError:
             if self.orthogonalize:
                 # orthogonal matrix: inverse is just its transpose
-                self._pseudoinverse = self.rproj_op.components_
+                self._pseudoinverse = self.components_
             else:
                 self._pseudoinverse = np.linalg.pinv(
-                    self.rproj_op.components_.T)
+                    self.components_.T)
             return self._pseudoinverse
+
+    def fit(self, X):
+        super().fit(X)
+        if self.orthogonalize:
+            Q, _ = np.linalg.qr(self.components_.T)
+            self.components_ = Q.T
+        return self
+
+    def inverse_transform(self, X):
+        return X.dot(self.pseudoinverse)
+
+
+class AutomaticDimensionSVD(decomposition.TruncatedSVD):
+    """Truncated SVD with automatic dimensionality selected by the Johnson-Lindenstrauss lemma."""
+
+    def __init__(self, n_components='auto', eps=0.15, algorithm='randomized',
+                 n_iter=5, random_state=None, tol=0.0):
+        self.eps = eps
+        if n_components == 'auto':
+            # just pass through -1 - we will change it later
+            n_components = -1
+        super().__init__(n_components=n_components, algorithm=algorithm,
+                         n_iter=n_iter, random_state=random_state, tol=tol)
+
+    def fit(self, X):
+        if self.n_components == -1:
+            super().set_params(
+                n_components=random_projection.johnson_lindenstrauss_min_dim(
+                    n_samples=X.shape[0], eps=self.eps))
+        try:
+            return super().fit(X)
+        except ValueError as e:
+            if self.n_components >= X.shape[1]:
+                raise RuntimeError(
+                    "eps={} and n_samples={} lead to a target "
+                    "dimension of {} which is larger than the "
+                    "original space with n_features={}".format(
+                        self.eps, X.shape[0], self.n_components, X.shape[1]))
+            else:
+                raise
+
+
+class SparseFriendlyPCA(sklearn.base.BaseEstimator):
+    """Calculate PCA using random projections to handle sparse matrices
+
+    Uses the Johnson-Lindenstrauss Lemma to determine the number of
+    dimensions of random projections prior to subtracting the mean.
+
+    Parameters
+    ----------
+    n_components : int, optional (default: 2)
+        Number of components to keep.
+    eps : strictly positive float, optional (default=0.15)
+        Parameter to control the quality of the embedding according to the
+        Johnson-Lindenstrauss lemma when n_components is set to ‘auto’.
+        Smaller values lead to more accurate embeddings but higher
+        computational and memory costs
+    method : {'svd', 'orth_rproj', 'rproj'}, optional (default: 'svd')
+        Dimensionality reduction method applied prior to mean centering.
+        The method choice affects accuracy (`svd` > `orth_rproj` > `rproj`)
+        comes with increased computational cost (but not memory.)
+    random_state : int, RandomState instance or None, optional (default=None)
+        If int, random_state is the seed used by the random number
+        generator; If RandomState instance, random_state is the random number
+        generator; If None, the random number generator is the RandomState
+        instance used by np.random.
+    kwargs
+        Additional keyword arguments for `sklearn.decomposition.PCA`
+    """
+
+    def __init__(self, n_components=2, eps=0.15,
+                 random_state=None,
+                 method='svd',
+                 **kwargs):
+        self.pca_op = decomposition.PCA(n_components=n_components,
+                                        random_state=random_state)
+        if method == 'svd':
+            self.proj_op = AutomaticDimensionSVD(
+                eps=eps,
+                random_state=random_state)
+        elif method == 'orth_rproj':
+            self.proj_op = InvertibleRandomProjection(
+                eps=eps, random_state=random_state, orthogonalize=True)
+        elif method == 'rproj':
+            self.proj_op = InvertibleRandomProjection(
+                eps=eps, random_state=random_state, orthogonalize=False)
+        else:
+            raise ValueError(
+                "Expected `method` in ['svd', 'orth_rproj', 'rproj']. "
+                "Got '{}'".format(method))
 
     @property
     def singular_values_(self):
@@ -95,13 +158,10 @@ class SparseFriendlyPCA(sklearn.base.BaseEstimator):
         return self.pca_op.components_.dot(self.pseudoinverse)
 
     def _fit(self, X):
-        self.rproj_op.fit(X)
-        if self.orthogonalize:
-            Q, _ = np.linalg.qr(self.rproj_op.components_.T)
-            self.rproj_op.components_ = Q.T
-        X_rproj = self.rproj_op.transform(X)
-        self.pca_op.fit(X_rproj)
-        return X_rproj
+        self.proj_op.fit(X)
+        X_proj = self.proj_op.transform(X)
+        self.pca_op.fit(X_proj)
+        return X_proj
 
     def fit(self, X):
         """Fit the model with X.
@@ -124,8 +184,8 @@ class SparseFriendlyPCA(sklearn.base.BaseEstimator):
         -------
         X_new : array-like, shape=(n_samples, n_components)
         """
-        X_rproj = self.rproj_op.transform(X)
-        X_pca = self.pca_op.transform(X_rproj)
+        X_proj = self.proj_op.transform(X)
+        X_pca = self.pca_op.transform(X_proj)
         return X_pca
 
     def fit_transform(self, X):
@@ -139,8 +199,8 @@ class SparseFriendlyPCA(sklearn.base.BaseEstimator):
         -------
         X_new : array-like, shape=(n_samples, n_components)
         """
-        X_rproj = self._fit(X)
-        X_pca = self.pca_op.transform(X_rproj)
+        X_proj = self._fit(X)
+        X_pca = self.pca_op.transform(X_proj)
         return X_pca
 
     def inverse_transform(self, X):
@@ -154,13 +214,13 @@ class SparseFriendlyPCA(sklearn.base.BaseEstimator):
         -------
         X_new : array-like, shape=(n_samples, n_features)
         """
-        X_rproj = self.pca_op.inverse_transform(X)
-        X_ambient = X_rproj.dot(self.pseudoinverse)
+        X_proj = self.pca_op.inverse_transform(X)
+        X_ambient = self.proj_op.inverse_transform(X_proj)
         return X_ambient
 
 
 def pca(data, n_components=100, eps=0.15,
-        orthogonalize=False, seed=None,
+        method='svd', seed=None,
         n_pca=None, svd_offset=None, svd_multiples=None):
     """Calculate PCA using random projections to handle sparse matrices
 
@@ -174,11 +234,14 @@ def pca(data, n_components=100, eps=0.15,
     n_components : int, optional (default: 100)
         Number of PCs to compute
     eps : strictly positive float, optional (default=0.15)
-        Control the quality of the embedding. Smaller values lead
-        to better embeddings at the cost of runtime and memory.
-    orthogonalize : bool, optional (default: False)
-        Orthongalize the random projection matrix. If True, this improves the
-        embedding at the cost of runtime (but not memory)
+        Parameter to control the quality of the embedding of sparse input.
+        Smaller values lead to more accurate embeddings but higher
+        computational and memory costs
+    method : {'svd', 'orth_rproj', 'rproj'}, optional (default: 'svd')
+        Dimensionality reduction method applied prior to mean centering
+        of sparse input. The method choice affects accuracy
+        (`svd` > `orth_rproj` > `rproj`) comes with increased 
+        computational cost (but not memory.)
     seed : int, RandomState or None, optional (default: None)
         Random state.
     n_pca : Deprecated.
@@ -196,13 +259,13 @@ def pca(data, n_components=100, eps=0.15,
             FutureWarning)
         n_components = n_pca
     if svd_offset is not None:
-        warnings.warn("svd_offset is deprecated. Use eps in future.",
+        warnings.warn("svd_offset is deprecated. Please use `eps` instead.",
                       FutureWarning)
     if svd_multiples is not None:
-        warnings.warn("svd_multiples is deprecated. Use eps in future.",
+        warnings.warn("svd_multiples is deprecated. Please use `eps` instead.",
                       FutureWarning)
 
-    if not 0 <= n_components <= min(data.shape):
+    if not 0 < n_components <= min(data.shape):
         raise ValueError("n_components={} must be between 0 and "
                          "min(n_samples, n_features)={}".format(
                              n_components, min(data.shape)))
@@ -217,7 +280,7 @@ def pca(data, n_components=100, eps=0.15,
     if sparse.issparse(data):
         try:
             data = SparseFriendlyPCA(
-                n_components=n_components, eps=eps,
+                n_components=n_components, eps=eps, method=method,
                 random_state=seed).fit_transform(data)
         except RuntimeError as e:
             if "which is larger than the original space" in str(e):
