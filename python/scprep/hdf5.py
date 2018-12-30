@@ -154,7 +154,7 @@ def get_values(dataset):
         Data read from HDF5 dataset
     """
     if _is_h5py(dataset, allow_file=False, allow_group=False):
-        return dataset.value
+        return dataset[()]
     elif _is_tables(dataset, allow_file=False, allow_group=False):
         return dataset.read()
     else:
