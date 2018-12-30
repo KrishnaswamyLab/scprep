@@ -21,6 +21,28 @@ class Test10X(unittest.TestCase):
         matrix.test_all_matrix_types(
             self.X_dense, utils.assert_transform_equals,
             Y=X_filtered, transform=scprep.filter.remove_empty_cells)
+        sample_labels = np.arange(self.X_dense.shape[0])
+        sample_labels_filt = sample_labels[self.X_dense.sum(1) > 0]
+        X_filtered_2, sample_labels = scprep.filter.remove_empty_cells(
+            self.X_dense, sample_labels=sample_labels)
+        assert X_filtered_2.shape[0] == len(sample_labels)
+        assert np.all(sample_labels == sample_labels_filt)
+        assert np.all(X_filtered_2 == X_filtered)
+
+    def test_remove_duplicates(self):
+        unique_idx = np.sort(
+            np.unique(self.X_dense, axis=0, return_index=True)[1])
+        X_filtered = np.array(self.X_dense)[unique_idx]
+        matrix.test_all_matrix_types(
+            self.X_dense, utils.assert_transform_equals,
+            Y=X_filtered, transform=scprep.filter.remove_duplicates)
+        sample_labels = np.arange(self.X_dense.shape[0])
+        sample_labels_filt = sample_labels[unique_idx]
+        X_filtered_2, sample_labels = scprep.filter.remove_duplicates(
+            self.X_dense, sample_labels=sample_labels)
+        assert X_filtered_2.shape[0] == len(sample_labels)
+        assert np.all(sample_labels == sample_labels_filt)
+        assert np.all(X_filtered_2 == X_filtered)
 
     def test_remove_empty_cells_sample_label(self):
         sample_labels = np.arange(self.X_dense.shape[0])
@@ -73,6 +95,10 @@ class Test10X(unittest.TestCase):
             self.X_sparse, utils.assert_transform_equals,
             Y=X_filtered, transform=partial(
                 scprep.filter.filter_library_size, cutoff=100))
+        X_filtered = scprep.filter.filter_library_size(
+            self.X_sparse, 100, keep_cells='below')
+        assert X_filtered.shape[1] == self.X_sparse.shape[1]
+        assert not np.any(X_filtered.sum(1) >= 100)
 
     def test_library_size_filter_below(self):
         X_filtered = scprep.filter.filter_library_size(

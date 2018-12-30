@@ -58,7 +58,8 @@ def test_knnDREMI():
     assert isinstance(Y, float)
     np.testing.assert_allclose(Y, 0.16238906)
     Y2, drevi = scprep.stats.knnDREMI(X[:, 0], X[:, 1],
-                                      plot=True, return_drevi=True)
+                                      plot=True, filename="test.png",
+                                      return_drevi=True)
     assert Y2 == Y
     assert drevi.shape == (20, 20)
     matrix.test_all_matrix_types(
@@ -75,6 +76,11 @@ def test_knnDREMI():
     assert_raise_message(
         ValueError, "Expected n_mesh as an integer. Got ",
         scprep.stats.knnDREMI, X[:, 0], X[:, 1], n_mesh="invalid")
+    assert_warns_message(
+        UserWarning,
+        "Attempting to calculate kNN-DREMI on array of all zeros. "
+        "Returning `0`", scprep.stats.knnDREMI, X[:, 0],
+        np.zeros_like(X[:, 1]))
 
 
 def _test_fun_2d(X, fun, **kwargs):
