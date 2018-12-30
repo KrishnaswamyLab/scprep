@@ -69,8 +69,8 @@ def test_knnDREMI():
         check=utils.assert_all_close)
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=UserWarning)
-            assert scprep.stats.knnDREMI(X[:, 0], np.repeat(X[0, 1], X.shape[0]),
-                                         return_drevi=True) == (0, None)
+        assert scprep.stats.knnDREMI(X[:, 0], np.repeat(X[0, 1], X.shape[0]),
+                                     return_drevi=True) == (0, None)
     assert_raise_message(
         ValueError, "Expected k as an integer. Got ",
         scprep.stats.knnDREMI, X[:, 0], X[:, 1], k="invalid")
@@ -82,7 +82,7 @@ def test_knnDREMI():
         scprep.stats.knnDREMI, X[:, 0], X[:, 1], n_mesh="invalid")
     assert_warns_message(
         UserWarning,
-        "Attempting to calculate kNN-DREMI on array of all zeros. "
+        "Attempting to calculate kNN-DREMI on a constant array. "
         "Returning `0`", scprep.stats.knnDREMI, X[:, 0],
         np.zeros_like(X[:, 1]))
 
