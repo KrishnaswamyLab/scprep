@@ -56,7 +56,7 @@ class Test10X(unittest.TestCase):
 
     def test_remove_rare_genes(self):
         X_filtered = scprep.filter.remove_rare_genes(self.X_dense)
-        assert X_filtered.shape[0] == X.shape[0]
+        assert X_filtered.shape[0] == self.X_dense.shape[0]
         assert not np.any(X_filtered.sum(0) < 5)
         matrix.test_all_matrix_types(
             self.X_dense, utils.assert_transform_equals,
