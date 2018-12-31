@@ -187,10 +187,10 @@ def select_cols(data, idx):
     UserWarning : if no columns are selected
     """
     if isinstance(idx, pd.DataFrame):
-        if len(idx.shape) > 1 and idx.shape[1] > 1:
+        if len(idx.shape) > 1 and np.prod(idx.shape) != np.max(idx.shape):
             raise ValueError(
                 "Expected idx to be 1D. Got shape {}".format(idx.shape))
-        idx = idx.iloc[:, 0]
+        idx = idx.iloc[:, 0] if idx.shape[1] == 1 else idx.iloc[0, :]
     if isinstance(data, pd.DataFrame):
         try:
             data = data.loc[:, idx]
@@ -200,6 +200,17 @@ def select_cols(data, idx):
                 data = data.loc[:, np.array(data.columns)[idx]]
             else:
                 raise
+    elif isinstance(data, pd.Series):
+        try:
+            data = data.loc[idx]
+        except KeyError:
+            if isinstance(idx, numbers.Integral) or \
+                    issubclass(np.array(idx).dtype.type, numbers.Integral):
+                data = data.loc[np.array(data.index)[idx]]
+            else:
+                raise
+    elif len(data.shape) == 1:
+        data = data[idx]
     else:
         if isinstance(data, (sparse.coo_matrix,
                              sparse.bsr_matrix,
@@ -232,10 +243,10 @@ def select_rows(data, idx):
     UserWarning : if no rows are selected
     """
     if isinstance(idx, pd.DataFrame):
-        if len(idx.shape) > 1 and idx.shape[1] > 1:
+        if len(idx.shape) > 1 and np.prod(idx.shape) != np.max(idx.shape):
             raise ValueError(
                 "Expected idx to be 1D. Got shape {}".format(idx.shape))
-        idx = idx.iloc[:, 0]
+        idx = idx.iloc[:, 0] if idx.shape[1] == 1 else idx.iloc[0, :]
     if isinstance(data, (pd.DataFrame, pd.Series)):
         try:
             data = data.loc[idx]
@@ -245,6 +256,8 @@ def select_rows(data, idx):
                 data = data.iloc[idx]
             else:
                 raise
+    elif len(data.shape) == 1:
+        data = data[idx]
     else:
         if isinstance(data, (sparse.coo_matrix,
                              sparse.bsr_matrix,
