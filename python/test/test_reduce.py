@@ -96,7 +96,7 @@ class TestPCA(unittest.TestCase):
             scprep.reduce.pca, self.X, n_components=2, svd_multiples=100)
 
     def test_rproj_operator(self):
-        pca_op = scprep.reduce.SparseFriendlyPCA(
+        pca_op = scprep.reduce.SparseInputPCA(
             n_components=50, eps=0.3, seed=42, method='rproj')
         assert pca_op.fit(self.X_sparse) == pca_op
         Y = pca_op.transform(self.X_sparse)
@@ -109,7 +109,7 @@ class TestPCA(unittest.TestCase):
             pca_op.components_[:, [0]].T).shape == (1, self.X_sparse.shape[1])
 
     def test_orth_operator(self):
-        pca_op = scprep.reduce.SparseFriendlyPCA(
+        pca_op = scprep.reduce.SparseInputPCA(
             n_components=50, eps=0.3, seed=42, method='orth_rproj')
         assert pca_op.fit(self.X_sparse) == pca_op
         Y = pca_op.transform(self.X_sparse)
