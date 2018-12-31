@@ -30,14 +30,14 @@ class TestPCA(unittest.TestCase):
             self.X, utils.assert_transform_equals,
             Y=self.Y_full, transform=scprep.reduce.pca,
             check=partial(utils.assert_all_close, rtol=1e-3, atol=1e-5),
-            n_components=50, eps=0.15, seed=42, method='svd')
+            n_components=50, eps=0.3, seed=42, method='svd')
 
     def test_sparse_orth_rproj(self):
         matrix.test_sparse_matrix_types(
             self.X, utils.assert_transform_equals,
             check=utils.assert_matrix_class_equivalent,
             Y=self.Y_full, transform=scprep.reduce.pca,
-            n_components=50, eps=0.15, seed=42, method='orth_rproj')
+            n_components=50, eps=0.3, seed=42, method='orth_rproj')
 
     def test_singular_values_dense(self):
         utils.assert_all_equal(
@@ -49,14 +49,14 @@ class TestPCA(unittest.TestCase):
         utils.assert_all_close(
             self.S_full, scprep.reduce.pca(
                 self.X_sparse, n_components=50,
-                eps=0.15, seed=42, return_singular_values=True)[1], atol=1e-14)
+                eps=0.3, seed=42, return_singular_values=True)[1], atol=1e-14)
 
     def test_sparse_rproj(self):
         matrix.test_sparse_matrix_types(
             self.X, utils.assert_transform_equals,
             check=utils.assert_matrix_class_equivalent,
             Y=self.Y_full, transform=scprep.reduce.pca,
-            n_components=50, eps=0.15, seed=42, method='rproj')
+            n_components=50, eps=0.3, seed=42, method='rproj')
 
     def test_eps_too_low(self):
         utils.assert_all_close(
@@ -97,7 +97,7 @@ class TestPCA(unittest.TestCase):
 
     def test_rproj_operator(self):
         pca_op = scprep.reduce.SparseFriendlyPCA(
-            n_components=50, eps=0.15, seed=42, method='rproj')
+            n_components=50, eps=0.3, seed=42, method='rproj')
         assert pca_op.fit(self.X_sparse) == pca_op
         Y = pca_op.transform(self.X_sparse)
         assert Y.shape == (self.X_sparse.shape[0], 50)
@@ -110,7 +110,7 @@ class TestPCA(unittest.TestCase):
 
     def test_orth_operator(self):
         pca_op = scprep.reduce.SparseFriendlyPCA(
-            n_components=50, eps=0.15, seed=42, method='orth_rproj')
+            n_components=50, eps=0.3, seed=42, method='orth_rproj')
         assert pca_op.fit(self.X_sparse) == pca_op
         Y = pca_op.transform(self.X_sparse)
         assert Y.shape == (self.X_sparse.shape[0], 50)

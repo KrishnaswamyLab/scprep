@@ -11,7 +11,7 @@ from . import utils
 class InvertibleRandomProjection(random_projection.GaussianRandomProjection):
     """Gaussian random projection with an inverse transform using the pseudoinverse."""
 
-    def __init__(self, n_components='auto', eps=0.1,
+    def __init__(self, n_components='auto', eps=0.3,
                  orthogonalize=False, random_state=None):
         self.orthogonalize = orthogonalize
         super().__init__(n_components=n_components, eps=eps,
@@ -50,7 +50,7 @@ class InvertibleRandomProjection(random_projection.GaussianRandomProjection):
 class AutomaticDimensionSVD(decomposition.TruncatedSVD):
     """Truncated SVD with automatic dimensionality selected by the Johnson-Lindenstrauss lemma."""
 
-    def __init__(self, n_components='auto', eps=0.15, algorithm='randomized',
+    def __init__(self, n_components='auto', eps=0.3, algorithm='randomized',
                  n_iter=5, random_state=None, tol=0.0):
         self.eps = eps
         if n_components == 'auto':
@@ -105,7 +105,7 @@ class SparseFriendlyPCA(sklearn.base.BaseEstimator):
         Additional keyword arguments for `sklearn.decomposition.PCA`
     """
 
-    def __init__(self, n_components=2, eps=0.15,
+    def __init__(self, n_components=2, eps=0.3,
                  random_state=None,
                  method='svd',
                  **kwargs):
@@ -219,7 +219,7 @@ class SparseFriendlyPCA(sklearn.base.BaseEstimator):
         return X_ambient
 
 
-def pca(data, n_components=100, eps=0.15,
+def pca(data, n_components=100, eps=0.3,
         method='svd', seed=None, return_singular_values=False,
         n_pca=None, svd_offset=None, svd_multiples=None):
     """Calculate PCA using random projections to handle sparse matrices
