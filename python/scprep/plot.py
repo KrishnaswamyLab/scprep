@@ -29,6 +29,23 @@ def _mpl_is_gui_backend():
         return True
 
 
+def _get_figure(ax=None, figsize=None):
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+        show_fig = True
+    else:
+        try:
+            fig = ax.get_figure()
+        except AttributeError as e:
+            if not isinstance(ax, mpl.axes.Axes):
+                raise TypeError("Expected ax as a matplotlib.axes.Axes. "
+                                "Got {}".format(type(ax)))
+            else:
+                raise e
+        show_fig = False
+    return fig, ax, show_fig
+
+
 @_with_matplotlib
 def show(fig):
     """Show a matplotlib Figure correctly, regardless of platform
@@ -82,19 +99,7 @@ def histogram(data,
         Labels to display on the x and y axis.
     **kwargs : additional arguments for `matplotlib.pyplot.hist`
     """
-    if ax is None:
-        fig, ax = plt.subplots(figsize=figsize)
-        show_fig = True
-    else:
-        try:
-            fig = ax.get_figure()
-        except AttributeError as e:
-            if not isinstance(ax, mpl.axes.Axes):
-                raise TypeError("Expected ax as a matplotlib.axes.Axes. "
-                                "Got {}".format(type(ax)))
-            else:
-                raise e
-        show_fig = False
+    fig, ax, show_fig = _get_figure(ax, figsize)
     if log == 'x' or log is True:
         bins = np.logspace(np.log10(max(np.min(data), 1)),
                            np.log10(np.max(data)),
@@ -201,3 +206,35 @@ def plot_gene_set_expression(data, genes,
         cutoff=cutoff, percentile=percentile,
         bins=bins, log=log, ax=ax, figsize=figsize,
         xlabel=xlabel, **kwargs)
+
+
+@_with_matplotlib
+def scree_plot(singular_values, cumulative=False, ax=None, figsize=None,
+               xlabel='Principal Component', ylabel='Explained Variance (%)',
+               **kwargs):
+    """Plot the explained variance of each principal component
+
+    Parameters
+    ----------
+    singular_values : list-like, shape=[n_components]
+        Singular values returned by `scprep.reduce.pca(data, return_singular_values=True)`
+    cumulative : bool, optional (default=False)
+        If True, plot the cumulative explained variance
+    ax : `matplotlib.Axes` or None, optional (default: None)
+        Axis to plot on. If None, a new axis will be created.
+    figsize : tuple or None, optional (default: None)
+        If not None, sets the figure size (width, height)
+    [x,y]label : str, optional
+        Labels to display on the x and y axis.
+    **kwargs : additional arguments for `matplotlib.pyplot.plot`
+    """
+    explained_variance = singular_values ** 2
+    explained_variance = explained_variance / explained_variance.sum()
+    if cumulative:
+        explained_variance = np.cumsum(explained_variance)
+    fig, ax, show_fig = _get_figure(ax, figsize)
+    ax.plot(np.arange(len(explained_variance)), explained_variance, **kwargs)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    if show_fig:
+        show(fig)
