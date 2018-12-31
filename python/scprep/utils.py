@@ -194,7 +194,7 @@ def select_cols(data, idx):
     if isinstance(data, pd.DataFrame):
         try:
             data = data.loc[:, idx]
-        except KeyError:
+        except (KeyError, TypeError):
             if isinstance(idx, numbers.Integral) or \
                     issubclass(np.array(idx).dtype.type, numbers.Integral):
                 data = data.loc[:, np.array(data.columns)[idx]]
@@ -203,7 +203,7 @@ def select_cols(data, idx):
     elif isinstance(data, pd.Series):
         try:
             data = data.loc[idx]
-        except KeyError:
+        except (KeyError, TypeError):
             if isinstance(idx, numbers.Integral) or \
                     issubclass(np.array(idx).dtype.type, numbers.Integral):
                 data = data.loc[np.array(data.index)[idx]]
@@ -250,7 +250,7 @@ def select_rows(data, idx):
     if isinstance(data, (pd.DataFrame, pd.Series)):
         try:
             data = data.loc[idx]
-        except KeyError:
+        except (KeyError, TypeError):
             if isinstance(idx, numbers.Integral) or \
                     issubclass(np.array(idx).dtype.type, numbers.Integral):
                 data = data.iloc[idx]

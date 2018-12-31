@@ -127,6 +127,14 @@ def test_select_rows():
     matrix.test_all_matrix_types(
         X, scprep.utils.select_rows,
         np.random.choice(X.shape[0], X.shape[0] // 2))
+    # integer list index
+    matrix.test_all_matrix_types(
+        X, scprep.utils.select_rows,
+        np.random.choice(X.shape[0], X.shape[0] // 2).tolist())
+    # integer index
+    matrix.test_all_matrix_types(
+        X, scprep.utils.select_rows,
+        np.random.choice(X.shape[0]))
     # string array index
     matrix.test_pandas_matrix_types(
         X, scprep.utils.select_rows,
@@ -162,6 +170,14 @@ def test_select_cols():
     matrix.test_all_matrix_types(
         X, scprep.utils.select_cols,
         np.random.choice(X.shape[1], X.shape[1] // 2))
+    # integer list index
+    matrix.test_all_matrix_types(
+        X, scprep.utils.select_cols,
+        np.random.choice(X.shape[1], X.shape[1] // 2).tolist())
+    # integer index
+    matrix.test_all_matrix_types(
+        X, scprep.utils.select_cols,
+        np.random.choice(X.shape[1]))
     # string array index
     matrix.test_pandas_matrix_types(
         X, scprep.utils.select_cols,
