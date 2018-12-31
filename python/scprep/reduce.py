@@ -77,7 +77,7 @@ class AutomaticDimensionSVD(decomposition.TruncatedSVD):
                 raise
 
 
-class SparseFriendlyPCA(sklearn.base.BaseEstimator):
+class SparseInputPCA(sklearn.base.BaseEstimator):
     """Calculate PCA using random projections to handle sparse matrices
 
     Uses the Johnson-Lindenstrauss Lemma to determine the number of
@@ -284,7 +284,7 @@ def pca(data, n_components=100, eps=0.3,
     # handle sparsity
     if sparse.issparse(data):
         try:
-            pca_op = SparseFriendlyPCA(
+            pca_op = SparseInputPCA(
                 n_components=n_components, eps=eps, method=method,
                 random_state=seed)
             data = pca_op.fit_transform(data)
