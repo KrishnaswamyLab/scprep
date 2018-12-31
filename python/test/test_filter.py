@@ -184,7 +184,6 @@ class Test10X(unittest.TestCase):
 
     def test_gene_expression_filter_warning(self):
         genes = np.arange(10)
-        gene_outside_range = 100
         no_genes = 'not_a_gene'
         assert_warns_message(
             UserWarning,
@@ -223,6 +222,12 @@ class Test10X(unittest.TestCase):
             UserWarning,
             "Selecting 0 columns",
             scprep.utils.select_cols, self.X_sparse, (self.X_sparse.sum(axis=0) < 0))
+
+    def filter_series(self):
+        libsize = scprep.measure.library_size(self.X_sparse)
+        libsize_filt = scprep.filter.filter_values(
+            libsize, libsize, cutoff=100)
+        assert np.all(libsize_filt > 100)
 
 
 def test_large_sparse_dataframe_library_size():

@@ -236,7 +236,7 @@ def select_rows(data, idx):
             raise ValueError(
                 "Expected idx to be 1D. Got shape {}".format(idx.shape))
         idx = idx.iloc[:, 0]
-    if isinstance(data, pd.DataFrame):
+    if isinstance(data, (pd.DataFrame, pd.Series)):
         try:
             data = data.loc[idx]
         except KeyError:
@@ -310,7 +310,7 @@ def get_gene_set(data, starts_with=None, ends_with=None, regex=None):
     """
     if len(data.shape) > 1:
         try:
-            data = data.columns
+            data = data.columns.values
         except AttributeError:
             raise TypeError("data must be a list of gene names or a pandas "
                             "DataFrame. Got {}".format(type(data).__name__))
@@ -339,7 +339,7 @@ def get_cell_set(data, starts_with=None, ends_with=None, regex=None):
     """
     if len(data.shape) > 1:
         try:
-            data = data.index
+            data = data.index.values
         except AttributeError:
             raise TypeError("data must be a list of cell names or a pandas "
                             "DataFrame. Got {}".format(type(data).__name__))
