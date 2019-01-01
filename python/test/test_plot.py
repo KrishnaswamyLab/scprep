@@ -71,7 +71,7 @@ class Test10X(unittest.TestCase):
             ValueError,
             "Cannot use dictionary cmap with continuous data",
             scprep.plot.scatter2d, self.X_pca, c=self.X_pca[:, 0],
-            cmap={'hello': 'red', 'world': 'green'})
+            discrete=False, cmap={'hello': 'red', 'world': 'green'})
 
     def test_scatter_dict_missing(self):
         assert_raise_message(
@@ -88,7 +88,7 @@ class Test10X(unittest.TestCase):
             cmap=['red', 'green'])
 
     def test_scatter_list_continuous(self):
-        scprep.plot.scatter2d(self.X_pca, c=self.X_pca[:, 0], discrete=False,
+        scprep.plot.scatter2d(self.X_pca, c=self.X_pca[:, 0],
                               cmap=['red', 'green'], legend_title="test")
 
     def test_scatter_list_c_none(self):
