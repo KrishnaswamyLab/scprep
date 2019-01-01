@@ -127,9 +127,10 @@ class Test10X(unittest.TestCase):
         assert np.all([lab.get_text() == '' for lab in ax.get_zticklabels()])
 
     def test_scatter_custom_ticks(self):
-        scprep.plot.scatter2d(self.X_pca, xticks=[0, 1, 2])
-        ax = scprep.plot.scatter3d(self.X_pca, zticks=False)
+        ax = scprep.plot.scatter2d(self.X_pca, xticks=[0, 1, 2])
         assert np.all(ax.get_xticks() == np.array([0, 1, 2]))
+        ax = scprep.plot.scatter3d(self.X_pca, zticks=False)
+        assert np.all(ax.get_zticks() == np.array([]))
 
     def test_scatter_custom_ticklabels(self):
         ax = scprep.plot.scatter2d(self.X_pca, xticks=[0, 1, 2],
@@ -151,9 +152,25 @@ class Test10X(unittest.TestCase):
         assert ax.get_ylabel() == "test2"
 
     def test_scatter_axis_savefig(self):
-        ax = scprep.plot.scatter2d(
+        scprep.plot.scatter2d(
             self.X_pca, filename="test.png")
         assert os.path.exists("test.png")
+
+    def test_scatter_viewinit(self):
+        ax = scprep.plot.scatter3d(
+            self.X_pca, elev=80, azim=270)
+        assert ax.elev == 80
+        assert ax.azim == 270
+
+    def test_scatter_rotate_gif(self):
+        scprep.plot.rotate_scatter3d(self.X_pca, fps=5, dpi=50,
+                                     filename="test.gif")
+        assert os.path.exists("test.gif")
+
+    def test_scatter_rotate_mp4(self):
+        scprep.plot.rotate_scatter3d(self.X_pca, fps=5, dpi=50,
+                                     filename="test.mp4")
+        assert os.path.exists("test.mp4")
 
     def test_scatter_invalid_data(self):
         assert_raise_message(
