@@ -537,7 +537,7 @@ def _label_axis(axis, ticks=True, ticklabels=True, label=None):
     else:
         axis.set_ticklabels(ticklabels)
     if label is not None:
-        axis.set_label(label)
+        axis.set_label_text(label)
 
 
 @_with_matplotlib
@@ -681,7 +681,7 @@ def scatter(x, y, z=None,
     # automatic axis labels
     if label_prefix is not None:
         if xlabel is None:
-            xlabel = label_prefix + "1" if xlabel is None else xlabel
+            xlabel = label_prefix + "1"
         if ylabel is None:
             ylabel = label_prefix + "2"
         if zlabel is None:

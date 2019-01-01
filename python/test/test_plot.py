@@ -2,6 +2,7 @@ from tools import data
 import scprep
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 from sklearn.utils.testing import assert_raise_message, assert_warns_message
 import unittest
 
@@ -117,6 +118,43 @@ class Test10X(unittest.TestCase):
     def test_scatter_none(self):
         scprep.plot.scatter2d(self.X_pca, c=None)
 
+    def test_scatter_no_ticks(self):
+        ax = scprep.plot.scatter3d(self.X_pca, zticks=False)
+        assert len(ax.get_zticks()) == 0
+
+    def test_scatter_no_ticklabels(self):
+        ax = scprep.plot.scatter3d(self.X_pca, zticklabels=False)
+        assert np.all([lab.get_text() == '' for lab in ax.get_zticklabels()])
+
+    def test_scatter_custom_ticks(self):
+        scprep.plot.scatter2d(self.X_pca, xticks=[0, 1, 2])
+        ax = scprep.plot.scatter3d(self.X_pca, zticks=False)
+        assert np.all(ax.get_xticks() == np.array([0, 1, 2]))
+
+    def test_scatter_custom_ticklabels(self):
+        ax = scprep.plot.scatter2d(self.X_pca, xticks=[0, 1, 2],
+                                   xticklabels=['a', 'b', 'c'])
+        assert np.all(ax.get_xticks() == np.array([0, 1, 2]))
+        xticklabels = np.array([lab.get_text()
+                                for lab in ax.get_xticklabels()])
+        assert np.all(xticklabels == np.array(['a', 'b', 'c']))
+
+    def test_scatter_axis_labels(self):
+        ax = scprep.plot.scatter3d(
+            self.X_pca, label_prefix="test")
+        assert ax.get_xlabel() == "test1"
+        assert ax.get_ylabel() == "test2"
+        assert ax.get_zlabel() == "test3"
+        ax = scprep.plot.scatter2d(
+            self.X_pca, label_prefix="test", xlabel="override")
+        assert ax.get_xlabel() == "override"
+        assert ax.get_ylabel() == "test2"
+
+    def test_scatter_axis_savefig(self):
+        ax = scprep.plot.scatter2d(
+            self.X_pca, filename="test.png")
+        assert os.path.exists("test.png")
+
     def test_scatter_invalid_data(self):
         assert_raise_message(
             ValueError, "Expected all axes of data to have the same length. "
@@ -155,3 +193,10 @@ class Test10X(unittest.TestCase):
             UserWarning, "Cannot create a legend with `c=red`",
             scprep.plot.scatter2d, self.X_pca, legend=True,
             c='red')
+
+    def test_scatter_invalid_axis(self):
+        fig, ax = plt.subplots()
+        assert_raise_message(
+            TypeError, "Expected ax with projection='3d'. "
+            "Got 2D axis instead.",
+            scprep.plot.scatter3d, self.X_pca, ax=ax)
