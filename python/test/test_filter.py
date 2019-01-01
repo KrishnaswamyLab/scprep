@@ -10,7 +10,8 @@ import unittest
 
 class Test10X(unittest.TestCase):
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(self):
         self.X_dense = data.load_10X(sparse=False)
         self.X_sparse = data.load_10X(sparse=True)
 

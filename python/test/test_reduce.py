@@ -9,7 +9,8 @@ import unittest
 
 class TestPCA(unittest.TestCase):
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(self):
         self.X = data.generate_positive_sparse_matrix(shape=[100, 3000])
         self.X_sparse = sparse.csr_matrix(self.X)
         random_pca_op = decomposition.PCA(100, random_state=42)
