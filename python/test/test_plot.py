@@ -9,10 +9,14 @@ import unittest
 
 class Test10X(unittest.TestCase):
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(self):
         self.X = data.load_10X(sparse=False)
         self.X_pca, self.S = scprep.reduce.pca(self.X, n_components=10,
                                                return_singular_values=True)
+
+    def tearDown(self):
+        plt.close()
 
     def test_histogram(self):
         scprep.plot.plot_library_size(self.X, cutoff=1000, log=True)
@@ -171,6 +175,13 @@ class Test10X(unittest.TestCase):
         scprep.plot.rotate_scatter3d(self.X_pca, fps=5, dpi=50,
                                      filename="test.mp4")
         assert os.path.exists("test.mp4")
+
+    def test_scatter_rotate_invalid_filename(self):
+        assert_raise_message(
+            ValueError,
+            "filename must end in .gif or .mp4. Got test.invalid",
+            scprep.plot.rotate_scatter3d,
+            self.X_pca, fps=5, dpi=50, filename="test.invalid")
 
     def test_scatter_invalid_data(self):
         assert_raise_message(
