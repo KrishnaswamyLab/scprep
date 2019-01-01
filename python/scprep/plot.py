@@ -1063,7 +1063,7 @@ def rotate_scatter3d(data,
 
     if _in_ipynb():
         # credit to https://stackoverflow.com/a/45573903/3996580
-        plt.close()
+        plt.close(fig)
     elif show_fig:
         show(fig)
 
