@@ -62,7 +62,7 @@ class Test10X(unittest.TestCase):
     def test_scatter_dict_c_none(self):
         assert_raise_message(
             ValueError,
-            "Expected list-like `c` with dictionary cmap. Got None",
+            "Expected list-like `c` with dictionary cmap. Got <class 'NoneType'>",
             scprep.plot.scatter2d, self.X_pca, c=None,
             cmap={'hello': 'red', 'world': 'green'})
 
@@ -88,13 +88,13 @@ class Test10X(unittest.TestCase):
             cmap=['red', 'green'])
 
     def test_scatter_list_continuous(self):
-        scprep.plot.scatter2d(self.X_pca, c=self.X_pca[:, 0],
+        scprep.plot.scatter2d(self.X_pca, c=self.X_pca[:, 0], discrete=False,
                               cmap=['red', 'green'], legend_title="test")
 
     def test_scatter_list_c_none(self):
         assert_raise_message(
             ValueError,
-            "Expected list-like `c` with list cmap. Got None",
+            "Expected list-like `c` with list cmap. Got <class 'NoneType'>",
             scprep.plot.scatter2d, self.X_pca, c=None,
             cmap=['red', 'green'])
 
