@@ -297,13 +297,13 @@ def scree_plot(singular_values, cumulative=False, ax=None, figsize=None,
 
 
 def _scatter_params(x, y, z=None, c=None, discrete=None,
-                    cmap=None, s=None, legend=True):
+                    cmap=None, s=None, legend=None):
     """Automatically select nice parameters for a scatter plot
     """
     # check data shape
     if len(x) != len(y) or (z is not None and len(x) != len(z)):
         raise ValueError(
-            "Expected all axis of data to have the same length"
+            "Expected all axes of data to have the same length"
             ". Got {}".format([
                 len(d) for d in ([x, y, z] if z is not None else [x, y])]))
     # set point size
@@ -326,6 +326,8 @@ def _scatter_params(x, y, z=None, c=None, discrete=None,
                     UserWarning)
         legend = False
     else:
+        if legend is None:
+            legend = True
         # label/value color array
         c = utils.toarray(c)
         if not len(c) == len(x):
@@ -381,12 +383,20 @@ def _scatter_params(x, y, z=None, c=None, discrete=None,
             raise ValueError("Expected list-like `c` with list cmap. "
                              "Got {}".format(type(c)))
         elif not discrete:
+            vals = np.linspace(0, 1, len(cmap))
+            cdict = dict(red=[], green=[], blue=[], alpha=[])
+            for val, color in zip(vals, cmap):
+                r, g, b, a = mpl.colors.to_rgba(color)
+                cdict['red'].append((val, r, r))
+                cdict['green'].append((val, g, g))
+                cdict['blue'].append((val, b, b))
+                cdict['alpha'].append((val, a, a))
             cmap = mpl.colors.LinearSegmentedColormap(
                 'scprep_custom_continuous_cmap',
-                [mpl.colors.to_rgba(col) for col in cmap])
+                cdict)
         elif len(cmap) != len(labels):
             raise ValueError(
-                "List cmap requires a color "
+                "List cmap with discrete data requires a color "
                 "for every unique entry in `c` ({}). "
                 "Got {}".format(len(labels), len(cmap)))
         else:
@@ -533,7 +543,7 @@ def _label_axis(axis, ticks=True, ticklabels=True, label=None):
 @_with_matplotlib
 def scatter(x, y, z=None,
             c=None, cmap=None, s=None, discrete=None,
-            ax=None, legend=True, figsize=None,
+            ax=None, legend=None, figsize=None,
             xticks=True,
             yticks=True,
             zticks=True,
@@ -585,9 +595,9 @@ def scatter(x, y, z=None,
         unique values is discrete.
     ax : `matplotlib.Axes` or None, optional (default: None)
         axis on which to plot. If None, an axis is created
-    legend : bool, optional (default: True)
+    legend : bool, optional (default: None)
         States whether or not to create a legend. If data is continuous,
-        the legend is a colorbar.
+        the legend is a colorbar. If `None`, a legend is created where possible.
     figsize : tuple, optional (default: None)
         Tuple of floats for creation of new `matplotlib` figure. Only used if
         `ax` is None.
@@ -706,7 +716,7 @@ def scatter(x, y, z=None,
 
 def scatter2d(data,
               c=None, cmap=None, s=None, discrete=None,
-              ax=None, legend=True, figsize=None,
+              ax=None, legend=None, figsize=None,
               xticks=True,
               yticks=True,
               xticklabels=True,
@@ -749,9 +759,9 @@ def scatter2d(data,
         unique values is discrete.
     ax : `matplotlib.Axes` or None, optional (default: None)
         axis on which to plot. If None, an axis is created
-    legend : bool, optional (default: True)
+    legend : bool, optional (default: None)
         States whether or not to create a legend. If data is continuous,
-        the legend is a colorbar.
+        the legend is a colorbar. If `None`, a legend is created where possible.
     figsize : tuple, optional (default: None)
         Tuple of floats for creation of new `matplotlib` figure. Only used if
         `ax` is None.
@@ -825,7 +835,7 @@ def scatter2d(data,
 
 def scatter3d(data,
               c=None, cmap=None, s=None, discrete=None,
-              ax=None, legend=True, figsize=None,
+              ax=None, legend=None, figsize=None,
               xticks=True,
               yticks=True,
               zticks=True,
@@ -874,9 +884,9 @@ def scatter3d(data,
         unique values is discrete.
     ax : `matplotlib.Axes` or None, optional (default: None)
         axis on which to plot. If None, an axis is created
-    legend : bool, optional (default: True)
+    legend : bool, optional (default: None)
         States whether or not to create a legend. If data is continuous,
-        the legend is a colorbar.
+        the legend is a colorbar. If `None`, a legend is created where possible.
     figsize : tuple, optional (default: None)
         Tuple of floats for creation of new `matplotlib` figure. Only used if
         `ax` is None.
