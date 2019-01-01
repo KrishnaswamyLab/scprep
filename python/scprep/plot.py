@@ -7,6 +7,7 @@ import warnings
 try:
     import matplotlib.pyplot as plt
     import matplotlib as mpl
+    from matplotlib import animation
     from mpl_toolkits.mplot3d import Axes3D
 except ImportError:
     pass
@@ -33,9 +34,11 @@ def _mpl_is_gui_backend():
         return True
 
 
-def _get_figure(ax=None, figsize=None):
+def _get_figure(ax=None, figsize=None, subplot_kw=None):
+    if subplot_kw is None:
+        subplot_kw = {}
     if ax is None:
-        fig, ax = plt.subplots(figsize=figsize)
+        fig, ax = plt.subplots(figsize=figsize, subplot_kw=subplot_kw)
         show_fig = True
     else:
         try:
@@ -52,6 +55,19 @@ def _get_figure(ax=None, figsize=None):
 
 def _is_color_array(c):
     return np.all([mpl.colors.is_color_like(val) for val in c])
+
+
+def _in_ipynb():
+    """Check if we are running in a Jupyter Notebook
+
+    Credit to https://stackoverflow.com/a/24937408/3996580
+    """
+    __VALID_NOTEBOOKS = ["<class 'google.colab._shell.Shell'>",
+                         "<class 'ipykernel.zmqshell.ZMQInteractiveShell'>"]
+    try:
+        return str(type(get_ipython())) in __VALID_NOTEBOOKS
+    except NameError:
+        return False
 
 
 @_with_matplotlib
@@ -107,6 +123,11 @@ def histogram(data,
     [x,y]label : str, optional
         Labels to display on the x and y axis.
     **kwargs : additional arguments for `matplotlib.pyplot.hist`
+
+    Returns
+    -------
+    ax : `matplotlib.Axes`
+        axis on which plot was drawn
     """
     fig, ax, show_fig = _get_figure(ax, figsize)
     if log == 'x' or log is True:
@@ -131,6 +152,7 @@ def histogram(data,
         ax.axvline(cutoff, color='red')
     if show_fig:
         show(fig)
+    return ax
 
 
 @_with_matplotlib
@@ -165,11 +187,16 @@ def plot_library_size(data,
     [x,y]label : str, optional
         Labels to display on the x and y axis.
     **kwargs : additional arguments for `matplotlib.pyplot.hist`
+
+    Returns
+    -------
+    ax : `matplotlib.Axes`
+        axis on which plot was drawn
     """
-    histogram(measure.library_size(data),
-              cutoff=cutoff, percentile=percentile,
-              bins=bins, log=log, ax=ax, figsize=figsize,
-              xlabel=xlabel, **kwargs)
+    return histogram(measure.library_size(data),
+                     cutoff=cutoff, percentile=percentile,
+                     bins=bins, log=log, ax=ax, figsize=figsize,
+                     xlabel=xlabel, **kwargs)
 
 
 @_with_matplotlib
@@ -209,8 +236,13 @@ def plot_gene_set_expression(data, genes,
     [x,y]label : str, optional
         Labels to display on the x and y axis.
     **kwargs : additional arguments for `matplotlib.pyplot.hist`
+
+    Returns
+    -------
+    ax : `matplotlib.Axes`
+        axis on which plot was drawn
     """
-    histogram(measure.gene_set_expression(
+    return histogram(measure.gene_set_expression(
         data, genes, library_size_normalize=library_size_normalize),
         cutoff=cutoff, percentile=percentile,
         bins=bins, log=log, ax=ax, figsize=figsize,
@@ -236,6 +268,20 @@ def scree_plot(singular_values, cumulative=False, ax=None, figsize=None,
     [x,y]label : str, optional
         Labels to display on the x and y axis.
     **kwargs : additional arguments for `matplotlib.pyplot.plot`
+
+    Returns
+    -------
+    ax : `matplotlib.Axes`
+        axis on which plot was drawn
+
+    Examples
+    --------
+    >>> import scprep
+    >>> import numpy as np
+    >>> data = np.random.normal(0, 1, [200, 1000])
+    >>> pca_data, singular_values = scprep.reduce.pca(data, n_components=100, return_singular_values=True)
+    >>> scprep.plot.scree_plot(singular_values)
+    >>> scprep.plot.scree_plot(singular_values, cumulative=True)
     """
     explained_variance = singular_values ** 2
     explained_variance = explained_variance / explained_variance.sum()
@@ -247,17 +293,23 @@ def scree_plot(singular_values, cumulative=False, ax=None, figsize=None,
     ax.set_ylabel(ylabel)
     if show_fig:
         show(fig)
+    return ax
 
 
 def _scatter_params(x, y, z=None, c=None, discrete=None,
-                    cmap=None, legend=True):
+                    cmap=None, s=None, legend=True):
     """Automatically select nice parameters for a scatter plot
     """
+    # check data shape
     if len(x) != len(y) or (z is not None and len(x) != len(z)):
         raise ValueError(
             "Expected all axis of data to have the same length"
             ". Got {}".format([
                 len(d) for d in ([x, y, z] if z is not None else [x, y])]))
+    # set point size
+    if s is None:
+        s = 500 / np.sqrt(len(x))
+    # color vector
     if c is None or mpl.colors.is_color_like(c) or _is_color_array(c):
         # no legend
         labels = None
@@ -345,28 +397,85 @@ def _scatter_params(x, y, z=None, c=None, discrete=None,
         subplot_kw = {'projection': '3d'}
     else:
         subplot_kw = {}
-    return c, labels, discrete, cmap, legend, subplot_kw
+    return c, labels, discrete, cmap, s, legend, subplot_kw
 
 
 @_with_matplotlib
 def generate_legend(cmap, ax, title=None, marker='o', markersize=10,
-                    loc='best', fontsize=14, title_size=14, max_rows=10,
-                    **kwargs):
-    '''Generates a legend on an axis using a dictionary cmap.'''
+                    loc='best', fontsize=14, title_fontsize=14, max_rows=10,
+                    ncol=None, **kwargs):
+    """Generate a legend on an axis.
+
+    Parameters
+    ----------
+    cmap : dict
+        Dictionary of label-color pairs.
+    ax : `matplotlib.axes.Axes`
+        Axis on which to draw the legend
+    title : str, optional (default: None)
+        Title to display alongside colorbar
+    marker : str, optional (default: 'o')
+        `matplotlib` marker to use for legend points
+    markersize : float, optional (default: 10)
+        Size of legend points
+    loc : int or string or pair of floats, default: 'best'
+        Matplotlib legend location. Only used for discrete data.
+        See <https://matplotlib.org/api/_as_gen/matplotlib.pyplot.legend.html>
+        for details.
+    fontsize : int, optional (default: 14)
+        Font size for legend labels
+    title_fontsize : int, optional (default: 14)
+        Font size for legend title
+    max_rows : int, optional (default: 10)
+        Maximum number of labels in a column before overflowing to
+        multi-column legend
+    ncol : int, optional (default: None)
+        Number of legend columns. Overrides `max_rows`.
+    kwargs : additional arguments for `plt.legend`
+
+    Returns
+    -------
+    legend : `matplotlib.legend.Legend`
+    """
     handles = [mpl.lines.Line2D([], [], marker=marker, color=color,
-                                label=label, markersize=markersize)
+                                linewidth=0, label=label,
+                                markersize=markersize)
                for label, color in cmap.items()]
+    if ncol is None:
+        ncol = max(1, len(cmap) // max_rows)
     legend = ax.legend(handles=handles, title=title,
                        loc=loc, fontsize=fontsize,
-                       ncol=max(1, len(cmap) // max_rows), **kwargs)
-    plt.setp(legend.get_title(), fontsize=title_size)
+                       ncol=ncol, **kwargs)
+    plt.setp(legend.get_title(), fontsize=title_fontsize)
     return legend
 
 
 @_with_matplotlib
 def generate_colorbar(cmap, ax, vmin=0, vmax=1, title=None,
-                      title_size=14, **kwargs):
-    '''Generates a colorbar on an axis.'''
+                      title_fontsize=14, title_rotation=270, **kwargs):
+    """Generate a colorbar on an axis.
+
+    Parameters
+    ----------
+    cmap : `matplotlib` colormap or str
+        Colormap with which to draw colorbar
+    ax : `matplotlib.axes.Axes` or list
+        Axis or list of axes from which to steal space for colorbar
+    vmin : float, optional (default: 0)
+        Minimum value to display on colorbar
+    vmax : float, optional (default: 1)
+        Maximum value to display on colorbar
+    title : str, optional (default: None)
+        Title to display alongside colorbar
+    title_fontsize : int, optional (default: 14)
+        Font size for colorbar title
+    title_rotation : int, optional (default: 270)
+        Angle of rotation of the colorbar title
+
+    Returns
+    -------
+    colorbar : `matplotlib.colorbar.Colorbar`
+    """
     try:
         plot_axis = ax[0]
     except TypeError:
@@ -381,11 +490,30 @@ def generate_colorbar(cmap, ax, vmin=0, vmax=1, title=None,
                           extent=[xmin, xmax, ymin, ymax])
     im.remove()
     colorbar = fig.colorbar(im, ax=ax, **kwargs)
-    colorbar.set_label(title, rotation=270)
+    if title is not None:
+        colorbar.set_label(title, rotation=title_rotation,
+                           fontsize=title_fontsize)
     return colorbar
 
 
 def _label_axis(axis, ticks=True, ticklabels=True, label=None):
+    """Set axis ticks and labels
+
+    Parameters
+    ----------
+    axis : matplotlib.axis.{X,Y}Axis, mpl_toolkits.mplot3d.axis3d.{X,Y,Z}Axis
+        Axis on which to draw labels and ticks
+    ticks : True, False, or list-like (default: True)
+        If True, keeps default axis ticks.
+        If False, removes axis ticks.
+        If a list, sets custom axis ticks
+    ticklabels : True, False, or list-like (default: True)
+        If True, keeps default axis tick labels.
+        If False, removes axis tick labels.
+        If a list, sets custom axis tick labels
+    label : str or None (default : None)
+        Axis labels. If None, no label is set.
+    """
     if not ticks:
         axis.set_ticks([])
     elif ticks is True:
@@ -404,7 +532,7 @@ def _label_axis(axis, ticks=True, ticklabels=True, label=None):
 
 @_with_matplotlib
 def scatter(x, y, z=None,
-            c=None, cmap=None, s=1, discrete=None,
+            c=None, cmap=None, s=None, discrete=None,
             ax=None, legend=True, figsize=None,
             xticks=True,
             yticks=True,
@@ -419,6 +547,7 @@ def scatter(x, y, z=None,
             title=None,
             legend_title=None,
             legend_loc='best',
+            elev=None, azim=None,
             filename=None,
             dpi=None,
             **plot_kwargs):
@@ -447,8 +576,8 @@ def scatter(x, y, z=None,
         `inferno` for continuous data. If a dictionary, expects one key
         for every unique value in `c`, where values are valid matplotlib colors
         (hsv, rbg, rgba, or named colors)
-    s : float, optional (default: 1)
-        Point size.
+    s : float, optional (default: None)
+        Point size. If `None`, set to 500 / sqrt(n_samples)
     discrete : bool or None, optional (default: None)
         If True, the legend is categorical. If False, the legend is a colorbar.
         If None, discreteness is detected automatically. Data containing
@@ -483,6 +612,10 @@ def scatter(x, y, z=None,
         Matplotlib legend location. Only used for discrete data.
         See <https://matplotlib.org/api/_as_gen/matplotlib.pyplot.legend.html>
         for details.
+    elev : int, optional (default: None)
+        Elevation angle of viewpoint from horizontal for 3D plots, in degrees
+    azim : int, optional (default: None)
+        Azimuth angle in x-y plane of viewpoint for 3D plots, in degrees
     filename : str or None (default: None)
         file to which the output is saved
     dpi : int or None, optional (default: None)
@@ -499,34 +632,18 @@ def scatter(x, y, z=None,
 
     Examples
     --------
-    >>> import phate
-    >>> import matplotlib.pyplot as plt
-    >>> ###
-    >>> # Running PHATE
-    >>> ###
-    >>> tree_data, tree_clusters = phate.tree.gen_dla(n_dim=100, n_branch=20,
-    ...                                               branch_length=100)
-    >>> tree_data.shape
-    (2000, 100)
-    >>> phate_operator = phate.PHATE(k=5, a=20, t=150)
-    >>> tree_phate = phate_operator.fit_transform(tree_data)
-    >>> tree_phate.shape
-    (2000, 2)
-    >>> ###
-    >>> # Plotting using phate.plot
-    >>> ###
-    >>> phate.plot.scatter2d(tree_phate, c=tree_clusters)
-    >>> # You can also pass the PHATE operator instead of data
-    >>> phate.plot.scatter2d(phate_operator, c=tree_clusters)
-    >>> phate.plot.scatter3d(phate_operator, c=tree_clusters)
-    >>> ###
-    >>> # Using a cmap dictionary
-    >>> ###
+    >>> import scprep
     >>> import numpy as np
-    >>> X = np.random.normal(0,1,[1000,2])
-    >>> c = np.random.choice(['a','b'], 1000, replace=True)
-    >>> X[c=='a'] += 10
-    >>> phate.plot.scatter2d(X, c=c, cmap={'a' : [1,0,0,1], 'b' : 'xkcd:sky blue'})
+    >>> import matplotlib.pyplot as plt
+    >>> data = np.random.normal(0, 1, [200, 3])
+    >>> # Continuous color vector
+    >>> colors = data[:, 0]
+    >>> scprep.plot.scatter(x=data[:, 0], y=data[:, 1], c=colors)
+    >>> # Discrete color vector with custom colormap
+    >>> colors = np.random.choice(['a','b'], data.shape[0], replace=True)
+    >>> data[colors == 'a'] += 5
+    >>> scprep.plot.scatter(x=data[:, 0], y=data[:, 1], z=data[:, 2],
+    ...                     c=colors, cmap={'a' : [1,0,0,1], 'b' : 'xkcd:sky blue'})
     """
     # convert to 1D numpy arrays
     x = utils.toarray(x).flatten()
@@ -537,10 +654,10 @@ def scatter(x, y, z=None,
             raise TypeError("Expected ax with projection='3d'. "
                             "Got 2D axis instead.")
 
-    c, labels, discrete, cmap, legend, subplot_kw = _scatter_params(
-        x, y, z, c, discrete, cmap, legend)
+    c, labels, discrete, cmap, s, legend, subplot_kw = _scatter_params(
+        x, y, z, c, discrete, cmap, s, legend)
 
-    fig, ax, show_fig = _get_figure(ax, figsize)
+    fig, ax, show_fig = _get_figure(ax, figsize, subplot_kw=subplot_kw)
 
     # randomize point order
     plot_idx = np.random.permutation(len(x))
@@ -575,6 +692,10 @@ def scatter(x, y, z=None,
             generate_colorbar(cmap, ax, vmin=np.min(c), vmax=np.max(c),
                               title=legend_title)
 
+    # set viewpoint
+    if z is not None:
+        ax.view_init(elev=elev, azim=azim)
+
     # save and show
     if filename is not None:
         fig.savefig(filename, dpi=dpi)
@@ -584,7 +705,7 @@ def scatter(x, y, z=None,
 
 
 def scatter2d(data,
-              c=None, cmap=None, s=1, discrete=None,
+              c=None, cmap=None, s=None, discrete=None,
               ax=None, legend=True, figsize=None,
               xticks=True,
               yticks=True,
@@ -619,8 +740,8 @@ def scatter2d(data,
         `inferno` for continuous data. If a dictionary, expects one key
         for every unique value in `c`, where values are valid matplotlib colors
         (hsv, rbg, rgba, or named colors)
-    s : float, optional (default: 1)
-        Point size.
+    s : float, optional (default: None)
+        Point size. If `None`, set to 500 / sqrt(n_samples)
     discrete : bool or None, optional (default: None)
         If True, the legend is categorical. If False, the legend is a colorbar.
         If None, discreteness is detected automatically. Data containing
@@ -671,34 +792,17 @@ def scatter2d(data,
 
     Examples
     --------
-    >>> import phate
-    >>> import matplotlib.pyplot as plt
-    >>> ###
-    >>> # Running PHATE
-    >>> ###
-    >>> tree_data, tree_clusters = phate.tree.gen_dla(n_dim=100, n_branch=20,
-    ...                                               branch_length=100)
-    >>> tree_data.shape
-    (2000, 100)
-    >>> phate_operator = phate.PHATE(k=5, a=20, t=150)
-    >>> tree_phate = phate_operator.fit_transform(tree_data)
-    >>> tree_phate.shape
-    (2000, 2)
-    >>> ###
-    >>> # Plotting using phate.plot
-    >>> ###
-    >>> phate.plot.scatter2d(tree_phate, c=tree_clusters)
-    >>> # You can also pass the PHATE operator instead of data
-    >>> phate.plot.scatter2d(phate_operator, c=tree_clusters)
-    >>> phate.plot.scatter3d(phate_operator, c=tree_clusters)
-    >>> ###
-    >>> # Using a cmap dictionary
-    >>> ###
+    >>> import scprep
     >>> import numpy as np
-    >>> X = np.random.normal(0,1,[1000,2])
-    >>> c = np.random.choice(['a','b'], 1000, replace=True)
-    >>> X[c=='a'] += 10
-    >>> phate.plot.scatter2d(X, c=c, cmap={'a' : [1,0,0,1], 'b' : 'xkcd:sky blue'})
+    >>> import matplotlib.pyplot as plt
+    >>> data = np.random.normal(0, 1, [200, 2])
+    >>> # Continuous color vector
+    >>> colors = data[:, 0]
+    >>> scprep.plot.scatter2d(data, c=colors)
+    >>> # Discrete color vector with custom colormap
+    >>> colors = np.random.choice(['a','b'], data.shape[0], replace=True)
+    >>> data[colors == 'a'] += 10
+    >>> scprep.plot.scatter2d(data, c=colors, cmap={'a' : [1,0,0,1], 'b' : 'xkcd:sky blue'})
     """
     return scatter(x=utils.select_cols(data, 0),
                    y=utils.select_cols(data, 1),
@@ -720,7 +824,7 @@ def scatter2d(data,
 
 
 def scatter3d(data,
-              c=None, cmap=None, s=1, discrete=None,
+              c=None, cmap=None, s=None, discrete=None,
               ax=None, legend=True, figsize=None,
               xticks=True,
               yticks=True,
@@ -735,6 +839,7 @@ def scatter3d(data,
               title=None,
               legend_title=None,
               legend_loc='best',
+              elev=None, azim=None,
               filename=None,
               dpi=None,
               **plot_kwargs):
@@ -753,13 +858,15 @@ def scatter3d(data,
         discrete or continuous values of any data type. If `c` is not a single
         or list of matplotlib colors, the values in `c` will be used to
         populate the legend / colorbar with colors from `cmap`
-    cmap : `matplotlib` colormap, str, dict or None, optional (default: None)
+    cmap : `matplotlib` colormap, str, dict, list or None, optional (default: None)
         matplotlib colormap. If None, uses `tab20` for discrete data and
-        `inferno` for continuous data. If a dictionary, expects one key
+        `inferno` for continuous data. If a list, expects one color for every
+        unique value in `c`, otherwise interpolates between given colors for
+        continuous data. If a dictionary, expects one key
         for every unique value in `c`, where values are valid matplotlib colors
         (hsv, rbg, rgba, or named colors)
-    s : float, optional (default: 1)
-        Point size.
+    s : float, optional (default: None)
+        Point size. If `None`, set to 500 / sqrt(n_samples)
     discrete : bool or None, optional (default: None)
         If True, the legend is categorical. If False, the legend is a colorbar.
         If None, discreteness is detected automatically. Data containing
@@ -794,6 +901,10 @@ def scatter3d(data,
         Matplotlib legend location. Only used for discrete data.
         See <https://matplotlib.org/api/_as_gen/matplotlib.pyplot.legend.html>
         for details.
+    elev : int, optional (default: None)
+        Elevation angle of viewpoint from horizontal, in degrees
+    azim : int, optional (default: None)
+        Azimuth angle in x-y plane of viewpoint
     filename : str or None (default: None)
         file to which the output is saved
     dpi : int or None, optional (default: None)
@@ -810,34 +921,17 @@ def scatter3d(data,
 
     Examples
     --------
-    >>> import phate
-    >>> import matplotlib.pyplot as plt
-    >>> ###
-    >>> # Running PHATE
-    >>> ###
-    >>> tree_data, tree_clusters = phate.tree.gen_dla(n_dim=100, n_branch=20,
-    ...                                               branch_length=100)
-    >>> tree_data.shape
-    (2000, 100)
-    >>> phate_operator = phate.PHATE(k=5, a=20, t=150)
-    >>> tree_phate = phate_operator.fit_transform(tree_data)
-    >>> tree_phate.shape
-    (2000, 2)
-    >>> ###
-    >>> # Plotting using phate.plot
-    >>> ###
-    >>> phate.plot.scatter2d(tree_phate, c=tree_clusters)
-    >>> # You can also pass the PHATE operator instead of data
-    >>> phate.plot.scatter2d(phate_operator, c=tree_clusters)
-    >>> phate.plot.scatter3d(phate_operator, c=tree_clusters)
-    >>> ###
-    >>> # Using a cmap dictionary
-    >>> ###
+    >>> import scprep
     >>> import numpy as np
-    >>> X = np.random.normal(0,1,[1000,2])
-    >>> c = np.random.choice(['a','b'], 1000, replace=True)
-    >>> X[c=='a'] += 10
-    >>> phate.plot.scatter2d(X, c=c, cmap={'a' : [1,0,0,1], 'b' : 'xkcd:sky blue'})
+    >>> import matplotlib.pyplot as plt
+    >>> data = np.random.normal(0, 1, [200, 3])
+    >>> # Continuous color vector
+    >>> colors = data[:, 0]
+    >>> scprep.plot.scatter3d(data, c=colors)
+    >>> # Discrete color vector with custom colormap
+    >>> colors = np.random.choice(['a','b'], data.shape[0], replace=True)
+    >>> data[colors == 'a'] += 5
+    >>> scprep.plot.scatter3d(data, c=colors, cmap={'a' : [1,0,0,1], 'b' : 'xkcd:sky blue'})
     """
     return scatter(x=utils.select_cols(data, 0),
                    y=utils.select_cols(data, 1),
@@ -857,6 +951,8 @@ def scatter3d(data,
                    title=title,
                    legend_title=legend_title,
                    legend_loc=legend_loc,
+                   elev=elev,
+                   azim=azim,
                    filename=filename,
                    dpi=dpi,
                    **plot_kwargs)
@@ -864,7 +960,6 @@ def scatter3d(data,
 
 def rotate_scatter3d(data,
                      filename=None,
-                     elev=30,
                      rotation_speed=30,
                      fps=10,
                      ax=None,
@@ -882,8 +977,6 @@ def rotate_scatter3d(data,
         Input data. Only the first three dimensions are used.
     filename : str, optional (default: None)
         If not None, saves a .gif or .mp4 with the output
-    elev : float, optional (default: 30)
-        Elevation of viewpoint from horizontal, in degrees
     rotation_speed : float, optional (default: 30)
         Speed of axis rotation, in degrees per second
     fps : int, optional (default: 10)
@@ -905,22 +998,22 @@ def rotate_scatter3d(data,
 
     Examples
     --------
-    >>> import phate
+    >>> import scprep
+    >>> import numpy as np
     >>> import matplotlib.pyplot as plt
-    >>> tree_data, tree_clusters = phate.tree.gen_dla(n_dim=100, n_branch=20,
-    ...                                               branch_length=100)
-    >>> tree_data.shape
-    (2000, 100)
-    >>> phate_operator = phate.PHATE(n_components=3, k=5, a=20, t=150)
-    >>> tree_phate = phate_operator.fit_transform(tree_data)
-    >>> tree_phate.shape
-    (2000, 2)
-    >>> phate.plot.rotate_scatter3d(tree_phate, c=tree_clusters)
+    >>> data = np.random.normal(0, 1, [200, 3])
+    >>> # Continuous color vector
+    >>> colors = data[:, 0]
+    >>> scprep.plot.rotate_scatter3d(data, c=colors, filename="animation.gif")
+    >>> # Discrete color vector with custom colormap
+    >>> colors = np.random.choice(['a','b'], data.shape[0], replace=True)
+    >>> data[colors == 'a'] += 5
+    >>> scprep.plot.rotate_scatter3d(data, c=colors, cmap={'a' : [1,0,0,1], 'b' : 'xkcd:sky blue'}, filename="animation.mp4")
     """
-    if in_ipynb():
+    if _in_ipynb():
         # credit to
         # http://tiao.io/posts/notebooks/save-matplotlib-animations-as-gifs/
-        rc('animation', html=ipython_html)
+        mpl.rc('animation', html=ipython_html)
 
     if filename is not None:
         if filename.endswith(".gif"):
@@ -931,13 +1024,8 @@ def rotate_scatter3d(data,
             raise ValueError(
                 "filename must end in .gif or .mp4. Got {}".format(filename))
 
-    if ax is None:
-        fig, ax = plt.subplots(figsize=figsize,
-                               subplot_kw={'projection': '3d'})
-        show = True
-    else:
-        fig = ax.get_figure()
-        show = False
+    fig, ax, show_fig = _get_figure(
+        ax, figsize, subplot_kw={'projection': '3d'})
 
     degrees_per_frame = rotation_speed / fps
     frames = int(round(360 / degrees_per_frame))
@@ -947,12 +1035,13 @@ def rotate_scatter3d(data,
 
     scatter3d(data, ax=ax, **kwargs)
 
+    azim = ax.azim
+
     def init():
-        ax.view_init(azim=0, elev=elev)
         return ax
 
     def animate(i):
-        ax.view_init(azim=i * degrees_per_frame, elev=elev)
+        ax.view_init(azim=azim + i * degrees_per_frame)
         return ax
 
     ani = animation.FuncAnimation(
@@ -962,11 +1051,10 @@ def rotate_scatter3d(data,
     if filename is not None:
         ani.save(filename, writer=writer)
 
-    if in_ipynb():
+    if _in_ipynb():
         # credit to https://stackoverflow.com/a/45573903/3996580
         plt.close()
-    elif show:
-        plt.tight_layout()
-        fig.show()
+    elif show_fig:
+        show(fig)
 
     return ani
