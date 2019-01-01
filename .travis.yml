@@ -6,6 +6,8 @@
 
   sudo: required
 
+  dist: xenial
+
   addons:
     apt:
       packages:
