@@ -16,7 +16,7 @@ class Test10X(unittest.TestCase):
                                                return_singular_values=True)
 
     def tearDown(self):
-        plt.close()
+        plt.close('all')
 
     def test_histogram(self):
         scprep.plot.plot_library_size(self.X, cutoff=1000, log=True)
