@@ -412,8 +412,9 @@ def _scatter_params(x, y, z=None, c=None, discrete=None,
 
 @_with_matplotlib
 def generate_legend(cmap, ax, title=None, marker='o', markersize=10,
-                    loc='best', fontsize=14, title_fontsize=14, max_rows=10,
-                    ncol=None, **kwargs):
+                    loc='best', bbox_to_anchor=None,
+                    fontsize=14, title_fontsize=14,
+                    max_rows=10, ncol=None, **kwargs):
     """Generate a legend on an axis.
 
     Parameters
@@ -429,7 +430,11 @@ def generate_legend(cmap, ax, title=None, marker='o', markersize=10,
     markersize : float, optional (default: 10)
         Size of legend points
     loc : int or string or pair of floats, default: 'best'
-        Matplotlib legend location. Only used for discrete data.
+        Matplotlib legend location.
+        See <https://matplotlib.org/api/_as_gen/matplotlib.pyplot.legend.html>
+        for details.
+    bbox_to_anchor : `BboxBase`, 2-tuple, or 4-tuple
+        Box that is used to position the legend in conjunction with loc.
         See <https://matplotlib.org/api/_as_gen/matplotlib.pyplot.legend.html>
         for details.
     fontsize : int, optional (default: 14)
@@ -454,8 +459,8 @@ def generate_legend(cmap, ax, title=None, marker='o', markersize=10,
     if ncol is None:
         ncol = max(1, len(cmap) // max_rows)
     legend = ax.legend(handles=handles, title=title,
-                       loc=loc, fontsize=fontsize,
-                       ncol=ncol, **kwargs)
+                       loc=loc, bbox_to_anchor=bbox_to_anchor,
+                       fontsize=fontsize, ncol=ncol, **kwargs)
     plt.setp(legend.get_title(), fontsize=title_fontsize)
     return legend
 
@@ -557,6 +562,7 @@ def scatter(x, y, z=None,
             title=None,
             legend_title=None,
             legend_loc='best',
+            legend_anchor=None,
             elev=None, azim=None,
             filename=None,
             dpi=None,
@@ -620,6 +626,10 @@ def scatter(x, y, z=None,
         title for the colorbar of legend
     legend_loc : int or string or pair of floats, default: 'best'
         Matplotlib legend location. Only used for discrete data.
+        See <https://matplotlib.org/api/_as_gen/matplotlib.pyplot.legend.html>
+        for details.
+    legend_anchor : `BboxBase`, 2-tuple, or 4-tuple
+        Box that is used to position the legend in conjunction with loc.
         See <https://matplotlib.org/api/_as_gen/matplotlib.pyplot.legend.html>
         for details.
     elev : int, optional (default: None)
@@ -697,7 +707,9 @@ def scatter(x, y, z=None,
     if legend:
         if discrete:
             generate_legend({labels[i]: sc.cmap(sc.norm(i))
-                             for i in range(len(labels))}, ax=ax)
+                             for i in range(len(labels))}, ax=ax,
+                            loc=legend_loc, bbox_to_anchor=legend_anchor,
+                            title=legend_title)
         else:
             generate_colorbar(cmap, ax, vmin=np.min(c), vmax=np.max(c),
                               title=legend_title)
@@ -727,6 +739,7 @@ def scatter2d(data,
               title=None,
               legend_title=None,
               legend_loc='best',
+              legend_anchor=None,
               filename=None,
               dpi=None,
               **plot_kwargs):
@@ -786,6 +799,10 @@ def scatter2d(data,
         Matplotlib legend location. Only used for discrete data.
         See <https://matplotlib.org/api/_as_gen/matplotlib.pyplot.legend.html>
         for details.
+    legend_anchor : `BboxBase`, 2-tuple, or 4-tuple
+        Box that is used to position the legend in conjunction with loc.
+        See <https://matplotlib.org/api/_as_gen/matplotlib.pyplot.legend.html>
+        for details.
     filename : str or None (default: None)
         file to which the output is saved
     dpi : int or None, optional (default: None)
@@ -828,6 +845,7 @@ def scatter2d(data,
                    title=title,
                    legend_title=legend_title,
                    legend_loc=legend_loc,
+                   legend_anchor=legend_anchor,
                    filename=filename,
                    dpi=dpi,
                    **plot_kwargs)
@@ -849,6 +867,7 @@ def scatter3d(data,
               title=None,
               legend_title=None,
               legend_loc='best',
+              legend_anchor=None,
               elev=None, azim=None,
               filename=None,
               dpi=None,
@@ -911,6 +930,10 @@ def scatter3d(data,
         Matplotlib legend location. Only used for discrete data.
         See <https://matplotlib.org/api/_as_gen/matplotlib.pyplot.legend.html>
         for details.
+    legend_anchor : `BboxBase`, 2-tuple, or 4-tuple
+        Box that is used to position the legend in conjunction with loc.
+        See <https://matplotlib.org/api/_as_gen/matplotlib.pyplot.legend.html>
+        for details.
     elev : int, optional (default: None)
         Elevation angle of viewpoint from horizontal, in degrees
     azim : int, optional (default: None)
@@ -961,6 +984,7 @@ def scatter3d(data,
                    title=title,
                    legend_title=legend_title,
                    legend_loc=legend_loc,
+                   legend_anchor=legend_anchor,
                    elev=elev,
                    azim=azim,
                    filename=filename,

@@ -53,11 +53,15 @@ class Test10X(unittest.TestCase):
             self.S, ax="invalid")
 
     def test_scatter_continuous(self):
-        scprep.plot.scatter2d(self.X_pca, c=self.X_pca[:, 0])
+        scprep.plot.scatter2d(self.X_pca, c=self.X_pca[:, 0],
+                              legend_title="test")
 
     def test_scatter_discrete(self):
-        scprep.plot.scatter2d(self.X_pca, c=np.random.choice(
-            ['hello', 'world'], self.X_pca.shape[0], replace=True))
+        ax = scprep.plot.scatter2d(self.X_pca, c=np.random.choice(
+            ['hello', 'world'], self.X_pca.shape[0], replace=True),
+            legend_title="test", legend_loc='center left',
+            legend_anchor=(1.02, 0.5))
+        assert ax.get_legend().get_title().get_text() == 'test'
 
     def test_scatter_dict(self):
         scprep.plot.scatter2d(self.X_pca, c=np.random.choice(
@@ -94,7 +98,7 @@ class Test10X(unittest.TestCase):
 
     def test_scatter_list_continuous(self):
         scprep.plot.scatter2d(self.X_pca, c=self.X_pca[:, 0],
-                              cmap=['red', 'green'], legend_title="test")
+                              cmap=['red', 'green'])
 
     def test_scatter_list_c_none(self):
         assert_raise_message(
