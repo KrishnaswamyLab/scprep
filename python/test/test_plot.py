@@ -108,6 +108,10 @@ class Test10X(unittest.TestCase):
         scprep.plot.scatter2d(self.X_pca, c=self.X_pca[:, 0],
                               cmap=['red', 'green'])
 
+    def test_scatter_list_single(self):
+        scprep.plot.scatter2d(self.X_pca, c=self.X_pca[:, 0],
+                              cmap=['red'])
+
     def test_scatter_list_c_none(self):
         assert_raise_message(
             ValueError,
