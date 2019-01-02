@@ -6,10 +6,13 @@
 
   sudo: required
 
+  dist: xenial
+
   addons:
     apt:
       packages:
         - libhdf5-dev
+        - ffmpeg
 
   cache: 
     - pip
