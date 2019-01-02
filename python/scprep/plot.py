@@ -265,7 +265,7 @@ def scree_plot(singular_values, cumulative=False, ax=None, figsize=None,
         Axis to plot on. If None, a new axis will be created.
     figsize : tuple or None, optional (default: None)
         If not None, sets the figure size (width, height)
-    [x,y]label : str, optional
+    {x,y}label : str, optional
         Labels to display on the x and y axis.
     **kwargs : additional arguments for `matplotlib.pyplot.plot`
 
@@ -337,7 +337,7 @@ def _scatter_params(x, y, z=None, c=None, discrete=None,
                 len(d) for d in ([x, y, z] if z is not None else [x, y])]))
     # set point size
     if s is None:
-        s = 500 / np.sqrt(len(x))
+        s = 200 / np.sqrt(len(x))
     # color vector
     if c is None or mpl.colors.is_color_like(c) or _is_color_array(c):
         # no legend
@@ -506,10 +506,8 @@ def generate_colorbar(cmap, ax, vmin=None, vmax=None, title=None,
         Colormap with which to draw colorbar
     ax : `matplotlib.axes.Axes` or list
         Axis or list of axes from which to steal space for colorbar
-    vmin : float, optional (default: 0)
-        Minimum value to display on colorbar
-    vmax : float, optional (default: 1)
-        Maximum value to display on colorbar
+    vmin, vmax : float, optional (default: None)
+        Range of values to display on colorbar
     title : str, optional (default: None)
         Title to display alongside colorbar
     title_fontsize : int, optional (default: 14)
@@ -624,7 +622,7 @@ def scatter(x, y, z=None,
         for every unique value in `c`, where values are valid matplotlib colors
         (hsv, rbg, rgba, or named colors)
     s : float, optional (default: None)
-        Point size. If `None`, set to 500 / sqrt(n_samples)
+        Point size. If `None`, set to 200 / sqrt(n_samples)
     discrete : bool or None, optional (default: None)
         If True, the legend is categorical. If False, the legend is a colorbar.
         If None, discreteness is detected automatically. Data containing
@@ -663,6 +661,9 @@ def scatter(x, y, z=None,
         Box that is used to position the legend in conjunction with loc.
         See <https://matplotlib.org/api/_as_gen/matplotlib.pyplot.legend.html>
         for details.
+    vmin, vmax : float, optional (default: None)
+        Range of values to use as the range for the colormap.
+        Only used if data is continuous
     elev : int, optional (default: None)
         Elevation angle of viewpoint from horizontal for 3D plots, in degrees
     azim : int, optional (default: None)
@@ -802,7 +803,7 @@ def scatter2d(data,
         for every unique value in `c`, where values are valid matplotlib colors
         (hsv, rbg, rgba, or named colors)
     s : float, optional (default: None)
-        Point size. If `None`, set to 500 / sqrt(n_samples)
+        Point size. If `None`, set to 200 / sqrt(n_samples)
     discrete : bool or None, optional (default: None)
         If True, the legend is categorical. If False, the legend is a colorbar.
         If None, discreteness is detected automatically. Data containing
@@ -841,6 +842,9 @@ def scatter2d(data,
         Box that is used to position the legend in conjunction with loc.
         See <https://matplotlib.org/api/_as_gen/matplotlib.pyplot.legend.html>
         for details.
+    vmin, vmax : float, optional (default: None)
+        Range of values to use as the range for the colormap.
+        Only used if data is continuous
     filename : str or None (default: None)
         file to which the output is saved
     dpi : int or None, optional (default: None)
@@ -933,7 +937,7 @@ def scatter3d(data,
         for every unique value in `c`, where values are valid matplotlib colors
         (hsv, rbg, rgba, or named colors)
     s : float, optional (default: None)
-        Point size. If `None`, set to 500 / sqrt(n_samples)
+        Point size. If `None`, set to 200 / sqrt(n_samples)
     discrete : bool or None, optional (default: None)
         If True, the legend is categorical. If False, the legend is a colorbar.
         If None, discreteness is detected automatically. Data containing
@@ -972,6 +976,9 @@ def scatter3d(data,
         Box that is used to position the legend in conjunction with loc.
         See <https://matplotlib.org/api/_as_gen/matplotlib.pyplot.legend.html>
         for details.
+    vmin, vmax : float, optional (default: None)
+        Range of values to use as the range for the colormap.
+        Only used if data is continuous
     elev : int, optional (default: None)
         Elevation angle of viewpoint from horizontal, in degrees
     azim : int, optional (default: None)
