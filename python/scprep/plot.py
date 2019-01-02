@@ -296,6 +296,7 @@ def scree_plot(singular_values, cumulative=False, ax=None, figsize=None,
     return ax
 
 
+@_with_matplotlib
 def create_colormap(colors, name="scprep_custom_cmap"):
     """Create a custom colormap from a list of colors
 
@@ -765,6 +766,7 @@ def scatter(x, y, z=None,
     return ax
 
 
+@_with_matplotlib
 def scatter2d(data,
               c=None, cmap=None, s=None, discrete=None,
               ax=None, legend=None, figsize=None,
@@ -893,6 +895,7 @@ def scatter2d(data,
                    **plot_kwargs)
 
 
+@_with_matplotlib
 def scatter3d(data,
               c=None, cmap=None, s=None, discrete=None,
               ax=None, legend=None, figsize=None,
@@ -1037,6 +1040,7 @@ def scatter3d(data,
                    **plot_kwargs)
 
 
+@_with_matplotlib
 def rotate_scatter3d(data,
                      filename=None,
                      rotation_speed=30,
