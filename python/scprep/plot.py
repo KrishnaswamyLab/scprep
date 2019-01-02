@@ -326,7 +326,7 @@ def create_colormap(colors, name="scprep_custom_cmap"):
 
 
 def _scatter_params(x, y, z=None, c=None, discrete=None,
-                    cmap=None, s=None, legend=None):
+                    cmap=None, vmin=None, vmax=None, s=None, legend=None):
     """Automatically select nice parameters for a scatter plot
     """
     # check data shape
@@ -354,6 +354,13 @@ def _scatter_params(x, y, z=None, c=None, discrete=None,
                     "Cannot create a legend with `c={}`".format(c),
                     UserWarning)
         legend = False
+        if vmin is not None or vmax is not None:
+            warnings.warn(
+                "Cannot set `vmin` or `vmax` with constant `c={}`. "
+                "Setting `vmin = vmax = None`.".format(c),
+                UserWarning)
+            vmin = None
+            vmax = None
     else:
         if legend is None:
             legend = True
@@ -372,6 +379,13 @@ def _scatter_params(x, y, z=None, c=None, discrete=None,
                 # guess based on number of unique elements
                 discrete = len(np.unique(c)) <= 20
         if discrete:
+            if vmin is not None or vmax is not None:
+                warnings.warn(
+                    "Cannot set `vmin` or `vmax` with discrete data. "
+                    "Setting to `None`.",
+                    UserWarning)
+                vmin = None
+                vmax = None
             c, labels = pd.factorize(c, sort=True)
             # choose cmap if not given
             if cmap is None and len(np.unique(c)) <= 10:
@@ -387,6 +401,11 @@ def _scatter_params(x, y, z=None, c=None, discrete=None,
             # choose cmap if not given
             if cmap is None:
                 cmap = 'inferno'
+            # set vmin and vmax
+            if vmin is None:
+                vmin = np.min(c)
+            if vmax is None:
+                vmax = np.max(c)
 
     if isinstance(cmap, dict):
         # dictionary cmap
@@ -418,7 +437,7 @@ def _scatter_params(x, y, z=None, c=None, discrete=None,
         subplot_kw = {'projection': '3d'}
     else:
         subplot_kw = {}
-    return c, labels, discrete, cmap, s, legend, subplot_kw
+    return c, labels, discrete, cmap, vmin, vmax, s, legend, subplot_kw
 
 
 @_with_matplotlib
@@ -477,7 +496,7 @@ def generate_legend(cmap, ax, title=None, marker='o', markersize=10,
 
 
 @_with_matplotlib
-def generate_colorbar(cmap, ax, vmin=0, vmax=1, title=None,
+def generate_colorbar(cmap, ax, vmin=None, vmax=None, title=None,
                       title_fontsize=14, title_rotation=270, **kwargs):
     """Generate a colorbar on an axis.
 
@@ -574,6 +593,7 @@ def scatter(x, y, z=None,
             legend_title=None,
             legend_loc='best',
             legend_anchor=None,
+            vmin=None, vmax=None,
             elev=None, azim=None,
             filename=None,
             dpi=None,
@@ -685,8 +705,9 @@ def scatter(x, y, z=None,
             raise TypeError("Expected ax with projection='3d'. "
                             "Got 2D axis instead.")
 
-    c, labels, discrete, cmap, s, legend, subplot_kw = _scatter_params(
-        x, y, z, c, discrete, cmap, s, legend)
+    c, labels, discrete, cmap, vmin, vmax, s, legend, subplot_kw = _scatter_params(
+        x, y, z, c=c, discrete=discrete,
+        cmap=cmap, vmin=vmin, vmax=vmax, s=s, legend=legend)
 
     fig, ax, show_fig = _get_figure(ax, figsize, subplot_kw=subplot_kw)
 
@@ -697,7 +718,7 @@ def scatter(x, y, z=None,
     # plot!
     sc = ax.scatter(
         *[d[plot_idx] for d in ([x, y] if z is None else [x, y, z])],
-        c=c, cmap=cmap, s=s, **plot_kwargs)
+        c=c, cmap=cmap, s=s, vmin=vmin, vmax=vmax, **plot_kwargs)
 
     # automatic axis labels
     if label_prefix is not None:
@@ -722,8 +743,14 @@ def scatter(x, y, z=None,
                             loc=legend_loc, bbox_to_anchor=legend_anchor,
                             title=legend_title)
         else:
-            generate_colorbar(cmap, ax, vmin=np.min(c), vmax=np.max(c),
-                              title=legend_title)
+            extend_min = vmin is not None and np.min(c) < vmin
+            extend_max = vmax is not None and np.max(c) > vmax
+            if extend_min:
+                extend = 'both' if extend_max else 'min'
+            else:
+                extend = 'max' if extend_max else 'neither'
+            generate_colorbar(cmap, ax, vmin=vmin, vmax=vmax,
+                              title=legend_title, extend=extend)
 
     # set viewpoint
     if z is not None:

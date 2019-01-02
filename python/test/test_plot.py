@@ -6,6 +6,9 @@ import os
 from sklearn.utils.testing import assert_raise_message, assert_warns_message
 import unittest
 
+self = unittest.TestCase()
+self.X_pca = np.random.normal(0, 1, [100, 3])
+
 
 class Test10X(unittest.TestCase):
 
@@ -228,3 +231,21 @@ class Test10X(unittest.TestCase):
             TypeError, "Expected ax with projection='3d'. "
             "Got 2D axis instead.",
             scprep.plot.scatter3d, self.X_pca, ax=ax)
+
+    def test_scatter_vmin_vmax(self):
+        scprep.plot.scatter2d(
+            self.X_pca, c=self.X_pca[:, 0], vmin=1, vmax=2)
+
+    def test_scatter_vmin_vmax_discrete(self):
+        assert_warns_message(
+            UserWarning, "Cannot set `vmin` or `vmax` with discrete data. "
+            "Setting to `None`.", scprep.plot.scatter3d,
+            self.X_pca, c=np.random.choice(
+                ['hello', 'world'], self.X_pca.shape[0], replace=True),
+            vmin=1, vmax=2)
+
+    def test_scatter_vmin_vmax_solid_color(self):
+        assert_warns_message(
+            UserWarning, "Cannot set `vmin` or `vmax` with constant `c=red`. "
+            "Setting `vmin = vmax = None`.", scprep.plot.scatter3d,
+            self.X_pca, c='red', vmin=1, vmax=2)
