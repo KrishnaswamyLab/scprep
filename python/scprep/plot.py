@@ -296,6 +296,35 @@ def scree_plot(singular_values, cumulative=False, ax=None, figsize=None,
     return ax
 
 
+def create_colormap(colors, name="scprep_custom_cmap"):
+    """Create a custom colormap from a list of colors
+
+    Parameters
+    ----------
+    colors : list-like
+        List of `matplotlib` colors. Includes RGB, RGBA,
+        string color names and more.
+        See <https://matplotlib.org/api/colors_api.html>
+
+    Returns
+    -------
+    cmap : `matplotlib.colors.LinearSegmentedColormap`
+        Custom colormap
+    """
+    if len(colors) == 1:
+        colors = np.repeat(colors, 2)
+    vals = np.linspace(0, 1, len(colors))
+    cdict = dict(red=[], green=[], blue=[], alpha=[])
+    for val, color in zip(vals, colors):
+        r, g, b, a = mpl.colors.to_rgba(color)
+        cdict['red'].append((val, r, r))
+        cdict['green'].append((val, g, g))
+        cdict['blue'].append((val, b, b))
+        cdict['alpha'].append((val, a, a))
+    cmap = mpl.colors.LinearSegmentedColormap(name, cdict)
+    return cmap
+
+
 def _scatter_params(x, y, z=None, c=None, discrete=None,
                     cmap=None, s=None, legend=None):
     """Automatically select nice parameters for a scatter plot
@@ -382,26 +411,8 @@ def _scatter_params(x, y, z=None, c=None, discrete=None,
         if c is None or mpl.colors.is_color_like(c):
             raise ValueError("Expected list-like `c` with list cmap. "
                              "Got {}".format(type(c)))
-        elif not discrete:
-            vals = np.linspace(0, 1, len(cmap))
-            cdict = dict(red=[], green=[], blue=[], alpha=[])
-            for val, color in zip(vals, cmap):
-                r, g, b, a = mpl.colors.to_rgba(color)
-                cdict['red'].append((val, r, r))
-                cdict['green'].append((val, g, g))
-                cdict['blue'].append((val, b, b))
-                cdict['alpha'].append((val, a, a))
-            cmap = mpl.colors.LinearSegmentedColormap(
-                'scprep_custom_continuous_cmap',
-                cdict)
-        elif len(cmap) != len(labels):
-            raise ValueError(
-                "List cmap with discrete data requires a color "
-                "for every unique entry in `c` ({}). "
-                "Got {}".format(len(labels), len(cmap)))
         else:
-            cmap = mpl.colors.ListedColormap(
-                [mpl.colors.to_rgba(col) for col in cmap])
+            cmap = create_colormap(cmap)
 
     if z is not None:
         subplot_kw = {'projection': '3d'}

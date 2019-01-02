@@ -96,6 +96,11 @@ class Test10X(unittest.TestCase):
             ['hello', 'world'], self.X_pca.shape[0], replace=True),
             cmap=['red', 'green'])
 
+    def test_scatter_list_discrete_missing(self):
+        scprep.plot.scatter2d(self.X_pca, c=np.random.choice(
+            ['hello', 'great', 'world'], self.X_pca.shape[0], replace=True),
+            cmap=['red', 'green'])
+
     def test_scatter_list_continuous(self):
         scprep.plot.scatter2d(self.X_pca, c=self.X_pca[:, 0],
                               cmap=['red', 'green'])
@@ -106,15 +111,6 @@ class Test10X(unittest.TestCase):
             "Expected list-like `c` with list cmap. Got <class 'NoneType'>",
             scprep.plot.scatter2d, self.X_pca, c=None,
             cmap=['red', 'green'])
-
-    def test_scatter_list_missing(self):
-        assert_raise_message(
-            ValueError,
-            "List cmap with discrete data requires a color for every unique "
-            "entry in `c` (2). Got 1",
-            scprep.plot.scatter2d, self.X_pca, c=np.random.choice(
-                ['hello', 'world'], self.X_pca.shape[0], replace=True),
-            cmap=['red'])
 
     def test_scatter_discrete_greater_than_10(self):
         scprep.plot.scatter2d(
