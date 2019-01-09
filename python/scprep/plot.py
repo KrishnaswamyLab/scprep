@@ -737,6 +737,9 @@ def scatter(x, y, z=None,
     if z is not None:
         _label_axis(ax.zaxis, zticks, zticklabels, zlabel)
 
+    if title is not None:
+        ax.set_title(title)
+
     # generate legend
     if legend:
         if discrete:
