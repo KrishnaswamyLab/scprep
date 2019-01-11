@@ -54,7 +54,7 @@ def _get_figure(ax=None, figsize=None, subplot_kw=None):
 
 
 def _is_color_array(c):
-    return np.all([mpl.colors.is_color_like(val) for val in c])
+    return c is not None and np.all([mpl.colors.is_color_like(val) for val in c])
 
 
 def _in_ipynb():

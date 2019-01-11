@@ -228,6 +228,10 @@ class Test10X(unittest.TestCase):
             UserWarning, "Cannot create a legend with `c=red`",
             scprep.plot.scatter2d, self.X_pca, legend=True,
             c='red')
+        assert_warns_message(
+            UserWarning, "Cannot create a legend with `c=None`",
+            scprep.plot.scatter2d, self.X_pca, legend=True,
+            c=None)
 
     def test_scatter_invalid_axis(self):
         fig, ax = plt.subplots()
@@ -237,13 +241,14 @@ class Test10X(unittest.TestCase):
             scprep.plot.scatter3d, self.X_pca, ax=ax)
 
     def test_scatter_colorbar(self):
-        scprep.plot.scatter3d(self.X_pca, colorbar=True)
+        scprep.plot.scatter3d(self.X_pca, c=self.X_pca[0, :], colorbar=True)
 
     def test_scatter_legend_and_colorbar(self):
         assert_raise_message(
             ValueError, "Received conflicting values for synonyms "
             "`legend=True` and `colorbar=False`",
-            scprep.plot.scatter3d, self.X_pca, legend=True, colorbar=False)
+            scprep.plot.scatter3d, self.X_pca, c=self.X_pca[0, :],
+            legend=True, colorbar=False)
 
     def test_scatter_vmin_vmax(self):
         scprep.plot.scatter2d(
