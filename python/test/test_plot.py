@@ -241,7 +241,7 @@ class Test10X(unittest.TestCase):
             scprep.plot.scatter3d, self.X_pca, ax=ax)
 
     def test_scatter_colorbar(self):
-        scprep.plot.scatter3d(self.X_pca, c=self.X_pca[0, :], colorbar=True)
+        scprep.plot.scatter3d(self.X_pca, c=self.X_pca[:, 0], colorbar=True)
 
     def test_scatter_legend_and_colorbar(self):
         assert_raise_message(
