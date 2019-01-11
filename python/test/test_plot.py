@@ -236,6 +236,15 @@ class Test10X(unittest.TestCase):
             "Got 2D axis instead.",
             scprep.plot.scatter3d, self.X_pca, ax=ax)
 
+    def test_scatter_colorbar(self):
+        scprep.plot.scatter3d(self.X_pca, colorbar=True)
+
+    def test_scatter_legend_and_colorbar(self):
+        assert_raise_message(
+            ValueError, "Received conflicting values for synonyms "
+            "`legend=True` and `colorbar=False`",
+            scprep.plot.scatter3d, self.X_pca, legend=True, colorbar=False)
+
     def test_scatter_vmin_vmax(self):
         scprep.plot.scatter2d(
             self.X_pca, c=self.X_pca[:, 0], vmin=1, vmax=2)

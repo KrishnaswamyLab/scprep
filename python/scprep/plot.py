@@ -498,7 +498,7 @@ def generate_legend(cmap, ax, title=None, marker='o', markersize=10,
 
 @_with_matplotlib
 def generate_colorbar(cmap, ax, vmin=None, vmax=None, title=None,
-                      title_fontsize=14, title_rotation=270, **kwargs):
+                      title_fontsize=12, title_rotation=270, **kwargs):
     """Generate a colorbar on an axis.
 
     Parameters
@@ -577,7 +577,9 @@ def _label_axis(axis, ticks=True, ticklabels=True, label=None):
 @_with_matplotlib
 def scatter(x, y, z=None,
             c=None, cmap=None, s=None, discrete=None,
-            ax=None, legend=None, figsize=None,
+            ax=None,
+            legend=None, colorbar=None,
+            figsize=None,
             xticks=True,
             yticks=True,
             zticks=True,
@@ -633,7 +635,9 @@ def scatter(x, y, z=None,
         axis on which to plot. If None, an axis is created
     legend : bool, optional (default: None)
         States whether or not to create a legend. If data is continuous,
-        the legend is a colorbar. If `None`, a legend is created where possible.
+        the legend is a colorbar. If `None`, a legend is created where possible
+    colorbar : bool, optional (default: None)
+        Synonym for `legend`
     figsize : tuple, optional (default: None)
         Tuple of floats for creation of new `matplotlib` figure. Only used if
         `ax` is None.
@@ -698,6 +702,14 @@ def scatter(x, y, z=None,
     >>> scprep.plot.scatter(x=data[:, 0], y=data[:, 1], z=data[:, 2],
     ...                     c=colors, cmap={'a' : [1,0,0,1], 'b' : 'xkcd:sky blue'})
     """
+    # legend and colorbar are synonyms
+    if colorbar is not None:
+        if legend is not None and colorbar is not None and legend != colorbar:
+            raise ValueError(
+                "Received conflicting values for synonyms "
+                "`legend={}` and `colorbar={}`".format(legend, colorbar))
+        else:
+            legend = colorbar
     # convert to 1D numpy arrays
     x = utils.toarray(x).flatten()
     y = utils.toarray(y).flatten()
