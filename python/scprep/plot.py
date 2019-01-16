@@ -4,10 +4,12 @@ import platform
 import numbers
 import pandas as pd
 import warnings
+from scipy.linalg import block_diag
 try:
     import matplotlib.pyplot as plt
     import matplotlib as mpl
     from matplotlib import animation
+    from matplotlib import ticker
     from mpl_toolkits.mplot3d import Axes3D
 except ImportError:
     pass
@@ -497,8 +499,8 @@ def generate_legend(cmap, ax, title=None, marker='o', markersize=10,
 
 
 @_with_matplotlib
-def generate_colorbar(cmap, ax, vmin=None, vmax=None, title=None,
-                      title_fontsize=12, title_rotation=270, **kwargs):
+def generate_colorbar(cmap, ax, im=None, vmin=None, vmax=None, title=None,
+                      title_fontsize=12, title_rotation=270, nticks=5, labelpad = 0,**kwargs):
     """Generate a colorbar on an axis.
 
     Parameters
@@ -526,17 +528,22 @@ def generate_colorbar(cmap, ax, vmin=None, vmax=None, title=None,
         # not a list
         plot_axis = ax
     fig, _, _ = _get_figure(plot_axis)
-    xmin, xmax = plot_axis.get_xlim()
-    ymin, ymax = plot_axis.get_ylim()
-    im = plot_axis.imshow(np.linspace(vmin, vmax, 10).reshape(-1, 1),
-                          vmin=vmin, vmax=vmax, cmap=cmap,
-                          aspect='auto', origin='lower',
-                          extent=[xmin, xmax, ymin, ymax])
-    im.remove()
+    if im == None:
+        xmin, xmax = plot_axis.get_xlim()
+        ymin, ymax = plot_axis.get_ylim()
+        im = plot_axis.imshow(np.linspace(vmin, vmax, 10).reshape(-1, 1),
+                              vmin=vmin, vmax=vmax, cmap=cmap,
+                              aspect='auto', origin='lower',
+                              extent=[xmin, xmax, ymin, ymax])
+        im.remove()
     colorbar = fig.colorbar(im, ax=ax, **kwargs)
     if title is not None:
         colorbar.set_label(title, rotation=title_rotation,
-                           fontsize=title_fontsize)
+                           fontsize=title_fontsize,labelpad = labelpad)
+
+    tick_locator = ticker.MaxNLocator(nbins=nticks)
+    colorbar.locator = tick_locator
+    colorbar.update_ticks()
     return colorbar
 
 
@@ -1156,3 +1163,90 @@ def rotate_scatter3d(data,
         show(fig)
 
     return ani
+
+
+@_with_matplotlib
+def plot_spectrogram(spectrogram, n_freq_scales=20,
+                     n_vertex_bins=0, cmap='inferno', colorbar=True,
+                     ax=None, figsize=None,
+                     xlabel="Frequency",
+                     ylabel="Vertex",
+                     cbarlabel="Magnitude", colorbar_args=None, **kwargs):
+    """Plot a vertex-frequency spectrogram with scaling.
+
+    Parameters
+    ----------
+    `spectrogram` : array-like, shape=[n_samples,n_samples]
+        Input spectrogram
+    n_freq_scales : int, optional (default: 20)
+        Number of log10 frequency scales to bin the spectrogram
+    n_vertex_bins : int, optional (default: 0)
+        Number of vertex bins.  Not recommended unless the
+        rows of `spectrogram` are ordered.
+    cmap : `matplotlib` colormap or str (default: 'inferno')
+        Colormap with which to draw colorbar
+    colorbar : bool, optional (default: `True`)
+        Draw colorbar for spectrogram
+    ax : `matplotlib.Axes` or None, optional (default: None)
+        Axis to plot on. If None, a new axis will be created.
+    figsize : tuple or None, optional (default: None)
+        If not None, sets the figure size (width, height)
+    [x,y,cbar]label : str, optional
+        Labels to display on the x, y, and colorbar axis.
+    colorbar_args : dict or `None`, optional (default: None)
+        Parameters to pass to scprep.plot.generate_colorbar.
+    **kwargs : additional arguments for `matplotlib.pyplot.pcolor`
+
+    Returns
+    -------
+    ax : `matplotlib.Axes`
+        axis on which plot was drawn
+    im : `matplotlib.collections.PolyCollection`
+        image object for the spectrogram
+    """
+
+    N = spectrogram.shape[0]
+    fig, ax, show_fig = _get_figure(ax, figsize)
+
+    if n_vertex_bins == 0:
+        yscaler = np.arange(N)
+        vertex_downsampler = np.eye(N)
+    else:
+        warnings.warn(
+            "Linear downsampling does not make sense for most graphs")
+        yscaler = np.arange(n_vertex_bins)
+        vertex_downsampler = block_diag(
+            *[(np.ones((N // n_vertex_bins, 1))) for j in range(N // (N // n_vertex_bins))]).T
+    if n_freq_scales == 0:
+        xscaler = np.arange(N)
+        mat = spectrogram
+    else:
+        xscaler = np.logspace(0, np.log10(N), n_freq_scales)
+
+        binsizes = np.round(xscaler)
+        binsizes = np.diff(binsizes)
+        binsizes = np.where(binsizes == 0, 1, binsizes).astype(int)
+
+        if binsizes.sum() != N:
+            binsizes[-1] = binsizes[-1] - (binsizes.sum() - N)
+
+        mat = np.ndarray((N, n_freq_scales))
+        curidx = 0
+        for i, step in enumerate(binsizes):
+            nextidx = curidx + step
+            slice = spectrogram[:, curidx:nextidx]
+            mat[:, i] = np.sum(slice / np.linalg.norm(slice,
+                                                      axis=0), axis=1)
+            curidx = nextidx
+        mat = mat/np.linalg.norm(mat,axis=0)
+
+    im = ax.pcolor(xscaler, yscaler, vertex_downsampler@mat, cmap=cmap,**kwargs)
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    if colorbar:
+        cb = generate_colorbar(cmap, ax, im=im, title=cbarlabel, **colorbar_args)
+    if show_fig:
+        show(fig)
+    return ax, im
