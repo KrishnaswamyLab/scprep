@@ -5,6 +5,7 @@ from sklearn.utils.testing import assert_warns_message, assert_raise_message
 from sklearn.metrics import mutual_info_score
 import scprep
 from functools import partial
+import warnings
 
 
 def test_EMD():
@@ -58,14 +59,18 @@ def test_knnDREMI():
     assert isinstance(Y, float)
     np.testing.assert_allclose(Y, 0.16238906)
     Y2, drevi = scprep.stats.knnDREMI(X[:, 0], X[:, 1],
-                                      plot=True, return_drevi=True)
+                                      plot=True, filename="test.png",
+                                      return_drevi=True)
     assert Y2 == Y
     assert drevi.shape == (20, 20)
     matrix.test_all_matrix_types(
         X, utils.assert_transform_equals, Y=Y,
         transform=partial(_test_fun_2d, fun=scprep.stats.knnDREMI),
         check=utils.assert_all_close)
-    assert scprep.stats.knnDREMI(X[:, 0], np.repeat(X[0, 1], X.shape[0])) == 0
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=UserWarning)
+        assert scprep.stats.knnDREMI(X[:, 0], np.repeat(X[0, 1], X.shape[0]),
+                                     return_drevi=True) == (0, None)
     assert_raise_message(
         ValueError, "Expected k as an integer. Got ",
         scprep.stats.knnDREMI, X[:, 0], X[:, 1], k="invalid")
@@ -75,6 +80,11 @@ def test_knnDREMI():
     assert_raise_message(
         ValueError, "Expected n_mesh as an integer. Got ",
         scprep.stats.knnDREMI, X[:, 0], X[:, 1], n_mesh="invalid")
+    assert_warns_message(
+        UserWarning,
+        "Attempting to calculate kNN-DREMI on a constant array. "
+        "Returning `0`", scprep.stats.knnDREMI, X[:, 0],
+        np.zeros_like(X[:, 1]))
 
 
 def _test_fun_2d(X, fun, **kwargs):

@@ -153,8 +153,14 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
     x, y = _vector_coerce_two_dense(x, y)
 
     if np.count_nonzero(x - x[0]) == 0 or np.count_nonzero(y - y[0]) == 0:
+        warnings.warn(
+            "Attempting to calculate kNN-DREMI on a constant array. Returning `0`",
+            UserWarning)
         # constant input: mutual information is numerically zero
-        return 0
+        if return_drevi:
+            return 0, None
+        else:
+            return 0
 
     if not isinstance(k, numbers.Integral):
         raise ValueError(

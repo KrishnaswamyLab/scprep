@@ -37,6 +37,11 @@ _pandas_sparse_matrix_types = [
     partial(pd.SparseDataFrame, default_fill_value=0.0),
 ]
 
+_pandas_matrix_types = [
+    pd.DataFrame,
+    partial(pd.SparseDataFrame, default_fill_value=0.0),
+]
+
 _indexable_matrix_types = [
     sparse.csr_matrix,
     sparse.csc_matrix,
@@ -80,9 +85,8 @@ def test_dense_matrix_types(X, test_fun, *args, **kwargs):
     **kwargs : keyword arguments for test_fun
     """
     test_matrix_types(
-        X, test_fun, *args,
-        matrix_types=_numpy_matrix_types + _pandas_dense_matrix_types,
-        **kwargs)
+        X, test_fun, _numpy_matrix_types + _pandas_dense_matrix_types,
+        *args, **kwargs)
 
 
 def test_sparse_matrix_types(X, test_fun, *args, **kwargs):
@@ -96,9 +100,8 @@ def test_sparse_matrix_types(X, test_fun, *args, **kwargs):
     **kwargs : keyword arguments for test_fun
     """
     test_matrix_types(
-        X, test_fun, *args,
-        matrix_types=_scipy_matrix_types + _pandas_sparse_matrix_types,
-        **kwargs)
+        X, test_fun, _scipy_matrix_types + _pandas_sparse_matrix_types,
+        *args, **kwargs)
 
 
 def test_all_matrix_types(X, test_fun, *args, **kwargs):
@@ -113,3 +116,18 @@ def test_all_matrix_types(X, test_fun, *args, **kwargs):
     """
     test_dense_matrix_types(X, test_fun, *args, **kwargs)
     test_sparse_matrix_types(X, test_fun, *args, **kwargs)
+
+
+def test_pandas_matrix_types(X, test_fun, *args, **kwargs):
+    """Test a function across all dense matrix types
+
+    Parameters
+    ----------
+    X : matrix input
+    test_fun : Function(X, *args, **kwargs) for testing
+    *args : positional arguments for test_fun
+    **kwargs : keyword arguments for test_fun
+    """
+    test_matrix_types(
+        X, test_fun, _pandas_matrix_types,
+        *args, **kwargs)
