@@ -28,7 +28,7 @@ def toarray(x):
         x = x.toarray()
     elif isinstance(x, np.matrix):
         x = np.array(x)
-    elif isinstance(x, np.ndarray):
+    elif isinstance(x, (np.ndarray, numbers.Number)):
         pass
     else:
         raise TypeError("Expected pandas DataFrame, scipy sparse matrix or "
@@ -426,3 +426,38 @@ def combine_batches(data, batch_labels, append_to_cell_names=False):
         data = np.vstack(data)
 
     return data, sample_labels
+
+
+def subsample(*data, n=10000, seed=None):
+    """Subsample the number of points in a dataset
+
+    Selects a random subset of (optionally multiple) datasets.
+    Helpful for plotting, or for methods with computational
+    constraints.
+
+    Parameters
+    ----------
+    data : array-like, shape=[n_samples, *]
+        Input data. Any number of datasets can be passed at once,
+        so long as `n_samples` remains the same.
+    n : int, optional (default: 10000)
+        Number of samples to retain. Must be less than `n_samples`.
+    seed : int, optional (default: None)
+        Random seed
+
+    Examples
+    --------
+    data_subsample, labels_subsample = scprep.utils.subsample(data, labels, n=1000)
+    """
+    N = data[0].shape[0]
+    for d in data:
+        if d.shape[0] != N:
+            raise ValueError(
+                "Expected data to have all the same number of samples. "
+                "Got {}".format(tuple([d.shape[0] for d in data])))
+    if N <= n:
+        raise ValueError("Expected n ({}) < n_samples ({})".format(n, N))
+    np.random.seed(seed)
+    select_idx = np.random.choice(N, n, replace=False)
+    data = [select_rows(d, select_idx) for d in data]
+    return tuple(data) if len(data) > 1 else data[0]

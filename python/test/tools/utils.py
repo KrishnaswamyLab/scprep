@@ -2,23 +2,13 @@ import numpy as np
 from scipy import sparse
 import pandas as pd
 from nose.tools import assert_raises
-
-
-def to_array(X):
-    """Convert any matrix to an np.ndarray"""
-    if sparse.issparse(X):
-        X = X.toarray()
-    elif isinstance(X, pd.SparseDataFrame):
-        X = X.to_dense().values
-    elif isinstance(X, pd.DataFrame):
-        X = X.values
-    return X
+from scprep.utils import toarray
 
 
 def assert_all_equal(X, Y):
     """Assert all values of two matrices are the same"""
-    X = to_array(X)
-    Y = to_array(Y)
+    X = toarray(X)
+    Y = toarray(Y)
     np.testing.assert_array_equal(X, Y)
 
 
@@ -30,8 +20,8 @@ def assert_all_close(X, Y, rtol=1e-05, atol=1e-08):
     rtol : relative (multiplicative) tolerance of error
     atol : absolute (additive) tolerance of error
     """
-    X = to_array(X)
-    Y = to_array(Y)
+    X = toarray(X)
+    Y = toarray(Y)
     np.testing.assert_allclose(X, Y, rtol=rtol, atol=atol)
 
 

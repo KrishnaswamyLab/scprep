@@ -287,3 +287,48 @@ def test_matrix_sum():
                          scprep.utils.matrix_sum,
                          data,
                          5)
+
+
+def test_subsample():
+    X = data.generate_positive_sparse_matrix(shape=(50, 100))
+    Y = scprep.utils.subsample(X, n=20, seed=42)
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equals, Y=Y,
+        transform=scprep.utils.subsample,
+        check=utils.assert_all_equal, n=20, seed=42)
+    libsize = scprep.measure.library_size(X)
+    Y, libsize_sub = scprep.utils.subsample(X, libsize, n=20, seed=42)
+
+    def test_fun(X, **kwargs):
+        libsize = scprep.measure.library_size(X)
+        return scprep.utils.subsample(X, libsize, **kwargs)[0]
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equals, Y=Y,
+        transform=test_fun,
+        check=utils.assert_all_equal, n=20, seed=42)
+
+    def test_fun(X, **kwargs):
+        libsize = scprep.measure.library_size(X)
+        return scprep.utils.subsample(X, libsize, **kwargs)[1]
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equals, Y=libsize_sub,
+        transform=test_fun,
+        check=utils.assert_all_close, n=20, seed=42)
+
+
+def test_subsample_mismatch_size():
+    X = data.generate_positive_sparse_matrix(shape=(50, 100))
+    libsize = scprep.measure.library_size(X)[:20]
+    assert_raise_message(
+        ValueError,
+        "Expected data to have all the same number of samples. "
+        "Got (50, 20)",
+        scprep.utils.subsample, X, libsize, n=20)
+
+
+def test_subsample_n_too_large():
+    X = data.generate_positive_sparse_matrix(shape=(50, 100))
+    assert_raise_message(
+        ValueError,
+        "Expected n (60) < n_samples (50)",
+        scprep.utils.subsample, X, n=60)
