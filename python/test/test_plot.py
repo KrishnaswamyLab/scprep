@@ -10,6 +10,13 @@ self = unittest.TestCase()
 self.X_pca = np.random.normal(0, 1, [100, 3])
 
 
+def try_remove(filename):
+    try:
+        os.remove(filename)
+    except FileNotFoundError:
+        pass
+
+
 class Test10X(unittest.TestCase):
 
     @classmethod
@@ -17,6 +24,12 @@ class Test10X(unittest.TestCase):
         self.X = data.load_10X(sparse=False)
         self.X_pca, self.S = scprep.reduce.pca(self.X, n_components=10,
                                                return_singular_values=True)
+
+    @classmethod
+    def tearDownClass(self):
+        try_remove("test.png")
+        try_remove("test.gif")
+        try_remove("test.mp4")
 
     def tearDown(self):
         plt.close('all')
