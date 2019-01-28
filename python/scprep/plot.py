@@ -342,6 +342,9 @@ def _create_normalize(vmin, vmax, scale="linear"):
     if scale == 'linear':
         norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
     elif scale == 'log':
+        if vmin <= 0:
+            raise ValueError(
+                "`vmin` must be positive for `cmap_scale='log'`. Got {}".format(vmin))
         norm = mpl.colors.LogNorm(vmin=vmin, vmax=vmin)
     elif scale == 'symlog':
         norm = mpl.colors.SymLogNorm(linthresh=0.03, linscale=0.03,
