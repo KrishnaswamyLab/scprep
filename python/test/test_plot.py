@@ -10,6 +10,13 @@ self = unittest.TestCase()
 self.X_pca = np.random.normal(0, 1, [100, 3])
 
 
+def try_remove(filename):
+    try:
+        os.remove(filename)
+    except FileNotFoundError:
+        pass
+
+
 class Test10X(unittest.TestCase):
 
     @classmethod
@@ -17,6 +24,12 @@ class Test10X(unittest.TestCase):
         self.X = data.load_10X(sparse=False)
         self.X_pca, self.S = scprep.reduce.pca(self.X, n_components=10,
                                                return_singular_values=True)
+
+    @classmethod
+    def tearDownClass(self):
+        try_remove("test.png")
+        try_remove("test.gif")
+        try_remove("test.mp4")
 
     def tearDown(self):
         plt.close('all')
@@ -243,11 +256,31 @@ class Test10X(unittest.TestCase):
     def test_scatter_colorbar(self):
         scprep.plot.scatter3d(self.X_pca, c=self.X_pca[:, 0], colorbar=True)
 
+    def test_scatter_colorbar_log(self):
+        scprep.plot.scatter2d(self.X_pca, c=np.abs(self.X_pca[:, 0]) + 1e-7,
+                              colorbar=True, cmap_scale='log')
+
+    def test_scatter_colorbar_log_negative(self):
+        assert_raise_message(
+            ValueError, "`vmin` must be positive for `cmap_scale='log'`. "
+            "Got {}".format(self.X_pca[:, 0].min()),
+            scprep.plot.scatter2d, self.X_pca,
+            c=self.X_pca[:, 0],
+            colorbar=True, cmap_scale='log')
+
+    def test_scatter_colorbar_symlog(self):
+        scprep.plot.scatter2d(self.X_pca, c=self.X_pca[:, 0],
+                              colorbar=True, cmap_scale='symlog')
+
+    def test_scatter_colorbar_sqrt(self):
+        scprep.plot.scatter2d(self.X_pca, c=self.X_pca[:, 0],
+                              colorbar=True, cmap_scale='sqrt')
+
     def test_scatter_legend_and_colorbar(self):
         assert_raise_message(
             ValueError, "Received conflicting values for synonyms "
             "`legend=True` and `colorbar=False`",
-            scprep.plot.scatter3d, self.X_pca, c=self.X_pca[0, :],
+            scprep.plot.scatter2d, self.X_pca, c=self.X_pca[0, :],
             legend=True, colorbar=False)
 
     def test_scatter_vmin_vmax(self):

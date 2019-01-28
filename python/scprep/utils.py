@@ -28,7 +28,7 @@ def toarray(x):
         x = x.toarray()
     elif isinstance(x, np.matrix):
         x = np.array(x)
-    elif isinstance(x, np.ndarray):
+    elif isinstance(x, (np.ndarray, numbers.Number)):
         pass
     else:
         raise TypeError("Expected pandas DataFrame, scipy sparse matrix or "
@@ -36,7 +36,35 @@ def toarray(x):
     return x
 
 
-def matrix_transform(data, fun):
+def to_array_or_matrix(x):
+    """Convert an array-like to a np.ndarray or scipy.sparse.spmatrix
+
+    Parameters
+    ----------
+    x : array-like
+        Array-like to be converted
+
+    Returns
+    -------
+    x : np.ndarray or scipy.sparse.spmatrix
+    """
+    if isinstance(x, pd.SparseDataFrame):
+        x = x.to_coo()
+    elif isinstance(x, pd.SparseSeries):
+        x = x.to_dense().values
+    elif isinstance(x, (pd.DataFrame, pd.Series)):
+        x = x.values
+    elif isinstance(x, np.matrix):
+        x = np.array(x)
+    elif isinstance(x, (sparse.spmatrix, np.ndarray, numbers.Number)):
+        pass
+    else:
+        raise TypeError("Expected pandas DataFrame, scipy sparse matrix or "
+                        "numpy matrix. Got {}".format(type(x)))
+    return x
+
+
+def matrix_transform(data, fun, *args, **kwargs):
     """Perform a numerical transformation to data
 
     Parameters
@@ -45,6 +73,8 @@ def matrix_transform(data, fun):
         Input data
     fun : callable
         Numerical transformation function, `np.ufunc` or similar.
+    args, kwargs : additional arguments, optional
+        arguments for `fun`. `data` is always passed as the first argument
 
     Returns
     -------
@@ -54,16 +84,16 @@ def matrix_transform(data, fun):
     if isinstance(data, pd.SparseDataFrame):
         data = data.copy()
         for col in data.columns:
-            data[col] = fun(data[col])
+            data[col] = fun(data[col], *args, **kwargs)
     elif sparse.issparse(data):
         if isinstance(data, (sparse.lil_matrix, sparse.dok_matrix)):
             data = data.tocsr()
         else:
             # avoid modifying in place
             data = data.copy()
-        data.data = fun(data.data)
+        data.data = fun(data.data, *args, **kwargs)
     else:
-        data = fun(data)
+        data = fun(data, *args, **kwargs)
     return data
 
 
@@ -426,3 +456,38 @@ def combine_batches(data, batch_labels, append_to_cell_names=False):
         data = np.vstack(data)
 
     return data, sample_labels
+
+
+def subsample(*data, n=10000, seed=None):
+    """Subsample the number of points in a dataset
+
+    Selects a random subset of (optionally multiple) datasets.
+    Helpful for plotting, or for methods with computational
+    constraints.
+
+    Parameters
+    ----------
+    data : array-like, shape=[n_samples, *]
+        Input data. Any number of datasets can be passed at once,
+        so long as `n_samples` remains the same.
+    n : int, optional (default: 10000)
+        Number of samples to retain. Must be less than `n_samples`.
+    seed : int, optional (default: None)
+        Random seed
+
+    Examples
+    --------
+    data_subsample, labels_subsample = scprep.utils.subsample(data, labels, n=1000)
+    """
+    N = data[0].shape[0]
+    for d in data:
+        if d.shape[0] != N:
+            raise ValueError(
+                "Expected data to have all the same number of samples. "
+                "Got {}".format(tuple([d.shape[0] for d in data])))
+    if N <= n:
+        raise ValueError("Expected n ({}) < n_samples ({})".format(n, N))
+    np.random.seed(seed)
+    select_idx = np.random.choice(N, n, replace=False)
+    data = [select_rows(d, select_idx) for d in data]
+    return tuple(data) if len(data) > 1 else data[0]

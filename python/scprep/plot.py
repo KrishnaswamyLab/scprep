@@ -328,8 +328,114 @@ def create_colormap(colors, name="scprep_custom_cmap"):
     return cmap
 
 
+def _create_normalize(vmin, vmax, scale="linear"):
+    """Create a colormap normalizer
+
+    Parameters
+    ----------
+    scale : {'linear', 'log', 'symlog', 'sqrt'} or `matplotlib.colors.Normalize`, optional (default: 'linear')
+        Colormap normalization scale. For advanced use, see
+        <https://matplotlib.org/users/colormapnorms.html>
+
+    Returns
+    -------
+    norm : `matplotlib.colors.Normalize`
+    """
+    if scale == 'linear':
+        norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+    elif scale == 'log':
+        if vmin <= 0:
+            raise ValueError(
+                "`vmin` must be positive for `cmap_scale='log'`. Got {}".format(vmin))
+        norm = mpl.colors.LogNorm(vmin=vmin, vmax=vmin)
+    elif scale == 'symlog':
+        norm = mpl.colors.SymLogNorm(linthresh=0.03, linscale=0.03,
+                                     vmin=vmin, vmax=vmax)
+    elif scale == 'sqrt':
+        norm = mpl.colors.PowerNorm(gamma=1. / 2.)
+    elif isinstance(scale, mpl.colors.Normalize):
+        norm = scale
+    else:
+        raise ValueError("Expected norm in ['linear', 'log', 'symlog',"
+                         "'sqrt'] or a matplotlib.colors.Normalize object."
+                         " Got {}".format(scale))
+    return norm
+
+
+def _scatter_params_constant_c(c=None, vmin=None, vmax=None,
+                               cmap_scale='linear', legend=None):
+    # no legend
+    labels = None
+    if legend is True:
+        if _is_color_array(c):
+            warnings.warn(
+                "`c` is a color array and cannot be used to create a "
+                "legend. To interpret these values as labels instead, "
+                "provide a `cmap` dictionary with label-color pairs.",
+                UserWarning)
+        else:
+            warnings.warn(
+                "Cannot create a legend with `c={}`".format(c),
+                UserWarning)
+    legend = False
+    if vmin is not None or vmax is not None:
+        warnings.warn(
+            "Cannot set `vmin` or `vmax` with constant `c={}`. "
+            "Setting `vmin = vmax = None`.".format(c),
+            UserWarning)
+        vmin = None
+        vmax = None
+    if cmap_scale != 'linear':
+        warnings.warn(
+            "Cannot use non-linear `cmap_scale` with constant "
+            "`c={}`.".format(c))
+    norm = None
+    return labels, legend, vmin, vmax, norm
+
+
+def _scatter_params_discrete(c=None, cmap=None, cmap_scale='linear',
+                             vmin=None, vmax=None):
+    if vmin is not None or vmax is not None:
+        warnings.warn(
+            "Cannot set `vmin` or `vmax` with discrete data. "
+            "Setting to `None`.",
+            UserWarning)
+        vmin = None
+        vmax = None
+    c, labels = pd.factorize(c, sort=True)
+    # choose cmap if not given
+    if cmap is None and len(np.unique(c)) <= 10:
+        cmap = mpl.colors.ListedColormap(
+            mpl.cm.tab10.colors[:len(np.unique(c))])
+    elif cmap is None:
+        cmap = 'tab20'
+    if cmap_scale != 'linear':
+        warnings.warn(
+            "Cannot use non-linear `cmap_scale` with discrete data.")
+    norm = None
+    return c, labels, cmap, norm, vmin, vmax
+
+
+def _scatter_params_continuous(c=None, cmap=None, cmap_scale='linear',
+                               vmin=None, vmax=None):
+    if not np.all([isinstance(x, numbers.Number) for x in c]):
+        raise ValueError(
+            "Cannot treat non-numeric data as continuous.")
+    labels = None
+    # choose cmap if not given
+    if cmap is None:
+        cmap = 'inferno'
+    # set vmin and vmax
+    if vmin is None:
+        vmin = np.min(c)
+    if vmax is None:
+        vmax = np.max(c)
+    norm = _create_normalize(vmin, vmax, cmap_scale)
+    return c, labels, cmap, norm, vmin, vmax
+
+
 def _scatter_params(x, y, z=None, c=None, discrete=None,
-                    cmap=None, vmin=None, vmax=None, s=None, legend=None):
+                    cmap=None, cmap_scale='linear', vmin=None, vmax=None, s=None, legend=None):
     """Automatically select nice parameters for a scatter plot
     """
     # check data shape
@@ -343,27 +449,8 @@ def _scatter_params(x, y, z=None, c=None, discrete=None,
         s = 200 / np.sqrt(len(x))
     # color vector
     if c is None or mpl.colors.is_color_like(c) or _is_color_array(c):
-        # no legend
-        labels = None
-        if legend is True:
-            if _is_color_array(c):
-                warnings.warn(
-                    "`c` is a color array and cannot be used to create a "
-                    "legend. To interpret these values as labels instead, "
-                    "provide a `cmap` dictionary with label-color pairs.",
-                    UserWarning)
-            else:
-                warnings.warn(
-                    "Cannot create a legend with `c={}`".format(c),
-                    UserWarning)
-        legend = False
-        if vmin is not None or vmax is not None:
-            warnings.warn(
-                "Cannot set `vmin` or `vmax` with constant `c={}`. "
-                "Setting `vmin = vmax = None`.".format(c),
-                UserWarning)
-            vmin = None
-            vmax = None
+        labels, legend, vmin, vmax, norm = _scatter_params_constant_c(
+            c=c, vmin=vmin, vmax=vmax, cmap_scale=cmap_scale, legend=legend)
     else:
         if legend is None:
             legend = True
@@ -382,33 +469,11 @@ def _scatter_params(x, y, z=None, c=None, discrete=None,
                 # guess based on number of unique elements
                 discrete = len(np.unique(c)) <= 20
         if discrete:
-            if vmin is not None or vmax is not None:
-                warnings.warn(
-                    "Cannot set `vmin` or `vmax` with discrete data. "
-                    "Setting to `None`.",
-                    UserWarning)
-                vmin = None
-                vmax = None
-            c, labels = pd.factorize(c, sort=True)
-            # choose cmap if not given
-            if cmap is None and len(np.unique(c)) <= 10:
-                cmap = mpl.colors.ListedColormap(
-                    mpl.cm.tab10.colors[:len(np.unique(c))])
-            elif cmap is None:
-                cmap = 'tab20'
+            c, labels, cmap, norm, vmin, vmax = _scatter_params_discrete(
+                c=c, cmap=cmap, cmap_scale=cmap_scale, vmin=vmin, vmax=vmax)
         else:
-            if not np.all([isinstance(x, numbers.Number) for x in c]):
-                raise ValueError(
-                    "Cannot treat non-numeric data as continuous.")
-            labels = None
-            # choose cmap if not given
-            if cmap is None:
-                cmap = 'inferno'
-            # set vmin and vmax
-            if vmin is None:
-                vmin = np.min(c)
-            if vmax is None:
-                vmax = np.max(c)
+            c, labels, cmap, norm, vmin, vmax = _scatter_params_continuous(
+                c=c, cmap=cmap, cmap_scale=cmap_scale, vmin=vmin, vmax=vmax)
 
     if isinstance(cmap, dict):
         # dictionary cmap
@@ -440,7 +505,7 @@ def _scatter_params(x, y, z=None, c=None, discrete=None,
         subplot_kw = {'projection': '3d'}
     else:
         subplot_kw = {}
-    return c, labels, discrete, cmap, vmin, vmax, s, legend, subplot_kw
+    return c, labels, discrete, cmap, norm, vmin, vmax, s, legend, subplot_kw
 
 
 @_with_matplotlib
@@ -499,24 +564,39 @@ def generate_legend(cmap, ax, title=None, marker='o', markersize=10,
 
 
 @_with_matplotlib
-def generate_colorbar(cmap, ax, im=None, vmin=None, vmax=None, title=None,
-                      title_fontsize=12, title_rotation=270, nticks=5, labelpad = 0,**kwargs):
+def generate_colorbar(cmap, vmin=None, vmax=None, scale='linear', ax=None,
+                      title=None, title_fontsize=12, title_rotation=270,
+                      n_ticks='auto', labelpad=0, mappable=None, **kwargs):
     """Generate a colorbar on an axis.
 
     Parameters
     ----------
     cmap : `matplotlib` colormap or str
         Colormap with which to draw colorbar
-    ax : `matplotlib.axes.Axes` or list
-        Axis or list of axes from which to steal space for colorbar
     vmin, vmax : float, optional (default: None)
         Range of values to display on colorbar
+    scale : {'linear', 'log', 'symlog', 'sqrt'} or `matplotlib.colors.Normalize`, optional (default: 'linear')
+        Colormap normalization scale. For advanced use, see
+        <https://matplotlib.org/users/colormapnorms.html>
+    ax : `matplotlib.axes.Axes`, list or None, optional (default: None)
+        Axis or list of axes from which to steal space for colorbar
+        If `None`, uses the current axis
     title : str, optional (default: None)
         Title to display alongside colorbar
     title_fontsize : int, optional (default: 14)
         Font size for colorbar title
     title_rotation : int, optional (default: 270)
         Angle of rotation of the colorbar title
+    n_ticks : int, optional (default: 'auto')
+        Maximum number of ticks. If the string 'auto', the number of ticks will
+        be automatically determined based on the length of the colorbar.
+    labelpad : scalar, optional, default: None
+        Spacing in points between the label and the x-axis.
+    mappable : matplotlib.cm.ScalarMappable, optional (default: None)
+        matplotlib mappable object (e.g. an axis image)
+        from which to generate the colorbar
+
+    kwargs : additional arguments for `plt.colorbar`
 
     Returns
     -------
@@ -527,23 +607,41 @@ def generate_colorbar(cmap, ax, im=None, vmin=None, vmax=None, title=None,
     except TypeError:
         # not a list
         plot_axis = ax
-    fig, _, _ = _get_figure(plot_axis)
-    if im == None:
+    if mappable is None:
+        if vmax is None and vmin is None:
+            vmax = 1
+            vmin = 0
+            remove_ticks = True
+            norm = None
+        elif vmax is None or vmin is None:
+            raise ValueError(
+                "Either both or neither of `vmax` and `vmin` should "
+                "be set. Got `vmax={}, vmin={}`".format(vmax, vmin))
+        else:
+            remove_ticks = False
+            norm = _create_normalize(vmin, vmax, scale=scale)
+        fig, plot_axis, _ = _get_figure(plot_axis)
+        if ax is None:
+            ax = plot_axis
         xmin, xmax = plot_axis.get_xlim()
         ymin, ymax = plot_axis.get_ylim()
-        im = plot_axis.imshow(np.linspace(vmin, vmax, 10).reshape(-1, 1),
-                              vmin=vmin, vmax=vmax, cmap=cmap,
-                              aspect='auto', origin='lower',
-                              extent=[xmin, xmax, ymin, ymax])
-        im.remove()
-    colorbar = fig.colorbar(im, ax=ax, **kwargs)
+        mappable = plot_axis.imshow(
+            np.linspace(vmin, vmax, 10).reshape(-1, 1),
+            vmin=vmin, vmax=vmax, cmap=cmap, norm=norm,
+            aspect='auto', origin='lower',
+            extent=[xmin, xmax, ymin, ymax])
+        mappable.remove()
+    colorbar = fig.colorbar(mappable, ax=ax, **kwargs)
     if title is not None:
         colorbar.set_label(title, rotation=title_rotation,
-                           fontsize=title_fontsize,labelpad = labelpad)
-
-    tick_locator = ticker.MaxNLocator(nbins=nticks)
-    colorbar.locator = tick_locator
-    colorbar.update_ticks()
+                           fontsize=title_fontsize, labelpad=labelpad)
+    if remove_ticks:
+        colorbar.set_ticks([])
+    else:
+        tick_locator = ticker.MaxNLocator(
+            nbins=n_ticks if n_ticks == 'auto' else n_ticks - 1)
+        colorbar.locator = tick_locator
+        colorbar.update_ticks()
     return colorbar
 
 
@@ -583,7 +681,7 @@ def _label_axis(axis, ticks=True, ticklabels=True, label=None):
 
 @_with_matplotlib
 def scatter(x, y, z=None,
-            c=None, cmap=None, s=None, discrete=None,
+            c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
             ax=None,
             legend=None, colorbar=None,
             figsize=None,
@@ -631,6 +729,9 @@ def scatter(x, y, z=None,
         `inferno` for continuous data. If a dictionary, expects one key
         for every unique value in `c`, where values are valid matplotlib colors
         (hsv, rbg, rgba, or named colors)
+    cmap_scale : {'linear', 'log', 'symlog', 'sqrt'} or `matplotlib.colors.Normalize`, optional (default: 'linear')
+        Colormap normalization scale. For advanced use, see
+        <https://matplotlib.org/users/colormapnorms.html>
     s : float, optional (default: None)
         Point size. If `None`, set to 200 / sqrt(n_samples)
     discrete : bool or None, optional (default: None)
@@ -726,9 +827,9 @@ def scatter(x, y, z=None,
             raise TypeError("Expected ax with projection='3d'. "
                             "Got 2D axis instead.")
 
-    c, labels, discrete, cmap, vmin, vmax, s, legend, subplot_kw = _scatter_params(
+    c, labels, discrete, cmap, norm, vmin, vmax, s, legend, subplot_kw = _scatter_params(
         x, y, z, c=c, discrete=discrete,
-        cmap=cmap, vmin=vmin, vmax=vmax, s=s, legend=legend)
+        cmap=cmap, cmap_scale=cmap_scale, vmin=vmin, vmax=vmax, s=s, legend=legend)
 
     fig, ax, show_fig = _get_figure(ax, figsize, subplot_kw=subplot_kw)
 
@@ -739,7 +840,7 @@ def scatter(x, y, z=None,
     # plot!
     sc = ax.scatter(
         *[d[plot_idx] for d in ([x, y] if z is None else [x, y, z])],
-        c=c, cmap=cmap, s=s, vmin=vmin, vmax=vmax, **plot_kwargs)
+        c=c, cmap=cmap, norm=norm, s=s, vmin=vmin, vmax=vmax, **plot_kwargs)
 
     # automatic axis labels
     if label_prefix is not None:
@@ -773,8 +874,9 @@ def scatter(x, y, z=None,
                 extend = 'both' if extend_max else 'min'
             else:
                 extend = 'max' if extend_max else 'neither'
-            generate_colorbar(cmap, ax, vmin=vmin, vmax=vmax,
-                              title=legend_title, extend=extend)
+            generate_colorbar(cmap, ax=ax, vmin=vmin, vmax=vmax,
+                              title=legend_title, extend=extend,
+                              scale=sc.norm)
 
     # set viewpoint
     if z is not None:
@@ -790,7 +892,7 @@ def scatter(x, y, z=None,
 
 @_with_matplotlib
 def scatter2d(data,
-              c=None, cmap=None, s=None, discrete=None,
+              c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
               ax=None, legend=None, figsize=None,
               xticks=True,
               yticks=True,
@@ -821,11 +923,16 @@ def scatter2d(data,
         discrete or continuous values of any data type. If `c` is not a single
         or list of matplotlib colors, the values in `c` will be used to
         populate the legend / colorbar with colors from `cmap`
-    cmap : `matplotlib` colormap, str, dict or None, optional (default: None)
+    cmap : `matplotlib` colormap, str, dict, list or None, optional (default: None)
         matplotlib colormap. If None, uses `tab20` for discrete data and
-        `inferno` for continuous data. If a dictionary, expects one key
+        `inferno` for continuous data. If a list, expects one color for every
+        unique value in `c`, otherwise interpolates between given colors for
+        continuous data. If a dictionary, expects one key
         for every unique value in `c`, where values are valid matplotlib colors
         (hsv, rbg, rgba, or named colors)
+    cmap_scale : {'linear', 'log', 'symlog', 'sqrt'} or `matplotlib.colors.Normalize`, optional (default: 'linear')
+        Colormap normalization scale. For advanced use, see
+        <https://matplotlib.org/users/colormapnorms.html>
     s : float, optional (default: None)
         Point size. If `None`, set to 200 / sqrt(n_samples)
     discrete : bool or None, optional (default: None)
@@ -899,7 +1006,7 @@ def scatter2d(data,
     """
     return scatter(x=utils.select_cols(data, 0),
                    y=utils.select_cols(data, 1),
-                   c=c, cmap=cmap, s=s, discrete=discrete,
+                   c=c, cmap=cmap, cmap_scale=cmap_scale, s=s, discrete=discrete,
                    ax=ax, legend=legend, figsize=figsize,
                    xticks=xticks,
                    yticks=yticks,
@@ -919,7 +1026,7 @@ def scatter2d(data,
 
 @_with_matplotlib
 def scatter3d(data,
-              c=None, cmap=None, s=None, discrete=None,
+              c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
               ax=None, legend=None, figsize=None,
               xticks=True,
               yticks=True,
@@ -961,6 +1068,9 @@ def scatter3d(data,
         continuous data. If a dictionary, expects one key
         for every unique value in `c`, where values are valid matplotlib colors
         (hsv, rbg, rgba, or named colors)
+    cmap_scale : {'linear', 'log', 'symlog', 'sqrt'} or `matplotlib.colors.Normalize`, optional (default: 'linear')
+        Colormap normalization scale. For advanced use, see
+        <https://matplotlib.org/users/colormapnorms.html>
     s : float, optional (default: None)
         Point size. If `None`, set to 200 / sqrt(n_samples)
     discrete : bool or None, optional (default: None)
@@ -1039,7 +1149,7 @@ def scatter3d(data,
     return scatter(x=utils.select_cols(data, 0),
                    y=utils.select_cols(data, 1),
                    z=utils.select_cols(data, 2),
-                   c=c, cmap=cmap, s=s, discrete=discrete,
+                   c=c, cmap=cmap, cmap_scale=cmap_scale, s=s, discrete=discrete,
                    ax=ax, legend=legend, figsize=figsize,
                    xticks=xticks,
                    yticks=yticks,
@@ -1238,15 +1348,18 @@ def plot_spectrogram(spectrogram, n_freq_scales=20,
             mat[:, i] = np.sum(slice / np.linalg.norm(slice,
                                                       axis=0), axis=1)
             curidx = nextidx
-        mat = mat/np.linalg.norm(mat,axis=0)
+        mat = mat / np.linalg.norm(mat, axis=0)
 
-    im = ax.pcolor(xscaler, yscaler, vertex_downsampler@mat, cmap=cmap,**kwargs)
+    im = ax.pcolor(xscaler, yscaler, vertex_downsampler@mat, cmap=cmap, **kwargs)
     ax.set_xticks([])
     ax.set_yticks([])
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     if colorbar:
-        cb = generate_colorbar(cmap, ax, im=im, title=cbarlabel, **colorbar_args)
+        if colorbar_args is None:
+            colorbar_args = {}
+        generate_colorbar(
+            cmap, ax, im=im, title=cbarlabel, **colorbar_args)
     if show_fig:
         show(fig)
     return ax, im
