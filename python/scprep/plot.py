@@ -1359,7 +1359,7 @@ def plot_spectrogram(spectrogram, n_freq_scales=20,
         if colorbar_args is None:
             colorbar_args = {}
         generate_colorbar(
-            cmap, ax, im=im, title=cbarlabel, **colorbar_args)
+            cmap, ax=ax, mappable=im, title=cbarlabel, **colorbar_args)
     if show_fig:
         show(fig)
     return ax, im
