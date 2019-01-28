@@ -36,7 +36,35 @@ def toarray(x):
     return x
 
 
-def matrix_transform(data, fun):
+def to_array_or_matrix(x):
+    """Convert an array-like to a np.ndarray or scipy.sparse.spmatrix
+
+    Parameters
+    ----------
+    x : array-like
+        Array-like to be converted
+
+    Returns
+    -------
+    x : np.ndarray or scipy.sparse.spmatrix
+    """
+    if isinstance(x, pd.SparseDataFrame):
+        x = x.to_coo()
+    elif isinstance(x, pd.SparseSeries):
+        x = x.to_dense().values
+    elif isinstance(x, (pd.DataFrame, pd.Series)):
+        x = x.values
+    elif isinstance(x, np.matrix):
+        x = np.array(x)
+    elif isinstance(x, (sparse.spmatrix, np.ndarray, numbers.Number)):
+        pass
+    else:
+        raise TypeError("Expected pandas DataFrame, scipy sparse matrix or "
+                        "numpy matrix. Got {}".format(type(x)))
+    return x
+
+
+def matrix_transform(data, fun, *args, **kwargs):
     """Perform a numerical transformation to data
 
     Parameters
@@ -45,6 +73,8 @@ def matrix_transform(data, fun):
         Input data
     fun : callable
         Numerical transformation function, `np.ufunc` or similar.
+    args, kwargs : additional arguments, optional
+        arguments for `fun`. `data` is always passed as the first argument
 
     Returns
     -------
@@ -54,16 +84,16 @@ def matrix_transform(data, fun):
     if isinstance(data, pd.SparseDataFrame):
         data = data.copy()
         for col in data.columns:
-            data[col] = fun(data[col])
+            data[col] = fun(data[col], *args, **kwargs)
     elif sparse.issparse(data):
         if isinstance(data, (sparse.lil_matrix, sparse.dok_matrix)):
             data = data.tocsr()
         else:
             # avoid modifying in place
             data = data.copy()
-        data.data = fun(data.data)
+        data.data = fun(data.data, *args, **kwargs)
     else:
-        data = fun(data)
+        data = fun(data, *args, **kwargs)
     return data
 
 
