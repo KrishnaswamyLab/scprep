@@ -26,6 +26,9 @@
     - travis_wait 30 python setup.py test
     - cd doc; make html; cd ../..
 
+  after_success:
+    - cd python; coveralls
+
   deploy:
     provider: pypi
     user: scottgigante
@@ -36,6 +39,3 @@
     on:
       tags: true
       branch: master
-
-  after_success:
-    - cd python; coveralls; cd ..
