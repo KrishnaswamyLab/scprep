@@ -50,15 +50,25 @@ def pairwise_correlation(X, Y):
     """Pairwise Pearson correlation between columns of two matrices
 
     From https://stackoverflow.com/a/33651442/3996580
+
+    Parameters
+    ----------
+    X : array-like, shape=[n_samples, m_features]
+        Input data
+    Y : array-like, shape=[n_samples, p_features]
+        Input data
+
+    Returns
+    -------
+    cor : np.ndarray, shape=[m_features, p_features]
     """
     # Get number of rows in either X or Y
     N = X.shape[0]
     assert Y.shape[0] == N
     assert len(X.shape) <= 2
     assert len(Y.shape) <= 2
-    X = utils.to_array_or_matrix(X).reshape(N, -1)
-    Y = utils.to_array_or_matrix(Y).reshape(N, -1)
-    is_sparse = sparse.issparse(X) or sparse.issparse(Y)
+    X = utils.to_array_or_spmatrix(X).reshape(N, -1)
+    Y = utils.to_array_or_spmatrix(Y).reshape(N, -1)
     if sparse.issparse(X) and not sparse.issparse(Y):
         Y = sparse.csr_matrix(Y)
     if sparse.issparse(Y) and not sparse.issparse(X):
@@ -77,7 +87,7 @@ def pairwise_correlation(X, Y):
     # Finally compute Pearson Correlation Coefficient as 2D array
     cor = ((N_times_sum_xy - sum_x_times_sum_y) /
            np.sqrt(var_x * var_y[:, None]))
-    return cor
+    return cor.T
 
 
 def mutual_information(x, y, bins=8):

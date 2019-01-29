@@ -70,7 +70,7 @@ class Test10X(unittest.TestCase):
 
     def test_scatter_continuous(self):
         scprep.plot.scatter2d(self.X_pca, c=self.X_pca[:, 0],
-                              legend_title="test")
+                              legend_title="test", title="title test")
 
     def test_scatter_discrete(self):
         ax = scprep.plot.scatter2d(self.X_pca, c=np.random.choice(
@@ -260,6 +260,21 @@ class Test10X(unittest.TestCase):
         scprep.plot.scatter2d(self.X_pca, c=np.abs(self.X_pca[:, 0]) + 1e-7,
                               colorbar=True, cmap_scale='log')
 
+    def test_scatter_colorbar_log_constant_c(self):
+        assert_warns_message(
+            UserWarning,
+            "Cannot use non-linear `cmap_scale` with constant `c=blue`",
+            scprep.plot.scatter2d, self.X_pca, c='blue',
+            colorbar=True, cmap_scale='log')
+
+    def test_scatter_colorbar_log_discrete(self):
+        assert_warns_message(
+            UserWarning,
+            "Cannot use non-linear `cmap_scale` with discrete data.",
+            scprep.plot.scatter2d, self.X_pca,
+            c=np.random.choice(['hello', 'world'], self.X_pca.shape[0]),
+            colorbar=True, cmap_scale='log')
+
     def test_scatter_colorbar_log_negative(self):
         assert_raise_message(
             ValueError, "`vmin` must be positive for `cmap_scale='log'`. "
@@ -300,3 +315,13 @@ class Test10X(unittest.TestCase):
             UserWarning, "Cannot set `vmin` or `vmax` with constant `c=red`. "
             "Setting `vmin = vmax = None`.", scprep.plot.scatter3d,
             self.X_pca, c='red', vmin=1, vmax=2)
+
+    def test_generate_colorbar_vmin_vmax_none(self):
+        scprep.plot.generate_colorbar('inferno')
+
+    def test_generate_colorbar_vmin_none_vmax_given(self):
+        assert_raise_message(
+            ValueError,
+            "Either both or neither of `vmax` and `vmin` should be set. "
+            "Got `vmax=None, vmin=0`",
+            scprep.plot.generate_colorbar, 'inferno', vmin=0)

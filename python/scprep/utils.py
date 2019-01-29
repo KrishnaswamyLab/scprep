@@ -36,7 +36,7 @@ def toarray(x):
     return x
 
 
-def to_array_or_matrix(x):
+def to_array_or_spmatrix(x):
     """Convert an array-like to a np.ndarray or scipy.sparse.spmatrix
 
     Parameters
