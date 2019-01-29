@@ -637,9 +637,9 @@ def generate_colorbar(cmap, vmin=None, vmax=None, scale='linear', ax=None,
                            fontsize=title_fontsize, labelpad=labelpad)
     if remove_ticks:
         colorbar.set_ticks([])
-    else:
+    elif n_ticks != 'auto':
         tick_locator = ticker.MaxNLocator(
-            nbins=n_ticks if n_ticks == 'auto' else n_ticks - 1)
+            nbins=n_ticks - 1)
         colorbar.locator = tick_locator
         colorbar.update_ticks()
     return colorbar
