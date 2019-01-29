@@ -117,6 +117,92 @@ def test_combine_batches_errors():
         batch_labels=[0, 1])
 
 
+def test_select_rows():
+    X = data.load_10X()
+    # boolean array index
+    matrix.test_all_matrix_types(
+        X, scprep.utils.select_rows,
+        np.random.choice([True, False], [X.shape[0]]))
+    # integer array index
+    matrix.test_all_matrix_types(
+        X, scprep.utils.select_rows,
+        np.random.choice(X.shape[0], X.shape[0] // 2))
+    # integer list index
+    matrix.test_all_matrix_types(
+        X, scprep.utils.select_rows,
+        np.random.choice(X.shape[0], X.shape[0] // 2).tolist())
+    # integer index
+    matrix.test_all_matrix_types(
+        X, scprep.utils.select_rows,
+        np.random.choice(X.shape[0]))
+    # string array index
+    matrix.test_pandas_matrix_types(
+        X, scprep.utils.select_rows,
+        np.random.choice(X.index.values, X.shape[0] // 2))
+    # index index
+    matrix.test_pandas_matrix_types(
+        X, scprep.utils.select_rows,
+        X.index[np.random.choice([True, False], [X.shape[0]])])
+    # series index
+    matrix.test_pandas_matrix_types(
+        X, scprep.utils.select_rows,
+        pd.Series(X.index[np.random.choice([True, False], [X.shape[0]])]))
+    # dataframe index
+    matrix.test_all_matrix_types(
+        X, scprep.utils.select_rows,
+        pd.DataFrame(np.random.choice([True, False], [X.shape[0], 1]),
+                     index=X.index))
+    # series data
+    scprep.utils.select_rows(
+        X.iloc[:, 0], np.random.choice([True, False], [X.shape[0]]))
+    # 1D array data
+    scprep.utils.select_rows(
+        X.to_coo().toarray()[:, 0], np.random.choice([True, False], [X.shape[0]]))
+
+
+def test_select_cols():
+    X = data.load_10X()
+    # boolean array index
+    matrix.test_all_matrix_types(
+        X, scprep.utils.select_cols,
+        np.random.choice([True, False], [X.shape[1]]))
+    # integer array index
+    matrix.test_all_matrix_types(
+        X, scprep.utils.select_cols,
+        np.random.choice(X.shape[1], X.shape[1] // 2))
+    # integer list index
+    matrix.test_all_matrix_types(
+        X, scprep.utils.select_cols,
+        np.random.choice(X.shape[1], X.shape[1] // 2).tolist())
+    # integer index
+    matrix.test_all_matrix_types(
+        X, scprep.utils.select_cols,
+        np.random.choice(X.shape[1]))
+    # string array index
+    matrix.test_pandas_matrix_types(
+        X, scprep.utils.select_cols,
+        np.random.choice(X.columns.values, X.shape[1] // 2))
+    # index index
+    matrix.test_pandas_matrix_types(
+        X, scprep.utils.select_cols,
+        X.columns[np.random.choice([True, False], [X.shape[1]])])
+    # series index
+    matrix.test_pandas_matrix_types(
+        X, scprep.utils.select_cols,
+        pd.Series(X.columns[np.random.choice([True, False], [X.shape[1]])]))
+    # dataframe index
+    matrix.test_all_matrix_types(
+        X, scprep.utils.select_cols,
+        pd.DataFrame(np.random.choice([True, False], [1, X.shape[1]]),
+                     index=[1], columns=X.columns))
+    # series data
+    scprep.utils.select_cols(
+        X.iloc[0, :], np.random.choice([True, False], [X.shape[1]]))
+    # 1D array data
+    scprep.utils.select_cols(
+        X.to_coo().toarray()[0, :], np.random.choice([True, False], [X.shape[1]]))
+
+
 def test_select_error():
     X = data.load_10X()
     assert_raise_message(KeyError,
@@ -129,9 +215,6 @@ def test_select_error():
                          scprep.utils.select_cols,
                          X,
                          'not_a_gene')
-    scprep.utils.select_rows(
-        X, pd.DataFrame(np.random.choice([True, False], [X.shape[0], 1]),
-                        index=X.index))
     assert_raise_message(ValueError,
                          "Expected idx to be 1D. Got shape ",
                          scprep.utils.select_rows,
@@ -204,3 +287,48 @@ def test_matrix_sum():
                          scprep.utils.matrix_sum,
                          data,
                          5)
+
+
+def test_subsample():
+    X = data.generate_positive_sparse_matrix(shape=(50, 100))
+    Y = scprep.utils.subsample(X, n=20, seed=42)
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equals, Y=Y,
+        transform=scprep.utils.subsample,
+        check=utils.assert_all_equal, n=20, seed=42)
+    libsize = scprep.measure.library_size(X)
+    Y, libsize_sub = scprep.utils.subsample(X, libsize, n=20, seed=42)
+
+    def test_fun(X, **kwargs):
+        libsize = scprep.measure.library_size(X)
+        return scprep.utils.subsample(X, libsize, **kwargs)[0]
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equals, Y=Y,
+        transform=test_fun,
+        check=utils.assert_all_equal, n=20, seed=42)
+
+    def test_fun(X, **kwargs):
+        libsize = scprep.measure.library_size(X)
+        return scprep.utils.subsample(X, libsize, **kwargs)[1]
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equals, Y=libsize_sub,
+        transform=test_fun,
+        check=utils.assert_all_close, n=20, seed=42)
+
+
+def test_subsample_mismatch_size():
+    X = data.generate_positive_sparse_matrix(shape=(50, 100))
+    libsize = scprep.measure.library_size(X)[:20]
+    assert_raise_message(
+        ValueError,
+        "Expected data to have all the same number of samples. "
+        "Got (50, 20)",
+        scprep.utils.subsample, X, libsize, n=20)
+
+
+def test_subsample_n_too_large():
+    X = data.generate_positive_sparse_matrix(shape=(50, 100))
+    assert_raise_message(
+        ValueError,
+        "Expected n (60) < n_samples (50)",
+        scprep.utils.subsample, X, n=60)

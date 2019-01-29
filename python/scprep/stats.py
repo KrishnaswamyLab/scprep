@@ -4,7 +4,7 @@
 from __future__ import print_function, division
 import numbers
 import numpy as np
-from scipy import stats
+from scipy import stats, sparse
 from sklearn import neighbors, metrics
 from . import plot, utils
 import warnings
@@ -44,6 +44,50 @@ def EMD(x, y):
     """
     x, y = _vector_coerce_two_dense(x, y)
     return stats.wasserstein_distance(x, y)
+
+
+def pairwise_correlation(X, Y):
+    """Pairwise Pearson correlation between columns of two matrices
+
+    From https://stackoverflow.com/a/33651442/3996580
+
+    Parameters
+    ----------
+    X : array-like, shape=[n_samples, m_features]
+        Input data
+    Y : array-like, shape=[n_samples, p_features]
+        Input data
+
+    Returns
+    -------
+    cor : np.ndarray, shape=[m_features, p_features]
+    """
+    # Get number of rows in either X or Y
+    N = X.shape[0]
+    assert Y.shape[0] == N
+    assert len(X.shape) <= 2
+    assert len(Y.shape) <= 2
+    X = utils.to_array_or_spmatrix(X).reshape(N, -1)
+    Y = utils.to_array_or_spmatrix(Y).reshape(N, -1)
+    if sparse.issparse(X) and not sparse.issparse(Y):
+        Y = sparse.csr_matrix(Y)
+    if sparse.issparse(Y) and not sparse.issparse(X):
+        X = sparse.csr_matrix(X)
+    # Store columnw-wise in X and Y, as they would be used at few places
+    X_colsums = utils.matrix_sum(X, axis=0)
+    Y_colsums = utils.matrix_sum(Y, axis=0)
+    # Basically there are four parts in the formula. We would compute them
+    # one-by-one
+    N_times_sum_xy = utils.toarray(N * Y.T.dot(X))
+    sum_x_times_sum_y = X_colsums * Y_colsums[:, None]
+    var_x = N * utils.matrix_sum(utils.matrix_transform(X, np.power, 2),
+                                 axis=0) - (X_colsums**2)
+    var_y = N * utils.matrix_sum(utils.matrix_transform(Y, np.power, 2),
+                                 axis=0) - (Y_colsums**2)
+    # Finally compute Pearson Correlation Coefficient as 2D array
+    cor = ((N_times_sum_xy - sum_x_times_sum_y) /
+           np.sqrt(var_x * var_y[:, None]))
+    return cor.T
 
 
 def mutual_information(x, y, bins=8):
@@ -153,8 +197,14 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
     x, y = _vector_coerce_two_dense(x, y)
 
     if np.count_nonzero(x - x[0]) == 0 or np.count_nonzero(y - y[0]) == 0:
+        warnings.warn(
+            "Attempting to calculate kNN-DREMI on a constant array. Returning `0`",
+            UserWarning)
         # constant input: mutual information is numerically zero
-        return 0
+        if return_drevi:
+            return 0, None
+        else:
+            return 0
 
     if not isinstance(k, numbers.Integral):
         raise ValueError(
