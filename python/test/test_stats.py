@@ -8,6 +8,10 @@ from functools import partial
 import warnings
 
 
+def _test_fun_2d(X, fun, **kwargs):
+    return fun(scprep.utils.select_cols(X, 0), scprep.utils.select_cols(X, 1), **kwargs)
+
+
 def test_EMD():
     X = data.generate_positive_sparse_matrix(
         shape=(500, 2), seed=42, poisson_mean=5)
@@ -22,6 +26,38 @@ def test_EMD():
         ValueError, "Expected x and y to be 1D arrays. "
         "Got shapes x {}, y {}".format(X.shape, X[:, 1].shape),
         scprep.stats.EMD, X, X[:, 1])
+
+
+def test_pairwise_correlation():
+    def test_fun(X, *args, **kwargs):
+        return scprep.stats.pairwise_correlation(
+            X,
+            scprep.utils.select_cols(X, np.arange(10)),
+            *args, **kwargs)
+    D = data.generate_positive_sparse_matrix(
+        shape=(500, 100), seed=42, poisson_mean=5)
+    Y = test_fun(D)
+    assert Y.shape == (D.shape[1], 10)
+    assert np.allclose(Y[(np.arange(10), np.arange(10))], 1, atol=0)
+    matrix.test_all_matrix_types(
+        D, utils.assert_transform_equals, Y=Y,
+        transform=test_fun,
+        check=utils.assert_all_close)
+    matrix.test_all_matrix_types(
+        D, utils.assert_transform_equals, Y=Y,
+        transform=partial(scprep.stats.pairwise_correlation,
+                          Y=scprep.utils.select_cols(D, np.arange(10))),
+        check=utils.assert_all_close)
+
+    def test_fun(X, *args, **kwargs):
+        return scprep.stats.pairwise_correlation(
+            X=D,
+            Y=X,
+            *args, **kwargs)
+    matrix.test_all_matrix_types(
+        scprep.utils.select_cols(D, np.arange(10)),
+        utils.assert_transform_equals, Y=Y,
+        transform=test_fun, check=utils.assert_all_close)
 
 
 def shan_entropy(c):
@@ -85,7 +121,3 @@ def test_knnDREMI():
         "Attempting to calculate kNN-DREMI on a constant array. "
         "Returning `0`", scprep.stats.knnDREMI, X[:, 0],
         np.zeros_like(X[:, 1]))
-
-
-def _test_fun_2d(X, fun, **kwargs):
-    return fun(scprep.utils.select_cols(X, 0), scprep.utils.select_cols(X, 1), **kwargs)
