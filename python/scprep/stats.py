@@ -287,7 +287,7 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
         return dremi
 
 
-@plot._with_matplotlib
+@plot.utils._with_matplotlib
 def plot_knnDREMI(dremi, mutual_info, x, y, n_bins, n_mesh,
                   density, bin_density, drevi,
                   figsize=(12, 3.5), filename=None,
@@ -363,8 +363,7 @@ def plot_knnDREMI(dremi, mutual_info, x, y, n_bins, n_mesh,
     fig.tight_layout()
     if filename is not None:
         fig.savefig(filename, dpi=dpi)
-    if plot._mpl_is_gui_backend():
-        fig.show()
+    plot.utils.show(fig)
 
 
 def _vector_coerce_dense(x):

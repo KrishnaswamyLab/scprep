@@ -1,6 +1,6 @@
 import os
 import sys
-from setuptools import setup
+from setuptools import setup, find_packages
 
 install_requires = [
     'numpy>=1.10.0',
@@ -43,7 +43,7 @@ setup(name='scprep',
       description='scprep',
       author='Jay Stanley, Scott Gigante, and Daniel Burkhardt, Krishnaswamy Lab, Yale University',
       author_email='krishnaswamylab@gmail.com',
-      packages=['scprep', ],
+      packages=find_packages(),
       license='GNU General Public License Version 2',
       install_requires=install_requires,
       extras_require={'test': test_requires,

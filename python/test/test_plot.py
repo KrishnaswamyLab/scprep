@@ -317,11 +317,11 @@ class Test10X(unittest.TestCase):
             self.X_pca, c='red', vmin=1, vmax=2)
 
     def test_generate_colorbar_vmin_vmax_none(self):
-        scprep.plot.generate_colorbar('inferno')
+        scprep.plot.tools.generate_colorbar('inferno')
 
     def test_generate_colorbar_vmin_none_vmax_given(self):
         assert_raise_message(
             ValueError,
             "Either both or neither of `vmax` and `vmin` should be set. "
             "Got `vmax=None, vmin=0`",
-            scprep.plot.generate_colorbar, 'inferno', vmin=0)
+            scprep.plot.tools.generate_colorbar, 'inferno', vmin=0)
