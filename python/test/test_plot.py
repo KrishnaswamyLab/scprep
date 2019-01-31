@@ -238,11 +238,11 @@ class Test10X(unittest.TestCase):
             c=np.random.choice(['red', 'blue'],
                                self.X_pca.shape[0], replace=True))
         assert_warns_message(
-            UserWarning, "Cannot create a legend with `c=red`",
+            UserWarning, "Cannot create a legend with constant `c=red`",
             scprep.plot.scatter2d, self.X_pca, legend=True,
             c='red')
         assert_warns_message(
-            UserWarning, "Cannot create a legend with `c=None`",
+            UserWarning, "Cannot create a legend with constant `c=None`",
             scprep.plot.scatter2d, self.X_pca, legend=True,
             c=None)
 
@@ -295,7 +295,7 @@ class Test10X(unittest.TestCase):
         assert_raise_message(
             ValueError, "Received conflicting values for synonyms "
             "`legend=True` and `colorbar=False`",
-            scprep.plot.scatter2d, self.X_pca, c=self.X_pca[0, :],
+            scprep.plot.scatter2d, self.X_pca, c=self.X_pca[:, 0],
             legend=True, colorbar=False)
 
     def test_scatter_vmin_vmax(self):

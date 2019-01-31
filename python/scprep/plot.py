@@ -49,6 +49,10 @@ def _get_figure(ax=None, figsize=None, subplot_kw=None):
                                 "Got {}".format(type(ax)))
             else:
                 raise e
+        if 'projection' in subplot_kw:
+            if subplot_kw['projection'] == '3d' and not isinstance(ax, Axes3D):
+                raise TypeError("Expected ax with projection='3d'. "
+                                "Got 2D axis instead.")
         show_fig = False
     return fig, ax, show_fig
 
@@ -360,150 +364,324 @@ def _create_normalize(vmin, vmax, scale="linear"):
     return norm
 
 
-def _scatter_params_constant_c(c=None, vmin=None, vmax=None,
-                               cmap_scale='linear', legend=None):
-    # no legend
-    labels = None
-    if legend is True:
-        if _is_color_array(c):
-            warnings.warn(
-                "`c` is a color array and cannot be used to create a "
-                "legend. To interpret these values as labels instead, "
-                "provide a `cmap` dictionary with label-color pairs.",
-                UserWarning)
+class _ScatterParams(object):
+
+    def __init__(self, x, y, z=None, c=None, discrete=None,
+                 cmap=None, cmap_scale=None, vmin=None,
+                 vmax=None, s=None, legend=None, colorbar=None):
+        self._x = utils.toarray(x).flatten()
+        self._y = utils.toarray(y).flatten()
+        self._z = utils.toarray(z).flatten() if z is not None else None
+        self._c = c
+        self._discrete = discrete
+        self._cmap = cmap
+        self._cmap_scale = cmap_scale
+        self._vmin = vmin
+        self._vmax = vmax
+        self._s = s
+        self._legend = legend
+        self._colorbar = colorbar
+        self._labels = None
+        self._c_discrete = None
+        self.check_size()
+        self.check_c()
+        self.check_discrete()
+        self.check_legend()
+        self.check_cmap()
+        self.check_cmap_scale()
+        self.check_vmin_vmax()
+
+    @property
+    def size(self):
+        return len(self._x)
+
+    @property
+    def plot_idx(self):
+        try:
+            return self._plot_idx
+        except AttributeError:
+            self._plot_idx = np.random.permutation(self.size)
+            return self._plot_idx
+
+    @property
+    def x(self):
+        return self._x[self.plot_idx]
+
+    @property
+    def y(self):
+        return self._y[self.plot_idx]
+
+    @property
+    def z(self):
+        return self._z[self.plot_idx] if self._z is not None else None
+
+    @property
+    def data(self):
+        if self.z is not None:
+            return [self.x, self.y, self.z]
         else:
-            warnings.warn(
-                "Cannot create a legend with `c={}`".format(c),
-                UserWarning)
-    legend = False
-    if vmin is not None or vmax is not None:
-        warnings.warn(
-            "Cannot set `vmin` or `vmax` with constant `c={}`. "
-            "Setting `vmin = vmax = None`.".format(c),
-            UserWarning)
-        vmin = None
-        vmax = None
-    if cmap_scale != 'linear':
-        warnings.warn(
-            "Cannot use non-linear `cmap_scale` with constant "
-            "`c={}`.".format(c))
-    norm = None
-    return labels, legend, vmin, vmax, norm
+            return [self.x, self.y]
 
+    @property
+    def _data(self):
+        if self._z is not None:
+            return [self._x, self._y, self._z]
+        else:
+            return [self._x, self._y]
 
-def _scatter_params_discrete(c=None, cmap=None, cmap_scale='linear',
-                             vmin=None, vmax=None):
-    if vmin is not None or vmax is not None:
-        warnings.warn(
-            "Cannot set `vmin` or `vmax` with discrete data. "
-            "Setting to `None`.",
-            UserWarning)
-        vmin = None
-        vmax = None
-    c, labels = pd.factorize(c, sort=True)
-    # choose cmap if not given
-    if cmap is None and len(np.unique(c)) <= 10:
-        cmap = mpl.colors.ListedColormap(
-            mpl.cm.tab10.colors[:len(np.unique(c))])
-    elif cmap is None:
-        cmap = 'tab20'
-    if cmap_scale != 'linear':
-        warnings.warn(
-            "Cannot use non-linear `cmap_scale` with discrete data.")
-    norm = None
-    return c, labels, cmap, norm, vmin, vmax
+    @property
+    def s(self):
+        if self._s is not None:
+            return self._s
+        else:
+            return 200 / np.sqrt(self.size)
 
+    def constant_c(self):
+        return self._c is None or mpl.colors.is_color_like(self._c)
 
-def _scatter_params_continuous(c=None, cmap=None, cmap_scale='linear',
-                               vmin=None, vmax=None):
-    if not np.all([isinstance(x, numbers.Number) for x in c]):
-        raise ValueError(
-            "Cannot treat non-numeric data as continuous.")
-    labels = None
-    # choose cmap if not given
-    if cmap is None:
-        cmap = 'inferno'
-    # set vmin and vmax
-    if vmin is None:
-        vmin = np.min(c)
-    if vmax is None:
-        vmax = np.max(c)
-    norm = _create_normalize(vmin, vmax, cmap_scale)
-    return c, labels, cmap, norm, vmin, vmax
+    def array_c(self):
+        return _is_color_array(self._c)
 
-
-def _scatter_params(x, y, z=None, c=None, discrete=None,
-                    cmap=None, cmap_scale='linear', vmin=None, vmax=None, s=None, legend=None):
-    """Automatically select nice parameters for a scatter plot
-    """
-    # check data shape
-    if len(x) != len(y) or (z is not None and len(x) != len(z)):
-        raise ValueError(
-            "Expected all axes of data to have the same length"
-            ". Got {}".format([
-                len(d) for d in ([x, y, z] if z is not None else [x, y])]))
-    # set point size
-    if s is None:
-        s = 200 / np.sqrt(len(x))
-    # color vector
-    if c is None or mpl.colors.is_color_like(c) or _is_color_array(c):
-        labels, legend, vmin, vmax, norm = _scatter_params_constant_c(
-            c=c, vmin=vmin, vmax=vmax, cmap_scale=cmap_scale, legend=legend)
-    else:
-        if legend is None:
-            legend = True
-        # label/value color array
-        c = utils.toarray(c)
-        if not len(c) == len(x):
-            raise ValueError("Expected c of length {} or 1. Got {}".format(
-                len(x), len(c)))
-        # check discreteness
-        if discrete is None:
-            if isinstance(cmap, dict) or \
-                    not np.all([isinstance(x, numbers.Number) for x in c]):
-                # cmap dictionary or non-numeric values force discrete
-                discrete = True
+    @property
+    def discrete(self):
+        if self._discrete is not None:
+            return self._discrete
+        else:
+            if self.constant_c() or self.array_c():
+                return None
             else:
-                # guess based on number of unique elements
-                discrete = len(np.unique(c)) <= 20
-        if discrete:
-            c, labels, cmap, norm, vmin, vmax = _scatter_params_discrete(
-                c=c, cmap=cmap, cmap_scale=cmap_scale, vmin=vmin, vmax=vmax)
-        else:
-            c, labels, cmap, norm, vmin, vmax = _scatter_params_continuous(
-                c=c, cmap=cmap, cmap_scale=cmap_scale, vmin=vmin, vmax=vmax)
+                if isinstance(self._cmap, dict) or not \
+                    np.all([isinstance(x, numbers.Number)
+                            for x in self._c]):
+                    # cmap dictionary or non-numeric values force discrete
+                    return True
+                else:
+                    # guess based on number of unique elements
+                    return len(np.unique(self._c)) <= 20
 
-    if isinstance(cmap, dict):
-        # dictionary cmap
-        if c is None or mpl.colors.is_color_like(c):
-            raise ValueError("Expected list-like `c` with dictionary cmap. "
-                             "Got {}".format(type(c)))
-        elif not discrete:
-            raise ValueError("Cannot use dictionary cmap with "
-                             "continuous data.")
-        elif np.any([l not in cmap for l in labels]):
-            missing = set(labels).difference(cmap.keys())
-            raise ValueError(
-                "Dictionary cmap requires a color "
-                "for every unique entry in `c`. "
-                "Missing colors for [{}]".format(
-                    ", ".join([str(l) for l in missing])))
-        else:
-            cmap = mpl.colors.ListedColormap(
-                [mpl.colors.to_rgba(cmap[l]) for l in labels])
-    elif hasattr(cmap, '__len__') and not isinstance(cmap, str):
-        # list-like cmap
-        if c is None or mpl.colors.is_color_like(c):
-            raise ValueError("Expected list-like `c` with list cmap. "
-                             "Got {}".format(type(c)))
-        else:
-            cmap = create_colormap(cmap)
+    @property
+    def c_discrete(self):
+        if self._c_discrete is None:
+            self._c_discrete, self._labels = pd.factorize(self._c, sort=True)
+        return self._c_discrete
 
-    if z is not None:
-        subplot_kw = {'projection': '3d'}
-    else:
-        subplot_kw = {}
-    return c, labels, discrete, cmap, norm, vmin, vmax, s, legend, subplot_kw
+    @property
+    def c(self):
+        if self.constant_c() or self.array_c():
+            return self._c
+        elif self.discrete:
+            return self.c_discrete[self.plot_idx]
+        else:
+            return self._c[self.plot_idx]
+
+    @property
+    def labels(self):
+        if self.constant_c() or self.array_c():
+            return None
+        elif self.discrete:
+            # make sure this exists
+            self.c_discrete
+            return self._labels
+        else:
+            return self._c
+
+    @property
+    def legend(self):
+        if self._legend is not None:
+            return self._legend
+        else:
+            if self.constant_c() or self.array_c():
+                return False
+            else:
+                return True
+
+    @property
+    def vmin(self):
+        if self._vmin is not None:
+            return self._vmin
+        else:
+            if self.constant_c() or self.array_c() or self.discrete:
+                return None
+            else:
+                return np.min(self.c)
+
+    @property
+    def vmax(self):
+        if self._vmax is not None:
+            return self._vmax
+        else:
+            if self.constant_c() or self.array_c() or self.discrete:
+                return None
+            else:
+                return np.max(self.c)
+
+    def list_cmap(self):
+        return hasattr(self._cmap, '__len__') and \
+            not isinstance(self._cmap, (str, dict))
+
+    @property
+    def cmap(self):
+        if self._cmap is not None:
+            if isinstance(self._cmap, dict):
+                return mpl.colors.ListedColormap(
+                    [mpl.colors.to_rgba(self._cmap[l]) for l in self.labels])
+            elif self.list_cmap():
+                return create_colormap(self._cmap)
+            else:
+                return self._cmap
+        else:
+            if self.constant_c():
+                return None
+            elif self.discrete:
+                n_unique_colors = len(np.unique(self.c))
+                if n_unique_colors <= 10:
+                    return mpl.colors.ListedColormap(
+                        mpl.cm.tab10.colors[:n_unique_colors])
+                else:
+                    return 'tab20'
+            else:
+                return 'inferno'
+
+    @property
+    def cmap_scale(self):
+        if self._cmap_scale is not None:
+            return self._cmap_scale
+        else:
+            if self.discrete or not self.legend:
+                return None
+            else:
+                return 'linear'
+
+    @property
+    def norm(self):
+        if self.cmap_scale is not None and self.cmap_scale != 'linear':
+            return _create_normalize(self.vmin, self.vmax, self.cmap_scale)
+        else:
+            return None
+
+    @property
+    def extend(self):
+        if self.legend and not self.discrete:
+            # migrate this to _ScatterParams
+            extend_min = np.min(self.c) < self.vmin
+            extend_max = np.max(self.c) > self.vmax
+            if extend_min:
+                return 'both' if extend_max else 'min'
+            else:
+                return 'max' if extend_max else 'neither'
+        else:
+            return None
+
+    @property
+    def subplot_kw(self):
+        if self.z is not None:
+            return {'projection': '3d'}
+        else:
+            return {}
+
+    def check_vmin_vmax(self):
+        if self.constant_c():
+            if self._vmin is not None or self._vmax is not None:
+                warnings.warn(
+                    "Cannot set `vmin` or `vmax` with constant `c={}`. "
+                    "Setting `vmin = vmax = None`.".format(self.c),
+                    UserWarning)
+            self._vmin = None
+            self._vmax = None
+        elif self.discrete:
+            if self._vmin is not None or self._vmax is not None:
+                warnings.warn(
+                    "Cannot set `vmin` or `vmax` with discrete data. "
+                    "Setting to `None`.",
+                    UserWarning)
+            self._vmin = None
+            self._vmax = None
+
+    def check_legend(self):
+        # legend and colorbar are synonyms
+        if self._colorbar is not None:
+            if self._legend is not None and self._legend != self._colorbar:
+                raise ValueError(
+                    "Received conflicting values for synonyms "
+                    "`legend={}` and `colorbar={}`".format(
+                        self._legend, self._colorbar))
+            else:
+                self._legend = self._colorbar
+        if self._legend:
+            if self.array_c():
+                warnings.warn(
+                    "`c` is a color array and cannot be used to create a "
+                    "legend. To interpret these values as labels instead, "
+                    "provide a `cmap` dictionary with label-color pairs.",
+                    UserWarning)
+                self._legend = False
+            elif self.constant_c():
+                warnings.warn(
+                    "Cannot create a legend with constant `c={}`".format(
+                        self.c), UserWarning)
+                self._legend = False
+
+    def check_size(self):
+        # check data shape
+        for d in self._data:
+            if len(d) != self.size:
+                raise ValueError(
+                    "Expected all axes of data to have the same length"
+                    ". Got {}".format([len(d) for d in self._data]))
+
+    def check_c(self):
+        if not self.constant_c() or self.array_c():
+            self._c = utils.toarray(self._c)
+            if not len(self._c) == self.size:
+                raise ValueError("Expected c of length {} or 1. Got {}".format(
+                    self.size, len(self._c)))
+
+    def check_discrete(self):
+        if self._discrete is False:
+            if not np.all([isinstance(x, numbers.Number) for x in self._c]):
+                raise ValueError(
+                    "Cannot treat non-numeric data as continuous.")
+
+    def check_cmap(self):
+        if isinstance(self._cmap, dict):
+            # dictionary cmap
+            if self.constant_c() or self.array_c():
+                raise ValueError("Expected list-like `c` with dictionary cmap."
+                                 " Got {}".format(type(self._c)))
+            elif not self.discrete:
+                raise ValueError("Cannot use dictionary cmap with "
+                                 "continuous data.")
+            elif np.any([l not in self._cmap for l in self.labels]):
+                missing = set(self.labels).difference(self._cmap.keys())
+                raise ValueError(
+                    "Dictionary cmap requires a color "
+                    "for every unique entry in `c`. "
+                    "Missing colors for [{}]".format(
+                        ", ".join([str(l) for l in missing])))
+        elif self.list_cmap():
+            if self.constant_c() or self.array_c():
+                raise ValueError("Expected list-like `c` with list cmap. "
+                                 "Got {}".format(type(self._c)))
+
+    def check_cmap_scale(self):
+        if self._cmap_scale is not None and self._cmap_scale != 'linear':
+            if self.array_c():
+                warnings.warn(
+                    "Cannot use non-linear `cmap_scale` with "
+                    "`c` as a color array.",
+                    UserWarning)
+                self._cmap_scale = 'linear'
+            elif self.constant_c():
+                warnings.warn(
+                    "Cannot use non-linear `cmap_scale` with constant "
+                    "`c={}`.".format(self._c),
+                    UserWarning)
+                self._cmap_scale = 'linear'
+            elif self.discrete:
+                warnings.warn(
+                    "Cannot use non-linear `cmap_scale` with discrete data.",
+                    UserWarning)
+                self._cmap_scale = 'linear'
 
 
 @_with_matplotlib
@@ -791,37 +969,19 @@ def scatter(x, y, z=None,
     >>> scprep.plot.scatter(x=data[:, 0], y=data[:, 1], z=data[:, 2],
     ...                     c=colors, cmap={'a' : [1,0,0,1], 'b' : 'xkcd:sky blue'})
     """
-    # legend and colorbar are synonyms
-    if colorbar is not None:
-        if legend is not None and colorbar is not None and legend != colorbar:
-            raise ValueError(
-                "Received conflicting values for synonyms "
-                "`legend={}` and `colorbar={}`".format(legend, colorbar))
-        else:
-            legend = colorbar
-    # convert to 1D numpy arrays
-    x = utils.toarray(x).flatten()
-    y = utils.toarray(y).flatten()
-    if z is not None:
-        z = utils.toarray(z).flatten()
-        if ax is not None and not isinstance(ax, Axes3D):
-            raise TypeError("Expected ax with projection='3d'. "
-                            "Got 2D axis instead.")
-
-    c, labels, discrete, cmap, norm, vmin, vmax, s, legend, subplot_kw = _scatter_params(
+    params = _ScatterParams(
         x, y, z, c=c, discrete=discrete,
-        cmap=cmap, cmap_scale=cmap_scale, vmin=vmin, vmax=vmax, s=s, legend=legend)
+        cmap=cmap, cmap_scale=cmap_scale,
+        vmin=vmin, vmax=vmax, s=s,
+        legend=legend, colorbar=colorbar)
 
-    fig, ax, show_fig = _get_figure(ax, figsize, subplot_kw=subplot_kw)
+    fig, ax, show_fig = _get_figure(ax, figsize, subplot_kw=params.subplot_kw)
 
-    # randomize point order
-    plot_idx = np.random.permutation(len(x))
-    if c is not None and not mpl.colors.is_color_like(c):
-        c = c[plot_idx]
     # plot!
     sc = ax.scatter(
-        *[d[plot_idx] for d in ([x, y] if z is None else [x, y, z])],
-        c=c, cmap=cmap, norm=norm, s=s, vmin=vmin, vmax=vmax, **plot_kwargs)
+        *(params.data),
+        c=params.c, cmap=params.cmap, norm=params.norm, s=params.s,
+        vmin=params.vmin, vmax=params.vmax, **plot_kwargs)
 
     # automatic axis labels
     if label_prefix is not None:
@@ -842,21 +1002,16 @@ def scatter(x, y, z=None,
         ax.set_title(title)
 
     # generate legend
-    if legend:
-        if discrete:
-            generate_legend({labels[i]: sc.cmap(sc.norm(i))
-                             for i in range(len(labels))}, ax=ax,
+    if params.legend:
+        if params.discrete:
+            generate_legend({params.labels[i]: sc.cmap(sc.norm(i))
+                             for i in range(len(params.labels))}, ax=ax,
                             loc=legend_loc, bbox_to_anchor=legend_anchor,
                             title=legend_title)
         else:
-            extend_min = vmin is not None and np.min(c) < vmin
-            extend_max = vmax is not None and np.max(c) > vmax
-            if extend_min:
-                extend = 'both' if extend_max else 'min'
-            else:
-                extend = 'max' if extend_max else 'neither'
-            generate_colorbar(cmap, ax=ax, vmin=vmin, vmax=vmax,
-                              title=legend_title, extend=extend,
+            generate_colorbar(params.cmap, ax=ax,
+                              vmin=params.vmin, vmax=params.vmax,
+                              title=legend_title, extend=params.extend,
                               scale=sc.norm)
 
     # set viewpoint
