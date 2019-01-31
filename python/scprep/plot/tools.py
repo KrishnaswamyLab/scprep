@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 try:
     import matplotlib as mpl
     import matplotlib.pyplot as plt
@@ -39,7 +40,7 @@ def create_colormap(colors, name="scprep_custom_cmap"):
 
 
 @_with_matplotlib
-def create_normalize(vmin, vmax, scale="linear"):
+def create_normalize(vmin, vmax, scale=None):
     """Create a colormap normalizer
 
     Parameters
@@ -52,6 +53,8 @@ def create_normalize(vmin, vmax, scale="linear"):
     -------
     norm : `matplotlib.colors.Normalize`
     """
+    if scale is None:
+        scale = "linear"
     if scale == 'linear':
         norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
     elif scale == 'log':
@@ -129,7 +132,7 @@ def generate_legend(cmap, ax, title=None, marker='o', markersize=10,
 
 
 @_with_matplotlib
-def generate_colorbar(cmap, vmin=None, vmax=None, scale='linear', ax=None,
+def generate_colorbar(cmap=None, vmin=None, vmax=None, scale=None, ax=None,
                       title=None, title_fontsize=12, title_rotation=270,
                       n_ticks='auto', labelpad=0, mappable=None, **kwargs):
     """Generate a colorbar on an axis.
@@ -172,12 +175,17 @@ def generate_colorbar(cmap, vmin=None, vmax=None, scale='linear', ax=None,
     except TypeError:
         # not a list
         plot_axis = ax
+    fig, plot_axis, _ = _get_figure(plot_axis)
     if mappable is None:
         if vmax is None and vmin is None:
             vmax = 1
             vmin = 0
             remove_ticks = True
             norm = None
+            if n_ticks != 'auto':
+                warnings.warn(
+                    "Cannot set `n_ticks` without setting `vmin` and `vmax`.",
+                    UserWarning)
         elif vmax is None or vmin is None:
             raise ValueError(
                 "Either both or neither of `vmax` and `vmin` should "
@@ -185,7 +193,6 @@ def generate_colorbar(cmap, vmin=None, vmax=None, scale='linear', ax=None,
         else:
             remove_ticks = False
             norm = create_normalize(vmin, vmax, scale=scale)
-        fig, plot_axis, _ = _get_figure(plot_axis)
         if ax is None:
             ax = plot_axis
         xmin, xmax = plot_axis.get_xlim()
@@ -196,6 +203,19 @@ def generate_colorbar(cmap, vmin=None, vmax=None, scale='linear', ax=None,
             aspect='auto', origin='lower',
             extent=[xmin, xmax, ymin, ymax])
         mappable.remove()
+    else:
+        if vmin is not None or vmax is not None:
+            warnings.warn(
+                "Cannot set `vmin` or `vmax` when `mappable` is given.",
+                UserWarning)
+        if cmap is not None:
+            warnings.warn("Cannot set `cmap` when `mappable` is given.",
+                          UserWarning)
+        if scale is not None:
+            warnings.warn("Cannot set `scale` when `mappable` is given.",
+                          UserWarning)
+        remove_ticks = False
+
     colorbar = fig.colorbar(mappable, ax=ax, **kwargs)
     if title is not None:
         colorbar.set_label(title, rotation=title_rotation,

@@ -316,8 +316,37 @@ class Test10X(unittest.TestCase):
             "Setting `vmin = vmax = None`.", scprep.plot.scatter3d,
             self.X_pca, c='red', vmin=1, vmax=2)
 
+    def test_generate_colorbar_n_ticks(self):
+        cb = scprep.plot.tools.generate_colorbar('inferno', vmin=0, vmax=1,
+                                                 n_ticks=4)
+        assert len(cb.get_ticks()) == 4
+
     def test_generate_colorbar_vmin_vmax_none(self):
-        scprep.plot.tools.generate_colorbar('inferno')
+        cb = scprep.plot.tools.generate_colorbar('inferno')
+        assert_warns_message(
+            UserWarning,
+            "Cannot set `n_ticks` without setting `vmin` and `vmax`.",
+            scprep.plot.tools.generate_colorbar,
+            n_ticks=4)
+
+    def test_generate_colorbar_mappable(self):
+        im = plt.imshow([np.arange(10), np.arange(10)])
+        scprep.plot.tools.generate_colorbar(mappable=im)
+        assert_warns_message(
+            UserWarning,
+            "Cannot set `vmin` or `vmax` when `mappable` is given.",
+            scprep.plot.tools.generate_colorbar,
+            mappable=im, vmin=10, vmax=20)
+        assert_warns_message(
+            UserWarning,
+            "Cannot set `cmap` when `mappable` is given.",
+            scprep.plot.tools.generate_colorbar,
+            mappable=im, cmap='inferno')
+        assert_warns_message(
+            UserWarning,
+            "Cannot set `scale` when `mappable` is given.",
+            scprep.plot.tools.generate_colorbar,
+            mappable=im, scale='log')
 
     def test_generate_colorbar_vmin_none_vmax_given(self):
         assert_raise_message(
