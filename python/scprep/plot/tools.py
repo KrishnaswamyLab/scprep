@@ -6,7 +6,7 @@ try:
 except ImportError:
     pass
 
-from .utils import _with_matplotlib, _get_figure, parse_fontsize
+from .utils import _with_matplotlib, _get_figure, parse_fontsize, temp_fontsize
 
 
 @_with_matplotlib
@@ -135,8 +135,8 @@ def generate_legend(cmap, ax, title=None, marker='o', markersize=10,
 
 @_with_matplotlib
 def generate_colorbar(cmap=None, vmin=None, vmax=None, scale=None, ax=None,
-                      title=None, title_fontsize=None, title_rotation=270,
-                      n_ticks='auto', labelpad=None, mappable=None, **kwargs):
+                      title=None, title_rotation=270, fontsize=None,
+                      n_ticks='auto', labelpad=10, mappable=None, **kwargs):
     """Generate a colorbar on an axis.
 
     Parameters
@@ -153,14 +153,14 @@ def generate_colorbar(cmap=None, vmin=None, vmax=None, scale=None, ax=None,
         If `None`, uses the current axis
     title : str, optional (default: None)
         Title to display alongside colorbar
-    title_fontsize : int, optional (default: None)
-        Font size for colorbar title
     title_rotation : int, optional (default: 270)
         Angle of rotation of the colorbar title
+    fontsize : int, optional (default: None)
+        Base font size.
     n_ticks : int, optional (default: 'auto')
         Maximum number of ticks. If the string 'auto', the number of ticks will
         be automatically determined based on the length of the colorbar.
-    labelpad : scalar, optional, default: None
+    labelpad : scalar, optional, default: 10
         Spacing in points between the label and the x-axis.
     mappable : matplotlib.cm.ScalarMappable, optional (default: None)
         matplotlib mappable object (e.g. an axis image)
@@ -172,66 +172,68 @@ def generate_colorbar(cmap=None, vmin=None, vmax=None, scale=None, ax=None,
     -------
     colorbar : `matplotlib.colorbar.Colorbar`
     """
-    try:
-        plot_axis = ax[0]
-    except TypeError:
-        # not a list
-        plot_axis = ax
-    fig, plot_axis, _ = _get_figure(plot_axis)
-    if mappable is None:
-        if vmax is None and vmin is None:
-            vmax = 1
-            vmin = 0
-            remove_ticks = True
-            norm = None
-            if n_ticks != 'auto':
-                warnings.warn(
-                    "Cannot set `n_ticks` without setting `vmin` and `vmax`.",
-                    UserWarning)
-        elif vmax is None or vmin is None:
-            raise ValueError(
-                "Either both or neither of `vmax` and `vmin` should "
-                "be set. Got `vmax={}, vmin={}`".format(vmax, vmin))
+    with temp_fontsize(fontsize):
+        try:
+            plot_axis = ax[0]
+        except TypeError:
+            # not a list
+            plot_axis = ax
+        fig, plot_axis, _ = _get_figure(plot_axis)
+        if mappable is None:
+            if vmax is None and vmin is None:
+                vmax = 1
+                vmin = 0
+                remove_ticks = True
+                norm = None
+                if n_ticks != 'auto':
+                    warnings.warn(
+                        "Cannot set `n_ticks` without setting `vmin` and `vmax`.",
+                        UserWarning)
+            elif vmax is None or vmin is None:
+                raise ValueError(
+                    "Either both or neither of `vmax` and `vmin` should "
+                    "be set. Got `vmax={}, vmin={}`".format(vmax, vmin))
+            else:
+                remove_ticks = False
+                norm = create_normalize(vmin, vmax, scale=scale)
+            if ax is None:
+                ax = plot_axis
+            xmin, xmax = plot_axis.get_xlim()
+            ymin, ymax = plot_axis.get_ylim()
+            mappable = plot_axis.imshow(
+                np.linspace(vmin, vmax, 10).reshape(-1, 1),
+                vmin=vmin, vmax=vmax, cmap=cmap, norm=norm,
+                aspect='auto', origin='lower',
+                extent=[xmin, xmax, ymin, ymax])
+            mappable.remove()
         else:
+            if vmin is not None or vmax is not None:
+                warnings.warn(
+                    "Cannot set `vmin` or `vmax` when `mappable` is given.",
+                    UserWarning)
+            if cmap is not None:
+                warnings.warn("Cannot set `cmap` when `mappable` is given.",
+                              UserWarning)
+            if scale is not None:
+                warnings.warn("Cannot set `scale` when `mappable` is given.",
+                              UserWarning)
             remove_ticks = False
-            norm = create_normalize(vmin, vmax, scale=scale)
-        if ax is None:
-            ax = plot_axis
-        xmin, xmax = plot_axis.get_xlim()
-        ymin, ymax = plot_axis.get_ylim()
-        mappable = plot_axis.imshow(
-            np.linspace(vmin, vmax, 10).reshape(-1, 1),
-            vmin=vmin, vmax=vmax, cmap=cmap, norm=norm,
-            aspect='auto', origin='lower',
-            extent=[xmin, xmax, ymin, ymax])
-        mappable.remove()
-    else:
-        if vmin is not None or vmax is not None:
-            warnings.warn(
-                "Cannot set `vmin` or `vmax` when `mappable` is given.",
-                UserWarning)
-        if cmap is not None:
-            warnings.warn("Cannot set `cmap` when `mappable` is given.",
-                          UserWarning)
-        if scale is not None:
-            warnings.warn("Cannot set `scale` when `mappable` is given.",
-                          UserWarning)
-        remove_ticks = False
 
-    colorbar = fig.colorbar(mappable, ax=ax, **kwargs)
-    if title is not None:
-        title_fontsize = parse_fontsize(title_fontsize, 'x-large')
-        colorbar.set_label(title, rotation=title_rotation,
-                           fontsize=title_fontsize, labelpad=labelpad)
-    if remove_ticks:
-        colorbar.set_ticks([])
-    else:
-        if n_ticks != 'auto':
-            tick_locator = mpl.ticker.MaxNLocator(
-                nbins=n_ticks - 1)
-            colorbar.locator = tick_locator
-            colorbar.update_ticks()
-        colorbar.ax.tick_params(labelsize=parse_fontsize(None, 'large'))
+        colorbar = fig.colorbar(mappable, ax=ax, **kwargs)
+        if remove_ticks or n_ticks == 0:
+            colorbar.set_ticks([])
+            labelpad += plt.rcParams['font.size']
+        else:
+            if n_ticks != 'auto':
+                tick_locator = mpl.ticker.MaxNLocator(
+                    nbins=n_ticks - 1)
+                colorbar.locator = tick_locator
+                colorbar.update_ticks()
+            colorbar.ax.tick_params(labelsize=parse_fontsize(None, 'large'))
+        if title is not None:
+            title_fontsize = parse_fontsize(None, 'x-large')
+            colorbar.set_label(title, rotation=title_rotation,
+                               fontsize=title_fontsize, labelpad=labelpad)
     return colorbar
 
 

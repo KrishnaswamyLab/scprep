@@ -23,7 +23,7 @@
 
   script:
     - cd python; pip install -U .[test,doc]
-    - travis_wait 30 python setup.py test
+    - python setup.py test
     - cd doc; make html; cd ../..
 
   after_success:
