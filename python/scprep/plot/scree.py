@@ -1,7 +1,8 @@
 import numpy as np
 
 from .utils import (_with_matplotlib, _get_figure, show,
-                    temp_fontsize, label_axis)
+                    temp_fontsize)
+from .tools import label_axis
 
 
 @_with_matplotlib

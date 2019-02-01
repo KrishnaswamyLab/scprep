@@ -2,7 +2,8 @@ import numpy as np
 
 from .. import measure
 from .utils import (_with_matplotlib, _get_figure, show,
-                    temp_fontsize, label_axis)
+                    temp_fontsize)
+from .tools import label_axis
 
 
 @_with_matplotlib
