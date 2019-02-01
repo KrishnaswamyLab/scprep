@@ -86,3 +86,58 @@ def show(fig):
             plt.show(block=True)
         else:
             fig.show()
+
+
+def _is_default_matplotlibrc():
+    __defaults = {
+        'axes.labelsize': 'medium',
+        'axes.titlesize': 'large',
+        'figure.titlesize': 'large',
+        'legend.fontsize': 'medium',
+        'legend.title_fontsize': None,
+        'xtick.labelsize': 'medium',
+        'ytick.labelsize': 'medium'
+    }
+    for k, v in __defaults.items():
+        if plt.rcParams[k] != v:
+            return False
+    return True
+
+
+def parse_fontsize(size=None, default=None):
+    """Parse the user's input font size
+
+    Returns `size` if explicitly set by user,
+    `default` if not set by user and the user's matplotlibrc is also default,
+    or `None` otherwise (falling back to mpl defaults)
+
+    Parameters
+    ----------
+    size
+        Fontsize explicitly set by user
+    default
+        Desired default font size in
+        xx-small, x-small, small, medium, large, x-large, xx-large,
+        larger, smaller
+    """
+    if size is not None:
+        return size
+    elif _is_default_matplotlibrc():
+        return default
+    else:
+        return None
+
+
+class temp_fontsize(object):
+
+    def __init__(self, size=None):
+        if size is None:
+            size = plt.rcParams['font.size']
+        self.size = size
+
+    def __enter__(self):
+        self.old_size = plt.rcParams['font.size']
+        plt.rcParams['font.size'] = self.size
+
+    def __exit__(self, type, value, traceback):
+        plt.rcParams['font.size'] = self.old_size

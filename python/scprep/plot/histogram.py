@@ -1,7 +1,8 @@
 import numpy as np
 
 from .. import measure
-from .utils import _with_matplotlib, _get_figure, show
+from .utils import (_with_matplotlib, _get_figure, show,
+                    temp_fontsize, label_axis)
 
 
 @_with_matplotlib
@@ -11,6 +12,7 @@ def histogram(data,
               ax=None, figsize=None,
               xlabel=None,
               ylabel='Number of cells',
+              fontsize=None,
               **kwargs):
     """Plot a histogram.
 
@@ -36,6 +38,8 @@ def histogram(data,
         If not None, sets the figure size (width, height)
     [x,y]label : str, optional
         Labels to display on the x and y axis.
+    fontsize : float or None (default: None)
+        Base font size.
     **kwargs : additional arguments for `matplotlib.pyplot.hist`
 
     Returns
@@ -43,29 +47,28 @@ def histogram(data,
     ax : `matplotlib.Axes`
         axis on which plot was drawn
     """
-    fig, ax, show_fig = _get_figure(ax, figsize)
-    if log == 'x' or log is True:
-        bins = np.logspace(np.log10(max(np.min(data), 1)),
-                           np.log10(np.max(data)),
-                           bins)
-    ax.hist(data, bins=bins, **kwargs)
+    with temp_fontsize(fontsize):
+        fig, ax, show_fig = _get_figure(ax, figsize)
+        if log == 'x' or log is True:
+            bins = np.logspace(np.log10(max(np.min(data), 1)),
+                               np.log10(np.max(data)),
+                               bins)
+        ax.hist(data, bins=bins, **kwargs)
 
-    if log == 'x' or log is True:
-        ax.set_xscale('log')
-    if log == 'y' or log is True:
-        ax.set_yscale('log')
+        if log == 'x' or log is True:
+            ax.set_xscale('log')
+        if log == 'y' or log is True:
+            ax.set_yscale('log')
 
-    if xlabel is not None:
-        ax.set_xlabel(xlabel)
-    if ylabel is not None:
-        ax.set_ylabel(ylabel)
+        label_axis(ax.xaxis, label=xlabel)
+        label_axis(ax.yaxis, label=ylabel)
 
-    cutoff = measure._get_percentile_cutoff(
-        data, cutoff, percentile, required=False)
-    if cutoff is not None:
-        ax.axvline(cutoff, color='red')
-    if show_fig:
-        show(fig)
+        cutoff = measure._get_percentile_cutoff(
+            data, cutoff, percentile, required=False)
+        if cutoff is not None:
+            ax.axvline(cutoff, color='red')
+        if show_fig:
+            show(fig)
     return ax
 
 

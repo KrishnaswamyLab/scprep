@@ -10,8 +10,10 @@ except ImportError:
     pass
 
 from .. import utils
-from .utils import _get_figure, _with_matplotlib, _is_color_array, show, _in_ipynb
-from .tools import create_colormap, create_normalize, label_axis, generate_colorbar, generate_legend
+from .utils import (_get_figure, _with_matplotlib, _is_color_array,
+                    show, _in_ipynb, parse_fontsize, temp_fontsize)
+from .tools import (create_colormap, create_normalize,
+                    label_axis, generate_colorbar, generate_legend)
 
 
 class _ScatterParams(object):
@@ -281,7 +283,7 @@ class _ScatterParams(object):
 
     def check_c(self):
         if not self.constant_c() or self.array_c():
-            self._c = utils.toarray(self._c)
+            self._c = utils.toarray(self._c).flatten()
             if not len(self._c) == self.size:
                 raise ValueError("Expected c of length {} or 1. Got {}".format(
                     self.size, len(self._c)))
@@ -351,6 +353,7 @@ def scatter(x, y, z=None,
             ylabel=None,
             zlabel=None,
             title=None,
+            fontsize=None,
             legend_title=None,
             legend_loc='best',
             legend_anchor=None,
@@ -419,6 +422,8 @@ def scatter(x, y, z=None,
         label_prefix. If None and label_prefix is None, no label is set.
     title : str or None (default: None)
         axis title. If None, no title is set.
+    fontsize : float or None (default: None)
+        Base font size.
     legend_title : str (default: None)
         title for the colorbar of legend
     legend_loc : int or string or pair of floats, default: 'best'
@@ -465,60 +470,62 @@ def scatter(x, y, z=None,
     >>> scprep.plot.scatter(x=data[:, 0], y=data[:, 1], z=data[:, 2],
     ...                     c=colors, cmap={'a' : [1,0,0,1], 'b' : 'xkcd:sky blue'})
     """
-    params = _ScatterParams(
-        x, y, z, c=c, discrete=discrete,
-        cmap=cmap, cmap_scale=cmap_scale,
-        vmin=vmin, vmax=vmax, s=s,
-        legend=legend, colorbar=colorbar)
+    with temp_fontsize(fontsize):
+        params = _ScatterParams(
+            x, y, z, c=c, discrete=discrete,
+            cmap=cmap, cmap_scale=cmap_scale,
+            vmin=vmin, vmax=vmax, s=s,
+            legend=legend, colorbar=colorbar)
 
-    fig, ax, show_fig = _get_figure(ax, figsize, subplot_kw=params.subplot_kw)
+        fig, ax, show_fig = _get_figure(
+            ax, figsize, subplot_kw=params.subplot_kw)
 
-    # plot!
-    sc = ax.scatter(
-        *(params.data),
-        c=params.c, cmap=params.cmap, norm=params.norm, s=params.s,
-        vmin=params.vmin, vmax=params.vmax, **plot_kwargs)
+        # plot!
+        sc = ax.scatter(
+            *(params.data),
+            c=params.c, cmap=params.cmap, norm=params.norm, s=params.s,
+            vmin=params.vmin, vmax=params.vmax, **plot_kwargs)
 
-    # automatic axis labels
-    if label_prefix is not None:
-        if xlabel is None:
-            xlabel = label_prefix + "1"
-        if ylabel is None:
-            ylabel = label_prefix + "2"
-        if zlabel is None:
-            zlabel = label_prefix + "3"
+        # automatic axis labels
+        if label_prefix is not None:
+            if xlabel is None:
+                xlabel = label_prefix + "1"
+            if ylabel is None:
+                ylabel = label_prefix + "2"
+            if zlabel is None:
+                zlabel = label_prefix + "3"
 
-    # label axes
-    label_axis(ax.xaxis, xticks, xticklabels, xlabel)
-    label_axis(ax.yaxis, yticks, yticklabels, ylabel)
-    if z is not None:
-        label_axis(ax.zaxis, zticks, zticklabels, zlabel)
+        # label axes
+        label_axis(ax.xaxis, xticks, xticklabels, xlabel)
+        label_axis(ax.yaxis, yticks, yticklabels, ylabel)
+        if z is not None:
+            label_axis(ax.zaxis, zticks, zticklabels, zlabel)
 
-    if title is not None:
-        ax.set_title(title)
+        if title is not None:
+            ax.set_title(title, fontsize=parse_fontsize(None, 'xx-large'))
 
-    # generate legend
-    if params.legend:
-        if params.discrete:
-            generate_legend({params.labels[i]: sc.cmap(sc.norm(i))
-                             for i in range(len(params.labels))}, ax=ax,
-                            loc=legend_loc, bbox_to_anchor=legend_anchor,
-                            title=legend_title)
-        else:
-            generate_colorbar(params.cmap, ax=ax,
-                              vmin=params.vmin, vmax=params.vmax,
-                              title=legend_title, extend=params.extend,
-                              scale=sc.norm)
+        # generate legend
+        if params.legend:
+            if params.discrete:
+                generate_legend({params.labels[i]: sc.cmap(sc.norm(i))
+                                 for i in range(len(params.labels))}, ax=ax,
+                                loc=legend_loc, bbox_to_anchor=legend_anchor,
+                                title=legend_title)
+            else:
+                generate_colorbar(params.cmap, ax=ax,
+                                  vmin=params.vmin, vmax=params.vmax,
+                                  title=legend_title, extend=params.extend,
+                                  scale=sc.norm)
 
-    # set viewpoint
-    if z is not None:
-        ax.view_init(elev=elev, azim=azim)
+        # set viewpoint
+        if z is not None:
+            ax.view_init(elev=elev, azim=azim)
 
-    # save and show
-    if filename is not None:
-        fig.savefig(filename, dpi=dpi)
-    if show_fig:
-        show(fig)
+        # save and show
+        if filename is not None:
+            fig.savefig(filename, dpi=dpi)
+        if show_fig:
+            show(fig)
     return ax
 
 
@@ -534,6 +541,7 @@ def scatter2d(data,
               xlabel=None,
               ylabel=None,
               title=None,
+              fontsize=None,
               legend_title=None,
               legend_loc='best',
               legend_anchor=None,
@@ -595,6 +603,8 @@ def scatter2d(data,
         label_prefix. If None and label_prefix is None, no label is set.
     title : str or None (default: None)
         axis title. If None, no title is set.
+    fontsize : float or None (default: None)
+        Base font size.
     legend_title : str (default: None)
         title for the colorbar of legend
     legend_loc : int or string or pair of floats, default: 'best'
@@ -648,6 +658,7 @@ def scatter2d(data,
                    xlabel=xlabel,
                    ylabel=ylabel,
                    title=title,
+                   fontsize=fontsize,
                    legend_title=legend_title,
                    legend_loc=legend_loc,
                    legend_anchor=legend_anchor,
@@ -671,6 +682,7 @@ def scatter3d(data,
               ylabel=None,
               zlabel=None,
               title=None,
+              fontsize=None,
               legend_title=None,
               legend_loc='best',
               legend_anchor=None,
@@ -733,6 +745,8 @@ def scatter3d(data,
         label_prefix. If None and label_prefix is None, no label is set.
     title : str or None (default: None)
         axis title. If None, no title is set.
+    fontsize : float or None (default: None)
+        Base font size.
     legend_title : str (default: None)
         title for the colorbar of legend
     legend_loc : int or string or pair of floats, default: 'best'
@@ -794,6 +808,7 @@ def scatter3d(data,
                    ylabel=ylabel,
                    zlabel=zlabel,
                    title=title,
+                   fontsize=fontsize,
                    legend_title=legend_title,
                    legend_loc=legend_loc,
                    legend_anchor=legend_anchor,

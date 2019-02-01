@@ -6,7 +6,7 @@ try:
 except ImportError:
     pass
 
-from .utils import _with_matplotlib, _get_figure
+from .utils import _with_matplotlib, _get_figure, parse_fontsize
 
 
 @_with_matplotlib
@@ -79,7 +79,7 @@ def create_normalize(vmin, vmax, scale=None):
 @_with_matplotlib
 def generate_legend(cmap, ax, title=None, marker='o', markersize=10,
                     loc='best', bbox_to_anchor=None,
-                    fontsize=14, title_fontsize=14,
+                    fontsize=None, title_fontsize=None,
                     max_rows=10, ncol=None, **kwargs):
     """Generate a legend on an axis.
 
@@ -103,9 +103,9 @@ def generate_legend(cmap, ax, title=None, marker='o', markersize=10,
         Box that is used to position the legend in conjunction with loc.
         See <https://matplotlib.org/api/_as_gen/matplotlib.pyplot.legend.html>
         for details.
-    fontsize : int, optional (default: 14)
+    fontsize : int, optional (default: None)
         Font size for legend labels
-    title_fontsize : int, optional (default: 14)
+    title_fontsize : int, optional (default: None)
         Font size for legend title
     max_rows : int, optional (default: 10)
         Maximum number of labels in a column before overflowing to
@@ -118,6 +118,8 @@ def generate_legend(cmap, ax, title=None, marker='o', markersize=10,
     -------
     legend : `matplotlib.legend.Legend`
     """
+    fontsize = parse_fontsize(fontsize, 'large')
+    title_fontsize = parse_fontsize(title_fontsize, 'x-large')
     handles = [mpl.lines.Line2D([], [], marker=marker, color=color,
                                 linewidth=0, label=label,
                                 markersize=markersize)
@@ -133,8 +135,8 @@ def generate_legend(cmap, ax, title=None, marker='o', markersize=10,
 
 @_with_matplotlib
 def generate_colorbar(cmap=None, vmin=None, vmax=None, scale=None, ax=None,
-                      title=None, title_fontsize=12, title_rotation=270,
-                      n_ticks='auto', labelpad=0, mappable=None, **kwargs):
+                      title=None, title_fontsize=None, title_rotation=270,
+                      n_ticks='auto', labelpad=None, mappable=None, **kwargs):
     """Generate a colorbar on an axis.
 
     Parameters
@@ -151,7 +153,7 @@ def generate_colorbar(cmap=None, vmin=None, vmax=None, scale=None, ax=None,
         If `None`, uses the current axis
     title : str, optional (default: None)
         Title to display alongside colorbar
-    title_fontsize : int, optional (default: 14)
+    title_fontsize : int, optional (default: None)
         Font size for colorbar title
     title_rotation : int, optional (default: 270)
         Angle of rotation of the colorbar title
@@ -218,19 +220,23 @@ def generate_colorbar(cmap=None, vmin=None, vmax=None, scale=None, ax=None,
 
     colorbar = fig.colorbar(mappable, ax=ax, **kwargs)
     if title is not None:
+        title_fontsize = parse_fontsize(title_fontsize, 'x-large')
         colorbar.set_label(title, rotation=title_rotation,
                            fontsize=title_fontsize, labelpad=labelpad)
     if remove_ticks:
         colorbar.set_ticks([])
-    elif n_ticks != 'auto':
-        tick_locator = mpl.ticker.MaxNLocator(
-            nbins=n_ticks - 1)
-        colorbar.locator = tick_locator
-        colorbar.update_ticks()
+    else:
+        if n_ticks != 'auto':
+            tick_locator = mpl.ticker.MaxNLocator(
+                nbins=n_ticks - 1)
+            colorbar.locator = tick_locator
+            colorbar.update_ticks()
+        colorbar.ax.tick_params(labelsize=parse_fontsize(None, 'large'))
     return colorbar
 
 
-def label_axis(axis, ticks=True, ticklabels=True, label=None):
+def label_axis(axis, ticks=True, ticklabels=True, label=None,
+               label_fontsize=None, tick_fontsize=None):
     """Set axis ticks and labels
 
     Parameters
@@ -247,7 +253,13 @@ def label_axis(axis, ticks=True, ticklabels=True, label=None):
         If a list, sets custom axis tick labels
     label : str or None (default : None)
         Axis labels. If None, no label is set.
+    label_fontsize : str or None (default: None)
+        Axis label font size.
+    tick_fontsize : str or None (default: None)
+        Axis tick label font size.
     """
+    tick_fontsize = parse_fontsize(tick_fontsize, 'large')
+    label_fontsize = parse_fontsize(label_fontsize, 'x-large')
     if not ticks:
         axis.set_ticks([])
     elif ticks is True:
@@ -257,8 +269,8 @@ def label_axis(axis, ticks=True, ticklabels=True, label=None):
     if not ticklabels:
         axis.set_ticklabels([])
     elif ticklabels is True:
-        pass
+        axis.set_tick_params(labelsize=tick_fontsize)
     else:
-        axis.set_ticklabels(ticklabels)
+        axis.set_ticklabels(ticklabels, fontsize=tick_fontsize)
     if label is not None:
-        axis.set_label_text(label)
+        axis.set_label_text(label, fontsize=label_fontsize)

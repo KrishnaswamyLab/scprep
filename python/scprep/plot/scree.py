@@ -1,11 +1,13 @@
 import numpy as np
 
-from .utils import _with_matplotlib, _get_figure, show
+from .utils import (_with_matplotlib, _get_figure, show,
+                    temp_fontsize, label_axis)
 
 
 @_with_matplotlib
 def scree_plot(singular_values, cumulative=False, ax=None, figsize=None,
                xlabel='Principal Component', ylabel='Explained Variance (%)',
+               fontsize=None,
                **kwargs):
     """Plot the explained variance of each principal component
 
@@ -21,6 +23,8 @@ def scree_plot(singular_values, cumulative=False, ax=None, figsize=None,
         If not None, sets the figure size (width, height)
     {x,y}label : str, optional
         Labels to display on the x and y axis.
+    fontsize : float or None (default: None)
+        Base font size.
     **kwargs : additional arguments for `matplotlib.pyplot.plot`
 
     Returns
@@ -37,14 +41,16 @@ def scree_plot(singular_values, cumulative=False, ax=None, figsize=None,
     >>> scprep.plot.scree_plot(singular_values)
     >>> scprep.plot.scree_plot(singular_values, cumulative=True)
     """
-    explained_variance = singular_values ** 2
-    explained_variance = explained_variance / explained_variance.sum()
-    if cumulative:
-        explained_variance = np.cumsum(explained_variance)
-    fig, ax, show_fig = _get_figure(ax, figsize)
-    ax.plot(np.arange(len(explained_variance)), explained_variance, **kwargs)
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
-    if show_fig:
-        show(fig)
+    with temp_fontsize(fontsize):
+        explained_variance = singular_values ** 2
+        explained_variance = explained_variance / explained_variance.sum()
+        if cumulative:
+            explained_variance = np.cumsum(explained_variance)
+        fig, ax, show_fig = _get_figure(ax, figsize)
+        ax.plot(np.arange(len(explained_variance)),
+                explained_variance, **kwargs)
+        label_axis(ax.xaxis, label=xlabel)
+        label_axis(ax.yaxis, label=ylabel)
+        if show_fig:
+            show(fig)
     return ax
