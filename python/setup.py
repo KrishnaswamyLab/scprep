@@ -7,7 +7,7 @@ install_requires = [
     'scipy>=0.18.0',
     'scikit-learn>=0.19.1',
     'future',
-    'pandas!=0.24.0.*',
+    'pandas>=0.19.0,<0.24',
     'decorator',
 ]
 
