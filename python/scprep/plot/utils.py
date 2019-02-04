@@ -141,3 +141,32 @@ class temp_fontsize(object):
 
     def __exit__(self, type, value, traceback):
         plt.rcParams['font.size'] = self.old_size
+
+def shift_ticklabels(fig, ax, axis='x', dx=0.1, dy=0):
+    import matplotlib as mpl
+    ''' Shifts ticklabels on axis by dx and dy'''
+    # Create offset transform by 5 points in x direction
+    offset = mpl.transforms.ScaledTranslation(dx, dy, fig.dpi_scale_trans)
+
+    # apply offset transform to all ticklabels.
+    if axis == 'x':
+        for label in ax.xaxis.get_majorticklabels():
+            label.set_transform(label.get_transform() + offset)
+    elif axis == 'y':
+        for label in ax.yaxis.get_majorticklabels():
+            label.set_transform(label.get_transform() + offset)
+    else:
+        raise ValueError('`axis` must be `x` or `y`.')
+
+def style_phate(ax):
+    '''Removes ticks from `ax` and adds PHATE labels.'''
+    import matplotlib as mpl
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_xlabel('PHATE 1')
+    ax.set_ylabel('PHATE 2')
+    if hasattr(ax, 'get_zlim'):
+        ax.set_zticks([])
+        ax.set_zlabel('PHATE 3')
+
+    return ax
