@@ -354,3 +354,25 @@ class Test10X(unittest.TestCase):
             "Either both or neither of `vmax` and `vmin` should be set. "
             "Got `vmax=None, vmin=0`",
             scprep.plot.tools.generate_colorbar, 'inferno', vmin=0)
+
+    def test_marker_plot_should_work(self):
+        scprep.plot.marker_plot(
+        data=self.X,
+        clusters=np.random.choice(np.arange(10), replace=True, size=self.X.shape[0]),
+        gene_names=self.X.columns,
+        markers={'tissue':[self.X.columns[0]]})
+
+    def test_marker_plot_bad_gene_names(self):
+        assert_raise_message(
+        ValueError,
+        'All genes in `markers` must appear '
+        'in gene_names. Did not find: {}'.format('z'),
+        scprep.plot.marker_plot,
+        data=self.X,
+        clusters=np.random.choice(np.arange(10), replace=True, size=self.X.shape[0]),
+        gene_names=self.X.columns,
+        markers={'tissue':['z']})
+
+    def test_style_phate(self):
+        fig, ax = plt.subplots(1)
+        scprep.plot.utils.style_phate(ax)
