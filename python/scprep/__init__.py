@@ -3,6 +3,7 @@
 
 from .version import __version__
 import scprep.io
+import scprep.select
 import scprep.filter
 import scprep.normalize
 import scprep.transform

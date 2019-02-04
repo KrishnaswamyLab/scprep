@@ -15,95 +15,96 @@ class Test10X(unittest.TestCase):
         self.X_dense = data.load_10X(sparse=False)
         self.X_sparse = data.load_10X(sparse=True)
 
-    def test_remove_empty_cells(self):
-        X_filtered = scprep.filter.remove_empty_cells(self.X_dense)
+    def test_filter_empty_cells(self):
+        X_filtered = scprep.filter.filter_empty_cells(self.X_dense)
         assert X_filtered.shape[1] == self.X_dense.shape[1]
         assert not np.any(X_filtered.sum(1) == 0)
         matrix.test_all_matrix_types(
             self.X_dense, utils.assert_transform_equals,
-            Y=X_filtered, transform=scprep.filter.remove_empty_cells)
+            Y=X_filtered, transform=scprep.filter.filter_empty_cells)
         sample_labels = np.arange(self.X_dense.shape[0])
         sample_labels_filt = sample_labels[self.X_dense.sum(1) > 0]
-        X_filtered_2, sample_labels = scprep.filter.remove_empty_cells(
-            self.X_dense, sample_labels=sample_labels)
+        X_filtered_2, sample_labels = scprep.filter.filter_empty_cells(
+            self.X_dense, sample_labels)
         assert X_filtered_2.shape[0] == len(sample_labels)
         assert np.all(sample_labels == sample_labels_filt)
         assert np.all(X_filtered_2 == X_filtered)
 
-    def test_remove_duplicates(self):
+    def test_filter_duplicates(self):
         unique_idx = np.sort(
             np.unique(self.X_dense, axis=0, return_index=True)[1])
         X_filtered = np.array(self.X_dense)[unique_idx]
         matrix.test_all_matrix_types(
             self.X_dense, utils.assert_transform_equals,
-            Y=X_filtered, transform=scprep.filter.remove_duplicates)
+            Y=X_filtered, transform=scprep.filter.filter_duplicates)
         sample_labels = np.arange(self.X_dense.shape[0])
         sample_labels_filt = sample_labels[unique_idx]
-        X_filtered_2, sample_labels = scprep.filter.remove_duplicates(
-            self.X_dense, sample_labels=sample_labels)
+        X_filtered_2, sample_labels = scprep.filter.filter_duplicates(
+            self.X_dense, sample_labels)
         assert X_filtered_2.shape[0] == len(sample_labels)
         assert np.all(sample_labels == sample_labels_filt)
         assert np.all(X_filtered_2 == X_filtered)
 
-    def test_remove_empty_cells_sample_label(self):
+    def test_filter_empty_cells_sample_label(self):
         sample_labels = np.arange(self.X_dense.shape[0])
         sample_labels_filt = sample_labels[self.X_dense.sum(1) > 0]
-        X_filtered, sample_labels = scprep.filter.remove_empty_cells(
-            self.X_dense, sample_labels=sample_labels)
+        X_filtered, sample_labels = scprep.filter.filter_empty_cells(
+            self.X_dense, sample_labels)
         assert X_filtered.shape[0] == len(sample_labels)
         assert np.all(sample_labels == sample_labels_filt)
 
-    def test_remove_empty_cells_sparse(self):
-        X_filtered = scprep.filter.remove_empty_cells(self.X_sparse)
+    def test_filter_empty_cells_sparse(self):
+        X_filtered = scprep.filter.filter_empty_cells(self.X_sparse)
         assert X_filtered.shape[1] == self.X_sparse.shape[1]
         assert not np.any(X_filtered.sum(1) == 0)
         matrix.test_all_matrix_types(
             self.X_sparse, utils.assert_transform_equals,
-            Y=X_filtered, transform=scprep.filter.remove_empty_cells)
+            Y=X_filtered, transform=scprep.filter.filter_empty_cells)
 
-    def test_remove_empty_genes(self):
-        X_filtered = scprep.filter.remove_empty_genes(self.X_dense)
+    def test_filter_empty_genes(self):
+        X_filtered = scprep.filter.filter_empty_genes(self.X_dense)
         assert X_filtered.shape[0] == self.X_dense.shape[0]
         assert not np.any(X_filtered.sum(0) == 0)
         matrix.test_all_matrix_types(
             self.X_dense, utils.assert_transform_equals,
-            Y=X_filtered, transform=scprep.filter.remove_empty_genes)
+            Y=X_filtered, transform=scprep.filter.filter_empty_genes)
 
-    def test_remove_empty_genes_sparse(self):
-        X_filtered = scprep.filter.remove_empty_genes(self.X_sparse)
+    def test_filter_empty_genes_sparse(self):
+        X_filtered = scprep.filter.filter_empty_genes(self.X_sparse)
         assert X_filtered.shape[0] == self.X_sparse.shape[0]
         assert not np.any(X_filtered.sum(0) == 0)
         matrix.test_all_matrix_types(
             self.X_sparse, utils.assert_transform_equals,
-            Y=X_filtered, transform=scprep.filter.remove_empty_genes)
+            Y=X_filtered, transform=scprep.filter.filter_empty_genes)
 
-    def test_remove_rare_genes(self):
-        X_filtered = scprep.filter.remove_rare_genes(self.X_dense)
+    def test_filter_rare_genes(self):
+        X_filtered = scprep.filter.filter_rare_genes(self.X_dense)
         assert X_filtered.shape[0] == self.X_dense.shape[0]
         assert not np.any(X_filtered.sum(0) < 5)
         matrix.test_all_matrix_types(
             self.X_dense, utils.assert_transform_equals,
-            Y=X_filtered, transform=scprep.filter.remove_rare_genes)
+            Y=X_filtered, transform=scprep.filter.filter_rare_genes)
 
     def test_library_size_filter(self):
-        X_filtered = scprep.filter.filter_library_size(self.X_sparse, 100)
+        X_filtered = scprep.filter.filter_library_size(
+            self.X_sparse, cutoff=100)
         assert X_filtered.shape[1] == self.X_sparse.shape[1]
         assert not np.any(X_filtered.sum(1) <= 100)
         X_filtered, libsize = scprep.filter.filter_library_size(
-            self.X_sparse, 100, return_library_size=True)
+            self.X_sparse, cutoff=100, return_library_size=True)
         assert np.all(scprep.measure.library_size(X_filtered) == libsize)
         matrix.test_all_matrix_types(
             self.X_sparse, utils.assert_transform_equals,
             Y=X_filtered, transform=partial(
                 scprep.filter.filter_library_size, cutoff=100))
         X_filtered = scprep.filter.filter_library_size(
-            self.X_sparse, 100, keep_cells='below')
+            self.X_sparse, cutoff=100, keep_cells='below')
         assert X_filtered.shape[1] == self.X_sparse.shape[1]
         assert not np.any(X_filtered.sum(1) >= 100)
 
     def test_library_size_filter_below(self):
         X_filtered = scprep.filter.filter_library_size(
-            self.X_sparse, 100, keep_cells='below')
+            self.X_sparse, cutoff=100, keep_cells='below')
         assert X_filtered.shape[1] == self.X_sparse.shape[1]
         assert not np.any(X_filtered.sum(1) >= 100)
 
@@ -112,24 +113,16 @@ class Test10X(unittest.TestCase):
             ValueError,
             "Expected `keep_cells` in ['above', 'below']. Got invalid",
             scprep.filter.filter_library_size,
-            self.X_sparse, 100, keep_cells='invalid')
+            self.X_sparse, cutoff=100, keep_cells='invalid')
 
     def test_library_size_filter_sample_label(self):
         sample_labels = pd.DataFrame(np.random.choice([0, 1], self.X_dense.shape[0]),
                                      index=self.X_dense.index)
         sample_labels_filt = sample_labels.loc[self.X_dense.sum(1) > 100]
         X_filtered, sample_labels_filt2 = scprep.filter.filter_library_size(
-            self.X_dense, cutoff=100, sample_labels=sample_labels)
+            self.X_dense, sample_labels, cutoff=100)
         assert X_filtered.shape[0] == len(sample_labels_filt2)
         assert np.all(np.all(sample_labels_filt2 == sample_labels_filt))
-        X_filtered, sample_labels_filt2 = scprep.filter.filter_library_size(
-            self.X_dense, percentile=20, sample_labels=sample_labels, filter_per_sample=True)
-        for label in np.unique(sample_labels):
-            pct = np.percentile(
-                self.X_dense[(sample_labels == label).iloc[:, 0]].values.sum(1), 20)
-            min_filt = np.min(
-                X_filtered.loc[(sample_labels_filt2 == label).iloc[:, 0]].values.sum(1))
-            assert min_filt > pct
 
     def test_gene_expression_filter_below(self):
         genes = np.arange(10)
@@ -180,7 +173,7 @@ class Test10X(unittest.TestCase):
         sample_labels = pd.DataFrame(np.arange(self.X_dense.shape[0]),
                                      index=self.X_dense.index)
         X_filtered, sample_labels = scprep.filter.filter_gene_set_expression(
-            self.X_dense, genes, percentile=90, sample_labels=sample_labels)
+            self.X_dense, genes, sample_labels, percentile=90)
         assert X_filtered.shape[0] == len(sample_labels)
 
     def test_gene_expression_filter_warning(self):
@@ -229,6 +222,28 @@ class Test10X(unittest.TestCase):
         libsize_filt = scprep.filter.filter_values(
             libsize, libsize, cutoff=100)
         assert np.all(libsize_filt > 100)
+
+    def test_deprecated(self):
+        assert_warns_message(DeprecationWarning,
+                             "`scprep.filter.remove_empty_genes` is deprecated. Use "
+                             "`scprep.filter.filter_empty_genes` instead.",
+                             scprep.filter.remove_empty_genes,
+                             self.X_dense)
+        assert_warns_message(DeprecationWarning,
+                             "`scprep.filter.remove_rare_genes` is deprecated. Use "
+                             "`scprep.filter.filter_rare_genes` instead.",
+                             scprep.filter.remove_rare_genes,
+                             self.X_dense)
+        assert_warns_message(DeprecationWarning,
+                             "`scprep.filter.remove_empty_cells` is deprecated. Use "
+                             "`scprep.filter.filter_empty_cells` instead.",
+                             scprep.filter.remove_empty_cells,
+                             self.X_dense)
+        assert_warns_message(DeprecationWarning,
+                             "`scprep.filter.remove_duplicates` is deprecated. Use "
+                             "`scprep.filter.filter_duplicates` instead.",
+                             scprep.filter.remove_duplicates,
+                             self.X_dense)
 
 
 def test_large_sparse_dataframe_library_size():

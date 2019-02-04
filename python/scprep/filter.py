@@ -4,39 +4,75 @@
 import numpy as np
 import pandas as pd
 from scipy import sparse
+import warnings
 
-from . import utils, measure
+from . import utils, measure, select
 
 
-def remove_empty_genes(data):
-    """Remove all genes with zero counts across all cells
+def remove_empty_genes(data, *extra_data):
+    warnings.warn("`scprep.filter.remove_empty_genes` is deprecated. "
+                  "Use `scprep.filter.filter_empty_genes` instead.",
+                  DeprecationWarning)
+    return filter_empty_genes(data, *extra_data)
 
-    This is equivalent to `remove_rare_genes(data, cutoff=0, min_cells=1)`
+
+def remove_rare_genes(data, *extra_data, cutoff=0, min_cells=5):
+    warnings.warn("`scprep.filter.remove_rare_genes` is deprecated. "
+                  "Use `scprep.filter.filter_rare_genes` instead.",
+                  DeprecationWarning)
+    return filter_rare_genes(data, *extra_data,
+                             cutoff=cutoff, min_cells=min_cells)
+
+
+def remove_empty_cells(data, *extra_data):
+    warnings.warn("`scprep.filter.remove_empty_cells` is deprecated. "
+                  "Use `scprep.filter.filter_empty_cells` instead.",
+                  DeprecationWarning)
+    return filter_empty_cells(data, *extra_data)
+
+
+def remove_duplicates(data, *extra_data):
+    warnings.warn("`scprep.filter.remove_duplicates` is deprecated. "
+                  "Use `scprep.filter.filter_duplicates` instead.",
+                  DeprecationWarning)
+    return filter_duplicates(data, *extra_data)
+
+
+def filter_empty_genes(data, *extra_data):
+    """Filter all genes with zero counts across all cells
+
+    This is equivalent to `filter_rare_genes(data, cutoff=0, min_cells=1)`
     but should be faster.
 
     Parameters
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
+    extra_data : array-like, shape=[*, n_features], optional
+        Optional additional data objects from which to select the same genes
 
     Returns
     -------
     data : array-like, shape=[n_samples, m_features]
         Filtered output data, where m_features <= n_features
+    extra_data : array-like, shape=[*, m_features]
+        Filtered extra data, if passed.
     """
     gene_sums = np.array(utils.matrix_sum(data, axis=0)).reshape(-1)
     keep_genes_idx = gene_sums > 0
-    data = utils.select_cols(data, keep_genes_idx)
+    data = select.select_cols(data, *extra_data, idx=keep_genes_idx)
     return data
 
 
-def remove_rare_genes(data, cutoff=0, min_cells=5):
-    """Remove all genes with negligible counts in all but a few cells
+def filter_rare_genes(data, *extra_data, cutoff=0, min_cells=5):
+    """Filter all genes with negligible counts in all but a few cells
 
     Parameters
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
+    extra_data : array-like, shape=[*, n_features], optional
+        Optional additional data objects from which to select the same rows
     cutoff : float, optional (default: 0)
         Number of counts above which expression is deemed non-negligible
     min_cells : int, optional (default: 5)
@@ -46,38 +82,35 @@ def remove_rare_genes(data, cutoff=0, min_cells=5):
     -------
     data : array-like, shape=[n_samples, m_features]
         Filtered output data, where m_features <= n_features
+    extra_data : array-like, shape=[*, m_features]
+        Filtered extra data, if passed.
     """
     gene_sums = np.array(utils.matrix_sum(data > cutoff, axis=0)).reshape(-1)
     keep_genes_idx = gene_sums >= min_cells
-    data = utils.select_cols(data, keep_genes_idx)
+    data = select.select_cols(data, *extra_data, idx=keep_genes_idx)
     return data
 
 
-def remove_empty_cells(data, sample_labels=None):
+def filter_empty_cells(data, *extra_data):
     """Remove all cells with zero library size
 
     Parameters
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
-    sample_labels : list-like or None, optional, shape=[n_samples] (default: None)
-        Labels associated with the rows of `data`. If provided, these
-        will be filtered such that they retain a one-to-one mapping
-        with the rows of the output data.
+    extra_data : array-like, shape=[n_samples, *], optional
+        Optional additional data objects from which to select the same rows
 
     Returns
     -------
     data : array-like, shape=[m_samples, n_features]
         Filtered output data, where m_samples <= n_samples
-    sample_labels : list-like, shape=[m_samples]
-        Filtered sample labels, if provided
+    extra_data : array-like, shape=[m_samples, *]
+        Filtered extra data, if passed.
     """
     cell_sums = measure.library_size(data)
     keep_cells_idx = cell_sums > 0
-    data = utils.select_rows(data, keep_cells_idx)
-    if sample_labels is not None:
-        sample_labels = sample_labels[keep_cells_idx]
-        data = data, sample_labels
+    data = select.select_rows(data, *extra_data, idx=keep_cells_idx)
     return data
 
 
@@ -96,10 +129,9 @@ def _get_filter_idx(data, values,
     return keep_cells_idx
 
 
-def filter_values(data, values,
+def filter_values(data, values, *extra_data,
                   cutoff=None, percentile=None,
-                  keep_cells='above', sample_labels=None,
-                  filter_per_sample=False,
+                  keep_cells='above',
                   return_values=False):
     """Remove all cells with `values` above or below a certain threshold
 
@@ -112,6 +144,8 @@ def filter_values(data, values,
         Input data
     values : list-like, shape=[n_samples]
         Value upon which to filter
+    extra_data : array-like, shape=[n_samples, *], optional
+        Optional additional data objects from which to select the same rows
     cutoff : float, optional (default: None)
         Minimum library size required to retain a cell. Only one of `cutoff`
         and `percentile` should be specified.
@@ -121,13 +155,6 @@ def filter_values(data, values,
         and `percentile` should be specified.
     keep_cells : {'above', 'below'}, optional (default: 'above')
         Keep cells above or below the cutoff
-    sample_labels : list-like or None, optional, shape=[n_samples] (default: None)
-        Labels associated with the rows of `data`. If provided, these
-        will be filtered such that they retain a one-to-one mapping
-        with the rows of the output data.
-    filter_per_sample : bool, optional (default: False)
-        If True, filters separately for each unique sample label. Only used
-        if `sample_labels` is not `None` and `percentile` is given.
     return_values : bool, optional (default: False)
         If True, also return the values corresponding to the retained cells
 
@@ -135,46 +162,23 @@ def filter_values(data, values,
     -------
     data : array-like, shape=[m_samples, n_features]
         Filtered output data, where m_samples <= n_samples
-    sample_labels : list-like, shape=[m_samples]
-        Filtered sample labels, if provided
     filtered_values : list-like, shape=[m_samples]
         Values corresponding to retained samples,
         returned only if return_values is True
+    extra_data : array-like, shape=[m_samples, *]
+        Filtered extra data, if passed.
     """
-    if filter_per_sample and percentile is not None and \
-            sample_labels is not None:
-        # filter separately and combine
-        sample_labels_array = utils.toarray(sample_labels).flatten()
-        keep_cells_idx = np.full_like(
-            sample_labels_array, True,
-            dtype=bool)
-        for label in np.unique(sample_labels_array):
-            sample_idx = sample_labels_array == label
-            keep_cells_idx[sample_idx] = _get_filter_idx(
-                utils.select_rows(data, sample_idx),
-                values[sample_idx],
-                cutoff, percentile, keep_cells)
-            keep_cells_idx = keep_cells_idx.flatten()
-    else:
-        keep_cells_idx = _get_filter_idx(data, values,
-                                         cutoff, percentile,
-                                         keep_cells)
-    data = utils.select_rows(data, keep_cells_idx)
-    out = [data]
-    if sample_labels is not None:
-        out.append(sample_labels[keep_cells_idx])
+    keep_cells_idx = _get_filter_idx(data, values,
+                                     cutoff, percentile,
+                                     keep_cells)
     if return_values:
-        out.append(values[keep_cells_idx])
-    if len(out) == 1:
-        out = out[0]
-    else:
-        out = tuple(out)
-    return out
+        extra_data = [values] + list(extra_data)
+    data = select.select_rows(data, *extra_data, idx=keep_cells_idx)
+    return data
 
 
-def filter_library_size(data, cutoff=None, percentile=None,
-                        keep_cells='above', sample_labels=None,
-                        filter_per_sample=False,
+def filter_library_size(data, *extra_data, cutoff=None, percentile=None,
+                        keep_cells='above',
                         return_library_size=False):
     """Remove all cells with library size above or below a certain threshold
 
@@ -185,6 +189,8 @@ def filter_library_size(data, cutoff=None, percentile=None,
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
+    extra_data : array-like, shape=[n_samples, *], optional
+        Optional additional data objects from which to select the same rows
     cutoff : float, optional (default: None)
         Minimum library size required to retain a cell. Only one of `cutoff`
         and `percentile` should be specified.
@@ -194,12 +200,6 @@ def filter_library_size(data, cutoff=None, percentile=None,
         and `percentile` should be specified.
     keep_cells : {'above', 'below'}, optional (default: 'above')
         Keep cells above or below the cutoff
-    sample_labels : list-like or None, optional, shape=[n_samples] (default: None)
-        Labels associated with the rows of `data`. If provided, these
-        will be filtered such that they retain a one-to-one mapping
-        with the rows of the output data.
-    filter_per_sample : bool, optional (default: False)
-        If True, filters separately for each unique sample label.
     return_library_size : bool, optional (default: False)
         If True, also return the library sizes corresponding to the retained cells
 
@@ -207,27 +207,23 @@ def filter_library_size(data, cutoff=None, percentile=None,
     -------
     data : array-like, shape=[m_samples, n_features]
         Filtered output data, where m_samples <= n_samples
-    sample_labels : list-like, shape=[m_samples]
-        Filtered sample labels, if provided
     filtered_library_size : list-like, shape=[m_samples]
         Library sizes corresponding to retained samples,
         returned only if return_library_size is True
+    extra_data : array-like, shape=[m_samples, *]
+        Filtered extra data, if passed.
     """
     cell_sums = measure.library_size(data)
-    return filter_values(data, cell_sums,
+    return filter_values(data, cell_sums, *extra_data,
                          cutoff=cutoff, percentile=percentile,
                          keep_cells=keep_cells,
-                         sample_labels=sample_labels,
-                         filter_per_sample=filter_per_sample,
                          return_values=return_library_size)
 
 
-def filter_gene_set_expression(data, genes,
+def filter_gene_set_expression(data, genes, *extra_data,
                                cutoff=None, percentile=None,
                                library_size_normalize=True,
                                keep_cells='below',
-                               sample_labels=None,
-                               filter_per_sample=False,
                                return_expression=False):
     """Remove cells with total expression of a gene set above or below a certain threshold
 
@@ -240,6 +236,8 @@ def filter_gene_set_expression(data, genes,
         Input data
     genes : list-like
         Integer column indices or string gene names included in gene set
+    extra_data : array-like, shape=[n_samples, *], optional
+        Optional additional data objects from which to select the same rows
     cutoff : float, optional (default: 2000)
         Value above or below which to remove cells. Only one of `cutoff`
         and `percentile` should be specified.
@@ -251,12 +249,6 @@ def filter_gene_set_expression(data, genes,
         Divide gene set expression by library size
     keep_cells : {'above', 'below'}, optional (default: 'below')
         Keep cells above or below the cutoff
-    sample_labels : list-like or None, optional, shape=[n_samples] (default: None)
-        Labels associated with the rows of `data`. If provided, these
-        will be filtered such that they retain a one-to-one mapping
-        with the rows of the output data.
-    filter_per_sample : bool, optional (default: False)
-        If True, filters separately for each unique sample label.
     return_expression : bool, optional (default: False)
         If True, also return the values corresponding to the retained cells
 
@@ -264,20 +256,18 @@ def filter_gene_set_expression(data, genes,
     -------
     data : array-like, shape=[m_samples, n_features]
         Filtered output data, where m_samples <= n_samples
-    sample_labels : list-like, shape=[m_samples]
-        Filtered sample labels, if provided
     filtered_expression : list-like, shape=[m_samples]
         Gene set expression corresponding to retained samples,
         returned only if return_expression is True
+    extra_data : array-like, shape=[m_samples, *]
+        Filtered extra data, if passed.
     """
     cell_sums = measure.gene_set_expression(
         data, genes,
         library_size_normalize=library_size_normalize)
-    return filter_values(data, cell_sums,
+    return filter_values(data, cell_sums, *extra_data,
                          cutoff=cutoff, percentile=percentile,
                          keep_cells=keep_cells,
-                         sample_labels=sample_labels,
-                         filter_per_sample=filter_per_sample,
                          return_values=return_expression)
 
 
@@ -288,10 +278,6 @@ def _find_unique_cells(data):
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
-    sample_labels : list-like or None, optional, shape=[n_samples] (default: None)
-        Labels associated with the rows of `data`. If provided, these
-        will be filtered such that they retain a one-to-one mapping
-        with the rows of the output data.
 
     Returns
     -------
@@ -313,28 +299,23 @@ def _find_unique_cells(data):
     return unique_idx
 
 
-def remove_duplicates(data, sample_labels=None):
-    """Remove all duplicate cells
+def filter_duplicates(data, *extra_data):
+    """Filter all duplicate cells
 
     Parameters
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
-    sample_labels : list-like or None, optional, shape=[n_samples] (default: None)
-        Labels associated with the rows of `data`. If provided, these
-        will be filtered such that they retain a one-to-one mapping
-        with the rows of the output data.
+    extra_data : array-like, shape=[n_samples, *], optional
+        Optional additional data objects from which to select the same rows
 
     Returns
     -------
     data : array-like, shape=[m_samples, n_features]
         Filtered output data, where m_samples <= n_samples
-    sample_labels : list-like, shape=[m_samples]
-        Filtered sample labels, if provided
+    extra_data : array-like, shape=[m_samples, *]
+        Filtered extra data, if passed.
     """
     unique_idx = _find_unique_cells(data)
-    data = utils.select_rows(data, unique_idx)
-    if sample_labels is not None:
-        sample_labels = sample_labels[unique_idx]
-        data = data, sample_labels
+    data = select.select_rows(data, *extra_data, idx=unique_idx)
     return data

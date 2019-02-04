@@ -4,6 +4,7 @@ import numbers
 from scipy import sparse
 import warnings
 import re
+from . import select
 
 
 def toarray(x):
@@ -197,199 +198,6 @@ def matrix_any(condition):
     return np.sum(np.sum(condition)) > 0
 
 
-def select_cols(data, idx):
-    """Select columns from a data matrix
-
-    Parameters
-    ----------
-    data : array-like, shape=[n_samples, n_features]
-        Input data
-    idx : list-like, shape=[m_features]
-        Integer indices or string column names to be selected
-
-    Returns
-    -------
-    data : array-like, shape=[n_samples, m_features]
-        Subsetted output data
-
-    Raises
-    ------
-    UserWarning : if no columns are selected
-    """
-    if isinstance(idx, pd.DataFrame):
-        if len(idx.shape) > 1 and np.prod(idx.shape) != np.max(idx.shape):
-            raise ValueError(
-                "Expected idx to be 1D. Got shape {}".format(idx.shape))
-        idx = idx.iloc[:, 0] if idx.shape[1] == 1 else idx.iloc[0, :]
-    if isinstance(data, pd.DataFrame):
-        try:
-            data = data.loc[:, idx]
-        except (KeyError, TypeError):
-            if isinstance(idx, numbers.Integral) or \
-                    issubclass(np.array(idx).dtype.type, numbers.Integral):
-                data = data.loc[:, np.array(data.columns)[idx]]
-            else:
-                raise
-    elif isinstance(data, pd.Series):
-        try:
-            data = data.loc[idx]
-        except (KeyError, TypeError):
-            if isinstance(idx, numbers.Integral) or \
-                    issubclass(np.array(idx).dtype.type, numbers.Integral):
-                data = data.loc[np.array(data.index)[idx]]
-            else:
-                raise
-    elif len(data.shape) == 1:
-        data = data[idx]
-    else:
-        if isinstance(data, (sparse.coo_matrix,
-                             sparse.bsr_matrix,
-                             sparse.lil_matrix,
-                             sparse.dia_matrix)):
-            data = data.tocsr()
-        data = data[:, idx]
-    if len(data.shape) > 1 and data.shape[1] == 0:
-        warnings.warn("Selecting 0 columns.", UserWarning)
-    return data
-
-
-def select_rows(data, idx):
-    """Select rows from a data matrix
-
-    Parameters
-    ----------
-    data : array-like, shape=[n_samples, n_features]
-        Input data
-    idx : list-like, shape=[m_samples]
-        Integer indices or string index names to be selected
-
-    Returns
-    -------
-    data : array-like, shape=[m_samples, n_features]
-        Subsetted output data
-
-    Raises
-    ------
-    UserWarning : if no rows are selected
-    """
-    if isinstance(idx, pd.DataFrame):
-        if len(idx.shape) > 1 and np.prod(idx.shape) != np.max(idx.shape):
-            raise ValueError(
-                "Expected idx to be 1D. Got shape {}".format(idx.shape))
-        idx = idx.iloc[:, 0] if idx.shape[1] == 1 else idx.iloc[0, :]
-    if isinstance(data, (pd.DataFrame, pd.Series)):
-        try:
-            data = data.loc[idx]
-        except (KeyError, TypeError):
-            if isinstance(idx, numbers.Integral) or \
-                    issubclass(np.array(idx).dtype.type, numbers.Integral):
-                data = data.iloc[idx]
-            else:
-                raise
-    elif len(data.shape) == 1:
-        data = data[idx]
-    else:
-        if isinstance(data, (sparse.coo_matrix,
-                             sparse.bsr_matrix,
-                             sparse.dia_matrix)):
-            data = data.tocsr()
-        data = data[idx, :]
-    if len(data.shape) > 1 and data.shape[0] == 0:
-        warnings.warn("Selecting 0 rows.", UserWarning)
-    return data
-
-
-def _get_string_subset(data, starts_with=None, ends_with=None, regex=None):
-    """Get a subset from a string array
-
-    Parameters
-    ----------
-    data : array-like, shape=[n_samples, n_features] or [n_features]
-        Input pd.DataFrame, or list of names
-    starts_with : str or None, optional (default: None)
-        If not None, only return names that start with this prefix
-    ends_with : str or None, optional (default: None)
-        If not None, only return names that end with this suffix
-    regex : str or None, optional (default: None)
-        If not None, only return names that match this regular expression
-
-    Returns
-    -------
-    data : list-like, shape<=[n_features]
-        List of matching strings
-    """
-    mask = np.full_like(data, True, dtype=bool)
-    if starts_with is not None:
-        start_match = np.vectorize(lambda x: x.startswith(starts_with))
-        mask = np.logical_and(mask, start_match(data))
-    if ends_with is not None:
-        end_match = np.vectorize(lambda x: x.endswith(ends_with))
-        mask = np.logical_and(mask, end_match(data))
-    if regex is not None:
-        regex = re.compile(regex)
-        regex_match = np.vectorize(lambda x: bool(regex.search(x)))
-        mask = np.logical_and(mask, regex_match(data))
-    return data[mask]
-
-
-def get_gene_set(data, starts_with=None, ends_with=None, regex=None):
-    """Get a list of genes from data
-
-    Parameters
-    ----------
-    data : array-like, shape=[n_samples, n_features] or [n_features]
-        Input pd.DataFrame, or list of gene names
-    starts_with : str or None, optional (default: None)
-        If not None, only return gene names that start with this prefix
-    ends_with : str or None, optional (default: None)
-        If not None, only return gene names that end with this suffix
-    regex : str or None, optional (default: None)
-        If not None, only return gene names that match this regular expression
-
-    Returns
-    -------
-    genes : list-like, shape<=[n_features]
-        List of matching genes
-    """
-    if len(data.shape) > 1:
-        try:
-            data = data.columns.values
-        except AttributeError:
-            raise TypeError("data must be a list of gene names or a pandas "
-                            "DataFrame. Got {}".format(type(data).__name__))
-    return _get_string_subset(data, starts_with=starts_with,
-                              ends_with=ends_with, regex=regex)
-
-
-def get_cell_set(data, starts_with=None, ends_with=None, regex=None):
-    """Get a list of cells from data
-
-    Parameters
-    ----------
-    data : array-like, shape=[n_samples, n_features] or [n_features]
-        Input pd.DataFrame, or list of cell names
-    starts_with : str or None, optional (default: None)
-        If not None, only return cell names that start with this prefix
-    ends_with : str or None, optional (default: None)
-        If not None, only return cell names that end with this suffix
-    regex : str or None, optional (default: None)
-        If not None, only return cell names that match this regular expression
-
-    Returns
-    -------
-    cells : list-like, shape<=[n_features]
-        List of matching cells
-    """
-    if len(data.shape) > 1:
-        try:
-            data = data.index.values
-        except AttributeError:
-            raise TypeError("data must be a list of cell names or a pandas "
-                            "DataFrame. Got {}".format(type(data).__name__))
-    return _get_string_subset(data, starts_with=starts_with,
-                              ends_with=ends_with, regex=regex)
-
-
 def combine_batches(data, batch_labels, append_to_cell_names=False):
     """Combine data matrices from multiple batches and store a batch label
 
@@ -458,36 +266,38 @@ def combine_batches(data, batch_labels, append_to_cell_names=False):
     return data, sample_labels
 
 
+def select_cols(data, idx):
+    warnings.warn("`scprep.utils.select_cols` is deprecated. Use "
+                  "`scprep.select.select_cols` instead.",
+                  DeprecationWarning)
+    return select.select_cols(data, idx=idx)
+
+
+def select_rows(data, idx):
+    warnings.warn("`scprep.utils.select_rows` is deprecated. Use "
+                  "`scprep.select.select_rows` instead.",
+                  DeprecationWarning)
+    return select.select_rows(data, idx=idx)
+
+
+def get_gene_set(data, starts_with=None, ends_with=None, regex=None):
+    warnings.warn("`scprep.utils.get_gene_set` is deprecated. Use "
+                  "`scprep.select.get_gene_set` instead.",
+                  DeprecationWarning)
+    return select.get_gene_set(data, starts_with=starts_with,
+                               ends_with=ends_with, regex=regex)
+
+
+def get_cell_set(data, starts_with=None, ends_with=None, regex=None):
+    warnings.warn("`scprep.utils.get_cell_set` is deprecated. Use "
+                  "`scprep.select.get_cell_set` instead.",
+                  DeprecationWarning)
+    return select.get_cell_set(data, starts_with=starts_with,
+                               ends_with=ends_with, regex=regex)
+
+
 def subsample(*data, n=10000, seed=None):
-    """Subsample the number of points in a dataset
-
-    Selects a random subset of (optionally multiple) datasets.
-    Helpful for plotting, or for methods with computational
-    constraints.
-
-    Parameters
-    ----------
-    data : array-like, shape=[n_samples, *]
-        Input data. Any number of datasets can be passed at once,
-        so long as `n_samples` remains the same.
-    n : int, optional (default: 10000)
-        Number of samples to retain. Must be less than `n_samples`.
-    seed : int, optional (default: None)
-        Random seed
-
-    Examples
-    --------
-    data_subsample, labels_subsample = scprep.utils.subsample(data, labels, n=1000)
-    """
-    N = data[0].shape[0]
-    for d in data:
-        if d.shape[0] != N:
-            raise ValueError(
-                "Expected data to have all the same number of samples. "
-                "Got {}".format(tuple([d.shape[0] for d in data])))
-    if N <= n:
-        raise ValueError("Expected n ({}) < n_samples ({})".format(n, N))
-    np.random.seed(seed)
-    select_idx = np.random.choice(N, n, replace=False)
-    data = [select_rows(d, select_idx) for d in data]
-    return tuple(data) if len(data) > 1 else data[0]
+    warnings.warn("`scprep.utils.subsample` is deprecated. Use "
+                  "`scprep.select.subsample` instead.",
+                  DeprecationWarning)
+    return select.subsample(*data, n=n, seed=seed)
