@@ -137,6 +137,15 @@ def test_select_cols():
     matrix.test_pandas_matrix_types(
         X, scprep.select.select_cols, X.iloc[0, :],
         starts_with="D")
+    assert_warns_message(
+        UserWarning,
+        "Selecting 0 columns",
+        scprep.select.select_cols, X,
+        idx=(X.sum(axis=0) < 0))
+    assert_warns_message(
+        UserWarning,
+        "No selection conditions provided. Returning all columns.",
+        scprep.select.select_cols, X)
 
 
 def test_select_error():
@@ -161,6 +170,22 @@ def test_select_error():
                          scprep.select.select_cols,
                          X,
                          idx=pd.DataFrame([X.index, X.index]))
+    assert_raise_message(
+        ValueError,
+        "Expected all pandas inputs to have the same columns. "
+        "Fix with "
+        "`scprep.select.select_cols(extra_data, data.columns)`",
+        scprep.select.select_cols,
+        X,
+        scprep.select.subsample(X.T, n=X.shape[0]).T)
+    assert_raise_message(
+        ValueError,
+        "Expected all pandas inputs to have the same index. "
+        "Fix with "
+        "`scprep.select.select_rows(extra_data, data.index)`",
+        scprep.select.select_rows,
+        X,
+        scprep.select.subsample(X, n=X.shape[0]))
 
 
 def test_subsample():
@@ -204,5 +229,5 @@ def test_subsample_n_too_large():
     X = data.generate_positive_sparse_matrix(shape=(50, 100))
     assert_raise_message(
         ValueError,
-        "Expected n (60) < n_samples (50)",
+        "Expected n (60) <= n_samples (50)",
         scprep.select.subsample, X, n=60)

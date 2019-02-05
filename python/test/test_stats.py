@@ -9,7 +9,7 @@ import warnings
 
 
 def _test_fun_2d(X, fun, **kwargs):
-    return fun(scprep.utils.select_cols(X, 0), scprep.utils.select_cols(X, 1), **kwargs)
+    return fun(scprep.select.select_cols(X, idx=0), scprep.select.select_cols(X, idx=1), **kwargs)
 
 
 def test_EMD():
@@ -32,7 +32,7 @@ def test_pairwise_correlation():
     def test_fun(X, *args, **kwargs):
         return scprep.stats.pairwise_correlation(
             X,
-            scprep.utils.select_cols(X, np.arange(10)),
+            scprep.select.select_cols(X, idx=np.arange(10)),
             *args, **kwargs)
     D = data.generate_positive_sparse_matrix(
         shape=(500, 100), seed=42, poisson_mean=5)
@@ -46,7 +46,7 @@ def test_pairwise_correlation():
     matrix.test_all_matrix_types(
         D, utils.assert_transform_equals, Y=Y,
         transform=partial(scprep.stats.pairwise_correlation,
-                          Y=scprep.utils.select_cols(D, np.arange(10))),
+                          Y=scprep.select.select_cols(D, idx=np.arange(10))),
         check=utils.assert_all_close)
 
     def test_fun(X, *args, **kwargs):
@@ -55,7 +55,7 @@ def test_pairwise_correlation():
             Y=X,
             *args, **kwargs)
     matrix.test_all_matrix_types(
-        scprep.utils.select_cols(D, np.arange(10)),
+        scprep.select.select_cols(D, idx=np.arange(10)),
         utils.assert_transform_equals, Y=Y,
         transform=test_fun, check=utils.assert_all_close)
 

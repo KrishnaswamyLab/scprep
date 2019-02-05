@@ -129,7 +129,7 @@ def _get_filter_idx(data, values,
     return keep_cells_idx
 
 
-def filter_values(data, values, *extra_data,
+def filter_values(data, *extra_data, values=None,
                   cutoff=None, percentile=None,
                   keep_cells='above',
                   return_values=False):
@@ -142,10 +142,10 @@ def filter_values(data, values, *extra_data,
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
-    values : list-like, shape=[n_samples]
-        Value upon which to filter
     extra_data : array-like, shape=[n_samples, *], optional
         Optional additional data objects from which to select the same rows
+    values : list-like, shape=[n_samples]
+        Value upon which to filter
     cutoff : float, optional (default: None)
         Minimum library size required to retain a cell. Only one of `cutoff`
         and `percentile` should be specified.
@@ -168,6 +168,7 @@ def filter_values(data, values, *extra_data,
     extra_data : array-like, shape=[m_samples, *]
         Filtered extra data, if passed.
     """
+    assert values is not None
     keep_cells_idx = _get_filter_idx(data, values,
                                      cutoff, percentile,
                                      keep_cells)
@@ -214,13 +215,14 @@ def filter_library_size(data, *extra_data, cutoff=None, percentile=None,
         Filtered extra data, if passed.
     """
     cell_sums = measure.library_size(data)
-    return filter_values(data, cell_sums, *extra_data,
+    return filter_values(data, *extra_data, values=cell_sums,
                          cutoff=cutoff, percentile=percentile,
                          keep_cells=keep_cells,
                          return_values=return_library_size)
 
 
-def filter_gene_set_expression(data, genes, *extra_data,
+def filter_gene_set_expression(data, *extra_data, genes=None,
+                               starts_with=None, ends_with=None, regex=None,
                                cutoff=None, percentile=None,
                                library_size_normalize=True,
                                keep_cells='below',
@@ -234,8 +236,16 @@ def filter_gene_set_expression(data, genes, *extra_data,
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
-    genes : list-like
+    extra_data : array-like, shape=[n_samples, *], optional
+        Optional additional data objects from which to select the same rows
+    genes : list-like, optional (default: None)
         Integer column indices or string gene names included in gene set
+    starts_with : str or None, optional (default: None)
+        If not None, select genes that start with this prefix
+    ends_with : str or None, optional (default: None)
+        If not None, select genes that end with this suffix
+    regex : str or None, optional (default: None)
+        If not None, select genes that match this regular expression
     extra_data : array-like, shape=[n_samples, *], optional
         Optional additional data objects from which to select the same rows
     cutoff : float, optional (default: 2000)
@@ -265,7 +275,7 @@ def filter_gene_set_expression(data, genes, *extra_data,
     cell_sums = measure.gene_set_expression(
         data, genes,
         library_size_normalize=library_size_normalize)
-    return filter_values(data, cell_sums, *extra_data,
+    return filter_values(data, *extra_data, values=cell_sums,
                          cutoff=cutoff, percentile=percentile,
                          keep_cells=keep_cells,
                          return_values=return_expression)

@@ -44,15 +44,15 @@ You can use `scprep` with your single cell data as follows::
 	data_path = "~/mydata/my_10X_data"
 	data = scprep.io.load_10X(data_path)
 	# Remove empty columns and rows
-	data = scprep.filter.remove_empty_cells(data)
-	data = scprep.filter.remove_empty_genes(data)
+	data = scprep.filter.filter_empty_cells(data)
+	data = scprep.filter.filter_empty_genes(data)
 	# Filter by library size to remove background
 	scprep.plot.plot_library_size(data, cutoff=500)
 	data = scprep.filter.filter_library_size(data, cutoff=500)
 	# Filter by mitochondrial expression to remove dead cells
-	mt_genes = scprep.utils.get_gene_set(data, starts_with="MT")
-	scprep.plot.plot_gene_set_expression(data, mt_genes, percentile=90)
-	data = scprep.filter.filter_gene_set_expression(data, mt_genes, 
+	mt_genes = scprep.select.get_gene_set(data, starts_with="MT")
+	scprep.plot.plot_gene_set_expression(data, genes=mt_genes, percentile=90)
+	data = scprep.filter.filter_gene_set_expression(data, genes=mt_genes,
 	                                                percentile=90)
 	# Library size normalize
 	data = scprep.normalize.library_size_normalize(data)

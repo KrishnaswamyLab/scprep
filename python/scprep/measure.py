@@ -21,24 +21,32 @@ def library_size(data):
     return library_size
 
 
-def gene_set_expression(data, genes, library_size_normalize=True):
+def gene_set_expression(data, genes=None, library_size_normalize=True,
+                        starts_with=None, ends_with=None, regex=None):
     """Measure the expression of a set of genes in each cell.
 
     Parameters
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
-    genes : list-like, shape<=[n_features]
+    genes : list-like, shape<=[n_features], optional (default: None)
         Integer column indices or string gene names included in gene set
     library_size_normalize : bool, optional (default: True)
         Divide gene set expression by library size
+    starts_with : str or None, optional (default: None)
+        If not None, select genes that start with this prefix
+    ends_with : str or None, optional (default: None)
+        If not None, select genes that end with this suffix
+    regex : str or None, optional (default: None)
+        If not None, select genes that match this regular expression
 
     Returns
     -------
     gene_set_expression : list-like, shape=[n_samples]
         Sum over genes for each cell
     """
-    gene_data = select.select_cols(data, genes)
+    gene_data = select.select_cols(data, idx=genes, starts_with=starts_with,
+                                   ends_with=ends_with, regex=regex)
     gene_set_expression = library_size(gene_data)
     if library_size_normalize:
         libsize = library_size(data)

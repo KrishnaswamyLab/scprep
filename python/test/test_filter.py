@@ -127,7 +127,7 @@ class Test10X(unittest.TestCase):
     def test_gene_expression_filter_below(self):
         genes = np.arange(10)
         X_filtered = scprep.filter.filter_gene_set_expression(
-            self.X_sparse, genes, percentile=90, keep_cells='below',
+            self.X_sparse, genes=genes, percentile=90, keep_cells='below',
             library_size_normalize=False)
         gene_cols = np.array(self.X_sparse.columns)[genes]
         assert X_filtered.shape[1] == self.X_sparse.shape[1]
@@ -144,7 +144,7 @@ class Test10X(unittest.TestCase):
         genes = np.arange(10)
         gene_cols = np.array(self.X_sparse.columns)[genes]
         X_filtered = scprep.filter.filter_gene_set_expression(
-            self.X_sparse, genes, percentile=10, keep_cells='above',
+            self.X_sparse, genes=genes, percentile=10, keep_cells='above',
             library_size_normalize=False)
         assert X_filtered.shape[1] == self.X_sparse.shape[1]
         assert np.min(np.sum(self.X_sparse[gene_cols], axis=1)) < np.min(
@@ -159,11 +159,11 @@ class Test10X(unittest.TestCase):
     def test_gene_expression_libsize(self):
         genes = np.arange(10)
         X_filtered = scprep.filter.filter_gene_set_expression(
-            self.X_sparse, genes, percentile=10, keep_cells='above',
+            self.X_sparse, genes=genes, percentile=10, keep_cells='above',
             library_size_normalize=True)
         X_libsize = scprep.normalize.library_size_normalize(self.X_sparse)
         Y = scprep.filter.filter_gene_set_expression(
-            X_libsize, genes, percentile=10, keep_cells='above',
+            X_libsize, genes=genes, percentile=10, keep_cells='above',
             library_size_normalize=False)
         assert X_filtered.shape == Y.shape
         assert np.all(X_filtered.index == Y.index)
@@ -173,7 +173,7 @@ class Test10X(unittest.TestCase):
         sample_labels = pd.DataFrame(np.arange(self.X_dense.shape[0]),
                                      index=self.X_dense.index)
         X_filtered, sample_labels = scprep.filter.filter_gene_set_expression(
-            self.X_dense, genes, sample_labels, percentile=90)
+            self.X_dense, sample_labels, genes=genes, percentile=90)
         assert X_filtered.shape[0] == len(sample_labels)
 
     def test_gene_expression_filter_warning(self):
@@ -184,38 +184,34 @@ class Test10X(unittest.TestCase):
             "`percentile` expects values between 0 and 100."
             "Got 0.9. Did you mean 90.0?",
             scprep.filter.filter_gene_set_expression,
-            self.X_sparse, genes, percentile=0.90, keep_cells='below')
+            self.X_sparse, genes=genes, percentile=0.90, keep_cells='below')
         assert_raise_message(
             ValueError,
             "Only one of `cutoff` and `percentile` should be given.",
             scprep.filter.filter_gene_set_expression,
-            self.X_sparse, genes, percentile=0.90, cutoff=50)
+            self.X_sparse, genes=genes, percentile=0.90, cutoff=50)
         assert_raise_message(
             ValueError,
             "Expected `keep_cells` in ['above', 'below']. "
             "Got neither",
             scprep.filter.filter_gene_set_expression,
-            self.X_sparse, genes, percentile=90.0, keep_cells='neither')
+            self.X_sparse, genes=genes, percentile=90.0, keep_cells='neither')
         assert_warns_message(
             UserWarning,
             "`percentile` expects values between 0 and 100."
             "Got 0.9. Did you mean 90.0?",
             scprep.filter.filter_gene_set_expression,
-            self.X_sparse, genes, percentile=0.90, keep_cells='below')
+            self.X_sparse, genes=genes, percentile=0.90, keep_cells='below')
         assert_raise_message(
             ValueError,
             "One of either `cutoff` or `percentile` must be given.",
             scprep.filter.filter_gene_set_expression,
-            self.X_sparse, genes, cutoff=None, percentile=None)
+            self.X_sparse, genes=genes, cutoff=None, percentile=None)
         assert_raise_message(
             KeyError,
             "the label [not_a_gene] is not in the [columns]",
             scprep.filter.filter_gene_set_expression,
-            self.X_sparse, no_genes, percentile=90.0, keep_cells='below')
-        assert_warns_message(
-            UserWarning,
-            "Selecting 0 columns",
-            scprep.utils.select_cols, self.X_sparse, (self.X_sparse.sum(axis=0) < 0))
+            self.X_sparse, genes=no_genes, percentile=90.0, keep_cells='below')
 
     def filter_series(self):
         libsize = scprep.measure.library_size(self.X_sparse)

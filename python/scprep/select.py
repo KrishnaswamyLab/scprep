@@ -17,7 +17,7 @@ def _get_column_length(data):
         return len(data)
 
 
-def _check_columns_compatible(data):
+def _check_columns_compatible(*data):
     for d in data:
         if not _get_column_length(d) == _get_column_length(data[0]):
             raise ValueError(
@@ -33,7 +33,7 @@ def _check_columns_compatible(data):
                     "`scprep.select.select_cols(extra_data, data.columns)`")
 
 
-def _check_rows_compatible(data):
+def _check_rows_compatible(*data):
     for d in data:
         if not d.shape[0] == data[0].shape[0]:
             raise ValueError(
@@ -46,7 +46,7 @@ def _check_rows_compatible(data):
                 raise ValueError(
                     "Expected all pandas inputs to have the same index. "
                     "Fix with "
-                    "`scprep.select.select_rows(extra_data, data.columns)`")
+                    "`scprep.select.select_rows(extra_data, data.index)`")
 
 
 def _convert_dataframe_1d(idx):
@@ -190,7 +190,7 @@ def select_cols(data, *extra_data, idx=None,
     UserWarning : if no columns are selected
     """
     if len(extra_data) > 0:
-        _check_columns_compatible([data] + list(extra_data))
+        _check_columns_compatible(data, *extra_data)
     if idx is None and starts_with is None and ends_with is None and regex is None:
         warnings.warn("No selection conditions provided. "
                       "Returning all columns.", UserWarning)
@@ -279,7 +279,7 @@ def select_rows(data, *extra_data, idx=None,
     UserWarning : if no rows are selected
     """
     if len(extra_data) > 0:
-        _check_rows_compatible([data] + list(extra_data))
+        _check_rows_compatible(data, *extra_data)
     if idx is None and starts_with is None and ends_with is None and regex is None:
         warnings.warn("No selection conditions provided. "
                       "Returning all rows.", UserWarning)
@@ -343,9 +343,9 @@ def subsample(*data, n=10000, seed=None):
     """
     N = data[0].shape[0]
     if len(data) > 1:
-        _check_rows_compatible(data)
-    if N <= n:
-        raise ValueError("Expected n ({}) < n_samples ({})".format(n, N))
+        _check_rows_compatible(*data)
+    if N < n:
+        raise ValueError("Expected n ({}) <= n_samples ({})".format(n, N))
     np.random.seed(seed)
     select_idx = np.random.choice(N, n, replace=False)
     data = [select_rows(d, idx=select_idx) for d in data]

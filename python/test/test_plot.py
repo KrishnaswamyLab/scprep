@@ -79,7 +79,7 @@ class Test10X(unittest.TestCase):
     def test_histogram_custom_axis(self):
         fig, ax = plt.subplots()
         scprep.plot.plot_gene_set_expression(
-            self.X, genes=scprep.utils.get_gene_set(self.X, starts_with="D"),
+            self.X, genes=scprep.select.get_gene_set(self.X, starts_with="D"),
             percentile=90, log='y', ax=ax)
 
     def test_histogram_invalid_axis(self):
