@@ -82,10 +82,13 @@ def test_select_rows():
                          index=X.index))
     # series data
     scprep.select.select_rows(
-        X.iloc[:, 0], idx=np.random.choice([True, False], [X.shape[0]]))
+        X, X.iloc[:, 0], idx=np.random.choice([True, False], [X.shape[0]]))
     # 1D array data
     scprep.select.select_rows(
-        X.to_coo().toarray()[:, 0], idx=np.random.choice([True, False], [X.shape[0]]))
+        X, X.to_coo().toarray()[:, 0], idx=np.random.choice([True, False], [X.shape[0]]))
+    # list data
+    scprep.select.select_rows(
+        X, X.to_coo().toarray()[:, 0].tolist(), idx=np.random.choice([True, False], [X.shape[1]]))
     # get_cell_set
     matrix.test_pandas_matrix_types(
         X, scprep.select.select_rows, X.iloc[:, 0],
@@ -129,10 +132,13 @@ def test_select_cols():
                          index=[1], columns=X.columns))
     # series data
     scprep.select.select_cols(
-        X.iloc[0, :], idx=np.random.choice([True, False], [X.shape[1]]))
+        X, X.iloc[0, :], idx=np.random.choice([True, False], [X.shape[1]]))
     # 1D array data
     scprep.select.select_cols(
-        X.to_coo().toarray()[0, :], idx=np.random.choice([True, False], [X.shape[1]]))
+        X, X.to_coo().toarray()[0, :], idx=np.random.choice([True, False], [X.shape[1]]))
+    # list data
+    scprep.select.select_cols(
+        X, X.to_coo().toarray()[0, :].tolist(), idx=np.random.choice([True, False], [X.shape[1]]))
     # get_gene_set
     matrix.test_pandas_matrix_types(
         X, scprep.select.select_cols, X.iloc[0, :],

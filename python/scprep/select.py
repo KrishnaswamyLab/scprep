@@ -6,6 +6,13 @@ import warnings
 import re
 
 
+def _is_1d(data):
+    try:
+        return len(data.shape) == 1
+    except AttributeError:
+        return True
+
+
 def _get_columns(data):
     return data.columns if isinstance(data, pd.DataFrame) else data.index
 
@@ -13,6 +20,13 @@ def _get_columns(data):
 def _get_column_length(data):
     try:
         return data.shape[1]
+    except (IndexError, AttributeError):
+        return len(data)
+
+
+def _get_row_length(data):
+    try:
+        return data.shape[0]
     except (IndexError, AttributeError):
         return len(data)
 
@@ -35,7 +49,7 @@ def _check_columns_compatible(*data):
 
 def _check_rows_compatible(*data):
     for d in data:
-        if not d.shape[0] == data[0].shape[0]:
+        if not _get_row_length(d) == _get_row_length(data[0]):
             raise ValueError(
                 "Expected all data to have the same number of "
                 "rows. Got {}".format(
@@ -50,7 +64,7 @@ def _check_rows_compatible(*data):
 
 
 def _convert_dataframe_1d(idx):
-    if len(idx.shape) > 1 and np.prod(idx.shape) != np.max(idx.shape):
+    if (not _is_1d(idx)) and np.prod(idx.shape) != np.max(idx.shape):
         raise ValueError(
             "Expected idx to be 1D. Got shape {}".format(idx.shape))
     idx = idx.iloc[:, 0] if idx.shape[1] == 1 else idx.iloc[0, :]
@@ -109,7 +123,7 @@ def get_gene_set(data, starts_with=None, ends_with=None, regex=None):
     genes : list-like, shape<=[n_features]
         List of matching genes
     """
-    if len(data.shape) > 1:
+    if not _is_1d(data):
         try:
             data = data.columns.values
         except AttributeError:
@@ -141,7 +155,7 @@ def get_cell_set(data, starts_with=None, ends_with=None, regex=None):
     cells : list-like, shape<=[n_features]
         List of matching cells
     """
-    if len(data.shape) > 1:
+    if not _is_1d(data):
         try:
             data = data.index.values
         except AttributeError:
@@ -224,7 +238,10 @@ def select_cols(data, *extra_data, idx=None,
                 data = data.loc[np.array(data.index)[idx]]
             else:
                 raise
-    elif len(data.shape) == 1:
+    elif _is_1d(data):
+        if isinstance(data, list):
+            # can't numpy index a list
+            data = np.array(data)
         data = data[idx]
     else:
         if isinstance(data, (sparse.coo_matrix,
@@ -233,7 +250,7 @@ def select_cols(data, *extra_data, idx=None,
                              sparse.dia_matrix)):
             data = data.tocsr()
         data = data[:, idx]
-    if len(data.shape) > 1 and data.shape[1] == 0:
+    if _get_column_length(data) == 0:
         warnings.warn("Selecting 0 columns.", UserWarning)
     if len(extra_data) > 0:
         data = [data]
@@ -302,7 +319,10 @@ def select_rows(data, *extra_data, idx=None,
                 data = data.iloc[idx]
             else:
                 raise
-    elif len(data.shape) == 1:
+    elif _is_1d(data):
+        if isinstance(data, list):
+            # can't numpy index a list
+            data = np.array(data)
         data = data[idx]
     else:
         if isinstance(data, (sparse.coo_matrix,
@@ -310,7 +330,7 @@ def select_rows(data, *extra_data, idx=None,
                              sparse.dia_matrix)):
             data = data.tocsr()
         data = data[idx, :]
-    if len(data.shape) > 1 and data.shape[0] == 0:
+    if _get_row_length(data) == 0:
         warnings.warn("Selecting 0 rows.", UserWarning)
     if len(extra_data) > 0:
         data = [data]
