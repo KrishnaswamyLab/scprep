@@ -1,8 +1,7 @@
 import numpy as np
-import pandas as pd
 import warnings
 
-from . import utils
+from . import utils, select
 
 
 def library_size(data):
@@ -39,7 +38,7 @@ def gene_set_expression(data, genes, library_size_normalize=True):
     gene_set_expression : list-like, shape=[n_samples]
         Sum over genes for each cell
     """
-    gene_data = utils.select_cols(data, genes)
+    gene_data = select.select_cols(data, genes)
     gene_set_expression = library_size(gene_data)
     if library_size_normalize:
         libsize = library_size(data)

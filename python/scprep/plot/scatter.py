@@ -9,7 +9,7 @@ try:
 except ImportError:
     pass
 
-from .. import utils
+from .. import utils, select
 from .utils import (_get_figure, _with_matplotlib, _is_color_array,
                     show, _in_ipynb, parse_fontsize, temp_fontsize)
 from .tools import (create_colormap, create_normalize,
@@ -646,8 +646,8 @@ def scatter2d(data,
     >>> data[colors == 'a'] += 10
     >>> scprep.plot.scatter2d(data, c=colors, cmap={'a' : [1,0,0,1], 'b' : 'xkcd:sky blue'})
     """
-    return scatter(x=utils.select_cols(data, 0),
-                   y=utils.select_cols(data, 1),
+    return scatter(x=select.select_cols(data, 0),
+                   y=select.select_cols(data, 1),
                    c=c, cmap=cmap, cmap_scale=cmap_scale, s=s, discrete=discrete,
                    ax=ax, legend=legend, figsize=figsize,
                    xticks=xticks,
@@ -792,9 +792,9 @@ def scatter3d(data,
     >>> data[colors == 'a'] += 5
     >>> scprep.plot.scatter3d(data, c=colors, cmap={'a' : [1,0,0,1], 'b' : 'xkcd:sky blue'})
     """
-    return scatter(x=utils.select_cols(data, 0),
-                   y=utils.select_cols(data, 1),
-                   z=utils.select_cols(data, 2),
+    return scatter(x=select.select_cols(data, 0),
+                   y=select.select_cols(data, 1),
+                   z=select.select_cols(data, 2),
                    c=c, cmap=cmap, cmap_scale=cmap_scale, s=s, discrete=discrete,
                    ax=ax, legend=legend, figsize=figsize,
                    xticks=xticks,
