@@ -19,15 +19,15 @@
     - apt
 
   install:
-    - cd python; python setup.py install; cd ..
+    - python setup.py install
 
   script:
-    - cd python; pip install -U .[test,doc]
-    - travis_wait 30 python setup.py test
-    - cd doc; make html; cd ../..
+    - pip install -U .[test,doc]
+    - python setup.py test
+    - cd doc; make html; cd ..
 
   after_success:
-    - cd python; coveralls
+    - coveralls
 
   deploy:
     provider: pypi
