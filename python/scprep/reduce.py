@@ -225,7 +225,8 @@ def pca(data, n_components=100, eps=0.3,
     """Calculate PCA using random projections to handle sparse matrices
 
     Uses the Johnson-Lindenstrauss Lemma to determine the number of
-    dimensions of random projectiosn prior to subtracting the mean.
+    dimensions of random projections prior to subtracting the mean.
+    Dense matrices are provided to `sklearn.decomposition.PCA` directly.
 
     Parameters
     ----------
