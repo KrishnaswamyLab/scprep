@@ -118,7 +118,8 @@ def plot_library_size(data,
 
 
 @_with_matplotlib
-def plot_gene_set_expression(data, genes,
+def plot_gene_set_expression(data, genes=None,
+                             starts_with=None, ends_with=None, regex=None,
                              bins=100, log=False,
                              cutoff=None, percentile=None,
                              library_size_normalize=True,
@@ -131,8 +132,14 @@ def plot_gene_set_expression(data, genes,
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
-    genes : list-like, dtype=`str` or `int`
+    genes : list-like, optional (default: None)
         Integer column indices or string gene names included in gene set
+    starts_with : str or None, optional (default: None)
+        If not None, select genes that start with this prefix
+    ends_with : str or None, optional (default: None)
+        If not None, select genes that end with this suffix
+    regex : str or None, optional (default: None)
+        If not None, select genes that match this regular expression
     bins : int, optional (default: 100)
         Number of bins to draw in the histogram
     log : bool, or {'x', 'y'}, optional (default: True)
@@ -161,7 +168,9 @@ def plot_gene_set_expression(data, genes,
         axis on which plot was drawn
     """
     return histogram(measure.gene_set_expression(
-        data, genes, library_size_normalize=library_size_normalize),
+        data, genes=genes,
+        starts_with=starts_with, ends_with=ends_with, regex=regex,
+        library_size_normalize=library_size_normalize),
         cutoff=cutoff, percentile=percentile,
         bins=bins, log=log, ax=ax, figsize=figsize,
         xlabel=xlabel, **kwargs)
