@@ -234,7 +234,7 @@ def pca(data, n_components=100, eps=0.3,
         Input data
     n_components : int, optional (default: 100)
         Number of PCs to compute
-    eps : strictly positive float, optional (default=0.15)
+    eps : strictly positive float, optional (default=0.3)
         Parameter to control the quality of the embedding of sparse input.
         Smaller values lead to more accurate embeddings but higher
         computational and memory costs
