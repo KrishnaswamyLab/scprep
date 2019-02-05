@@ -17,6 +17,43 @@ def try_remove(filename):
         pass
 
 
+def test_default_matplotlibrc():
+    for key in ['axes.labelsize',
+                'axes.titlesize',
+                'figure.titlesize',
+                'legend.fontsize',
+                'legend.title_fontsize',
+                'xtick.labelsize',
+                'ytick.labelsize']:
+        assert scprep.plot.utils._is_default_matplotlibrc() is True
+        default = plt.rcParams[key]
+        plt.rcParams[key] = 'xx-large'
+        assert scprep.plot.utils._is_default_matplotlibrc() is False
+        plt.rcParams[key] = default
+    assert scprep.plot.utils._is_default_matplotlibrc() is True
+
+
+def test_parse_fontsize():
+    for key in ['axes.labelsize',
+                'axes.titlesize',
+                'figure.titlesize',
+                'legend.fontsize',
+                'legend.title_fontsize',
+                'xtick.labelsize',
+                'ytick.labelsize']:
+        assert scprep.plot.utils.parse_fontsize(
+            'x-large', 'large') == 'x-large'
+        assert scprep.plot.utils.parse_fontsize(None, 'large') == 'large'
+        default = plt.rcParams[key]
+        plt.rcParams[key] = 'xx-large'
+        assert scprep.plot.utils.parse_fontsize(
+            'x-large', 'large') == 'x-large'
+        assert scprep.plot.utils.parse_fontsize(None, 'large') is None
+        plt.rcParams[key] = default
+    assert scprep.plot.utils.parse_fontsize('x-large', 'large') == 'x-large'
+    assert scprep.plot.utils.parse_fontsize(None, 'large') == 'large'
+
+
 class Test10X(unittest.TestCase):
 
     @classmethod
@@ -291,6 +328,15 @@ class Test10X(unittest.TestCase):
         scprep.plot.scatter2d(self.X_pca, c=self.X_pca[:, 0],
                               colorbar=True, cmap_scale='sqrt')
 
+    def test_scatter_colorbar_invalid(self):
+        assert_raise_message(
+            ValueError, "Expected norm in ['linear', 'log', 'symlog',"
+            "'sqrt'] or a matplotlib.colors.Normalize object."
+            " Got invalid",
+            scprep.plot.scatter2d,
+            self.X_pca, c=self.X_pca[:, 0],
+            colorbar=True, cmap_scale='invalid')
+
     def test_scatter_legend_and_colorbar(self):
         assert_raise_message(
             ValueError, "Received conflicting values for synonyms "
@@ -355,7 +401,7 @@ class Test10X(unittest.TestCase):
             "Got `vmax=None, vmin=0`",
             scprep.plot.tools.generate_colorbar, 'inferno', vmin=0)
 
-    def test_marker_plot_should_work(self):
+    def test_marker_plot(self):
         scprep.plot.marker_plot(
             data=self.X,
             clusters=np.random.choice(
@@ -376,5 +422,45 @@ class Test10X(unittest.TestCase):
             markers={'tissue': ['z']})
 
     def test_style_phate(self):
-        fig, ax = plt.subplots(1)
+        ax = scprep.plot.scatter2d(self.X_pca)
         scprep.plot.style.style_phate(ax)
+        assert len(ax.get_xticks()) == 0
+        assert len(ax.get_yticks()) == 0
+        ax = scprep.plot.scatter3d(self.X_pca)
+        scprep.plot.style.style_phate(ax)
+        assert len(ax.get_xticks()) == 0
+        assert len(ax.get_yticks()) == 0
+        assert len(ax.get_zticks()) == 0
+
+    def test_label_axis_va(self):
+        ax = scprep.plot.scatter2d(self.X_pca)
+        scprep.plot.tools.label_axis(
+            ax.yaxis, ticklabel_vertical_alignment="top")
+        for tick in ax.yaxis.get_ticklabels():
+            assert tick.get_va() == "top"
+        scprep.plot.tools.label_axis(
+            ax.yaxis, ticklabel_vertical_alignment="bottom")
+        for tick in ax.yaxis.get_ticklabels():
+            assert tick.get_va() == "bottom"
+
+    def test_label_axis_ha(self):
+        ax = scprep.plot.scatter2d(self.X_pca)
+        scprep.plot.tools.label_axis(
+            ax.xaxis, ticklabel_horizontal_alignment="left")
+        for tick in ax.xaxis.get_ticklabels():
+            assert tick.get_ha() == "left"
+        scprep.plot.tools.label_axis(
+            ax.xaxis, ticklabel_horizontal_alignment="right")
+        for tick in ax.xaxis.get_ticklabels():
+            assert tick.get_ha() == "right"
+
+    def test_label_axis_rotation(self):
+        ax = scprep.plot.scatter2d(self.X_pca)
+        scprep.plot.tools.label_axis(
+            ax.xaxis, ticklabel_rotation=45)
+        for tick in ax.xaxis.get_ticklabels():
+            assert tick.get_rotation() == 45
+        scprep.plot.tools.label_axis(
+            ax.xaxis, ticklabel_rotation=90)
+        for tick in ax.xaxis.get_ticklabels():
+            assert tick.get_rotation() == 90

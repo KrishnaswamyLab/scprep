@@ -25,8 +25,8 @@ def _check_columns_compatible(data):
                 "columns. Got {}".format(
                     [_get_column_length(d) for d in data]))
         if isinstance(d, (pd.DataFrame, pd.Series)) and \
-                isinstance(data, (pd.DataFrame, pd.Series)):
-            if not np.all(_get_columns(data) == _get_columns(d)):
+                isinstance(data[0], (pd.DataFrame, pd.Series)):
+            if not np.all(_get_columns(data[0]) == _get_columns(d)):
                 raise ValueError(
                     "Expected all pandas inputs to have the same columns. "
                     "Fix with "
@@ -41,8 +41,8 @@ def _check_rows_compatible(data):
                 "rows. Got {}".format(
                     [d.shape[0] for d in data]))
         if isinstance(d, (pd.DataFrame, pd.Series)) and \
-                isinstance(data, (pd.DataFrame, pd.Series)):
-            if not np.all(data.index == d.index):
+                isinstance(data[0], (pd.DataFrame, pd.Series)):
+            if not np.all(data[0].index == d.index):
                 raise ValueError(
                     "Expected all pandas inputs to have the same index. "
                     "Fix with "
