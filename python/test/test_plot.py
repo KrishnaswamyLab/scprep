@@ -6,9 +6,6 @@ import os
 from sklearn.utils.testing import assert_raise_message, assert_warns_message
 import unittest
 
-self = unittest.TestCase()
-self.X_pca = np.random.normal(0, 1, [100, 3])
-
 
 def try_remove(filename):
     try:
