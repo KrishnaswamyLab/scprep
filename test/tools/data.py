@@ -31,7 +31,7 @@ def _get_data_dir():
     """Get path to scprep data directory
     """
     data_dir = os.getcwd().split(os.path.sep)
-    while data_dir[-1] in ["test_utils", "test", "python"]:
+    while data_dir[-1] in ["test_utils", "test"]:
         data_dir = data_dir[:-1]
     data_dir = data_dir + ["data", "test_data"]
     data_dir = _os_agnostic_fullpath_join(data_dir)
