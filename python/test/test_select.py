@@ -276,6 +276,24 @@ class Test10X(unittest.TestCase):
                              self.X,
                              idx=pd.DataFrame([self.X.index, self.X.index]))
 
+    def test_select_cols_unequal_columns(self):
+        assert_raise_message(
+            ValueError,
+            "Expected all data to have the same number of "
+            "columns. Got [100, 50]",
+            scprep.select.select_cols,
+            self.X,
+            self.X.values[:, :50])
+
+    def test_select_rows_unequal_rows(self):
+        assert_raise_message(
+            ValueError,
+            "Expected all data to have the same number of "
+            "rows. Got [100, 50]",
+            scprep.select.select_rows,
+            self.X,
+            self.X.values[:50, :])
+
     def test_select_cols_conflicting_data(self):
         assert_raise_message(
             ValueError,
