@@ -278,18 +278,17 @@ def label_axis(axis, ticks=True, ticklabels=True, label=None,
     if ticklabels is False or ticklabels is None:
         axis.set_ticklabels([])
     else:
-        ticklabel_kws = {}
-        if ticklabel_rotation is not None:
-            ticklabel_kws['rotation'] = ticklabel_rotation
-        if ticklabel_horizontal_alignment is not None:
-            ticklabel_kws['ha'] = ticklabel_horizontal_alignment
-        if ticklabel_vertical_alignment is not None:
-            ticklabel_kws['va'] = ticklabel_vertical_alignment
-        if ticklabels is True:
-            ticklabels = [t.get_text() for t in axis.get_ticklabels()]
         tick_fontsize = parse_fontsize(tick_fontsize, 'large')
-        axis.set_ticklabels(
-            ticklabels, fontsize=tick_fontsize, **ticklabel_kws)
+        if ticklabels is not True:
+            axis.set_ticklabels(ticklabels)
+        for tick in axis.get_ticklabels():
+            if ticklabel_rotation is not None:
+                tick.set_rotation(ticklabel_rotation)
+            if ticklabel_horizontal_alignment is not None:
+                tick.set_ha(ticklabel_horizontal_alignment)
+            if ticklabel_vertical_alignment is not None:
+                tick.set_va(ticklabel_vertical_alignment)
+            tick.set_fontsize(tick_fontsize)
     if label is not None:
         label_fontsize = parse_fontsize(label_fontsize, 'x-large')
         axis.set_label_text(label, fontsize=label_fontsize)

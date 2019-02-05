@@ -16,6 +16,10 @@ from .tools import (create_colormap, create_normalize,
                     label_axis, generate_colorbar, generate_legend)
 
 
+def _with_default(param, default):
+    return param if param is not None else default
+
+
 class _ScatterParams(object):
 
     def __init__(self, x, y, z=None, c=None, discrete=None,
@@ -342,12 +346,14 @@ def scatter(x, y, z=None,
             ax=None,
             legend=None, colorbar=None,
             figsize=None,
-            xticks=True,
-            yticks=True,
-            zticks=True,
-            xticklabels=True,
-            yticklabels=True,
-            zticklabels=True,
+            ticks=True,
+            xticks=None,
+            yticks=None,
+            zticks=None,
+            ticklabels=True,
+            xticklabels=None,
+            yticklabels=None,
+            zticklabels=None,
             label_prefix=None,
             xlabel=None,
             ylabel=None,
@@ -407,12 +413,16 @@ def scatter(x, y, z=None,
     figsize : tuple, optional (default: None)
         Tuple of floats for creation of new `matplotlib` figure. Only used if
         `ax` is None.
-    {x,y,z}ticks : True, False, or list-like (default: True)
+    ticks : True, False, or list-like (default: True)
         If True, keeps default axis ticks. If False, removes axis ticks.
         If a list, sets custom axis ticks
-    {x,y,z}ticklabels : True, False, or list-like (default: True)
+    {x,y,z}ticks : True, False, or list-like (default: None)
+        If set, overrides `ticks`
+    ticklabels : True, False, or list-like (default: True)
         If True, keeps default axis tick labels. If False, removes axis tick labels.
         If a list, sets custom axis tick labels
+    {x,y,z}ticklabels : True, False, or list-like (default: None)
+        If set, overrides `ticklabels`
     label_prefix : str or None (default: None)
         Prefix for all axis labels. Axes will be labelled `label_prefix`1,
         `label_prefix`2, etc. Can be overriden by setting `xlabel`,
@@ -496,10 +506,13 @@ def scatter(x, y, z=None,
                 zlabel = label_prefix + "3"
 
         # label axes
-        label_axis(ax.xaxis, xticks, xticklabels, xlabel)
-        label_axis(ax.yaxis, yticks, yticklabels, ylabel)
+        label_axis(ax.xaxis, _with_default(xticks, ticks),
+                   _with_default(xticklabels, ticklabels), xlabel)
+        label_axis(ax.yaxis, _with_default(yticks, ticks),
+                   _with_default(yticklabels, ticklabels), ylabel)
         if z is not None:
-            label_axis(ax.zaxis, zticks, zticklabels, zlabel)
+            label_axis(ax.zaxis, _with_default(zticks, ticks),
+                       _with_default(zticklabels, ticklabels), zlabel)
 
         if title is not None:
             ax.set_title(title, fontsize=parse_fontsize(None, 'xx-large'))
@@ -533,10 +546,12 @@ def scatter(x, y, z=None,
 def scatter2d(data,
               c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
               ax=None, legend=None, figsize=None,
-              xticks=True,
-              yticks=True,
-              xticklabels=True,
-              yticklabels=True,
+              ticks=True,
+              xticks=None,
+              yticks=None,
+              ticklabels=True,
+              xticklabels=None,
+              yticklabels=None,
               label_prefix=None,
               xlabel=None,
               ylabel=None,
@@ -588,12 +603,16 @@ def scatter2d(data,
     figsize : tuple, optional (default: None)
         Tuple of floats for creation of new `matplotlib` figure. Only used if
         `ax` is None.
-    {x,y}ticks : True, False, or list-like (default: True)
+    ticks : True, False, or list-like (default: True)
         If True, keeps default axis ticks. If False, removes axis ticks.
         If a list, sets custom axis ticks
-    {x,y}ticklabels : True, False, or list-like (default: True)
+    {x,y}ticks : True, False, or list-like (default: None)
+        If set, overrides `ticks`
+    ticklabels : True, False, or list-like (default: True)
         If True, keeps default axis tick labels. If False, removes axis tick labels.
         If a list, sets custom axis tick labels
+    {x,y}ticklabels : True, False, or list-like (default: None)
+        If set, overrides `ticklabels`
     label_prefix : str or None (default: None)
         Prefix for all axis labels. Axes will be labelled `label_prefix`1,
         `label_prefix`2, etc. Can be overriden by setting `xlabel`,
@@ -650,8 +669,10 @@ def scatter2d(data,
                    y=select.select_cols(data, idx=1),
                    c=c, cmap=cmap, cmap_scale=cmap_scale, s=s, discrete=discrete,
                    ax=ax, legend=legend, figsize=figsize,
+                   ticks=ticks,
                    xticks=xticks,
                    yticks=yticks,
+                   ticklabels=ticklabels,
                    xticklabels=xticklabels,
                    yticklabels=yticklabels,
                    label_prefix=label_prefix,
@@ -671,12 +692,14 @@ def scatter2d(data,
 def scatter3d(data,
               c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
               ax=None, legend=None, figsize=None,
-              xticks=True,
-              yticks=True,
-              zticks=True,
-              xticklabels=True,
-              yticklabels=True,
-              zticklabels=True,
+              ticks=True,
+              xticks=None,
+              yticks=None,
+              zticks=None,
+              ticklabels=True,
+              xticklabels=None,
+              yticklabels=None,
+              zticklabels=None,
               label_prefix=None,
               xlabel=None,
               ylabel=None,
@@ -730,12 +753,16 @@ def scatter3d(data,
     figsize : tuple, optional (default: None)
         Tuple of floats for creation of new `matplotlib` figure. Only used if
         `ax` is None.
-    {x,y,z}ticks : True, False, or list-like (default: True)
+    ticks : True, False, or list-like (default: True)
         If True, keeps default axis ticks. If False, removes axis ticks.
         If a list, sets custom axis ticks
-    {x,y,z}ticklabels : True, False, or list-like (default: True)
+    {x,y,z}ticks : True, False, or list-like (default: None)
+        If set, overrides `ticks`
+    ticklabels : True, False, or list-like (default: True)
         If True, keeps default axis tick labels. If False, removes axis tick labels.
         If a list, sets custom axis tick labels
+    {x,y,z}ticklabels : True, False, or list-like (default: None)
+        If set, overrides `ticklabels`
     label_prefix : str or None (default: None)
         Prefix for all axis labels. Axes will be labelled `label_prefix`1,
         `label_prefix`2, etc. Can be overriden by setting `xlabel`,
@@ -797,9 +824,11 @@ def scatter3d(data,
                    z=select.select_cols(data, idx=2),
                    c=c, cmap=cmap, cmap_scale=cmap_scale, s=s, discrete=discrete,
                    ax=ax, legend=legend, figsize=figsize,
+                   ticks=ticks,
                    xticks=xticks,
                    yticks=yticks,
                    zticks=zticks,
+                   ticklabels=ticklabels,
                    xticklabels=xticklabels,
                    yticklabels=yticklabels,
                    zticklabels=zticklabels,
