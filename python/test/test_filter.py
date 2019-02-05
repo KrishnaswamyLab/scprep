@@ -219,7 +219,7 @@ class Test10X(unittest.TestCase):
             libsize, libsize, cutoff=100)
         assert np.all(libsize_filt > 100)
 
-    def test_deprecated(self):
+    def test_deprecated_remove(self):
         assert_warns_message(DeprecationWarning,
                              "`scprep.filter.remove_empty_genes` is deprecated. Use "
                              "`scprep.filter.filter_empty_genes` instead.",
@@ -240,6 +240,29 @@ class Test10X(unittest.TestCase):
                              "`scprep.filter.filter_duplicates` instead.",
                              scprep.filter.remove_duplicates,
                              self.X_dense)
+
+    def test_deprecated_sample_labels(self):
+        sample_labels = np.arange(self.X_dense.shape[0])
+        assert_warns_message(DeprecationWarning,
+                             "`sample_labels` is deprecated. "
+                             "Passing `sample_labels` as `extra_data`.",
+                             scprep.filter.filter_empty_cells,
+                             self.X_dense, sample_labels=sample_labels)
+        assert_warns_message(DeprecationWarning,
+                             "`sample_labels` is deprecated. "
+                             "Passing `sample_labels` as `extra_data`.",
+                             scprep.filter.filter_duplicates,
+                             self.X_dense, sample_labels=sample_labels)
+        assert_warns_message(DeprecationWarning,
+                             "`sample_labels` is deprecated. "
+                             "Passing `sample_labels` as `extra_data`.",
+                             scprep.filter.filter_library_size,
+                             self.X_dense, cutoff=10, sample_labels=sample_labels)
+        assert_warns_message(DeprecationWarning,
+                             "`filter_per_sample` is deprecated. "
+                             "Filtering as a single sample.",
+                             scprep.filter.filter_library_size,
+                             self.X_dense, cutoff=10, filter_per_sample=True)
 
 
 def test_large_sparse_dataframe_library_size():
