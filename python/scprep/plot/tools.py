@@ -238,7 +238,10 @@ def generate_colorbar(cmap=None, vmin=None, vmax=None, scale=None, ax=None,
 
 
 def label_axis(axis, ticks=True, ticklabels=True, label=None,
-               label_fontsize=None, tick_fontsize=None):
+               label_fontsize=None, tick_fontsize=None,
+               ticklabel_rotation=None,
+               ticklabel_horizontal_alignment=None,
+               ticklabel_vertical_alignment=None):
     """Set axis ticks and labels
 
     Parameters
@@ -259,20 +262,33 @@ def label_axis(axis, ticks=True, ticklabels=True, label=None,
         Axis label font size.
     tick_fontsize : str or None (default: None)
         Axis tick label font size.
+    ticklabel_rotation : int or None (default: None)
+        Angle of rotation for tick labels
+    ticklabel_horizontal_alignment : str or None (default: None)
+        Horizontal alignment of tick labels
     """
     tick_fontsize = parse_fontsize(tick_fontsize, 'large')
     label_fontsize = parse_fontsize(label_fontsize, 'x-large')
-    if not ticks:
+    if ticks is False or ticks is None:
         axis.set_ticks([])
     elif ticks is True:
         pass
     else:
         axis.set_ticks(ticks)
-    if not ticklabels:
+    ticklabel_kws = {}
+    if ticklabel_rotation is not None:
+        ticklabel_kws['rotation'] = ticklabel_rotation
+    if ticklabel_horizontal_alignment is not None:
+        ticklabel_kws['ha'] = ticklabel_horizontal_alignment
+    if ticklabel_vertical_alignment is not None:
+        ticklabel_kws['va'] = ticklabel_vertical_alignment
+    if ticklabels is False or ticklabels is None:
         axis.set_ticklabels([])
     elif ticklabels is True:
+        axis.set_ticklabels(axis.get_ticklabels(), **ticklabel_kws)
         axis.set_tick_params(labelsize=tick_fontsize)
     else:
-        axis.set_ticklabels(ticklabels, fontsize=tick_fontsize)
+        axis.set_ticklabels(
+            ticklabels, fontsize=tick_fontsize, **ticklabel_kws)
     if label is not None:
         axis.set_label_text(label, fontsize=label_fontsize)
