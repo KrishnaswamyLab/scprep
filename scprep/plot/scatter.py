@@ -144,7 +144,7 @@ class _ScatterParams(object):
             self.c_discrete
             return self._labels
         else:
-            return self._c
+            return None
 
     @property
     def legend(self):

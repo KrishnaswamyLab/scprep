@@ -136,6 +136,7 @@ class TestScatterParams(unittest.TestCase):
         assert params.cmap is None
         assert params.cmap_scale is None
         assert params.extend is None
+        assert params.labels is None
 
     def test_array_c(self):
         params = _ScatterParams(x=self.x, y=self.y,
@@ -149,6 +150,7 @@ class TestScatterParams(unittest.TestCase):
         assert params.cmap is None
         assert params.cmap_scale is None
         assert params.extend is None
+        assert params.labels is None
 
     def test_continuous(self):
         params = _ScatterParams(x=self.x, y=self.y, c=self.c)
@@ -164,6 +166,7 @@ class TestScatterParams(unittest.TestCase):
         assert not params.constant_c()
         assert params.discrete is False
         assert params.legend is True
+        assert params.labels is None
         assert params.cmap_scale == 'linear'
         assert params.cmap == 'inferno'
 
