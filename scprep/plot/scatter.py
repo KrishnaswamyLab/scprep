@@ -24,7 +24,8 @@ class _ScatterParams(object):
 
     def __init__(self, x, y, z=None, c=None, discrete=None,
                  cmap=None, cmap_scale=None, vmin=None,
-                 vmax=None, s=None, legend=None, colorbar=None):
+                 vmax=None, s=None, legend=None, colorbar=None,
+                 shuffle=True):
         self._x = utils.toarray(x).flatten()
         self._y = utils.toarray(y).flatten()
         self._z = utils.toarray(z).flatten() if z is not None else None
@@ -39,6 +40,7 @@ class _ScatterParams(object):
         self._colorbar = colorbar
         self._labels = None
         self._c_discrete = None
+        self.shuffle = shuffle
         self.check_size()
         self.check_c()
         self.check_discrete()
@@ -56,7 +58,10 @@ class _ScatterParams(object):
         try:
             return self._plot_idx
         except AttributeError:
-            self._plot_idx = np.random.permutation(self.size)
+            if self.shuffle:
+                self._plot_idx = np.random.permutation(self.size)
+            else:
+                self._plot_idx = np.arange(self.size)
             return self._plot_idx
 
     @property
@@ -345,6 +350,7 @@ def scatter(x, y, z=None,
             c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
             ax=None,
             legend=None, colorbar=None,
+            shuffle=True,
             figsize=None,
             ticks=True,
             xticks=None,
@@ -410,6 +416,8 @@ def scatter(x, y, z=None,
         the legend is a colorbar. If `None`, a legend is created where possible
     colorbar : bool, optional (default: None)
         Synonym for `legend`
+    shuffle : bool, optional (default: True)
+        If True. shuffles the order of points on the plot.
     figsize : tuple, optional (default: None)
         Tuple of floats for creation of new `matplotlib` figure. Only used if
         `ax` is None.
@@ -545,7 +553,8 @@ def scatter(x, y, z=None,
 @_with_matplotlib
 def scatter2d(data,
               c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
-              ax=None, legend=None, figsize=None,
+              ax=None, legend=None, colorbar=None,
+              shuffle=True, figsize=None,
               ticks=True,
               xticks=None,
               yticks=None,
@@ -600,6 +609,10 @@ def scatter2d(data,
     legend : bool, optional (default: None)
         States whether or not to create a legend. If data is continuous,
         the legend is a colorbar. If `None`, a legend is created where possible.
+    colorbar : bool, optional (default: None)
+        Synonym for `legend`
+    shuffle : bool, optional (default: True)
+        If True. shuffles the order of points on the plot.
     figsize : tuple, optional (default: None)
         Tuple of floats for creation of new `matplotlib` figure. Only used if
         `ax` is None.
@@ -668,7 +681,8 @@ def scatter2d(data,
     return scatter(x=select.select_cols(data, idx=0),
                    y=select.select_cols(data, idx=1),
                    c=c, cmap=cmap, cmap_scale=cmap_scale, s=s, discrete=discrete,
-                   ax=ax, legend=legend, figsize=figsize,
+                   ax=ax, legend=legend, colorbar=colorbar,
+                   shuffle=shuffle, figsize=figsize,
                    ticks=ticks,
                    xticks=xticks,
                    yticks=yticks,
@@ -691,7 +705,9 @@ def scatter2d(data,
 @_with_matplotlib
 def scatter3d(data,
               c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
-              ax=None, legend=None, figsize=None,
+              ax=None, legend=None, colorbar=None,
+              shuffle=True,
+              figsize=None,
               ticks=True,
               xticks=None,
               yticks=None,
@@ -750,6 +766,10 @@ def scatter3d(data,
     legend : bool, optional (default: None)
         States whether or not to create a legend. If data is continuous,
         the legend is a colorbar. If `None`, a legend is created where possible.
+    colorbar : bool, optional (default: None)
+        Synonym for `legend`
+    shuffle : bool, optional (default: True)
+        If True. shuffles the order of points on the plot.
     figsize : tuple, optional (default: None)
         Tuple of floats for creation of new `matplotlib` figure. Only used if
         `ax` is None.
@@ -823,7 +843,8 @@ def scatter3d(data,
                    y=select.select_cols(data, idx=1),
                    z=select.select_cols(data, idx=2),
                    c=c, cmap=cmap, cmap_scale=cmap_scale, s=s, discrete=discrete,
-                   ax=ax, legend=legend, figsize=figsize,
+                   ax=ax, legend=legend, colorbar=colorbar,
+                   shuffle=shuffle, figsize=figsize,
                    ticks=ticks,
                    xticks=xticks,
                    yticks=yticks,

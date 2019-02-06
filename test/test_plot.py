@@ -1,10 +1,12 @@
 from tools import data
-import scprep
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 from sklearn.utils.testing import assert_raise_message, assert_warns_message
 import unittest
+import scprep
+from scprep.plot.scatter import _ScatterParams
 
 
 def try_remove(filename):
@@ -49,6 +51,219 @@ def test_parse_fontsize():
         plt.rcParams[key] = default
     assert scprep.plot.utils.parse_fontsize('x-large', 'large') == 'x-large'
     assert scprep.plot.utils.parse_fontsize(None, 'large') == 'large'
+
+
+class TestScatterParams(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        self.X = np.random.normal(0, 1, [500, 4])
+        self.x = self.X[:, 0]
+        self.y = self.X[:, 1]
+        self.z = self.X[:, 2]
+        self.c = self.X[:, 3]
+
+    def test_size(self):
+        params = _ScatterParams(x=self.x, y=self.y)
+        assert params.size == len(self.x)
+
+    def test_plot_idx_shuffle(self):
+        params = _ScatterParams(x=self.x, y=self.y, z=self.z, c=self.c)
+        assert not np.all(params.plot_idx == np.arange(params.size))
+        np.testing.assert_equal(params.x == self.x[params.plot_idx])
+        np.testing.assert_equal(params.y == self.y[params.plot_idx])
+        np.testing.assert_equal(params.z == self.z[params.plot_idx])
+        np.testing.assert_equal(params.c == self.c[params.plot_idx])
+
+    def test_plot_idx_no_shuffle(self):
+        params = _ScatterParams(x=self.x, y=self.y,
+                                z=self.z, c=self.c, shuffle=False)
+        np.testing.assert_equal(params.plot_idx == np.arange(params.size))
+        np.testing.assert_equal(params.x == self.x)
+        np.testing.assert_equal(params.y == self.y)
+        np.testing.assert_equal(params.z == self.z)
+        np.testing.assert_equal(params.c == self.c)
+
+    def test_data_2d(self):
+        params = _ScatterParams(x=self.x, y=self.y)
+        np.testing.assert_equal(params._data == [self.x,
+                                                 self.y])
+        np.testing.assert_equal(params.data == [self.x[params.plot_idx],
+                                                self.y[params.plot_idx]])
+        assert params.subplot_kw == {}
+
+    def test_data_3d(self):
+        params = _ScatterParams(x=self.x, y=self.y, z=self.z)
+        np.testing.assert_equal(params._data == [self.x,
+                                                 self.y,
+                                                 self.z])
+        np.testing.assert_equal(params.data == [self.x[params.plot_idx],
+                                                self.y[params.plot_idx],
+                                                self.z[params.plot_idx]])
+        assert params.subplot_kw == {'projection': '3d'}
+
+    def test_s_default(self):
+        params = _ScatterParams(x=self.x, y=self.y)
+        assert params.s == 200 / np.sqrt(params.size)
+
+    def test_s_given(self):
+        params = _ScatterParams(x=self.x, y=self.y, s=3)
+        assert params.s == 3
+
+    def test_c_none(self):
+        params = _ScatterParams(x=self.x, y=self.y)
+        assert params.constant_c()
+        assert not params.array_c()
+        assert params.discrete is None
+        assert params.legend is False
+        assert params.vmin is None
+        assert params.vmax is None
+        assert params.cmap is None
+        assert params.cmap_scale is None
+        assert params.extend is None
+
+    def test_constant_c(self):
+        params = _ScatterParams(x=self.x, y=self.y, c='blue')
+        assert params.constant_c()
+        assert not params.array_c()
+        assert params.discrete is None
+        assert params.legend is False
+        assert params.vmin is None
+        assert params.vmax is None
+        assert params.cmap is None
+        assert params.cmap_scale is None
+        assert params.extend is None
+
+    def test_array_c(self):
+        params = _ScatterParams(x=self.x, y=self.y,
+                                c=np.hstack([1, 1, 1, self.c]))
+        assert params.array_c()
+        assert not params.constant_c()
+        assert params.discrete is None
+        assert params.legend is False
+        assert params.vmin is None
+        assert params.vmax is None
+        assert params.cmap is None
+        assert params.cmap_scale is None
+        assert params.extend is None
+
+    def test_continuous(self):
+        params = _ScatterParams(x=self.x, y=self.y, c=self.c)
+        assert not params.array_c()
+        assert not params.constant_c()
+        assert params.discrete is False
+        assert params.legend is True
+        assert params.cmap_scale == 'linear'
+        assert params.cmap == 'inferno'
+        params = _ScatterParams(x=self.x, y=self.y, discrete=False,
+                                c=np.unique(np.round(self.c % 1, 1)))
+        assert not params.array_c()
+        assert not params.constant_c()
+        assert params.discrete is False
+        assert params.legend is True
+        assert params.cmap_scale == 'linear'
+        assert params.cmap == 'inferno'
+
+    def test_discrete(self):
+        params = _ScatterParams(x=self.x, y=self.y,
+                                c=np.where(self.c > 0, '+', '-'))
+        assert not params.array_c()
+        assert not params.constant_c()
+        assert params.discrete is True
+        assert params.legend is True
+        assert params.vmin is None
+        assert params.vmax is None
+        assert params.cmap_scale is None
+        np.testing.assert_equal(params.cmap.colors, plt.cm.tab10.colors[:2])
+        params = _ScatterParams(x=self.x, y=self.y, discrete=True,
+                                c=np.unique(np.round(self.c % 1, 1)))
+        assert not params.array_c()
+        assert not params.constant_c()
+        assert params.discrete is True
+        assert params.legend is True
+        assert params.vmin is None
+        assert params.vmax is None
+        assert params.cmap_scale is None
+        assert params.extend is None
+        assert params.cmap == 'tab20'
+
+    def test_c_discrete(self):
+        c = np.where(self.c > 0, 'a', 'b')
+        params = _ScatterParams(x=self.x, y=self.y, c=c)
+        np.testing.assert_equal(params.c_discrete, np.where(c == 'a', 0, 1))
+        np.testing.assert_equal(params.labels, ['a', 'b'])
+
+    def test_legend(self):
+        params = _ScatterParams(x=self.x, y=self.y, c=self.c, legend=False)
+        assert params.legend is False
+
+    def test_vmin_given(self):
+        params = _ScatterParams(x=self.x, y=self.y, c=self.c, vmin=0)
+        assert params.vmin == 0
+
+    def test_vmin_default(self):
+        params = _ScatterParams(x=self.x, y=self.y, c=self.c)
+        assert params.vmin == np.min(self.c)
+
+    def test_vmax_given(self):
+        params = _ScatterParams(x=self.x, y=self.y, c=self.c, vmax=0)
+        assert params.vmax == 0
+
+    def test_vmax_default(self):
+        params = _ScatterParams(x=self.x, y=self.y, c=self.c)
+        assert params.vmax == np.max(self.c)
+
+    def test_list_cmap(self):
+        params = _ScatterParams(x=self.x, y=self.y, c=self.c,
+                                cmap=['red', 'green'])
+        assert params.list_cmap()
+        assert len(params.cmap.colors) == 2
+
+    def test_dict_cmap(self):
+        params = _ScatterParams(x=self.x, y=self.y,
+                                c=np.where(self.c > 0, '+', '-'),
+                                cmap={'+': 'k', '-': 'r'})
+        assert not params.list_cmap()
+        np.testing.assert_equal(params.cmap.colors,
+                                [[0, 0, 0, 1], [1, 0, 0, 1]])
+
+    def test_cmap_given(self):
+        params = _ScatterParams(x=self.x, y=self.y, c=self.c, cmap='viridis')
+        assert params.cmap == 'viridis'
+        assert not params.list_cmap()
+
+    def test_cmap_scale_symlog(self):
+        params = _ScatterParams(x=self.x, y=self.y, c=self.c,
+                                cmap_scale='symlog')
+        assert params.cmap_scale == 'symlog'
+        assert isinstance(params.norm, matplotlib.colors.SymLogNorm)
+
+    def test_cmap_scale_log(self):
+        params = _ScatterParams(x=self.x, y=self.y, c=np.abs(self.c) + 1,
+                                cmap_scale='log')
+        assert params.cmap_scale == 'log'
+        assert isinstance(params.norm, matplotlib.colors.LogNorm)
+
+    def test_cmap_scale_sqrt(self):
+        params = _ScatterParams(x=self.x, y=self.y, c=self.c,
+                                cmap_scale='sqrt')
+        assert params.cmap_scale == 'sqrt'
+        assert isinstance(params.norm, matplotlib.colors.PowerNorm)
+        assert params.norm.gamma == 0.5
+
+    def test_extend(self):
+        params = _ScatterParams(x=self.x, y=self.y, c=self.c,
+                                vmin=np.mean(self.c))
+        assert params.extend == 'min'
+        params = _ScatterParams(x=self.x, y=self.y, c=self.c,
+                                vmax=np.mean(self.c))
+        assert params.extend == 'max'
+        params = _ScatterParams(x=self.x, y=self.y, c=self.c,
+                                vmin=(np.min(self.c) + np.mean(self.c)) / 2,
+                                vmax=(np.max(self.c) + np.mean(self.c)) / 2)
+        assert params.extend == 'both'
+        params = _ScatterParams(x=self.x, y=self.y, c=self.c)
+        assert params.extend == 'neither'
 
 
 class Test10X(unittest.TestCase):
