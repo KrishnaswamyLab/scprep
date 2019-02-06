@@ -26,9 +26,9 @@ class _ScatterParams(object):
                  cmap=None, cmap_scale=None, vmin=None,
                  vmax=None, s=None, legend=None, colorbar=None,
                  shuffle=True):
-        self._x = utils.toarray(x).flatten()
-        self._y = utils.toarray(y).flatten()
-        self._z = utils.toarray(z).flatten() if z is not None else None
+        self._x = utils.toarray(x).squeeze()
+        self._y = utils.toarray(y).squeeze()
+        self._z = utils.toarray(z).squeeze() if z is not None else None
         self._c = c
         self._discrete = discrete
         self._cmap = cmap
@@ -191,7 +191,7 @@ class _ScatterParams(object):
             else:
                 return self._cmap
         else:
-            if self.constant_c():
+            if self.constant_c() or self.array_c():
                 return None
             elif self.discrete:
                 n_unique_colors = len(np.unique(self.c))
@@ -292,7 +292,7 @@ class _ScatterParams(object):
 
     def check_c(self):
         if not self.constant_c() or self.array_c():
-            self._c = utils.toarray(self._c).flatten()
+            self._c = utils.toarray(self._c).squeeze()
             if not len(self._c) == self.size:
                 raise ValueError("Expected c of length {} or 1. Got {}".format(
                     self.size, len(self._c)))

@@ -62,6 +62,9 @@ class TestScatterParams(unittest.TestCase):
         self.y = self.X[:, 1]
         self.z = self.X[:, 2]
         self.c = self.X[:, 3]
+        self.array_c = np.vstack([self.c, self.c, self.c, self.c]).T
+        self.array_c = self.array_c - np.min(self.array_c)
+        self.array_c = self.array_c / np.max(self.array_c)
 
     def test_size(self):
         params = _ScatterParams(x=self.x, y=self.y)
@@ -70,36 +73,36 @@ class TestScatterParams(unittest.TestCase):
     def test_plot_idx_shuffle(self):
         params = _ScatterParams(x=self.x, y=self.y, z=self.z, c=self.c)
         assert not np.all(params.plot_idx == np.arange(params.size))
-        np.testing.assert_equal(params.x == self.x[params.plot_idx])
-        np.testing.assert_equal(params.y == self.y[params.plot_idx])
-        np.testing.assert_equal(params.z == self.z[params.plot_idx])
-        np.testing.assert_equal(params.c == self.c[params.plot_idx])
+        np.testing.assert_equal(params.x, self.x[params.plot_idx])
+        np.testing.assert_equal(params.y, self.y[params.plot_idx])
+        np.testing.assert_equal(params.z, self.z[params.plot_idx])
+        np.testing.assert_equal(params.c, self.c[params.plot_idx])
 
     def test_plot_idx_no_shuffle(self):
         params = _ScatterParams(x=self.x, y=self.y,
                                 z=self.z, c=self.c, shuffle=False)
-        np.testing.assert_equal(params.plot_idx == np.arange(params.size))
-        np.testing.assert_equal(params.x == self.x)
-        np.testing.assert_equal(params.y == self.y)
-        np.testing.assert_equal(params.z == self.z)
-        np.testing.assert_equal(params.c == self.c)
+        np.testing.assert_equal(params.plot_idx, np.arange(params.size))
+        np.testing.assert_equal(params.x, self.x)
+        np.testing.assert_equal(params.y, self.y)
+        np.testing.assert_equal(params.z, self.z)
+        np.testing.assert_equal(params.c, self.c)
 
     def test_data_2d(self):
         params = _ScatterParams(x=self.x, y=self.y)
-        np.testing.assert_equal(params._data == [self.x,
-                                                 self.y])
-        np.testing.assert_equal(params.data == [self.x[params.plot_idx],
-                                                self.y[params.plot_idx]])
+        np.testing.assert_equal(params._data, [self.x,
+                                               self.y])
+        np.testing.assert_equal(params.data, [self.x[params.plot_idx],
+                                              self.y[params.plot_idx]])
         assert params.subplot_kw == {}
 
     def test_data_3d(self):
         params = _ScatterParams(x=self.x, y=self.y, z=self.z)
-        np.testing.assert_equal(params._data == [self.x,
-                                                 self.y,
-                                                 self.z])
-        np.testing.assert_equal(params.data == [self.x[params.plot_idx],
-                                                self.y[params.plot_idx],
-                                                self.z[params.plot_idx]])
+        np.testing.assert_equal(params._data, [self.x,
+                                               self.y,
+                                               self.z])
+        np.testing.assert_equal(params.data, [self.x[params.plot_idx],
+                                              self.y[params.plot_idx],
+                                              self.z[params.plot_idx]])
         assert params.subplot_kw == {'projection': '3d'}
 
     def test_s_default(self):
@@ -136,7 +139,7 @@ class TestScatterParams(unittest.TestCase):
 
     def test_array_c(self):
         params = _ScatterParams(x=self.x, y=self.y,
-                                c=np.hstack([1, 1, 1, self.c]))
+                                c=self.array_c)
         assert params.array_c()
         assert not params.constant_c()
         assert params.discrete is None
@@ -156,7 +159,7 @@ class TestScatterParams(unittest.TestCase):
         assert params.cmap_scale == 'linear'
         assert params.cmap == 'inferno'
         params = _ScatterParams(x=self.x, y=self.y, discrete=False,
-                                c=np.unique(np.round(self.c % 1, 1)))
+                                c=np.round(self.c % 1, 1))
         assert not params.array_c()
         assert not params.constant_c()
         assert params.discrete is False
@@ -176,7 +179,7 @@ class TestScatterParams(unittest.TestCase):
         assert params.cmap_scale is None
         np.testing.assert_equal(params.cmap.colors, plt.cm.tab10.colors[:2])
         params = _ScatterParams(x=self.x, y=self.y, discrete=True,
-                                c=np.unique(np.round(self.c % 1, 1)))
+                                c=np.round(self.c % 1, 1))
         assert not params.array_c()
         assert not params.constant_c()
         assert params.discrete is True
@@ -195,6 +198,8 @@ class TestScatterParams(unittest.TestCase):
 
     def test_legend(self):
         params = _ScatterParams(x=self.x, y=self.y, c=self.c, legend=False)
+        assert params.legend is False
+        params = _ScatterParams(x=self.x, y=self.y, c=self.c, colorbar=False)
         assert params.legend is False
 
     def test_vmin_given(self):
@@ -215,9 +220,10 @@ class TestScatterParams(unittest.TestCase):
 
     def test_list_cmap(self):
         params = _ScatterParams(x=self.x, y=self.y, c=self.c,
-                                cmap=['red', 'green'])
+                                cmap=['red', 'black'])
         assert params.list_cmap()
-        assert len(params.cmap.colors) == 2
+        np.testing.assert_equal(params.cmap([0, 255]),
+                                [[1, 0, 0, 1], [0, 0, 0, 1]])
 
     def test_dict_cmap(self):
         params = _ScatterParams(x=self.x, y=self.y,
@@ -264,6 +270,127 @@ class TestScatterParams(unittest.TestCase):
         assert params.extend == 'both'
         params = _ScatterParams(x=self.x, y=self.y, c=self.c)
         assert params.extend == 'neither'
+
+    def test_check_vmin_vmax(self):
+        assert_warns_message(
+            UserWarning,
+            "Cannot set `vmin` or `vmax` with constant `c=None`. "
+            "Setting `vmin = vmax = None`.",
+            _ScatterParams, x=self.x, y=self.y, vmin=0
+        )
+        assert_warns_message(
+            UserWarning,
+            "Cannot set `vmin` or `vmax` with discrete data. "
+            "Setting to `None`.",
+            _ScatterParams, x=self.x, y=self.y,
+            c=np.where(self.c > 0, '+', '-'), vmin=0
+        )
+
+    def test_check_legend(self):
+        assert_raise_message(
+            ValueError,
+            "Received conflicting values for synonyms "
+            "`legend=True` and `colorbar=False`",
+            _ScatterParams, x=self.x, y=self.y,
+            legend=True, colorbar=False
+        )
+        assert_warns_message(
+            UserWarning,
+            "`c` is a color array and cannot be used to create a "
+            "legend. To interpret these values as labels instead, "
+            "provide a `cmap` dictionary with label-color pairs.",
+            _ScatterParams, x=self.x, y=self.y,
+            c=self.array_c, legend=True
+        )
+        assert_warns_message(
+            UserWarning,
+            "Cannot create a legend with constant `c=None`",
+            _ScatterParams, x=self.x, y=self.y,
+            c=None, legend=True
+        )
+
+    def test_check_size(self):
+        assert_raise_message(
+            ValueError,
+            "Expected all axes of data to have the same length"
+            ". Got [500, 100]",
+
+            _ScatterParams, x=self.x, y=self.y[:100]
+        )
+        assert_raise_message(
+            ValueError,
+            "Expected all axes of data to have the same length"
+            ". Got [500, 500, 100]",
+            _ScatterParams, x=self.x, y=self.y, z=self.z[:100]
+        )
+
+    def test_check_c(self):
+        assert_raise_message(
+            ValueError,
+            "Expected c of length 500 or 1. Got 100",
+            _ScatterParams, x=self.x, y=self.y, c=self.c[:100]
+        )
+
+    def test_check_discrete(self):
+        assert_raise_message(
+            ValueError,
+            "Cannot treat non-numeric data as continuous.",
+            _ScatterParams, x=self.x, y=self.y,
+            c=np.where(self.c > 0, '+', '-'), discrete=False
+        )
+
+    def test_check_cmap(self):
+        assert_raise_message(ValueError,
+                             "Expected list-like `c` with dictionary cmap."
+                             " Got <class 'str'>",
+                             _ScatterParams, x=self.x, y=self.y,
+                             c='black',
+                             cmap={'+': 'k', '-': 'r'})
+        assert_raise_message(
+            ValueError,
+            "Cannot use dictionary cmap with "
+            "continuous data.",
+            _ScatterParams, x=self.x, y=self.y,
+            c=self.c, discrete=False,
+            cmap={'+': 'k', '-': 'r'})
+        assert_raise_message(
+            ValueError,
+            "Dictionary cmap requires a color "
+            "for every unique entry in `c`. "
+            "Missing colors for [+]",
+            _ScatterParams, x=self.x, y=self.y,
+            c=np.where(self.c > 0, '+', '-'),
+            cmap={'-': 'r'})
+        assert_raise_message(
+            ValueError,
+            "Expected list-like `c` with list cmap. "
+            "Got <class 'str'>",
+            _ScatterParams, x=self.x, y=self.y,
+            c='black',
+            cmap=['k', 'r'])
+
+    def test_check_cmap_scale(self):
+        assert_warns_message(
+            UserWarning,
+            "Cannot use non-linear `cmap_scale` with "
+            "`c` as a color array.",
+            _ScatterParams, x=self.x, y=self.y,
+            c=self.array_c, cmap_scale='log'
+        )
+        assert_warns_message(
+            UserWarning,
+            "Cannot use non-linear `cmap_scale` with constant "
+            "`c=black`.",
+            _ScatterParams, x=self.x, y=self.y,
+            c='black', cmap_scale='log'
+        )
+        assert_warns_message(
+            UserWarning,
+            "Cannot use non-linear `cmap_scale` with discrete data.",
+            _ScatterParams, x=self.x, y=self.y,
+            cmap_scale='log',
+            c=np.where(self.c > 0, '+', '-'),
+        )
 
 
 class Test10X(unittest.TestCase):
