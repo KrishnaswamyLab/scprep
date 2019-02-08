@@ -8,7 +8,7 @@ from .tools import label_axis
 
 @_with_matplotlib
 def histogram(data,
-              bins=100, log=True,
+              bins=100, log=False,
               cutoff=None, percentile=None,
               ax=None, figsize=None,
               xlabel=None,
@@ -23,7 +23,7 @@ def histogram(data,
         Input data
     bins : int, optional (default: 100)
         Number of bins to draw in the histogram
-    log : bool, or {'x', 'y'}, optional (default: True)
+    log : bool, or {'x', 'y'}, optional (default: False)
         If True, plot both axes on a log scale. If 'x' or 'y',
         only plot the given axis on a log scale. If False,
         plot both axes on a linear scale.
