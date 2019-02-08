@@ -142,7 +142,7 @@ def plot_gene_set_expression(data, genes=None,
         If not None, select genes that match this regular expression
     bins : int, optional (default: 100)
         Number of bins to draw in the histogram
-    log : bool, or {'x', 'y'}, optional (default: True)
+    log : bool, or {'x', 'y'}, optional (default: False)
         If True, plot both axes on a log scale. If 'x' or 'y',
         only plot the given axis on a log scale. If False,
         plot both axes on a linear scale.
