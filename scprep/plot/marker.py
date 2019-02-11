@@ -9,7 +9,7 @@ from .tools import label_axis
 
 @_with_matplotlib
 def marker_plot(data, clusters, markers, gene_names=None,
-                normalize_expression=True,
+                normalize_expression=True, cmap='magma',
                 title=None, figsize=(8, 6),
                 ax=None, fontsize=None):
     """
@@ -23,17 +23,23 @@ def marker_plot(data, clusters, markers, gene_names=None,
     clusters : list-like, shape=[n_cells]
         Cluster assignments for each cell. Should be ints
         like the output of most sklearn.cluster methods.
-    gene_names : list-like, shape=[n_genes]
-        List of gene names.
     markers : dict
         Dictionary with keys being tissues and
         values being a list of marker genes in each tissue.
+    gene_names : list-like, shape=[n_genes]
+        List of gene names.
+    normalize_expression : bool, optional (default: True)
+        Normalize the expression of each row.
+    cmap : str or matplotlib colormap, optional (default: 'inferno')
+        Colormap with which to color points.
     title : str or None, optional (default: None)
         Title for the plot
     figsize : tuple or None, optional (default: None)
         If not None, sets the figure size (width, height)
     ax : `matplotlib.Axes` or None, optional (default: None)
         Axis to plot on. If None, a new axis will be created.
+    fontsize : int or None, optional (default: None)
+        Base fontsize.
 
     Returns
     -------
@@ -118,7 +124,7 @@ def marker_plot(data, clusters, markers, gene_names=None,
         s = np.concatenate(s)
         c = np.concatenate(c)
 
-        ax.scatter(x, y, s=s, c=c, cmap='magma', vmax=max(c) * 1.3)
+        ax.scatter(x, y, s=s, c=c, cmap=cmap, vmax=max(c) * 1.3)
 
         # Vertical and Horizontal Grid Lines
         for h in np.unique(y):
