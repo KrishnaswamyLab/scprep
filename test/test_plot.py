@@ -763,6 +763,25 @@ class Test10X(unittest.TestCase):
             gene_names=self.X.columns,
             markers={'tissue': ['z']})
 
+    def test_marker_plot_pandas_gene_names(self):
+        scprep.plot.marker_plot(
+            data=self.X,
+            clusters=np.random.choice(
+                np.arange(10), replace=True, size=self.X.shape[0]),
+            markers={'tissue': [self.X.columns[0]]})
+
+    def test_marker_plot_no_gene_names(self):
+        assert_raise_message(
+            ValueError,
+            "Either `data` must be a pd.DataFrame, or gene_names must "
+            "be provided. "
+            "Got gene_names=None, data as a <class 'numpy.ndarray'>",
+            scprep.plot.marker_plot,
+            data=self.X.values,
+            clusters=np.random.choice(
+                np.arange(10), replace=True, size=self.X.shape[0]),
+            markers={'tissue': ['z']})
+
     def test_style_phate(self):
         ax = scprep.plot.scatter2d(self.X_pca)
         scprep.plot.style.style_phate(ax)

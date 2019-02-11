@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 from .. import utils, stats, select
 from .utils import (_with_matplotlib, _get_figure, show,
@@ -7,7 +8,7 @@ from .tools import label_axis
 
 
 @_with_matplotlib
-def marker_plot(data, clusters, gene_names, markers,
+def marker_plot(data, clusters, markers, gene_names=None,
                 normalize_expression=True,
                 title=None, figsize=(8, 6),
                 ax=None, fontsize=None):
@@ -50,6 +51,13 @@ def marker_plot(data, clusters, gene_names, markers,
                             title="Tailbud - PSM")
     """
     with temp_fontsize(fontsize):
+        if gene_names is None:
+            if not isinstance(data, pd.DataFrame):
+                raise ValueError(
+                    "Either `data` must be a pd.DataFrame, or gene_names must "
+                    "be provided. "
+                    "Got gene_names=None, data as a {}".format(type(data)))
+            gene_names = data.columns
         for gene in np.array(*markers.values()):
             if gene not in gene_names:
                 raise ValueError('All genes in `markers` must appear '
