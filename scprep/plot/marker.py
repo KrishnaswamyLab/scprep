@@ -64,7 +64,7 @@ def marker_plot(data, clusters, markers, gene_names=None,
                     "be provided. "
                     "Got gene_names=None, data as a {}".format(type(data)))
             gene_names = data.columns
-        for gene in np.array(*markers.values()):
+        for gene in np.concatenate(list(markers.values())):
             if gene not in gene_names:
                 raise ValueError('All genes in `markers` must appear '
                                  'in gene_names. Did not find: {}'.format(gene))
