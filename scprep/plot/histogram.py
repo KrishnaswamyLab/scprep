@@ -1,8 +1,8 @@
 import numpy as np
 
-from .. import measure
+from .. import measure, utils
 from .utils import (_with_matplotlib, _get_figure, show,
-                    temp_fontsize)
+                    temp_fontsize, parse_fontsize)
 from .tools import label_axis
 
 
@@ -13,6 +13,7 @@ def histogram(data,
               ax=None, figsize=None,
               xlabel=None,
               ylabel='Number of cells',
+              title=None,
               fontsize=None,
               **kwargs):
     """Plot a histogram.
@@ -20,7 +21,7 @@ def histogram(data,
     Parameters
     ----------
     data : array-like, shape=[n_samples]
-        Input data
+        Input data. Multiple datasets may be given as a list of array-likes.
     bins : int, optional (default: 100)
         Number of bins to draw in the histogram
     log : bool, or {'x', 'y'}, optional (default: False)
@@ -39,6 +40,8 @@ def histogram(data,
         If not None, sets the figure size (width, height)
     [x,y]label : str, optional
         Labels to display on the x and y axis.
+    title : str or None, optional (default: None)
+        Axis title.
     fontsize : float or None (default: None)
         Base font size.
     **kwargs : additional arguments for `matplotlib.pyplot.hist`
@@ -50,6 +53,10 @@ def histogram(data,
     """
     with temp_fontsize(fontsize):
         fig, ax, show_fig = _get_figure(ax, figsize)
+        data = utils.toarray(data)
+        if len(data.shape) > 1:
+            # top level must be list
+            data = [d for d in data]
         if log == 'x' or log is True:
             bins = np.logspace(np.log10(max(np.min(data), 1)),
                                np.log10(np.max(data)),
@@ -63,6 +70,9 @@ def histogram(data,
 
         label_axis(ax.xaxis, label=xlabel)
         label_axis(ax.yaxis, label=ylabel)
+
+        if title is not None:
+            ax.set_title(title, fontsize=parse_fontsize(None, 'xx-large'))
 
         cutoff = measure._get_percentile_cutoff(
             data, cutoff, percentile, required=False)
@@ -79,6 +89,8 @@ def plot_library_size(data,
                       cutoff=None, percentile=None,
                       ax=None, figsize=None,
                       xlabel='Library size',
+                      title=None,
+                      fontsize=None,
                       **kwargs):
     """Plot the library size histogram.
 
@@ -104,6 +116,10 @@ def plot_library_size(data,
         If not None, sets the figure size (width, height)
     [x,y]label : str, optional
         Labels to display on the x and y axis.
+    title : str or None, optional (default: None)
+        Axis title.
+    fontsize : float or None (default: None)
+        Base font size.
     **kwargs : additional arguments for `matplotlib.pyplot.hist`
 
     Returns
@@ -114,7 +130,7 @@ def plot_library_size(data,
     return histogram(measure.library_size(data),
                      cutoff=cutoff, percentile=percentile,
                      bins=bins, log=log, ax=ax, figsize=figsize,
-                     xlabel=xlabel, **kwargs)
+                     xlabel=xlabel, title=title, fontsize=fontsize, **kwargs)
 
 
 @_with_matplotlib
@@ -125,6 +141,8 @@ def plot_gene_set_expression(data, genes=None,
                              library_size_normalize=True,
                              ax=None, figsize=None,
                              xlabel='Gene expression',
+                             title=None,
+                             fontsize=None,
                              **kwargs):
     """Plot the histogram of the expression of a gene set.
 
@@ -160,6 +178,10 @@ def plot_gene_set_expression(data, genes=None,
         If not None, sets the figure size (width, height)
     [x,y]label : str, optional
         Labels to display on the x and y axis.
+    title : str or None, optional (default: None)
+        Axis title.
+    fontsize : float or None (default: None)
+        Base font size.
     **kwargs : additional arguments for `matplotlib.pyplot.hist`
 
     Returns
@@ -173,4 +195,4 @@ def plot_gene_set_expression(data, genes=None,
         library_size_normalize=library_size_normalize),
         cutoff=cutoff, percentile=percentile,
         bins=bins, log=log, ax=ax, figsize=figsize,
-        xlabel=xlabel, **kwargs)
+        xlabel=xlabel, title=title, fontsize=fontsize, **kwargs)
