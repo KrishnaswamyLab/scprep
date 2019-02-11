@@ -877,6 +877,7 @@ def rotate_scatter3d(data,
                      ax=None,
                      figsize=None,
                      ipython_html="jshtml",
+                     dpi=None,
                      **kwargs):
     """Create a rotating 3D scatter plot
 
@@ -900,6 +901,10 @@ def rotate_scatter3d(data,
         `ax` is None.
     ipython_html : {'html5', 'jshtml'}
         which html writer to use if using a Jupyter Notebook
+    dpi : int or None, optional (default: None)
+        The resolution in dots per inch. If None it will default to the value
+        savefig.dpi in the matplotlibrc file. If 'figure' it will set the dpi
+        to be the value of the figure. Only used if filename is not None.
     **kwargs : keyword arguments
         See :~func:`phate.plot.scatter3d`.
 
@@ -961,7 +966,7 @@ def rotate_scatter3d(data,
         frames=range(frames), interval=interval, blit=False)
 
     if filename is not None:
-        ani.save(filename, writer=writer)
+        ani.save(filename, writer=writer, dpi=dpi)
 
     if _in_ipynb():
         # credit to https://stackoverflow.com/a/45573903/3996580
