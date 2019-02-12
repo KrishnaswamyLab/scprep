@@ -467,6 +467,7 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol',
         if genes.shape[1] == 2:
             # Cellranger < 3.0
             genes.columns = ['id', 'symbol']
+        else
             # Cellranger >= 3.0
             genes.columns = ['id', 'symbol', 'measurement']
         barcodes = pd.read_csv(os.path.join(data_dir, "barcodes.tsv"),
