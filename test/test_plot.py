@@ -235,6 +235,13 @@ class TestScatterParams(unittest.TestCase):
         assert not params.list_cmap()
         np.testing.assert_equal(params.cmap.colors,
                                 [[0, 0, 0, 1], [1, 0, 0, 1]])
+        assert np.all(params._labels == np.array(['+', '-']))
+        params = _ScatterParams(x=self.x, y=self.y,
+                                c=np.where(self.c > 0, '+', '-'),
+                                cmap={'-': 'k', '+': 'r'})
+        np.testing.assert_equal(params.cmap.colors,
+                                [[0, 0, 0, 1], [1, 0, 0, 1]])
+        assert np.all(params._labels == np.array(['-', '+']))
 
     def test_cmap_given(self):
         params = _ScatterParams(x=self.x, y=self.y, c=self.c, cmap='viridis')

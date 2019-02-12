@@ -123,7 +123,14 @@ class _ScatterParams(object):
     @property
     def c_discrete(self):
         if self._c_discrete is None:
-            self._c_discrete, self._labels = pd.factorize(self._c, sort=True)
+            if isinstance(self._cmap, dict):
+                self._labels = np.array(list(self._cmap.keys()))
+                self._c_discrete = np.zeros_like(self._c, dtype=int)
+                for i, label in enumerate(self._labels):
+                    self._c_discrete[self._c == label] = i
+            else:
+                self._c_discrete, self._labels = pd.factorize(
+                    self._c, sort=True)
         return self._c_discrete
 
     @property
@@ -312,8 +319,9 @@ class _ScatterParams(object):
             elif not self.discrete:
                 raise ValueError("Cannot use dictionary cmap with "
                                  "continuous data.")
-            elif np.any([l not in self._cmap for l in self.labels]):
-                missing = set(self.labels).difference(self._cmap.keys())
+            elif np.any([l not in self._cmap for l in np.unique(self._c)]):
+                missing = set(np.unique(self._c).tolist()
+                              ).difference(self._cmap.keys())
                 raise ValueError(
                     "Dictionary cmap requires a color "
                     "for every unique entry in `c`. "
