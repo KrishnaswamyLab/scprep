@@ -50,7 +50,7 @@ def marker_plot(data, clusters, gene_names, markers,
                             title="Tailbud - PSM")
     """
     with temp_fontsize(fontsize):
-        for gene in np.array(*markers.values()):
+        for gene in np.unique(np.hstack(markers.values())):
             if gene not in gene_names:
                 raise ValueError('All genes in `markers` must appear '
                                  'in gene_names. Did not find: {}'.format(gene))
