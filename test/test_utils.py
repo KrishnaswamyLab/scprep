@@ -100,7 +100,7 @@ def test_toarray():
         assert isinstance(scprep.utils.toarray(X), np.ndarray)
     matrix.test_all_matrix_types(X,
                                  test_fun)
-    test_fun(np.matrix(X))
+    test_fun([X, np.matrix(X)])
     assert_raise_message(TypeError,
                          "Expected pandas DataFrame, scipy sparse matrix or "
                          "numpy matrix. Got ",

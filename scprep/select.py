@@ -312,8 +312,11 @@ def select_rows(data, *extra_data, idx=None,
         idx = _convert_dataframe_1d(idx)
     if isinstance(data, (pd.DataFrame, pd.Series)):
         try:
-            data = data.loc[idx]
-        except (KeyError, TypeError):
+            with warnings.catch_warnings():
+                warnings.filterwarnings(
+                    "error", "Passing list-likes to .loc")
+                data = data.loc[idx]
+        except (KeyError, TypeError, FutureWarning):
             if isinstance(idx, numbers.Integral) or \
                     issubclass(np.array(idx).dtype.type, numbers.Integral):
                 data = data.iloc[idx]

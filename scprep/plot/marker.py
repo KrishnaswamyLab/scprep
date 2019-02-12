@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 from .. import utils, stats, select
 from .utils import (_with_matplotlib, _get_figure, show,
@@ -7,8 +8,8 @@ from .tools import label_axis
 
 
 @_with_matplotlib
-def marker_plot(data, clusters, gene_names, markers,
-                normalize_expression=True,
+def marker_plot(data, clusters, markers, gene_names=None,
+                normalize_expression=True, cmap='magma',
                 title=None, figsize=(8, 6),
                 ax=None, fontsize=None):
     """
@@ -22,17 +23,23 @@ def marker_plot(data, clusters, gene_names, markers,
     clusters : list-like, shape=[n_cells]
         Cluster assignments for each cell. Should be ints
         like the output of most sklearn.cluster methods.
-    gene_names : list-like, shape=[n_genes]
-        List of gene names.
     markers : dict
         Dictionary with keys being tissues and
         values being a list of marker genes in each tissue.
+    gene_names : list-like, shape=[n_genes]
+        List of gene names.
+    normalize_expression : bool, optional (default: True)
+        Normalize the expression of each row.
+    cmap : str or matplotlib colormap, optional (default: 'inferno')
+        Colormap with which to color points.
     title : str or None, optional (default: None)
         Title for the plot
     figsize : tuple or None, optional (default: None)
         If not None, sets the figure size (width, height)
     ax : `matplotlib.Axes` or None, optional (default: None)
         Axis to plot on. If None, a new axis will be created.
+    fontsize : int or None, optional (default: None)
+        Base fontsize.
 
     Returns
     -------
@@ -50,7 +57,14 @@ def marker_plot(data, clusters, gene_names, markers,
                             title="Tailbud - PSM")
     """
     with temp_fontsize(fontsize):
-        for gene in np.unique(np.hstack(markers.values())):
+        if gene_names is None:
+            if not isinstance(data, pd.DataFrame):
+                raise ValueError(
+                    "Either `data` must be a pd.DataFrame, or gene_names must "
+                    "be provided. "
+                    "Got gene_names=None, data as a {}".format(type(data)))
+            gene_names = data.columns
+        for gene in np.concatenate(list(markers.values())):
             if gene not in gene_names:
                 raise ValueError('All genes in `markers` must appear '
                                  'in gene_names. Did not find: {}'.format(gene))
@@ -110,7 +124,7 @@ def marker_plot(data, clusters, gene_names, markers,
         s = np.concatenate(s)
         c = np.concatenate(c)
 
-        ax.scatter(x, y, s=s, c=c, cmap='magma', vmax=max(c) * 1.3)
+        ax.scatter(x, y, s=s, c=c, cmap=cmap, vmax=max(c) * 1.3)
 
         # Vertical and Horizontal Grid Lines
         for h in np.unique(y):

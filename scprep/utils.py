@@ -29,6 +29,8 @@ def toarray(x):
         x = x.toarray()
     elif isinstance(x, np.matrix):
         x = np.array(x)
+    elif isinstance(x, list):
+        x = np.array([toarray(i) for i in x])
     elif isinstance(x, (np.ndarray, numbers.Number)):
         pass
     else:
