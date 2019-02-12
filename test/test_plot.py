@@ -234,16 +234,35 @@ class TestScatterParams(unittest.TestCase):
                                 c=np.where(self.c > 0, '+', '-'),
                                 cmap={'+': 'k', '-': 'r'})
         assert not params.list_cmap()
-        np.testing.assert_equal(params.cmap.colors,
-                                [[0, 0, 0, 1], [1, 0, 0, 1]])
-        assert np.all(params._labels == np.array(['+', '-']))
         if sys.version_info[1] > 5:
-            params = _ScatterParams(x=self.x, y=self.y,
-                                    c=np.where(self.c > 0, '+', '-'),
-                                    cmap={'-': 'k', '+': 'r'})
+            np.testing.assert_equal(params.cmap.colors,
+                                    [[0, 0, 0, 1], [1, 0, 0, 1]])
+            assert np.all(params._labels == np.array(['+', '-']))
+        else:
+            try:
+                np.testing.assert_equal(params.cmap.colors,
+                                        [[0, 0, 0, 1], [1, 0, 0, 1]])
+                assert np.all(params._labels == np.array(['+', '-']))
+            except AssertionError:
+                np.testing.assert_equal(params.cmap.colors,
+                                        [[1, 0, 0, 1], [0, 0, 0, 1]])
+                assert np.all(params._labels == np.array(['-', '+']))
+        params = _ScatterParams(x=self.x, y=self.y,
+                                c=np.where(self.c > 0, '+', '-'),
+                                cmap={'-': 'k', '+': 'r'})
+        if sys.version_info[1] > 5:
             np.testing.assert_equal(params.cmap.colors,
                                     [[0, 0, 0, 1], [1, 0, 0, 1]])
             assert np.all(params._labels == np.array(['-', '+']))
+        else:
+            try:
+                np.testing.assert_equal(params.cmap.colors,
+                                        [[0, 0, 0, 1], [1, 0, 0, 1]])
+                assert np.all(params._labels == np.array(['-', '+']))
+            except AssertionError:
+                np.testing.assert_equal(params.cmap.colors,
+                                        [[1, 0, 0, 1], [0, 0, 0, 1]])
+                assert np.all(params._labels == np.array(['+', '-']))
 
     def test_cmap_given(self):
         params = _ScatterParams(x=self.x, y=self.y, c=self.c, cmap='viridis')
