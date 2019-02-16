@@ -1,7 +1,6 @@
 # author: Daniel Burkhardt <daniel.burkhardt@yale.edu>
 # (C) 2018 Krishnaswamy Lab GPLv2
 
-from __future__ import print_function, division
 import numbers
 import numpy as np
 from scipy import stats, sparse
