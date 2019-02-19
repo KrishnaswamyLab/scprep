@@ -51,7 +51,7 @@ def test_10X():
         gene_labels="both")
     np.testing.assert_array_equal(X.index, X_generanger3.index)
     np.testing.assert_array_equal(X.columns, X_generanger3.columns)
-    np.testing.assert_equal(X.index, X_generanger3.index)
+    np.testing.assert_array_equal(X.index, X_generanger3.index)
     assert_raise_message(
         ValueError,
         "gene_labels='invalid' not recognized. "
