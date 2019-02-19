@@ -108,6 +108,12 @@ def test_toarray():
                          "hello")
 
 
+def test_toarray_list_of_strings():
+    X = ['hello', 'world', [1, 2, 3]]
+    X = scprep.utils.toarray(X)
+    assert isinstance(X[2], np.ndarray)
+
+
 def test_matrix_sum():
     X = data.generate_positive_sparse_matrix(shape=(50, 100))
     sums = np.array(X.sum(0)).flatten()

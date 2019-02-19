@@ -30,7 +30,21 @@ def toarray(x):
     elif isinstance(x, np.matrix):
         x = np.array(x)
     elif isinstance(x, list):
-        x = np.array([toarray(i) for i in x])
+        x_out = []
+        for xi in x:
+            try:
+                xi = toarray(xi)
+            except TypeError:
+                # recursed too far
+                pass
+            x_out.append(xi)
+        try:
+            x = np.array(x_out)
+        except ValueError as e:
+            if str(e) == "setting an array element with a sequence":
+                x = np.array(x_out, dtype=object)
+            else:
+                raise
     elif isinstance(x, (np.ndarray, numbers.Number)):
         pass
     else:
