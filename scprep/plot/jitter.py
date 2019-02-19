@@ -163,9 +163,11 @@ def jitter(labels, values, sigma=0.1,
             ax, figsize, subplot_kw=params.subplot_kw)
 
         # Plotting cells
-        sc = ax.scatter(params.x_coords, params.y, c=params.c,
-                        cmap=params.cmap, norm=params.norm, s=params.s,
-                        vmin=params.vmin, vmax=params.vmax, **plot_kwargs)
+        sc = ax.scatter(
+            params.x_coords + np.random.normal(0, sigma, params.size),
+            params.y, c=params.c,
+            cmap=params.cmap, norm=params.norm, s=params.s,
+            vmin=params.vmin, vmax=params.vmax, **plot_kwargs)
 
         # Plotting means
         ax.scatter(np.arange(len(params.x_labels)),
