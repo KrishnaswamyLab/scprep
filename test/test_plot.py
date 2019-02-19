@@ -446,11 +446,15 @@ class Test10X(unittest.TestCase):
         scprep.plot.plot_library_size(self.X, cutoff=1000, log=True,
                                       xlabel="x label", ylabel="y label")
 
+    def test_histogram_multiple(self):
+        scprep.plot.histogram(scprep.utils.select_cols(self.X, [0, 1]),
+                              color=['r', 'b'])
+
     def test_histogram_custom_axis(self):
         fig, ax = plt.subplots()
         scprep.plot.plot_gene_set_expression(
             self.X, genes=scprep.select.get_gene_set(self.X, starts_with="D"),
-            percentile=90, log='y', ax=ax)
+            percentile=90, log='y', ax=ax, title="histogram")
 
     def test_histogram_invalid_axis(self):
         assert_raise_message(
