@@ -1,7 +1,6 @@
 # author: Scott Gigante <scott.gigante@yale.edu>
 # (C) 2018 Krishnaswamy Lab GPLv2
 
-from __future__ import print_function, division
 import pandas as pd
 import scipy.io as sio
 import scipy.sparse as sp
@@ -464,7 +463,12 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol',
         m = sio.mmread(os.path.join(data_dir, "matrix.mtx"))
         genes = pd.read_csv(os.path.join(data_dir, "genes.tsv"),
                             delimiter='\t', header=None)
-        genes.columns = ['id', 'symbol']
+        if genes.shape[1] == 2:
+            # Cellranger < 3.0
+            genes.columns = ['id', 'symbol']
+        else:
+            # Cellranger >= 3.0
+            genes.columns = ['id', 'symbol', 'measurement']
         barcodes = pd.read_csv(os.path.join(data_dir, "barcodes.tsv"),
                                delimiter='\t', header=None)
 

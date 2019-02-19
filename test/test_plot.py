@@ -7,6 +7,7 @@ from sklearn.utils.testing import assert_raise_message, assert_warns_message
 import unittest
 import scprep
 from scprep.plot.scatter import _ScatterParams
+import sys
 
 
 def try_remove(filename):
@@ -233,8 +234,35 @@ class TestScatterParams(unittest.TestCase):
                                 c=np.where(self.c > 0, '+', '-'),
                                 cmap={'+': 'k', '-': 'r'})
         assert not params.list_cmap()
-        np.testing.assert_equal(params.cmap.colors,
-                                [[0, 0, 0, 1], [1, 0, 0, 1]])
+        if sys.version_info[1] > 5:
+            np.testing.assert_equal(params.cmap.colors,
+                                    [[0, 0, 0, 1], [1, 0, 0, 1]])
+            assert np.all(params._labels == np.array(['+', '-']))
+        else:
+            try:
+                np.testing.assert_equal(params.cmap.colors,
+                                        [[0, 0, 0, 1], [1, 0, 0, 1]])
+                assert np.all(params._labels == np.array(['+', '-']))
+            except AssertionError:
+                np.testing.assert_equal(params.cmap.colors,
+                                        [[1, 0, 0, 1], [0, 0, 0, 1]])
+                assert np.all(params._labels == np.array(['-', '+']))
+        params = _ScatterParams(x=self.x, y=self.y,
+                                c=np.where(self.c > 0, '+', '-'),
+                                cmap={'-': 'k', '+': 'r'})
+        if sys.version_info[1] > 5:
+            np.testing.assert_equal(params.cmap.colors,
+                                    [[0, 0, 0, 1], [1, 0, 0, 1]])
+            assert np.all(params._labels == np.array(['-', '+']))
+        else:
+            try:
+                np.testing.assert_equal(params.cmap.colors,
+                                        [[0, 0, 0, 1], [1, 0, 0, 1]])
+                assert np.all(params._labels == np.array(['-', '+']))
+            except AssertionError:
+                np.testing.assert_equal(params.cmap.colors,
+                                        [[1, 0, 0, 1], [0, 0, 0, 1]])
+                assert np.all(params._labels == np.array(['+', '-']))
 
     def test_cmap_given(self):
         params = _ScatterParams(x=self.x, y=self.y, c=self.c, cmap='viridis')
@@ -418,11 +446,15 @@ class Test10X(unittest.TestCase):
         scprep.plot.plot_library_size(self.X, cutoff=1000, log=True,
                                       xlabel="x label", ylabel="y label")
 
+    def test_histogram_multiple(self):
+        scprep.plot.histogram(scprep.utils.select_rows(self.X, [0, 1]),
+                              color=['r', 'b'])
+
     def test_histogram_custom_axis(self):
         fig, ax = plt.subplots()
         scprep.plot.plot_gene_set_expression(
             self.X, genes=scprep.select.get_gene_set(self.X, starts_with="D"),
-            percentile=90, log='y', ax=ax)
+            percentile=90, log='y', ax=ax, title="histogram")
 
     def test_histogram_invalid_axis(self):
         assert_raise_message(
@@ -761,6 +793,25 @@ class Test10X(unittest.TestCase):
             clusters=np.random.choice(
                 np.arange(10), replace=True, size=self.X.shape[0]),
             gene_names=self.X.columns,
+            markers={'tissue': ['z']})
+
+    def test_marker_plot_pandas_gene_names(self):
+        scprep.plot.marker_plot(
+            data=self.X,
+            clusters=np.random.choice(
+                np.arange(10), replace=True, size=self.X.shape[0]),
+            markers={'tissue': [self.X.columns[0]]})
+
+    def test_marker_plot_no_gene_names(self):
+        assert_raise_message(
+            ValueError,
+            "Either `data` must be a pd.DataFrame, or gene_names must "
+            "be provided. "
+            "Got gene_names=None, data as a <class 'numpy.ndarray'>",
+            scprep.plot.marker_plot,
+            data=self.X.values,
+            clusters=np.random.choice(
+                np.arange(10), replace=True, size=self.X.shape[0]),
             markers={'tissue': ['z']})
 
     def test_style_phate(self):
