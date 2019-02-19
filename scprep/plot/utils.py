@@ -20,6 +20,10 @@ def _with_matplotlib(fun, *args, **kwargs):
     return fun(*args, **kwargs)
 
 
+def _with_default(param, default):
+    return param if param is not None else default
+
+
 def _mpl_is_gui_backend():
     backend = mpl.get_backend()
     if backend in ['module://ipykernel.pylab.backend_inline', 'agg']:
