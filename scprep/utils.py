@@ -3,8 +3,6 @@ import pandas as pd
 import numbers
 from scipy import sparse
 import warnings
-import re
-from . import select
 
 
 def toarray(x):
@@ -19,12 +17,9 @@ def toarray(x):
     -------
     x : np.ndarray
     """
-    if isinstance(x, pd.SparseDataFrame):
-        x = x.to_coo().toarray()
-    elif isinstance(x, pd.SparseSeries):
-        x = x.to_dense().values
-    elif isinstance(x, (pd.DataFrame, pd.Series)):
-        x = x.values
+    if isinstance(x, (pd.SparseDataFrame, pd.SparseSeries,
+                      pd.DataFrame, pd.Series)):
+        x = x.to_numpy()
     elif isinstance(x, sparse.spmatrix):
         x = x.toarray()
     elif isinstance(x, np.matrix):
@@ -54,9 +49,9 @@ def to_array_or_spmatrix(x):
     if isinstance(x, pd.SparseDataFrame):
         x = x.to_coo()
     elif isinstance(x, pd.SparseSeries):
-        x = x.to_dense().values
+        x = x.to_dense().to_numpy()
     elif isinstance(x, (pd.DataFrame, pd.Series)):
-        x = x.values
+        x = x.to_numpy()
     elif isinstance(x, np.matrix):
         x = np.array(x)
     elif isinstance(x, (sparse.spmatrix, np.ndarray, numbers.Number)):
@@ -127,7 +122,7 @@ def matrix_sum(data, axis=None):
                 sums = pd.Series(np.array(data.to_coo().sum(axis)).flatten(),
                                  index=index)
         elif axis is None:
-            sums = data.values.sum()
+            sums = data.to_numpy().sum()
         else:
             sums = data.sum(axis)
     else:
@@ -159,7 +154,7 @@ def matrix_min(data):
     elif isinstance(data, sparse.lil_matrix):
         data = [np.min(d) for d in data.data] + [0]
     elif isinstance(data, sparse.dok_matrix):
-        data = list(data.values()) + [0]
+        data = list(data.to_numpy()()) + [0]
     elif isinstance(data, sparse.dia_matrix):
         data = [np.min(data.data), 0]
     return np.min(data)
@@ -269,37 +264,25 @@ def combine_batches(data, batch_labels, append_to_cell_names=False):
 
 
 def select_cols(data, idx):
-    warnings.warn("`scprep.utils.select_cols` is deprecated. Use "
-                  "`scprep.select.select_cols` instead.",
-                  DeprecationWarning)
-    return select.select_cols(data, idx=idx)
+    raise RuntimeError("`scprep.utils.select_cols` is deprecated. Use "
+                       "`scprep.select.select_cols` instead.")
 
 
 def select_rows(data, idx):
-    warnings.warn("`scprep.utils.select_rows` is deprecated. Use "
-                  "`scprep.select.select_rows` instead.",
-                  DeprecationWarning)
-    return select.select_rows(data, idx=idx)
+    raise RuntimeError("`scprep.utils.select_rows` is deprecated. Use "
+                       "`scprep.select.select_rows` instead.")
 
 
 def get_gene_set(data, starts_with=None, ends_with=None, regex=None):
-    warnings.warn("`scprep.utils.get_gene_set` is deprecated. Use "
-                  "`scprep.select.get_gene_set` instead.",
-                  DeprecationWarning)
-    return select.get_gene_set(data, starts_with=starts_with,
-                               ends_with=ends_with, regex=regex)
+    raise RuntimeError("`scprep.utils.get_gene_set` is deprecated. Use "
+                       "`scprep.select.get_gene_set` instead.")
 
 
 def get_cell_set(data, starts_with=None, ends_with=None, regex=None):
-    warnings.warn("`scprep.utils.get_cell_set` is deprecated. Use "
-                  "`scprep.select.get_cell_set` instead.",
-                  DeprecationWarning)
-    return select.get_cell_set(data, starts_with=starts_with,
-                               ends_with=ends_with, regex=regex)
+    raise RuntimeError("`scprep.utils.get_cell_set` is deprecated. Use "
+                       "`scprep.select.get_cell_set` instead.")
 
 
 def subsample(*data, n=10000, seed=None):
-    warnings.warn("`scprep.utils.subsample` is deprecated. Use "
-                  "`scprep.select.subsample` instead.",
-                  DeprecationWarning)
-    return select.subsample(*data, n=n, seed=seed)
+    raise RuntimeError("`scprep.utils.subsample` is deprecated. Use "
+                       "`scprep.select.subsample` instead.")

@@ -16,6 +16,8 @@ def _no_warning_dia_matrix(*args, **kwargs):
         return sparse.dia_matrix(*args, **kwargs)
 
 
+SparseDataFrame = partial(pd.SparseDataFrame, default_fill_value=0.0)
+
 _scipy_matrix_types = [
     sparse.csr_matrix,
     sparse.csc_matrix,
@@ -34,12 +36,12 @@ _pandas_dense_matrix_types = [
 ]
 
 _pandas_sparse_matrix_types = [
-    partial(pd.SparseDataFrame, default_fill_value=0.0),
+    SparseDataFrame,
 ]
 
 _pandas_matrix_types = [
     pd.DataFrame,
-    partial(pd.SparseDataFrame, default_fill_value=0.0),
+    SparseDataFrame,
 ]
 
 _indexable_matrix_types = [
@@ -49,7 +51,7 @@ _indexable_matrix_types = [
     sparse.dok_matrix,
     np.array,
     pd.DataFrame,
-    pd.SparseDataFrame
+    SparseDataFrame
 ]
 
 

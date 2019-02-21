@@ -61,7 +61,7 @@ def _parse_header(header, n_expected, header_type="gene_names"):
         else:
             delimiter = ","
         columns = pd.read_csv(header, delimiter=delimiter,
-                              header=None).values.flatten().astype(str)
+                              header=None).to_numpy().flatten().astype(str)
         if not len(columns) == n_expected:
             raise ValueError("Expected {} entries in {}. Got {}".format(
                 n_expected, header, len(columns)))
@@ -480,8 +480,8 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol',
     cell_names = barcodes[0]
     if allow_duplicates is None:
         allow_duplicates = not sparse
-    gene_names = _parse_10x_genes(genes['symbol'].values.astype(str),
-                                  genes['id'].values.astype(str),
+    gene_names = _parse_10x_genes(genes['symbol'].to_numpy().astype(str),
+                                  genes['id'].to_numpy().astype(str),
                                   gene_labels=gene_labels,
                                   allow_duplicates=allow_duplicates)
 
