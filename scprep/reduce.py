@@ -280,7 +280,7 @@ def pca(data, n_components=100, eps=0.3,
     if isinstance(data, pd.SparseDataFrame):
         data = data.to_coo()
     elif isinstance(data, pd.DataFrame):
-        data = data.values
+        data = data.to_numpy()
 
     # handle sparsity
     if sparse.issparse(data):

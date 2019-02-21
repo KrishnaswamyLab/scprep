@@ -28,14 +28,14 @@ def remove_empty_cells(data, *extra_data, sample_labels=None):
     warnings.warn("`scprep.filter.remove_empty_cells` is deprecated. "
                   "Use `scprep.filter.filter_empty_cells` instead.",
                   DeprecationWarning)
-    return filter_empty_cells(data, *extra_data)
+    return filter_empty_cells(data, *extra_data, sample_labels=sample_labels)
 
 
 def remove_duplicates(data, *extra_data, sample_labels=None):
     warnings.warn("`scprep.filter.remove_duplicates` is deprecated. "
                   "Use `scprep.filter.filter_duplicates` instead.",
                   DeprecationWarning)
-    return filter_duplicates(data, *extra_data)
+    return filter_duplicates(data, *extra_data, sample_labels=sample_labels)
 
 
 def filter_empty_genes(data, *extra_data):
@@ -303,7 +303,7 @@ def filter_gene_set_expression(data, *extra_data, genes=None,
         Filtered extra data, if passed.
     """
     cell_sums = measure.gene_set_expression(
-        data, genes,
+        data, genes=ganes,
         starts_with=starts_with, ends_with=ends_with,
         exact_word=exact_word, regex=regex,
         library_size_normalize=library_size_normalize)

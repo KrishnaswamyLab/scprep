@@ -77,8 +77,18 @@ def _check_rows_compatible(*data):
 
 
 def _convert_dataframe_1d(idx):
+<<<<<<< HEAD
     _check_idx_1d(idx)
     idx = idx.iloc[:, 0] if idx.shape[1] == 1 else idx.iloc[0, :]
+=======
+    if (not _is_1d(idx)) and np.prod(idx.shape) != np.max(idx.shape):
+        raise ValueError(
+            "Expected idx to be 1D. Got shape {}".format(idx.shape))
+    if idx.shape[1] == 1:
+        idx = idx.loc[:, idx.columns[0]]
+    else:
+        idx = idx.loc[idx.index[0], :]
+>>>>>>> first attempt at pandas 0.24 support
     return idx
 
 
@@ -218,7 +228,7 @@ def get_gene_set(data, starts_with=None, ends_with=None,
     """
     if not _is_1d(data):
         try:
-            data = data.columns.values
+            data = data.columns.to_numpy()
         except AttributeError:
             raise TypeError("data must be a list of gene names or a pandas "
                             "DataFrame. Got {}".format(type(data).__name__))
@@ -254,7 +264,7 @@ def get_cell_set(data, starts_with=None, ends_with=None,
     """
     if not _is_1d(data):
         try:
-            data = data.index.values
+            data = data.index.to_numpy()
         except AttributeError:
             raise TypeError("data must be a list of cell names or a pandas "
                             "DataFrame. Got {}".format(type(data).__name__))
@@ -326,21 +336,31 @@ def select_cols(data, *extra_data, idx=None,
         _check_idx_1d(idx)
         idx = idx.flatten()
 
+    idx = utils.toarray(idx)
+
     if isinstance(data, pd.DataFrame):
         try:
+            if np.issubdtype(idx.dtype, np.dtype(bool).type):
+                # temporary workaround for pandas error
+                raise TypeError
             data = data.loc[:, idx]
         except (KeyError, TypeError):
             if isinstance(idx, numbers.Integral) or \
-                    issubclass(np.array(idx).dtype.type, numbers.Integral):
+                    np.issubdtype(idx.dtype, np.dtype(int)) or \
+                    np.issubdtype(idx.dtype, np.dtype(bool)):
                 data = data.loc[:, np.array(data.columns)[idx]]
             else:
                 raise
     elif isinstance(data, pd.Series):
         try:
+            if np.issubdtype(idx.dtype, np.dtype(bool).type):
+                # temporary workaround for pandas error
+                raise TypeError
             data = data.loc[idx]
         except (KeyError, TypeError):
             if isinstance(idx, numbers.Integral) or \
-                    issubclass(np.array(idx).dtype.type, numbers.Integral):
+                    np.issubdtype(idx.dtype, np.dtype(int)) or \
+                    np.issubdtype(idx.dtype, np.dtype(bool)):
                 data = data.loc[np.array(data.index)[idx]]
             else:
                 raise
@@ -421,21 +441,30 @@ def select_rows(data, *extra_data, idx=None,
 
     if isinstance(idx, pd.DataFrame):
         idx = _convert_dataframe_1d(idx)
+<<<<<<< HEAD
     elif not isinstance(idx, (numbers.Integral, str)):
         idx = utils.toarray(idx)
         _check_idx_1d(idx)
         idx = idx.flatten()
+=======
+
+    idx = utils.toarray(idx)
+>>>>>>> first attempt at pandas 0.24 support
 
     if isinstance(data, (pd.DataFrame, pd.Series)):
         try:
+            if np.issubdtype(idx.dtype, np.dtype(bool).type):
+                # temporary workaround for pandas error
+                raise TypeError
             with warnings.catch_warnings():
                 warnings.filterwarnings(
                     "error", "Passing list-likes to .loc")
                 data = data.loc[idx]
         except (KeyError, TypeError, FutureWarning):
             if isinstance(idx, numbers.Integral) or \
-                    issubclass(np.array(idx).dtype.type, numbers.Integral):
-                data = data.iloc[idx]
+                    np.issubdtype(idx.dtype, np.dtype(int)) or \
+                    np.issubdtype(idx.dtype, np.dtype(bool)):
+                data = data.loc[np.array(data.index)[idx]]
             else:
                 raise
     elif _is_1d(data):

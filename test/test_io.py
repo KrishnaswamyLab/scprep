@@ -308,7 +308,7 @@ def test_csv_and_tsv():
         sparse=True,
         skiprows=1,
         usecols=range(1, 101))
-    assert np.sum(np.sum(X.values != X_csv.values)) == 0
+    assert np.sum(np.sum(X.to_numpy() != X_csv.to_numpy())) == 0
     assert isinstance(X_csv, pd.SparseDataFrame)
     X_csv = scprep.io.load_csv(
         os.path.join(data.data_dir,
@@ -333,7 +333,7 @@ def test_mtx():
         cell_names=os.path.join(
             data.data_dir, "barcodes.tsv"),
         cell_axis="column")
-    assert np.sum(np.sum(X.values != X_mtx.values)) == 0
+    assert np.sum(np.sum(X.to_numpy() != X_mtx.to_numpy())) == 0
     np.testing.assert_array_equal(X.columns, X_mtx.columns)
     np.testing.assert_array_equal(X.index, X_mtx.index)
     assert isinstance(X_mtx, pd.SparseDataFrame)
@@ -342,7 +342,7 @@ def test_mtx():
         gene_names=X.columns,
         cell_names=X.index,
         cell_axis="column")
-    assert np.sum(np.sum(X.values != X_mtx.values)) == 0
+    assert np.sum(np.sum(X.to_numpy() != X_mtx.to_numpy())) == 0
     np.testing.assert_array_equal(X.columns, X_mtx.columns)
     np.testing.assert_array_equal(X.index, X_mtx.index)
     assert isinstance(X_mtx, pd.SparseDataFrame)
@@ -352,7 +352,7 @@ def test_mtx():
         cell_names=None,
         sparse=False,
         cell_axis="column")
-    assert np.sum(np.sum(X.values != X_mtx)) == 0
+    assert np.sum(np.sum(X.to_numpy() != X_mtx)) == 0
     assert isinstance(X_mtx, np.ndarray)
     assert_raise_message(
         ValueError,
@@ -377,13 +377,13 @@ def test_fcs():
     assert 'Time' not in X.columns
     assert len(set(X.columns).difference(data.columns)) == 0
     np.testing.assert_array_equal(X.index, data.index)
-    np.testing.assert_array_equal(X.values, data[X.columns].values)
+    np.testing.assert_array_equal(X.to_numpy(), data[X.columns].to_numpy())
     _, _, X = scprep.io.load_fcs(path, sparse=True)
     assert 'Time' not in X.columns
     assert len(set(X.columns).difference(data.columns)) == 0
     np.testing.assert_array_equal(X.index, data.index)
     np.testing.assert_array_equal(
-        X.to_dense().values, data[X.columns].values)
+        X.to_dense().to_numpy(), data[X.columns].to_numpy())
 
     X_meta, _, X = scprep.io.load_fcs(path, reformat_meta=False, override=True)
     assert set(meta.keys()) == set(X_meta.keys())

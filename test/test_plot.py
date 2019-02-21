@@ -931,7 +931,7 @@ class Test10X(unittest.TestCase):
             "be provided. "
             "Got gene_names=None, data as a <class 'numpy.ndarray'>",
             scprep.plot.marker_plot,
-            data=self.X.values,
+            data=self.X.to_numpy(),
             clusters=np.random.choice(
                 np.arange(10), replace=True, size=self.X.shape[0]),
             markers={'tissue': ['z']})
