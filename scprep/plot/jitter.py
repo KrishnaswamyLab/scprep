@@ -193,6 +193,10 @@ def jitter(labels, values, sigma=0.1,
         label_axis(ax.yaxis, _with_default(yticks, ticks),
                    _with_default(yticklabels, ticklabels), ylabel)
 
+        # manually set x limits
+        ax.set_xlim(np.min(params.x_coords) - 0.5,
+                    np.max(params.x_coords) + 0.5)
+
         if title is not None:
             ax.set_title(title, fontsize=parse_fontsize(None, 'xx-large'))
 

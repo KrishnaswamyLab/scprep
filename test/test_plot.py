@@ -7,6 +7,7 @@ from sklearn.utils.testing import assert_raise_message, assert_warns_message
 import unittest
 import scprep
 from scprep.plot.scatter import _ScatterParams
+from scprep.plot.jitter import _JitterParams
 import sys
 
 
@@ -423,6 +424,12 @@ class TestScatterParams(unittest.TestCase):
             c=np.where(self.c > 0, '+', '-'),
         )
 
+    def test_jitter_x(self):
+        params = _ScatterParams(x=np.where(self.x > 0, '+', '-'), y=self.y)
+        np.testing.assert_array_equal(params.x_labels, ['+', '-'])
+        np.testing.assert_array_equal(
+            params.x_coords, np.where(self.x > 0, 0, 1))
+
 
 class Test10X(unittest.TestCase):
 
@@ -437,6 +444,7 @@ class Test10X(unittest.TestCase):
         try_remove("test.png")
         try_remove("test.gif")
         try_remove("test.mp4")
+        try_remove("test_jitter.png")
 
     def tearDown(self):
         plt.close('all')
@@ -485,6 +493,25 @@ class Test10X(unittest.TestCase):
             legend_title="test", legend_loc='center left',
             legend_anchor=(1.02, 0.5))
         assert ax.get_legend().get_title().get_text() == 'test'
+
+    def test_jitter_discrete(self):
+        ax = scprep.plot.jitter(np.where(self.X_pca[:, 0] > 0, '+', '-'),
+                                self.X_pca[:, 1], c=np.random.choice(
+            ['hello', 'world'], self.X_pca.shape[0], replace=True),
+            legend_title="test", title="jitter", filename="test.png")
+        assert ax.get_legend().get_title().get_text() == 'test'
+        assert ax.get_title() == 'jitter'
+        assert ax.get_xlim() == (-0.5, 1.5)
+        assert [t.get_text() for t in ax.get_xticklabels()] == ['+', '-']
+
+    def test_jitter_continuous(self):
+        ax = scprep.plot.jitter(np.where(self.X_pca[:, 0] > 0, '+', '-'),
+                                self.X_pca[:, 1], c=self.X_pca[:, 1],
+                                title="jitter", legend_title="test")
+        assert ax.get_figure().get_axes()[1].get_ylabel() == 'test'
+        assert ax.get_title() == 'jitter'
+        assert ax.get_xlim() == (-0.5, 1.5)
+        assert [t.get_text() for t in ax.get_xticklabels()] == ['+', '-']
 
     def test_scatter_dict(self):
         scprep.plot.scatter2d(self.X_pca, c=np.random.choice(
