@@ -303,9 +303,9 @@ def filter_gene_set_expression(data, *extra_data, genes=None,
     """
     cell_sums = measure.gene_set_expression(
         data, genes,
+        starts_with=starts_with, ends_with=ends_with, regex=regex,
         library_size_normalize=library_size_normalize)
     return filter_values(data, *extra_data, values=cell_sums,
-                         starts_with=starts_with, ends_with=ends_with, regex=regex,
                          cutoff=cutoff, percentile=percentile,
                          keep_cells=keep_cells,
                          return_values=return_expression,
