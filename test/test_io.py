@@ -5,6 +5,8 @@ import pandas as pd
 import numpy as np
 import os
 import fcsparser
+import zipfile
+import urllib
 
 try:
     FileNotFoundError
@@ -95,6 +97,41 @@ def test_10X_zip():
         scprep.io.load_10X_zip,
         os.path.join(data.data_dir, "test_10X_invalid.zip")
     )
+
+
+def test_10X_zip_url():
+    X = data.load_10X()
+    filename = "https://github.com/KrishnaswamyLab/scprep/raw/master/data/test_data/test_10X.zip"
+    X_zip = scprep.io.load_10X_zip(
+        filename)
+    assert isinstance(X_zip, pd.SparseDataFrame)
+    assert np.sum(np.sum(X != X_zip)) == 0
+    np.testing.assert_array_equal(X.columns, X_zip.columns)
+    np.testing.assert_array_equal(X.index, X_zip.index)
+
+
+def test_10X_zip_url_not_a_zip():
+    assert_raise_message(
+        zipfile.BadZipFile,
+        "File is not a zip file",
+        scprep.io.load_10X_zip,
+        "https://github.com/KrishnaswamyLab/scprep/raw/master/data/test_data/test_10X")
+
+
+def test_10X_zip_url_not_a_real_website():
+    assert_raise_message(
+        urllib.error.URLError,
+        "<urlopen error [Errno -2] Name or service not known>",
+        scprep.io.load_10X_zip,
+        'http://invalid.not.a.url/scprep')
+
+
+def test_10X_zip_url_404():
+    assert_raise_message(
+        FileNotFoundError,
+        "[Errno 2] No such file or directory: 'https://github.com/KrishnaswamyLab/scprep/invalid_url'",
+        scprep.io.load_10X_zip,
+        'https://github.com/KrishnaswamyLab/scprep/invalid_url')
 
 
 def test_10X_HDF5():

@@ -9,6 +9,7 @@ import numpy as np
 import os
 import zipfile
 import tempfile
+import urllib
 import shutil
 from decorator import decorator
 from . import hdf5
@@ -524,6 +525,18 @@ def load_10X_zip(filename, sparse=True, gene_labels='symbol',
             "gene_labels='{}' not recognized. "
             "Choose from ['symbol', 'id', 'both']".format(gene_labels))
 
+    if not os.path.isfile(filename):
+        try:
+            with tempfile.TemporaryDirectory() as download_dir:
+                zip_filename = os.path.join(download_dir, 'download.zip')
+                with urllib.request.urlopen(filename) as url:
+                    with open(zip_filename, "wb") as handle:
+                        handle.write(url.read())
+                return load_10X_zip(zip_filename, sparse=sparse,
+                                    gene_labels=gene_labels,
+                                    allow_duplicates=allow_duplicates)
+        except (urllib.error.HTTPError, urllib.error.URLError):
+            pass
     tmpdir = tempfile.mkdtemp()
     with zipfile.ZipFile(filename) as handle:
         files = handle.namelist()
