@@ -11,13 +11,10 @@ except ImportError:
 
 from .. import utils, select
 from .utils import (_get_figure, _with_matplotlib, _is_color_array,
-                    show, _in_ipynb, parse_fontsize, temp_fontsize)
+                    show, _in_ipynb, parse_fontsize, temp_fontsize,
+                    _with_default)
 from .tools import (create_colormap, create_normalize,
                     label_axis, generate_colorbar, generate_legend)
-
-
-def _with_default(param, default):
-    return param if param is not None else default
 
 
 class _ScatterParams(object):
