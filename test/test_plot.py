@@ -428,7 +428,7 @@ class TestScatterParams(unittest.TestCase):
         params = _JitterParams(x=np.where(self.x > 0, '+', '-'), y=self.y)
         np.testing.assert_array_equal(params.x_labels, ['+', '-'])
         np.testing.assert_array_equal(
-            params.x_coords, np.where(self.x > 0, 0, 1))
+            params.x_coords, np.where(self.x > 0, 0, 1)[params.plot_idx])
 
 
 class Test10X(unittest.TestCase):
