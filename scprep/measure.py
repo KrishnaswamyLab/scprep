@@ -21,7 +21,7 @@ def library_size(data):
     return library_size
 
 
-def gene_set_expression(data, genes=None, library_size_normalize=True,
+def gene_set_expression(data, genes=None, library_size_normalize=False,
                         starts_with=None, ends_with=None, regex=None):
     """Measure the expression of a set of genes in each cell.
 
@@ -31,7 +31,7 @@ def gene_set_expression(data, genes=None, library_size_normalize=True,
         Input data
     genes : list-like, shape<=[n_features], optional (default: None)
         Integer column indices or string gene names included in gene set
-    library_size_normalize : bool, optional (default: True)
+    library_size_normalize : bool, optional (default: False)
         Divide gene set expression by library size
     starts_with : str or None, optional (default: None)
         If not None, select genes that start with this prefix
@@ -45,13 +45,15 @@ def gene_set_expression(data, genes=None, library_size_normalize=True,
     gene_set_expression : list-like, shape=[n_samples]
         Sum over genes for each cell
     """
+    if library_size_normalize:
+        from .normalize import library_size_normalize
+        data = library_size_normalize(data)
     gene_data = select.select_cols(data, idx=genes, starts_with=starts_with,
                                    ends_with=ends_with, regex=regex)
-    gene_set_expression = library_size(gene_data)
-    if library_size_normalize:
-        libsize = library_size(data)
-        libsize[libsize == 0] = 1
-        gene_set_expression /= libsize * np.median(np.array(libsize))
+    if len(gene_data.shape) > 1:
+        gene_set_expression = library_size(gene_data)
+    else:
+        gene_set_expression = gene_data
     return gene_set_expression
 
 

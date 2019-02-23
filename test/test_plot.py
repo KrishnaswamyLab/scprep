@@ -454,11 +454,34 @@ class Test10X(unittest.TestCase):
         scprep.plot.plot_library_size(self.X, cutoff=1000, log=True,
                                       xlabel="x label", ylabel="y label")
 
+    def test_histogram_multiple(self):
+        scprep.plot.histogram([scprep.select.select_rows(self.X, idx=0),
+                               [1, 2, 2, 2, 3]],
+                              color=['r', 'b'])
+
+    def test_plot_library_size_multiple(self):
+        scprep.plot.plot_library_size([
+            self.X, scprep.select.select_rows(
+                self.X, idx=np.arange(self.X.shape[0] // 2))],
+            color=['r', 'b'])
+
+    def test_plot_gene_set_expression_multiple(self):
+        scprep.plot.plot_gene_set_expression([
+            self.X, scprep.select.select_rows(
+                self.X, idx=np.arange(self.X.shape[0] // 2))],
+            starts_with="D",
+            color=['r', 'b'])
+
+    def test_plot_gene_set_expression_single_gene(self):
+        scprep.plot.plot_gene_set_expression(
+            self.X,
+            genes="Arl8b")
+
     def test_histogram_custom_axis(self):
         fig, ax = plt.subplots()
         scprep.plot.plot_gene_set_expression(
             self.X, genes=scprep.select.get_gene_set(self.X, starts_with="D"),
-            percentile=90, log='y', ax=ax)
+            percentile=90, log='y', ax=ax, title="histogram")
 
     def test_histogram_invalid_axis(self):
         assert_raise_message(

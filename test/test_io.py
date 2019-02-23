@@ -46,6 +46,12 @@ def test_10X():
     assert X.shape == (100, 100)
     assert isinstance(X, pd.SparseDataFrame)
     assert X.columns[0] == "Arl8b (ENSMUSG00000030105)"
+    X_generanger3 = scprep.io.load_10X(
+        os.path.join(data.data_dir, "test_10X_generanger3"),
+        gene_labels="both")
+    np.testing.assert_array_equal(X.index, X_generanger3.index)
+    np.testing.assert_array_equal(X.columns, X_generanger3.columns)
+    np.testing.assert_array_equal(X.index, X_generanger3.index)
     assert_raise_message(
         ValueError,
         "gene_labels='invalid' not recognized. "

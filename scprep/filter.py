@@ -249,7 +249,7 @@ def filter_library_size(data, *extra_data, cutoff=None, percentile=None,
 def filter_gene_set_expression(data, *extra_data, genes=None,
                                starts_with=None, ends_with=None, regex=None,
                                cutoff=None, percentile=None,
-                               library_size_normalize=True,
+                               library_size_normalize=False,
                                keep_cells='below',
                                return_expression=False,
                                sample_labels=None,
@@ -282,7 +282,7 @@ def filter_gene_set_expression(data, *extra_data, genes=None,
         Percentile above or below which to remove cells.
         Must be an integer between 0 and 100. Only one of `cutoff`
         and `percentile` should be specified.
-    library_size_normalize : bool, optional (default: True)
+    library_size_normalize : bool, optional (default: False)
         Divide gene set expression by library size
     keep_cells : {'above', 'below'}, optional (default: 'below')
         Keep cells above or below the cutoff
@@ -303,6 +303,7 @@ def filter_gene_set_expression(data, *extra_data, genes=None,
     """
     cell_sums = measure.gene_set_expression(
         data, genes,
+        starts_with=starts_with, ends_with=ends_with, regex=regex,
         library_size_normalize=library_size_normalize)
     return filter_values(data, *extra_data, values=cell_sums,
                          cutoff=cutoff, percentile=percentile,
