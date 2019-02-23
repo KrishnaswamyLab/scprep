@@ -447,7 +447,7 @@ class Test10X(unittest.TestCase):
                                       xlabel="x label", ylabel="y label")
 
     def test_histogram_multiple(self):
-        scprep.plot.histogram(scprep.utils.select_rows(self.X, [0, 1]),
+        scprep.plot.histogram(scprep.select.select_rows(self.X, [0, 1]),
                               color=['r', 'b'])
 
     def test_histogram_custom_axis(self):
