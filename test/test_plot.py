@@ -425,7 +425,7 @@ class TestScatterParams(unittest.TestCase):
         )
 
     def test_jitter_x(self):
-        params = _ScatterParams(x=np.where(self.x > 0, '+', '-'), y=self.y)
+        params = _JitterParams(x=np.where(self.x > 0, '+', '-'), y=self.y)
         np.testing.assert_array_equal(params.x_labels, ['+', '-'])
         np.testing.assert_array_equal(
             params.x_coords, np.where(self.x > 0, 0, 1))
