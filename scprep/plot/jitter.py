@@ -170,11 +170,12 @@ def jitter(labels, values, sigma=0.1,
             vmin=params.vmin, vmax=params.vmax, **plot_kwargs)
 
         # Plotting means
-        ax.scatter(np.arange(len(params.x_labels)),
-                   [np.mean(params.y[params.x_coords == i])
-                    for i in range(len(params.x_labels))],
-                   c=means_c, edgecolors='black', lw=1.5,
-                   marker='o', zorder=3, s=means_s)
+        if plot_means:
+            ax.scatter(np.arange(len(params.x_labels)),
+                       [np.mean(params.y[params.x_coords == i])
+                        for i in range(len(params.x_labels))],
+                       c=means_c, edgecolors='black', lw=1.5,
+                       marker='o', zorder=3, s=means_s)
 
         # Plotting vetical lines
         for i in np.unique(labels):
