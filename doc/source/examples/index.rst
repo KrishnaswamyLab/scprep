@@ -4,3 +4,4 @@ Examples
 .. toctree::
 
     scatter
+    jitter
