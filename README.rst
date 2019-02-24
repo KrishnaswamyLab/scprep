@@ -38,8 +38,8 @@ Alternatively, scprep can be installed using `Conda <https://conda.io/docs/>`_ (
 
     conda install -c bioconda scprep
 
-Usage example
--------------
+Quick Start
+-----------
 
 You can use `scprep` with your single cell data as follows::
 
@@ -62,6 +62,11 @@ You can use `scprep` with your single cell data as follows::
     data = scprep.normalize.library_size_normalize(data)
     # Square root transform
     data = scprep.transform.sqrt(data)
+
+Examples
+--------
+
+* [Scatter plots](https://nbviewer.jupyter.org/github/KrishnaswamyLab/scprep/blob/master/examples/scatter.ipynb)
 
 Help
 ----
