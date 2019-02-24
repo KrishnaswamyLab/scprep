@@ -25,7 +25,8 @@
     - pip install -U .[test]
     - python setup.py test
     - pip install -U .[doc]
-    - cd doc; make html; cd ..
+    - cd doc; make html
+    - cd ..
 
   after_success:
     - coveralls
