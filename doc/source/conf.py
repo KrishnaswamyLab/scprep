@@ -184,6 +184,7 @@ texinfo_documents = [
 ]
 
 nbsphinx_execute = "always"
+nbsphinx_timeout = 180
 
 nbsphinx_prolog = r"""
 {% set docname = env.doc2path(env.docname, base=None) %}
