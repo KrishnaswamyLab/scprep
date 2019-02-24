@@ -183,6 +183,8 @@ texinfo_documents = [
      'Miscellaneous'),
 ]
 
+nbsphinx_execute = "always"
+
 nbsphinx_prolog = r"""
 {% set docname = env.doc2path(env.docname, base=None) %}
 
