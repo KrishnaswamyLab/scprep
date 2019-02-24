@@ -193,7 +193,8 @@ nbsphinx_prolog = r"""
 
     .. nbinfo::
 
-        This page was generated from `{{ docname }}`__.
+        This page was generated from `{{ docname }}`__ by nbsphinx_.
+
         Interactive version:
         :raw-html:`<a href="https://mybinder.org/v2/gh/KrishnaswamyLab/scprep/{{ env.config.branch }}?filepath={{ docname }}"><img alt="Run in Binder" src="https://mybinder.org/badge.svg" style="vertical-align:text-bottom"></a>`
         :raw-html:`<a href="https://colab.research.google.com/github/KrishnaswamyLab/scprep/blob/{{ env.config.branch }}/{{ docname }}"><img alt="Run in Colab" src="https://colab.research.google.com/assets/colab-badge.svg" style="vertical-align:text-bottom"></a>`
@@ -201,6 +202,8 @@ nbsphinx_prolog = r"""
 
     __ https://github.com/KrishnaswamyLab/scprep/blob/
         {{ env.config.branch }}/{{ docname }}
+
+      .. _nbsphinx: http://nbsphinx.readthedocs.io/.
 
 .. raw:: latex
 
