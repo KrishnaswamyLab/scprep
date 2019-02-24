@@ -3,4 +3,4 @@ Examples
 
 .. toctree::
 
-    scatter
+    scatter.ipynb

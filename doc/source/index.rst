@@ -33,7 +33,6 @@ Tools for building and manipulating graphs in Python.
 
     installation
     examples/index
-    examples/scatter
     reference
 
 Quick Start
