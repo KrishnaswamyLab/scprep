@@ -13,6 +13,7 @@
       packages:
         - libhdf5-dev
         - ffmpeg
+        - pandoc
 
   cache: 
     - pip
