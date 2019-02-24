@@ -19,8 +19,16 @@
 #
 import os
 import sys
+import glob
+import shutil
 sys.path.insert(0, os.path.abspath('../..'))
 # print(sys.path)
+
+# Copy ipython notebooks
+dest_dir = "examples"
+for file in glob.glob(r"../../examples/*.ipynb"):
+    print("Copy {} to {}".format(file, dest_dir))
+    shutil.copy(file, dest_dir)
 
 # -- General configuration ------------------------------------------------
 

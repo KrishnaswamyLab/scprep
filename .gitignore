@@ -5,6 +5,7 @@ dist
 *egg-info
 .coverage
 .ipynb_checkpoints
+doc/source/examples/*.ipynb
 
 #syncthing
 .syncthing.*
