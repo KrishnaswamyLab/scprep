@@ -198,7 +198,6 @@ nbsphinx_prolog = r"""
           :raw-html:`<a href="https://mybinder.org/v2/gh/KrishnaswamyLab/scprep/{{ env.config.branch }}?filepath={{ docname }}"><img alt="Run in Binder" src="https://mybinder.org/badge.svg" style="vertical-align:text-bottom"></a>`
           :raw-html:`<a href="https://colab.research.google.com/github/KrishnaswamyLab/scprep/blob/{{ env.config.branch }}/{{ docname }}"><img alt="Run in Colab" src="https://colab.research.google.com/assets/colab-badge.svg" style="vertical-align:text-bottom"></a>`
 
-
     __ https://github.com/KrishnaswamyLab/scprep/blob/
         {{ env.config.branch }}/{{ docname }}
 
