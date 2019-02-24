@@ -176,7 +176,7 @@ def select_cols(data, *extra_data, idx=None,
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
-    extra_data : array-like, shape=[*, n_features], optional
+    extra_data : array-like, shape=[any, n_features], optional
         Optional additional data objects from which to select the same rows
     idx : list-like, shape=[m_features]
         Integer indices or string column names to be selected
@@ -191,7 +191,7 @@ def select_cols(data, *extra_data, idx=None,
     -------
     data : array-like, shape=[n_samples, m_features]
         Subsetted output data.
-    extra_data : array-like, shape=[*, m_features]
+    extra_data : array-like, shape=[any, m_features]
         Subsetted extra data, if passed.
 
     Examples
@@ -268,7 +268,7 @@ def select_rows(data, *extra_data, idx=None,
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
-    extra_data : array-like, shape=[n_samples, *], optional
+    extra_data : array-like, shape=[n_samples, any], optional
         Optional additional data objects from which to select the same rows
     idx : list-like, shape=[m_samples], optional (default: None)
         Integer indices or string index names to be selected
@@ -283,7 +283,7 @@ def select_rows(data, *extra_data, idx=None,
     -------
     data : array-like, shape=[m_samples, n_features]
         Subsetted output data
-    extra_data : array-like, shape=[m_samples, *]
+    extra_data : array-like, shape=[m_samples, any]
         Subsetted extra data, if passed.
 
     Examples
@@ -352,7 +352,7 @@ def subsample(*data, n=10000, seed=None):
 
     Parameters
     ----------
-    data : array-like, shape=[n_samples, *]
+    data : array-like, shape=[n_samples, any]
         Input data. Any number of datasets can be passed at once,
         so long as `n_samples` remains the same.
     n : int, optional (default: 10000)
