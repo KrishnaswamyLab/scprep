@@ -7,3 +7,5 @@ matplotlib
 sphinx
 sphinxcontrib-napoleon
 autodocsumm
+ipykernel
+nbsphinx

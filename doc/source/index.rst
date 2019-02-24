@@ -32,6 +32,7 @@ Tools for building and manipulating graphs in Python.
     :maxdepth: 2
 
     installation
+    examples
     reference
 
 Quick Start

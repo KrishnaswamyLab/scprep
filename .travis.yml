@@ -22,8 +22,9 @@
     - python setup.py install
 
   script:
-    - pip install -U .[test,doc]
+    - pip install -U .[test]
     - python setup.py test
+    - pip install -U .[doc]
     - cd doc; make html; cd ..
 
   after_success:

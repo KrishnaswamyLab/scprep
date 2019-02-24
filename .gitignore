@@ -4,6 +4,7 @@ build
 dist
 *egg-info
 .coverage
+.ipynb_checkpoints
 
 #syncthing
 .syncthing.*

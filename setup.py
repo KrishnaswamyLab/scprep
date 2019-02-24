@@ -25,6 +25,8 @@ doc_requires = [
     'sphinx',
     'sphinxcontrib-napoleon',
     'autodocsumm',
+    'ipykernel',
+    'nbsphinx'
 ]
 
 if sys.version_info[:2] < (3, 5):
