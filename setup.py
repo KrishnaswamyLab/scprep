@@ -27,7 +27,6 @@ doc_requires = [
     'autodocsumm',
     'ipykernel',
     'nbsphinx',
-    'pygit2'
 ]
 
 if sys.version_info[:2] < (3, 5):

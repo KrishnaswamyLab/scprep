@@ -21,7 +21,7 @@ import os
 import sys
 import glob
 import shutil
-import pygit2
+import subprocess
 
 root_dir = os.path.abspath(os.path.join(os.path.dirname(
     __file__), '..', '..'))
@@ -80,7 +80,9 @@ release = open(version_py).read().strip().split(
 # The short X.Y version.
 version = release.split('-')[0]
 
-branch = pygit2.Repository(root_dir).head.shorthand
+branch = subprocess.Popen(
+    ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+    stdout=subprocess.PIPE).stdout.read().decode().strip()
 print(version, release, branch)
 
 
