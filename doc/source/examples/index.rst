@@ -2,4 +2,5 @@ Examples
 --------
 
 .. toctree::
+
     scatter
