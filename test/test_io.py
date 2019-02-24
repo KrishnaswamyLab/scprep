@@ -128,10 +128,18 @@ def test_10X_zip_url_not_a_real_website():
 
 def test_10X_zip_url_404():
     assert_raise_message(
-        FileNotFoundError,
-        "[Errno 2] No such file or directory: 'https://github.com/KrishnaswamyLab/scprep/invalid_url'",
+        urllib.error.HTTPError,
+        "HTTP Error 404: Not Found",
         scprep.io.load_10X_zip,
         'https://github.com/KrishnaswamyLab/scprep/invalid_url')
+
+
+def test_10X_zip_not_a_file():
+    assert_raise_message(
+        FileNotFoundError,
+        "No such file: 'not_a_file.zip'",
+        scprep.io.load_10X_zip,
+        'not_a_file.zip')
 
 
 def test_10X_HDF5():

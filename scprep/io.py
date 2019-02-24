@@ -526,17 +526,24 @@ def load_10X_zip(filename, sparse=True, gene_labels='symbol',
             "Choose from ['symbol', 'id', 'both']".format(gene_labels))
 
     if not os.path.isfile(filename):
-        try:
-            with tempfile.TemporaryDirectory() as download_dir:
-                zip_filename = os.path.join(download_dir, 'download.zip')
+        with tempfile.TemporaryDirectory() as download_dir:
+            zip_filename = os.path.join(download_dir, 'download.zip')
+            try:
                 with urllib.request.urlopen(filename) as url:
                     with open(zip_filename, "wb") as handle:
                         handle.write(url.read())
+            except ValueError as e:
+                if str(e).startswith("unknown url type:"):
+                    # not actually a url
+                    raise FileNotFoundError(
+                        "No such file: '{}'".format(filename))
+                else:
+                    raise
+            else:
                 return load_10X_zip(zip_filename, sparse=sparse,
                                     gene_labels=gene_labels,
                                     allow_duplicates=allow_duplicates)
-        except (urllib.error.HTTPError, urllib.error.URLError):
-            pass
+
     tmpdir = tempfile.mkdtemp()
     with zipfile.ZipFile(filename) as handle:
         files = handle.namelist()
