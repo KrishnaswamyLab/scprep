@@ -200,6 +200,10 @@ def generate_colorbar(cmap=None, vmin=None, vmax=None, scale=None, ax=None,
                 ax = plot_axis
             xmin, xmax = plot_axis.get_xlim()
             ymin, ymax = plot_axis.get_ylim()
+            if hasattr(cmap, '__len__') and \
+                    not isinstance(cmap, (str, dict)):
+                # list colormap
+                cmap = create_colormap(cmap)
             mappable = plot_axis.imshow(
                 np.linspace(vmin, vmax, 10).reshape(-1, 1),
                 vmin=vmin, vmax=vmax, cmap=cmap, norm=norm,

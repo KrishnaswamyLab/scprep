@@ -55,6 +55,28 @@ def test_parse_fontsize():
     assert scprep.plot.utils.parse_fontsize(None, 'large') == 'large'
 
 
+def test_generate_colorbar_str():
+    cb = scprep.plot.tools.generate_colorbar(cmap='viridis')
+    assert cb.cmap.name == 'viridis'
+
+
+def test_generate_colorbar_colormap():
+    cb = scprep.plot.tools.generate_colorbar(cmap=plt.cm.viridis)
+    assert cb.cmap.name == 'viridis'
+
+
+def test_generate_colorbar_list():
+    cb = scprep.plot.tools.generate_colorbar(cmap=['red', 'blue'])
+    assert cb.cmap.name == 'scprep_custom_cmap'
+
+
+def test_generate_colorbar_dict():
+    assert_raise_message(TypeError,
+                         "unhashable type: 'dict'",
+                         scprep.plot.tools.generate_colorbar,
+                         cmap={'+': 'r', '-': 'b'})
+
+
 class TestScatterParams(unittest.TestCase):
 
     @classmethod
