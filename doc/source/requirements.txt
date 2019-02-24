@@ -9,3 +9,4 @@ sphinxcontrib-napoleon
 autodocsumm
 ipykernel
 nbsphinx
+.
