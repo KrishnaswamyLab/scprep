@@ -54,7 +54,7 @@ def histogram(data,
     """
     with temp_fontsize(fontsize):
         fig, ax, show_fig = _get_figure(ax, figsize)
-        data = utils.toarray(data)
+        data = utils.toarray(data).squeeze()
         if len(data.shape) > 1 or data.dtype.type is np.object_:
             # top level must be list
             data = [d for d in data]

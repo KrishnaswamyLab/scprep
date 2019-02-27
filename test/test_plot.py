@@ -496,8 +496,18 @@ class Test10X(unittest.TestCase):
 
     def test_plot_gene_set_expression_single_gene(self):
         scprep.plot.plot_gene_set_expression(
-            self.X,
+            self.X, color=["red"],
             genes="Arl8b")
+
+    def test_histogram_single_gene_dataframe(self):
+        scprep.plot.histogram(
+            scprep.select.select_cols(self.X, idx=['Arl8b']),
+            color=["red"])
+
+    def test_histogram_single_gene_series(self):
+        scprep.plot.histogram(
+            scprep.select.select_cols(self.X, idx='Arl8b'),
+            color=["red"])
 
     def test_histogram_custom_axis(self):
         fig, ax = plt.subplots()
