@@ -4,6 +4,7 @@ from sklearn.utils.testing import assert_raise_message, assert_warns_message
 import numpy as np
 import pandas as pd
 import unittest
+from scipy import sparse
 
 
 class Test10X(unittest.TestCase):
@@ -205,6 +206,22 @@ class Test10X(unittest.TestCase):
             self.X, scprep.select.select_cols,
             idx=pd.DataFrame(np.random.choice([True, False], [1, self.X.shape[1]]),
                              index=[1], columns=self.X.columns))
+
+    def test_select_cols_sparse_index(self):
+        matrix.test_all_matrix_types(
+            self.X, scprep.select.select_cols,
+            idx=sparse.coo_matrix(np.random.choice([True, False], [1, self.X.shape[1]])))
+        matrix.test_all_matrix_types(
+            self.X, scprep.select.select_cols,
+            idx=sparse.coo_matrix(np.random.choice([True, False], [self.X.shape[1], 1])))
+
+    def test_select_rows_sparse_index(self):
+        matrix.test_all_matrix_types(
+            self.X, scprep.select.select_rows,
+            idx=sparse.coo_matrix(np.random.choice([True, False], [1, self.X.shape[0]])))
+        matrix.test_all_matrix_types(
+            self.X, scprep.select.select_rows,
+            idx=sparse.coo_matrix(np.random.choice([True, False], [self.X.shape[0], 1])))
 
     def test_select_cols_series_data_boolean_index(self):
         scprep.select.select_cols(

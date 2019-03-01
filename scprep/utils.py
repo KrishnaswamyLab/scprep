@@ -23,7 +23,7 @@ def toarray(x):
         x = x.to_coo().toarray()
     elif isinstance(x, pd.SparseSeries):
         x = x.to_dense().values
-    elif isinstance(x, (pd.DataFrame, pd.Series)):
+    elif isinstance(x, (pd.DataFrame, pd.Series, pd.Index)):
         x = x.values
     elif isinstance(x, sparse.spmatrix):
         x = x.toarray()
@@ -67,17 +67,10 @@ def to_array_or_spmatrix(x):
     """
     if isinstance(x, pd.SparseDataFrame):
         x = x.to_coo()
-    elif isinstance(x, pd.SparseSeries):
-        x = x.to_dense().values
-    elif isinstance(x, (pd.DataFrame, pd.Series)):
-        x = x.values
-    elif isinstance(x, np.matrix):
-        x = np.array(x)
-    elif isinstance(x, (sparse.spmatrix, np.ndarray, numbers.Number)):
+    elif isinstance(x, sparse.spmatrix):
         pass
     else:
-        raise TypeError("Expected pandas DataFrame, scipy sparse matrix or "
-                        "numpy matrix. Got {}".format(type(x)))
+        x = toarray(x)
     return x
 
 

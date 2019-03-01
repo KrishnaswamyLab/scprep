@@ -4,6 +4,7 @@ import numbers
 from scipy import sparse
 import warnings
 import re
+from . import utils
 
 
 def _is_1d(data):
@@ -219,6 +220,8 @@ def select_cols(data, *extra_data, idx=None,
 
     if isinstance(idx, pd.DataFrame):
         idx = _convert_dataframe_1d(idx)
+    elif not isinstance(idx, (numbers.Integral, str)):
+        idx = utils.toarray(idx).squeeze()
 
     if isinstance(data, pd.DataFrame):
         try:
@@ -308,8 +311,12 @@ def select_rows(data, *extra_data, idx=None,
                 "Please set `idx` to select specific rows.")
         idx = get_cell_set(data, starts_with=starts_with,
                            ends_with=ends_with, regex=regex)
+
     if isinstance(idx, pd.DataFrame):
         idx = _convert_dataframe_1d(idx)
+    elif not isinstance(idx, (numbers.Integral, str)):
+        idx = utils.toarray(idx).squeeze()
+
     if isinstance(data, (pd.DataFrame, pd.Series)):
         try:
             with warnings.catch_warnings():
