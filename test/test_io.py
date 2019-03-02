@@ -325,6 +325,9 @@ def test_fcs():
             else:
                 raise
 
+
+def test_fcs_reformat_meta():
+    path = fcsparser.test_sample_path
     meta, data = fcsparser.parse(path, reformat_meta=True)
     X_meta, _, X = scprep.io.load_fcs(path, reformat_meta=True, override=True)
     assert set(meta.keys()) == set(X_meta.keys())
@@ -342,14 +345,40 @@ def test_fcs():
                         meta[key][column], X_column, key + column)
             else:
                 raise
-
     assert 'Time' not in X.columns
     assert len(set(X.columns).difference(data.columns)) == 0
     np.testing.assert_array_equal(X.index, data.index)
     np.testing.assert_array_equal(X.values, data[X.columns].values)
 
 
-def test_load_fcs_error():
+def test_fcs_PnN():
+    path = fcsparser.test_sample_path
+    meta, data = fcsparser.parse(path, reformat_meta=True,
+                                 channel_naming='$PnN')
+    X_meta, _, X = scprep.io.load_fcs(path, reformat_meta=True,
+                                      channel_naming='$PnN', override=True)
+    assert set(meta.keys()) == set(X_meta.keys())
+    for key in meta.keys():
+        try:
+            np.testing.assert_array_equal(meta[key], X_meta[key], key)
+        except AssertionError:
+            if key == "$NEXTDATA" or (key.startswith("$P") and key.endswith("B")):
+                np.testing.assert_array_equal(meta[key], int(X_meta[key]), key)
+            elif key == "_channels_":
+                for column in meta[key].columns:
+                    X_column = X_meta[key][column].astype(
+                        meta[key][column].dtype)
+                    np.testing.assert_array_equal(
+                        meta[key][column], X_column, key + column)
+            else:
+                raise
+    assert 'Time' not in X.columns
+    assert len(set(X.columns).difference(data.columns)) == 0
+    np.testing.assert_array_equal(X.index, data.index)
+    np.testing.assert_array_equal(X.values, data[X.columns].values)
+
+
+def test_fcs_file_error():
     assert_raise_message(
         RuntimeError,
         "fcsparser failed to load {}, likely due to"
@@ -359,6 +388,16 @@ def test_load_fcs_error():
             os.path.join(data.data_dir, "test_small.csv")),
         scprep.io.load_fcs,
         os.path.join(data.data_dir, "test_small.csv"))
+
+
+def test_fcs_naming_error():
+    path = fcsparser.test_sample_path
+    assert_raise_message(
+        ValueError,
+        "Expected channel_naming in ['$PnS', '$PnN']. "
+        "Got 'invalid'",
+        scprep.io.load_fcs, path,
+        override=True, channel_naming="invalid")
 
 
 def test_parse_header():
