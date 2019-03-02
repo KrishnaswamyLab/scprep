@@ -279,19 +279,37 @@ class Test10X(unittest.TestCase):
                              self.X,
                              idx='not_a_gene')
 
-    def test_select_rows_2d_index(self):
+    def test_select_rows_2d_dataframe_index(self):
         assert_raise_message(ValueError,
-                             "Expected idx to be 1D. Got shape ",
+                             "Expected idx to be 1D. "
+                             "Got shape (2, {})".format(self.X.shape[0]),
                              scprep.select.select_rows,
                              self.X,
                              idx=pd.DataFrame([self.X.index, self.X.index]))
 
-    def test_select_cols_2d_index(self):
+    def test_select_rows_2d_list_index(self):
         assert_raise_message(ValueError,
-                             "Expected idx to be 1D. Got shape ",
+                             "Expected idx to be 1D. "
+                             "Got shape (2, {})".format(self.X.shape[0]),
+                             scprep.select.select_rows,
+                             self.X,
+                             idx=[self.X.index, self.X.index])
+
+    def test_select_cols_2d_dataframe_index(self):
+        assert_raise_message(ValueError,
+                             "Expected idx to be 1D. "
+                             "Got shape (2, {})".format(self.X.shape[1]),
                              scprep.select.select_cols,
                              self.X,
-                             idx=pd.DataFrame([self.X.index, self.X.index]))
+                             idx=pd.DataFrame([self.X.columns, self.X.columns]))
+
+    def test_select_cols_2d_list_index(self):
+        assert_raise_message(ValueError,
+                             "Expected idx to be 1D. "
+                             "Got shape (2, {})".format(self.X.shape[1]),
+                             scprep.select.select_cols,
+                             self.X,
+                             idx=[self.X.columns, self.X.columns])
 
     def test_select_cols_unequal_columns(self):
         assert_raise_message(

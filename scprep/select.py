@@ -14,6 +14,12 @@ def _is_1d(data):
         return True
 
 
+def _check_idx_1d(idx):
+    if (not _is_1d(idx)) and np.prod(idx.shape) != np.max(idx.shape):
+        raise ValueError(
+            "Expected idx to be 1D. Got shape {}".format(idx.shape))
+
+
 def _get_columns(data):
     return data.columns if isinstance(data, pd.DataFrame) else data.index
 
@@ -65,9 +71,7 @@ def _check_rows_compatible(*data):
 
 
 def _convert_dataframe_1d(idx):
-    if (not _is_1d(idx)) and np.prod(idx.shape) != np.max(idx.shape):
-        raise ValueError(
-            "Expected idx to be 1D. Got shape {}".format(idx.shape))
+    _check_idx_1d(idx)
     idx = idx.iloc[:, 0] if idx.shape[1] == 1 else idx.iloc[0, :]
     return idx
 
@@ -221,7 +225,9 @@ def select_cols(data, *extra_data, idx=None,
     if isinstance(idx, pd.DataFrame):
         idx = _convert_dataframe_1d(idx)
     elif not isinstance(idx, (numbers.Integral, str)):
-        idx = utils.toarray(idx).squeeze()
+        idx = utils.toarray(idx)
+        _check_idx_1d(idx)
+        idx = idx.flatten()
 
     if isinstance(data, pd.DataFrame):
         try:
@@ -315,7 +321,9 @@ def select_rows(data, *extra_data, idx=None,
     if isinstance(idx, pd.DataFrame):
         idx = _convert_dataframe_1d(idx)
     elif not isinstance(idx, (numbers.Integral, str)):
-        idx = utils.toarray(idx).squeeze()
+        idx = utils.toarray(idx)
+        _check_idx_1d(idx)
+        idx = idx.flatten()
 
     if isinstance(data, (pd.DataFrame, pd.Series)):
         try:
