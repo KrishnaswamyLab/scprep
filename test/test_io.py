@@ -315,7 +315,7 @@ def test_fcs():
         X.to_dense().values, data[X.columns].values)
 
     X_meta, _, X = scprep.io.load_fcs(path, reformat_meta=False, override=True)
-    np.testing.assert_array_equal(list(meta.keys()), list(X_meta.keys()))
+    assert set(meta.keys()) == set(X_meta.keys())
     for key in meta.keys():
         try:
             np.testing.assert_array_equal(meta[key], X_meta[key], key)
@@ -327,7 +327,7 @@ def test_fcs():
 
     meta, data = fcsparser.parse(path, reformat_meta=True)
     X_meta, _, X = scprep.io.load_fcs(path, reformat_meta=True, override=True)
-    np.testing.assert_array_equal(list(meta.keys()), list(X_meta.keys()))
+    assert set(meta.keys()) == set(X_meta.keys())
     for key in meta.keys():
         try:
             np.testing.assert_array_equal(meta[key], X_meta[key], key)
