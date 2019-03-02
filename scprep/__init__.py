@@ -3,6 +3,7 @@
 
 from .version import __version__
 import scprep.io
+import scprep.io.hdf5
 import scprep.select
 import scprep.filter
 import scprep.normalize
@@ -12,4 +13,3 @@ import scprep.plot
 import scprep.sanitize
 import scprep.stats
 import scprep.reduce
-import scprep.hdf5

@@ -1,5 +1,6 @@
 from tools import data
 import scprep
+import scprep.io.utils
 from sklearn.utils.testing import assert_warns_message, assert_raise_message
 import pandas as pd
 import numpy as np
@@ -326,8 +327,8 @@ def test_parse_header():
     assert_raise_message(
         ValueError,
         "Expected 5 entries in gene_names. Got 10",
-        scprep.io._parse_header, header1, 5)
+        scprep.io.utils._parse_header, header1, 5)
     assert_raise_message(
         ValueError,
         "Expected 50 entries in {}. Got 100".format(os.path.abspath(header2)),
-        scprep.io._parse_header, header2, 50)
+        scprep.io.utils._parse_header, header2, 50)
