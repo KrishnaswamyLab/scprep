@@ -12,11 +12,12 @@ except ImportError:
 @decorator
 def _with_matplotlib(fun, *args, **kwargs):
     try:
-        plt
-    except NameError:
+        assert int(matplotlib.__version__[0]) >= 3
+    except (NameError, AssertionError):
         raise ImportError(
-            "matplotlib not found. "
-            "Please install it with e.g. `pip install --user matplotlib`")
+            "matplotlib>=3.0 not found. "
+            "Please install it with e.g. "
+            "`pip install --user --upgrade matplotlib`")
     return fun(*args, **kwargs)
 
 
