@@ -12,7 +12,7 @@ except ImportError:
 @decorator
 def _with_matplotlib(fun, *args, **kwargs):
     try:
-        assert int(matplotlib.__version__[0]) >= 3
+        assert int(mpl.__version__[0]) >= 3
     except (NameError, AssertionError):
         raise ImportError(
             "matplotlib>=3.0 not found. "
