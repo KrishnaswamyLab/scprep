@@ -498,7 +498,8 @@ def scatter(x, y, z=None,
             x, y, z, c=c, discrete=discrete,
             cmap=cmap, cmap_scale=cmap_scale,
             vmin=vmin, vmax=vmax, s=s,
-            legend=legend, colorbar=colorbar)
+            legend=legend, colorbar=colorbar,
+            shuffle=shuffle)
 
         fig, ax, show_fig = _get_figure(
             ax, figsize, subplot_kw=params.subplot_kw)
