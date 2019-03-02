@@ -336,8 +336,8 @@ def test_fcs():
                 np.testing.assert_array_equal(meta[key], int(X_meta[key]), key)
             elif key == "_channels_":
                 for column in meta[key].columns:
-                    X_column = X_meta[key]['$PnB'].astype(
-                        meta[key]['$PnB'].dtype)
+                    X_column = X_meta[key][column].astype(
+                        meta[key][column].dtype)
                     np.testing.assert_array_equal(
                         meta[key][column], X_column, key + column)
             else:
