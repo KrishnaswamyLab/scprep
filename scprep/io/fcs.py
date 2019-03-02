@@ -304,7 +304,7 @@ def load_fcs(filename, gene_names=True, cell_names=True,
             raise RuntimeError("fcsparser failed to load {}, likely due to a "
                                "malformed header. You can try using "
                                "`override=True` to use scprep's built-in "
-                               "experimental FCS parser.")
+                               "experimental FCS parser.".format(filename))
     metadata_channels = data.columns.intersection(metadata_channels)
     data_channels = data.columns.difference(metadata_channels)
     cell_metadata = data[metadata_channels]
