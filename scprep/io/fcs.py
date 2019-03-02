@@ -300,7 +300,7 @@ def load_fcs(filename, gene_names=True, cell_names=True,
         try:
             channel_metadata, data = fcsparser.parse(
                 filename, reformat_meta=reformat_meta, **kwargs)
-        except fcsparser.api.ParserFeatureNotImplementedError:
+        except (fcsparser.api.ParserFeatureNotImplementedError, ValueError):
             raise RuntimeError("fcsparser failed to load {}, likely due to a "
                                "malformed header. You can try using "
                                "`override=True` to use scprep's built-in "

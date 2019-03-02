@@ -349,6 +349,18 @@ def test_fcs():
     np.testing.assert_array_equal(X.values, data[X.columns].values)
 
 
+def test_load_fcs_error():
+    assert_raise_message(
+        RuntimeError,
+        "fcsparser failed to load {}, likely due to"
+        " a malformed header. You can try using "
+        "`override=True` to use scprep's built-in "
+        "experimental FCS parser.".format(
+            os.path.join(data.data_dir, "test_small.csv")),
+        scprep.io.load_fcs,
+        os.path.join(data.data_dir, "test_small.csv"))
+
+
 def test_parse_header():
     header1 = np.arange(10)
     header2 = os.path.join(data.data_dir, "gene_symbols.csv")
