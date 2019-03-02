@@ -6,6 +6,8 @@ import numpy as np
 from decorator import decorator
 import struct
 from io import BytesIO
+import string
+import warnings
 
 from .utils import _matrix_to_data_frame
 
@@ -13,120 +15,6 @@ try:
     import fcsparser
 except ImportError:
     pass
-
-
-def _fcsextract(filename):
-    # FCS parser:
-    # https://github.com/jbkinney/16_titeseq/blob/master/fcsextract.py
-
-    fcs_file_name = filename
-
-    fcs = open(fcs_file_name, 'rb')
-    header = fcs.read(58)
-    version = header[0:6].strip()
-    text_start = int(header[10:18].strip())
-    text_end = int(header[18:26].strip())
-    data_start = int(header[26:34].strip())
-    data_end = int(header[34:42].strip())
-    analysis_start = int(header[42:50].strip())
-    analysis_end = int(header[50:58].strip())
-
-    # print "Parsing TEXT segment"
-    # read TEXT portion
-    fcs.seek(text_start)
-    delimeter = fcs.read(1)
-    # First byte of the text portion defines the delimeter
-    # print "delimeter:",delimeter
-    text = fcs.read(text_end - text_start + 1)
-
-    # Variables in TEXT poriton are stored "key/value/key/value/key/value"
-    keyvalarray = text.split(delimeter)
-    fcs_vars = {}
-    fcs_var_list = []
-    # Iterate over every 2 consecutive elements of the array
-    for k, v in zip(keyvalarray[::2], keyvalarray[1::2]):
-        fcs_vars[k.decode()] = v.decode()
-        # Keep a list around so we can print them in order
-        fcs_var_list.append((k, v))
-
-    # from pprint import pprint; pprint(fcs_var_list)
-    if data_start == 0 and data_end == 0:
-        data_start = int(fcs_vars['$DATASTART'])
-        data_end = int(fcs_vars['$DATAEND'])
-
-    num_dims = int(fcs_vars['$PAR'])
-    # print "Number of dimensions:",num_dims
-
-    num_events = int(fcs_vars['$TOT'])
-    # print "Number of events:",num_events
-
-    # Read DATA portion
-    fcs.seek(data_start)
-    # print "# of Data bytes",data_end-data_start+1
-    data = fcs.read(data_end - data_start + 1)
-
-    # Determine data format
-    datatype = fcs_vars['$DATATYPE']
-    if datatype == 'F':
-        datatype = 'f'  # set proper data mode for struct module
-        # print "Data stored as single-precision (32-bit) floating point
-        # numbers"
-    elif datatype == 'D':
-        datatype = 'd'  # set proper data mode for struct module
-        # print "Data stored as double-precision (64-bit) floating point
-        # numbers"
-    else:
-        assert False, "Error: Unrecognized $DATATYPE '%s'" % datatype
-
-    # Determine endianess
-    endian = fcs_vars['$BYTEORD']
-    if endian == "4,3,2,1":
-        endian = ">"  # set proper data mode for struct module
-        # print "Big endian data format"
-    elif endian == "1,2,3,4":
-        # print "Little endian data format"
-        endian = "<"  # set proper data mode for struct module
-    else:
-        assert False, "Error: This script can only read data encoded with $BYTEORD = 1,2,3,4 or 4,3,2,1"
-
-    # Put data in StringIO so we can read bytes like a file
-    data = BytesIO(data)
-
-    # print "Parsing DATA segment"
-    # Create format string based on endianeness and the specified data type
-    format = endian + str(num_dims) + datatype
-    datasize = struct.calcsize(format)
-    # print "Data format:",format
-    # print "Data size:",datasize
-    events = []
-    # Read and unpack all the events from the data
-    for e in range(num_events):
-        event = struct.unpack(format, data.read(datasize))
-        events.append(event)
-
-    fcs.close()
-
-    events = np.array(events)
-    return fcs_vars, events
-
-
-def _fcs_to_dataframe(f):
-    fcs_vars, events = _fcsextract(f)
-    gene_names = {}
-    for i in range(1, events.shape[1] + 1):
-        key = '$P{}S'.format(i)
-        if key in fcs_vars:
-            if '_' in fcs_vars[key]:
-                gene_names[i] = fcs_vars[key].split('_')[1]
-            else:
-                gene_names[i] = fcs_vars[key]
-        else:
-            key = '$P{}N'.format(i)
-            gene_names[i] = fcs_vars[key]
-
-    gene_names = np.array([*gene_names.values()])
-    return pd.DataFrame(events, columns=gene_names,
-                        index=np.arange(events.shape[0]))
 
 
 @decorator
@@ -140,11 +28,216 @@ def _with_fcsparser(fun, *args, **kwargs):
     return fun(*args, **kwargs)
 
 
+def _get_channel_names(meta, channel_numbers, channel_naming="$PnS"):
+    """Get list of channel names. Raises a warning if the names are not unique.
+
+    Credit: https://github.com/eyurtsev/fcsparser/blob/master/fcsparser/api.py
+    """
+    try:
+        names_n = tuple([meta['$P{0}N'.format(i)] for i in channel_numbers])
+    except KeyError:
+        names_n = []
+
+    try:
+        names_s = tuple([meta['$P{0}S'.format(i)] for i in channel_numbers])
+    except KeyError:
+        names_s = []
+
+    # Figure out which channel names to use
+    if channel_naming == '$PnS':
+        channel_names, channel_names_alternate = names_s, names_n
+    else:
+        channel_names, channel_names_alternate = names_n, names_s
+
+    if len(channel_names) == 0:
+        channel_names = channel_names_alternate
+
+    if len(set(channel_names)) != len(channel_names):
+        msg = (u'The default channel names (defined by the {} '
+               u'parameter in the FCS file) were not unique. To avoid '
+               u'problems in downstream analysis, the channel names '
+               u'have been switched to the alternate channel names '
+               u'defined in the FCS file. To avoid '
+               u'seeing this warning message, explicitly instruct '
+               u'the FCS parser to use the alternate channel names by '
+               u'specifying the channel_naming parameter.')
+        msg = msg.format(channel_naming)
+        warnings.warn(msg)
+        channel_names = channel_names_alternate
+
+    return channel_names
+
+
+def _reformat_meta(meta, channel_numbers):
+    """Collect the meta data information in a more user friendly format.
+    Function looks through the meta data, collecting the channel related information into a
+    dataframe and moving it into the _channels_ key.
+
+    Credit: https://github.com/eyurtsev/fcsparser/blob/master/fcsparser/api.py
+    """
+    channel_properties = []
+
+    for key, value in meta.items():
+        if key[:3] == '$P1':
+            if key[3] not in string.digits:
+                channel_properties.append(key[3:])
+
+    # Capture all the channel information in a list of lists -- used to create
+    # a data frame
+    channel_matrix = [
+        [meta.get('$P{0}{1}'.format(ch, p)) for p in channel_properties]
+        for ch in channel_numbers
+    ]
+
+    # Remove this information from the dictionary
+    for ch in channel_numbers:
+        for p in channel_properties:
+            key = '$P{0}{1}'.format(ch, p)
+            if key in meta:
+                meta.pop(key)
+
+    num_channels = meta['$PAR']
+    column_names = ['$Pn{0}'.format(p) for p in channel_properties]
+
+    df = pd.DataFrame(channel_matrix, columns=column_names,
+                      index=(1 + np.arange(num_channels)))
+
+    if '$PnE' in column_names:
+        df['$PnE'] = df['$PnE'].apply(lambda x: x.split(','))
+    if '$PnB' in column_names:
+        df['$PnB'] = df['$PnB'].apply(lambda x: int(x))
+
+    df.index.name = 'Channel Number'
+    return df
+
+
+def _fcsextract(filename, channel_naming="$PnS", reformat_meta=True):
+    """Experimental FCS parser
+
+    Some files fail to load with `fcsparser.parse`. For these, we provide an
+    alternative parser. It is not guaranteed to work in all cases.
+
+    Paramseters
+    -----------
+    channel_naming: '$PnS' | '$PnN'
+        Determines which meta data field is used for naming the channels.
+        The default should be $PnS (even though it is not guaranteed to be unique)
+        $PnN stands for the short name (guaranteed to be unique).
+            Will look like 'FL1-H'
+        $PnS stands for the actual name (not guaranteed to be unique).
+            Will look like 'FSC-H' (Forward scatter)
+        The chosen field will be used to population self.channels
+        Note: These names are not flipped in the implementation.
+        It looks like they were swapped for some reason in the official FCS specification.
+    reformat_meta: bool
+        If true, the meta data is reformatted with the channel information organized
+        into a DataFrame and moved into the '_channels_' key
+    """
+    # FCS parser. Credit to:
+    # https://github.com/jbkinney/16_titeseq/blob/master/fcsextract.py
+    meta = dict()
+    with open(filename, 'rb') as handle:
+        # Parse HEADER
+        header = handle.read(58)
+        meta['__header__'] = dict()
+        meta['__header__']['FCS format'] = header[0:6].strip()
+        meta['__header__']['text start'] = int(header[10:18].strip())
+        meta['__header__']['text end'] = int(header[18:26].strip())
+        meta['__header__']['data start'] = data_start = int(
+            header[26:34].strip())
+        meta['__header__']['data end'] = data_end = int(header[34:42].strip())
+        meta['__header__']['analysis start'] = int(header[42:50].strip())
+        meta['__header__']['analysis end'] = int(header[50:58].strip())
+
+        # Parsing TEXT segment
+        # read TEXT portion
+        handle.seek(meta['__header__']['text start'])
+        # First byte of the text portion defines the delimeter
+        delimeter = handle.read(1)
+        text = handle.read(meta['__header__']['text end'] -
+                           meta['__header__']['text start'] + 1)
+
+        # Variables in TEXT poriton are stored "key/value/key/value/key/value"
+        keyvalarray = text.split(delimeter)
+        # Iterate over every 2 consecutive elements of the array
+        for k, v in zip(keyvalarray[::2], keyvalarray[1::2]):
+            meta[k.decode()] = v.decode()
+
+        if meta['__header__']['data start'] == 0 and \
+                meta['__header__']['data end'] == 0:
+            data_start = int(meta['$DATASTART'])
+            data_end = int(meta['$DATAEND'])
+
+        num_dims = meta['$PAR'] = int(meta['$PAR'])
+        num_events = meta['$TOT'] = int(meta['$TOT'])
+
+        # Read DATA portion
+        handle.seek(data_start)
+        data = handle.read(data_end - data_start + 1)
+
+        # Determine data format
+        datatype = meta['$DATATYPE'].lower()
+        if datatype not in ['f', 'd']:
+            raise ValueError("Expected $DATATYPE in ['F', 'D']. "
+                             "Got '{}'".format(meta['$DATATYPE']))
+
+        # Determine endianess
+        endian = meta['$BYTEORD']
+        if endian == "4,3,2,1":
+            # Big endian data format
+            endian = ">"
+        elif endian == "1,2,3,4":
+            # Little endian data format
+            endian = "<"
+        else:
+            raise ValueError("Expected $BYTEORD in ['1,2,3,4', '4,3,2,1']. "
+                             "Got '{}'".format(endian))
+
+        # Put data in StringIO so we can read bytes like a file
+        data = BytesIO(data)
+
+        # Parsing DATA segment
+        # Create format string based on endianeness and the specified data type
+        fmt = endian + str(num_dims) + datatype
+        datasize = struct.calcsize(fmt)
+        events = []
+        # Read and unpack all the events from the data
+        for e in range(num_events):
+            event = struct.unpack(fmt, data.read(datasize))
+            events.append(event)
+
+    # Number the channels
+
+    pars = meta['$PAR']
+    # Checking whether channel number count starts from 0 or from 1
+    if '$P0B' in meta:
+        # Channel number count starts from 0
+        channel_numbers = range(0, pars)
+    else:
+        # Channel numbers start from 1
+        channel_numbers = range(1, pars + 1)
+
+    channel_names = _get_channel_names(
+        meta, channel_numbers, channel_naming)
+
+    events = pd.DataFrame(np.array(events), columns=channel_names,
+                          index=np.arange(len(events)))
+
+    if reformat_meta:
+        try:
+            meta['_channels_'] = _reformat_meta(meta, channel_numbers)
+        except Exception as e:
+            warnings.warn("Metadata reformatting failed: {}".format(str(e)))
+        meta['_channel_names_'] = channel_names
+    return meta, events
+
+
 @_with_fcsparser
 def load_fcs(filename, gene_names=True, cell_names=True,
              sparse=None,
              metadata_channels=['Time', 'Event_length', 'DNA1', 'DNA2',
                                 'Cisplatin', 'beadDist', 'bead1'],
+             channel_naming='$PnS',
              reformat_meta=True, override=False,
              **kwargs):
     """Load a fcs file
@@ -164,9 +257,23 @@ def load_fcs(filename, gene_names=True, cell_names=True,
         but more CPU.
     metadata_channels : list-like, optional, shape=[n_meta] (default: ['Time', 'Event_length', 'DNA1', 'DNA2', 'Cisplatin', 'beadDist', 'bead1'])
         Channels to be excluded from the data
+    channel_naming: '$PnS' | '$PnN'
+        Determines which meta data field is used for naming the channels.
+        The default should be $PnS (even though it is not guaranteed to be unique)
+        $PnN stands for the short name (guaranteed to be unique).
+            Will look like 'FL1-H'
+        $PnS stands for the actual name (not guaranteed to be unique).
+            Will look like 'FSC-H' (Forward scatter)
+        The chosen field will be used to population self.channels
+        Note: These names are not flipped in the implementation.
+        It looks like they were swapped for some reason in the official FCS specification.
     reformat_meta : bool, optional (default: True)
         If true, the meta data is reformatted with the channel information
         organized into a DataFrame and moved into the '_channels_' key
+    override : bool, optional (default: False)
+        If true, uses an experimental override of fcsparser. Should only be
+        used in cases where fcsparser fails to load the file, likely due to
+        a malformed header.
     **kwargs : optional arguments for `fcsparser.parse`.
 
     Returns
@@ -186,11 +293,18 @@ def load_fcs(filename, gene_names=True, cell_names=True,
         gene_names = None
     # Parse the fcs file
     if override:
-        data = _fcs_to_dataframe(filename)
-        channel_metadata = None
+        channel_metadata, data = _fcsextract(
+            filename, reformat_meta=reformat_meta,
+            channel_naming=channel_naming, **kwargs)
     else:
-        channel_metadata, data = fcsparser.parse(
-            filename, reformat_meta=reformat_meta, **kwargs)
+        try:
+            channel_metadata, data = fcsparser.parse(
+                filename, reformat_meta=reformat_meta, **kwargs)
+        except fcsparser.api.ParserFeatureNotImplementedError:
+            raise RuntimeError("fcsparser failed to load {}, likely due to a "
+                               "malformed header. You can try using "
+                               "`override=True` to use scprep's built-in "
+                               "experimental FCS parser.")
     metadata_channels = data.columns.intersection(metadata_channels)
     data_channels = data.columns.difference(metadata_channels)
     cell_metadata = data[metadata_channels]

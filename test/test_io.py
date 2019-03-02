@@ -9,12 +9,6 @@ import fcsparser
 import zipfile
 import urllib
 
-try:
-    FileNotFoundError
-except NameError:
-    # py2 compatibility
-    FileNotFoundError = IOError
-
 
 def test_10X_duplicate_gene_names():
     assert_warns_message(
@@ -319,6 +313,40 @@ def test_fcs():
     np.testing.assert_array_equal(X.index, data.index)
     np.testing.assert_array_equal(
         X.to_dense().values, data[X.columns].values)
+
+    X_meta, _, X = scprep.io.load_fcs(path, reformat_meta=False, override=True)
+    np.testing.assert_array_equal(list(meta.keys()), list(X_meta.keys()))
+    for key in meta.keys():
+        try:
+            np.testing.assert_array_equal(meta[key], X_meta[key], key)
+        except AssertionError:
+            if key == "$NEXTDATA" or (key.startswith("$P") and key.endswith("B")):
+                np.testing.assert_array_equal(meta[key], int(X_meta[key]), key)
+            else:
+                raise
+
+    meta, data = fcsparser.parse(path, reformat_meta=True)
+    X_meta, _, X = scprep.io.load_fcs(path, reformat_meta=True, override=True)
+    np.testing.assert_array_equal(list(meta.keys()), list(X_meta.keys()))
+    for key in meta.keys():
+        try:
+            np.testing.assert_array_equal(meta[key], X_meta[key], key)
+        except AssertionError:
+            if key == "$NEXTDATA" or (key.startswith("$P") and key.endswith("B")):
+                np.testing.assert_array_equal(meta[key], int(X_meta[key]), key)
+            elif key == "_channels_":
+                for column in meta[key].columns:
+                    X_column = X_meta[key]['$PnB'].astype(
+                        meta[key]['$PnB'].dtype)
+                    np.testing.assert_array_equal(
+                        meta[key][column], X_column, key + column)
+            else:
+                raise
+
+    assert 'Time' not in X.columns
+    assert len(set(X.columns).difference(data.columns)) == 0
+    np.testing.assert_array_equal(X.index, data.index)
+    np.testing.assert_array_equal(X.values, data[X.columns].values)
 
 
 def test_parse_header():
