@@ -2,14 +2,10 @@
 # (C) 2018 Krishnaswamy Lab GPLv2
 from decorator import decorator
 
-try:
-    import tables
-except ImportError:
-    pass
-try:
-    import h5py
-except ImportError:
-    pass
+from .. import utils
+
+tables = utils._try_import("tables")
+h5py = utils._try_import("h5py")
 
 
 @decorator

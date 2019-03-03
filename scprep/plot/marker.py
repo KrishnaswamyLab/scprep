@@ -2,12 +2,12 @@ import numpy as np
 import pandas as pd
 
 from .. import utils, stats, select
-from .utils import (_with_matplotlib, _get_figure, show,
+from .utils import (_get_figure, show,
                     temp_fontsize, parse_fontsize, shift_ticklabels)
 from .tools import label_axis
 
 
-@_with_matplotlib
+@utils._with_pkg("matplotlib")
 def marker_plot(data, clusters, markers, gene_names=None,
                 normalize_expression=True, cmap='magma',
                 title=None, figsize=(8, 6),

@@ -3,8 +3,28 @@ import pandas as pd
 import numbers
 from scipy import sparse
 import warnings
-import re
+import importlib
+from decorator import decorator
+
 from . import select
+
+
+def _try_import(pkg):
+    try:
+        return importlib.import_module(pkg)
+    except ImportError:
+        return None
+
+
+@decorator
+def _with_pkg(fun, pkg=None, *args, **kwargs):
+    try:
+        importlib.import_module(pkg)
+    except ImportError:
+        raise ImportError(
+            "{0} not found. "
+            "Please install it with e.g. `pip install --user {0}`".format(pkg))
+    return fun(*args, **kwargs)
 
 
 def toarray(x):

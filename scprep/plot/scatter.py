@@ -2,19 +2,17 @@ import numpy as np
 import numbers
 import pandas as pd
 import warnings
-try:
-    import matplotlib.pyplot as plt
-    import matplotlib as mpl
-    from matplotlib import animation
-except ImportError:
-    pass
 
 from .. import utils, select
-from .utils import (_get_figure, _with_matplotlib, _is_color_array,
+from .utils import (_get_figure, _is_color_array,
                     show, _in_ipynb, parse_fontsize, temp_fontsize,
                     _with_default)
 from .tools import (create_colormap, create_normalize,
                     label_axis, generate_colorbar, generate_legend)
+
+plt = utils._try_import("matplotlib.pyplot")
+mpl = utils._try_import("matplotlib")
+animation = utils._try_import("matplotlib.animation")
 
 
 class _ScatterParams(object):
@@ -350,7 +348,7 @@ class _ScatterParams(object):
                 self._cmap_scale = 'linear'
 
 
-@_with_matplotlib
+@utils._with_pkg("matplotlib")
 def scatter(x, y, z=None,
             c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
             ax=None,
@@ -556,7 +554,7 @@ def scatter(x, y, z=None,
     return ax
 
 
-@_with_matplotlib
+@utils._with_pkg("matplotlib")
 def scatter2d(data,
               c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
               ax=None, legend=None, colorbar=None,
@@ -708,7 +706,7 @@ def scatter2d(data,
                    **plot_kwargs)
 
 
-@_with_matplotlib
+@utils._with_pkg("matplotlib")
 def scatter3d(data,
               c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
               ax=None, legend=None, colorbar=None,
@@ -875,7 +873,7 @@ def scatter3d(data,
                    **plot_kwargs)
 
 
-@_with_matplotlib
+@utils._with_pkg("matplotlib")
 def rotate_scatter3d(data,
                      filename=None,
                      rotation_speed=30,

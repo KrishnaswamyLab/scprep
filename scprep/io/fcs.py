@@ -3,29 +3,15 @@
 
 import pandas as pd
 import numpy as np
-from decorator import decorator
 import struct
 from io import BytesIO
 import string
 import warnings
 
 from .utils import _matrix_to_data_frame
+from .. import utils
 
-try:
-    import fcsparser
-except ImportError:
-    pass
-
-
-@decorator
-def _with_fcsparser(fun, *args, **kwargs):
-    try:
-        fcsparser
-    except NameError:
-        raise ImportError(
-            "fcsparser not found. "
-            "Please install it with e.g. `pip install --user fcsparser`")
-    return fun(*args, **kwargs)
+fcsparser = utils._try_import("fcsparser")
 
 
 def _channel_names_from_meta(meta, channel_numbers, naming="N"):
@@ -236,7 +222,7 @@ def _fcsextract(filename, channel_naming="$PnS", reformat_meta=True):
     return meta, events
 
 
-@_with_fcsparser
+@utils._with_pkg("fcsparser")
 def load_fcs(filename, gene_names=True, cell_names=True,
              sparse=None,
              metadata_channels=['Time', 'Event_length', 'DNA1', 'DNA2',
