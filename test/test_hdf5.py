@@ -16,6 +16,8 @@ def test_failed_import_tables():
     assert hdf5_available() is True
     with tables.File(h5_file) as f:
         assert scprep.io.hdf5._is_tables(f) is False
+    with scprep.io.hdf5.open_file(h5_file) as f:
+        assert scprep.io.hdf5._is_h5py(f)
     scprep.io.hdf5.tables = tables
 
 
