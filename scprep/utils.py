@@ -21,7 +21,7 @@ def _with_pkg(fun, pkg=None, *args, **kwargs):
     try:
         importlib.import_module(pkg)
     except ImportError:
-        raise ImportError(
+        raise ModuleNotFoundError(
             "{0} not found. "
             "Please install it with e.g. `pip install --user {0}`".format(pkg))
     return fun(*args, **kwargs)

@@ -16,7 +16,7 @@ def with_HDF5(fun, *args, **kwargs):
         try:
             h5py
         except NameError:
-            raise ImportError(
+            raise ModuleNotFoundError(
                 "Found neither tables nor h5py. "
                 "Please install one of them with e.g. "
                 "`pip install --user tables` or `pip install --user h5py`")
@@ -88,6 +88,7 @@ def _is_h5py(obj, allow_file=True, allow_group=True, allow_dataset=True):
     return isinstance(obj, tuple(types))
 
 
+@with_HDF5
 def list_nodes(f):
     """List all first-level nodes in a HDF5 file.
 
@@ -110,6 +111,7 @@ def list_nodes(f):
             "Expected h5py.File, tables.File, h5py.Group or tables.Group. Got {}".format(type(f)))
 
 
+@with_HDF5
 def get_node(f, node):
     """Get a subnode from a HDF5 file or group.
 
@@ -137,6 +139,7 @@ def get_node(f, node):
             "Expected h5py.File, tables.File, h5py.Group or tables.Group. Got {}".format(type(f)))
 
 
+@with_HDF5
 def get_values(dataset):
     """Read values from a HDF5 dataset.
 

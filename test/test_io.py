@@ -152,6 +152,19 @@ def test_10X_HDF5():
     assert np.sum(np.sum(X != X_hdf5)) == 0
     np.testing.assert_array_equal(X.columns, X_hdf5.columns)
     np.testing.assert_array_equal(X.index, X_hdf5.index)
+    # forced h5py backend
+    tables = scprep.io.hdf5.tables
+    del scprep.io.hdf5.tables
+    X_hdf5 = scprep.io.load_10X_HDF5(h5_file, backend='h5py')
+    assert isinstance(X_hdf5, pd.SparseDataFrame)
+    assert np.sum(np.sum(X != X_hdf5)) == 0
+    np.testing.assert_array_equal(X.columns, X_hdf5.columns)
+    np.testing.assert_array_equal(X.index, X_hdf5.index)
+    scprep.io.hdf5.tables = tables
+
+
+def test_10X_HDF5_invalid_genome():
+    h5_file = os.path.join(data.data_dir, "test_10X.h5")
     assert_raise_message(
         ValueError,
         "Genome invalid not found in {}. "
@@ -159,12 +172,20 @@ def test_10X_HDF5():
         scprep.io.load_10X_HDF5,
         filename=h5_file,
         genome="invalid")
+
+
+def test_10X_HDF5_invalid_backend():
+    h5_file = os.path.join(data.data_dir, "test_10X.h5")
     assert_raise_message(
         ValueError,
         "Expected backend in ['tables', 'h5py']. Got invalid",
         scprep.io.load_10X_HDF5,
         filename=h5_file,
         backend="invalid")
+
+
+def test_10X_HDF5_invalid_gene_labels():
+    h5_file = os.path.join(data.data_dir, "test_10X.h5")
     assert_raise_message(
         ValueError,
         "gene_labels='invalid' not recognized. "

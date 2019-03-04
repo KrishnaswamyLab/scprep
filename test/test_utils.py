@@ -5,6 +5,16 @@ import numpy as np
 import pandas as pd
 
 
+def test_with_pkg():
+    @scprep.utils._with_pkg("invalid")
+    def invalid():
+        pass
+    assert_raise_message(ModuleNotFoundError,
+                         "invalid not found. Please install it with e.g. "
+                         "`pip install --user invalid`",
+                         invalid)
+
+
 def test_combine_batches():
     X = data.load_10X()
     Y = pd.concat([X, scprep.select.select_rows(
