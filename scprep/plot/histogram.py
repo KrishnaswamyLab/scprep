@@ -2,12 +2,12 @@ import numpy as np
 import pandas as pd
 
 from .. import measure, utils
-from .utils import (_with_matplotlib, _get_figure, show,
+from .utils import (_get_figure, show,
                     temp_fontsize, parse_fontsize)
 from .tools import label_axis
 
 
-@_with_matplotlib
+@utils._with_pkg("matplotlib")
 def histogram(data,
               bins=100, log=False,
               cutoff=None, percentile=None,
@@ -89,7 +89,7 @@ def histogram(data,
     return ax
 
 
-@_with_matplotlib
+@utils._with_pkg("matplotlib")
 def plot_library_size(data,
                       bins=100, log=True,
                       cutoff=None, percentile=None,
@@ -146,7 +146,7 @@ def plot_library_size(data,
                      xlabel=xlabel, title=title, fontsize=fontsize, **kwargs)
 
 
-@_with_matplotlib
+@utils._with_pkg("matplotlib")
 def plot_gene_set_expression(data, genes=None,
                              starts_with=None, ends_with=None, regex=None,
                              bins=100, log=False,

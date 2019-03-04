@@ -1,5 +1,6 @@
 from tools import data
 import scprep
+import scprep.io.utils
 from sklearn.utils.testing import assert_warns_message, assert_raise_message
 import pandas as pd
 import numpy as np
@@ -7,12 +8,6 @@ import os
 import fcsparser
 import zipfile
 import urllib
-
-try:
-    FileNotFoundError
-except NameError:
-    # py2 compatibility
-    FileNotFoundError = IOError
 
 
 def test_10X_duplicate_gene_names():
@@ -319,6 +314,91 @@ def test_fcs():
     np.testing.assert_array_equal(
         X.to_dense().values, data[X.columns].values)
 
+    X_meta, _, X = scprep.io.load_fcs(path, reformat_meta=False, override=True)
+    assert set(meta.keys()) == set(X_meta.keys())
+    for key in meta.keys():
+        try:
+            np.testing.assert_array_equal(meta[key], X_meta[key], key)
+        except AssertionError:
+            if key == "$NEXTDATA" or (key.startswith("$P") and key.endswith("B")):
+                np.testing.assert_array_equal(meta[key], int(X_meta[key]), key)
+            else:
+                raise
+
+
+def test_fcs_reformat_meta():
+    path = fcsparser.test_sample_path
+    meta, data = fcsparser.parse(path, reformat_meta=True)
+    X_meta, _, X = scprep.io.load_fcs(path, reformat_meta=True, override=True)
+    assert set(meta.keys()) == set(X_meta.keys())
+    for key in meta.keys():
+        try:
+            np.testing.assert_array_equal(meta[key], X_meta[key], key)
+        except AssertionError:
+            if key == "$NEXTDATA" or (key.startswith("$P") and key.endswith("B")):
+                np.testing.assert_array_equal(meta[key], int(X_meta[key]), key)
+            elif key == "_channels_":
+                for column in meta[key].columns:
+                    X_column = X_meta[key][column].astype(
+                        meta[key][column].dtype)
+                    np.testing.assert_array_equal(
+                        meta[key][column], X_column, key + column)
+            else:
+                raise
+    assert 'Time' not in X.columns
+    assert len(set(X.columns).difference(data.columns)) == 0
+    np.testing.assert_array_equal(X.index, data.index)
+    np.testing.assert_array_equal(X.values, data[X.columns].values)
+
+
+def test_fcs_PnN():
+    path = fcsparser.test_sample_path
+    meta, data = fcsparser.parse(path, reformat_meta=True,
+                                 channel_naming='$PnN')
+    X_meta, _, X = scprep.io.load_fcs(path, reformat_meta=True,
+                                      channel_naming='$PnN', override=True)
+    assert set(meta.keys()) == set(X_meta.keys())
+    for key in meta.keys():
+        try:
+            np.testing.assert_array_equal(meta[key], X_meta[key], key)
+        except AssertionError:
+            if key == "$NEXTDATA" or (key.startswith("$P") and key.endswith("B")):
+                np.testing.assert_array_equal(meta[key], int(X_meta[key]), key)
+            elif key == "_channels_":
+                for column in meta[key].columns:
+                    X_column = X_meta[key][column].astype(
+                        meta[key][column].dtype)
+                    np.testing.assert_array_equal(
+                        meta[key][column], X_column, key + column)
+            else:
+                raise
+    assert 'Time' not in X.columns
+    assert len(set(X.columns).difference(data.columns)) == 0
+    np.testing.assert_array_equal(X.index, data.index)
+    np.testing.assert_array_equal(X.values, data[X.columns].values)
+
+
+def test_fcs_file_error():
+    assert_raise_message(
+        RuntimeError,
+        "fcsparser failed to load {}, likely due to"
+        " a malformed header. You can try using "
+        "`override=True` to use scprep's built-in "
+        "experimental FCS parser.".format(
+            os.path.join(data.data_dir, "test_small.csv")),
+        scprep.io.load_fcs,
+        os.path.join(data.data_dir, "test_small.csv"))
+
+
+def test_fcs_naming_error():
+    path = fcsparser.test_sample_path
+    assert_raise_message(
+        ValueError,
+        "Expected channel_naming in ['$PnS', '$PnN']. "
+        "Got 'invalid'",
+        scprep.io.load_fcs, path,
+        override=True, channel_naming="invalid")
+
 
 def test_parse_header():
     header1 = np.arange(10)
@@ -326,8 +406,8 @@ def test_parse_header():
     assert_raise_message(
         ValueError,
         "Expected 5 entries in gene_names. Got 10",
-        scprep.io._parse_header, header1, 5)
+        scprep.io.utils._parse_header, header1, 5)
     assert_raise_message(
         ValueError,
         "Expected 50 entries in {}. Got 100".format(os.path.abspath(header2)),
-        scprep.io._parse_header, header2, 50)
+        scprep.io.utils._parse_header, header2, 50)

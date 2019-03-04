@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 
-from .. import utils, stats, select
-from .utils import (_with_matplotlib, _get_figure, show,
+from .. import utils
+from .utils import (_get_figure, show,
                     temp_fontsize, parse_fontsize, _with_default)
 from .tools import label_axis, generate_colorbar, generate_legend
 
@@ -26,7 +26,7 @@ class _JitterParams(_ScatterParams):
         return self._x_coords[self.plot_idx]
 
 
-@_with_matplotlib
+@utils._with_pkg("matplotlib")
 def jitter(labels, values, sigma=0.1,
            c=None, cmap=None, cmap_scale='linear',
            s=None,
