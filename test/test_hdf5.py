@@ -34,7 +34,7 @@ def test_failed_import_both():
     del scprep.io.hdf5.tables
     h5py = scprep.io.hdf5.h5py
     del scprep.io.hdf5.h5py
-    assert_raise_message(ModuleNotFoundError,
+    assert_raise_message(ImportError,
                          "Found neither tables nor h5py. "
                          "Please install one of them with e.g. "
                          "`pip install --user tables` or "

@@ -8,11 +8,17 @@ from decorator import decorator
 
 from . import select
 
+try:
+    ModuleNotFoundError
+except NameError:
+    # python 3.5
+    ModuleNotFoundError = ImportError
+
 
 def _try_import(pkg):
     try:
         return importlib.import_module(pkg)
-    except ImportError:
+    except ModuleNotFoundError:
         return None
 
 

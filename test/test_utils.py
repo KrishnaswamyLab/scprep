@@ -9,10 +9,15 @@ def test_with_pkg():
     @scprep.utils._with_pkg("invalid")
     def invalid():
         pass
-    assert_raise_message(ModuleNotFoundError,
+    assert_raise_message(ImportError,
                          "invalid not found. Please install it with e.g. "
                          "`pip install --user invalid`",
                          invalid)
+
+
+def test_try_import():
+    assert scprep.utils._try_import("invalid") is None
+    assert scprep.utils._try_import("numpy") is np
 
 
 def test_combine_batches():
@@ -240,6 +245,15 @@ def test_matrix_elementwise_multiply_guess_wrong_size():
         "or `data.shape[1]` (100). Got (10,)",
         scprep.utils.matrix_vector_elementwise_multiply,
         X, X[0, :10])
+
+
+def test_matrix_elementwise_multiply_invalid_axis():
+    X = data.generate_positive_sparse_matrix(shape=(50, 100))
+    assert_raise_message(
+        ValueError,
+        "Expected axis in [0, 1, None]. Got 5",
+        scprep.utils.matrix_vector_elementwise_multiply,
+        X, X[0], axis=5)
 
 
 def test_deprecated():

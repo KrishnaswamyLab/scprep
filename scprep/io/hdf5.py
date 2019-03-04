@@ -7,6 +7,12 @@ from .. import utils
 tables = utils._try_import("tables")
 h5py = utils._try_import("h5py")
 
+try:
+    ModuleNotFoundError
+except NameError:
+    # python 3.5
+    ModuleNotFoundError = ImportError
+
 
 @decorator
 def with_HDF5(fun, *args, **kwargs):
