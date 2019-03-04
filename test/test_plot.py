@@ -676,12 +676,12 @@ class Test10X(unittest.TestCase):
         assert ax.azim == 270
 
     def test_scatter_rotate_gif(self):
-        scprep.plot.rotate_scatter3d(self.X_pca, fps=5, dpi=50,
+        scprep.plot.rotate_scatter3d(self.X_pca, fps=3, dpi=20,
                                      filename="test.gif")
         assert os.path.exists("test.gif")
 
     def test_scatter_rotate_mp4(self):
-        scprep.plot.rotate_scatter3d(self.X_pca, fps=5, dpi=50,
+        scprep.plot.rotate_scatter3d(self.X_pca, fps=3, dpi=20,
                                      filename="test.mp4")
         assert os.path.exists("test.mp4")
 
@@ -690,7 +690,7 @@ class Test10X(unittest.TestCase):
             ValueError,
             "filename must end in .gif or .mp4. Got test.invalid",
             scprep.plot.rotate_scatter3d,
-            self.X_pca, fps=5, dpi=50, filename="test.invalid")
+            self.X_pca, fps=3, dpi=20, filename="test.invalid")
 
     def test_scatter_invalid_data(self):
         assert_raise_message(
