@@ -853,13 +853,20 @@ class Test10X(unittest.TestCase):
             "Got `vmax=None, vmin=0`",
             scprep.plot.tools.generate_colorbar, 'inferno', vmin=0)
 
-    def test_marker_plot(self):
+    def test_marker_plot_dict(self):
         scprep.plot.marker_plot(
             data=self.X,
             clusters=np.random.choice(
                 np.arange(10), replace=True, size=self.X.shape[0]),
             gene_names=self.X.columns,
             markers={'tissue': [self.X.columns[0]]})
+
+    def test_marker_plot_list(self):
+        scprep.plot.marker_plot(
+            data=self.X,
+            clusters=np.random.choice(
+                np.arange(10), replace=True, size=self.X.shape[0]),
+            markers=self.X.columns)
 
     def test_marker_plot_bad_gene_names(self):
         assert_raise_message(
