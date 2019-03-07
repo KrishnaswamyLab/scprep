@@ -66,7 +66,8 @@ You can use `scprep` with your single cell data as follows::
 Examples
 --------
 
-* [Scatter plots](https://nbviewer.jupyter.org/github/KrishnaswamyLab/scprep/blob/master/examples/scatter.ipynb)
+* [Scatter plots](https://scprep.readthedocs.io/en/stable/examples/scatter.html)
+* [Jitter plots](https://scprep.readthedocs.io/en/stable/examples/jitter.html)
 
 Help
 ----
