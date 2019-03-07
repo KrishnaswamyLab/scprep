@@ -74,7 +74,7 @@ def show(fig):
         Figure to show
     """
     if _mpl_is_gui_backend():
-        plt.tight_layout()
+        fig.tight_layout()
         if platform.system() == "Windows":
             plt.show(block=True)
         else:
