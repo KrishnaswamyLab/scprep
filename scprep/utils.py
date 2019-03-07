@@ -26,7 +26,7 @@ def _try_import(pkg):
 def _with_pkg(fun, pkg=None, *args, **kwargs):
     try:
         importlib.import_module(pkg)
-    except ImportError:
+    except ModuleNotFoundError:
         raise ModuleNotFoundError(
             "{0} not found. "
             "Please install it with e.g. `pip install --user {0}`".format(pkg))
@@ -74,8 +74,7 @@ def toarray(x):
     elif isinstance(x, (np.ndarray, numbers.Number)):
         pass
     else:
-        raise TypeError("Expected pandas DataFrame, scipy sparse matrix or "
-                        "numpy matrix. Got {}".format(type(x)))
+        raise TypeError("Expected array-like. Got {}".format(type(x)))
     return x
 
 
