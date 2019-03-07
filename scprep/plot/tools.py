@@ -1,15 +1,14 @@
 import numpy as np
 import warnings
-try:
-    import matplotlib as mpl
-    import matplotlib.pyplot as plt
-except ImportError:
-    pass
 
-from .utils import _with_matplotlib, _get_figure, parse_fontsize, temp_fontsize
+from .. import utils
+from .utils import _get_figure, parse_fontsize, temp_fontsize
+
+plt = utils._try_import("matplotlib.pyplot")
+mpl = utils._try_import("matplotlib")
 
 
-@_with_matplotlib
+@utils._with_pkg("matplotlib")
 def create_colormap(colors, name="scprep_custom_cmap"):
     """Create a custom colormap from a list of colors
 
@@ -39,7 +38,7 @@ def create_colormap(colors, name="scprep_custom_cmap"):
     return cmap
 
 
-@_with_matplotlib
+@utils._with_pkg("matplotlib")
 def create_normalize(vmin, vmax, scale=None):
     """Create a colormap normalizer
 
@@ -76,7 +75,7 @@ def create_normalize(vmin, vmax, scale=None):
     return norm
 
 
-@_with_matplotlib
+@utils._with_pkg("matplotlib")
 def generate_legend(cmap, ax, title=None, marker='o', markersize=10,
                     loc='best', bbox_to_anchor=None,
                     fontsize=None, title_fontsize=None,
@@ -133,7 +132,7 @@ def generate_legend(cmap, ax, title=None, marker='o', markersize=10,
     return legend
 
 
-@_with_matplotlib
+@utils._with_pkg("matplotlib")
 def generate_colorbar(cmap=None, vmin=None, vmax=None, scale=None, ax=None,
                       title=None, title_rotation=270, fontsize=None,
                       n_ticks='auto', labelpad=10, mappable=None, **kwargs):
@@ -200,6 +199,10 @@ def generate_colorbar(cmap=None, vmin=None, vmax=None, scale=None, ax=None,
                 ax = plot_axis
             xmin, xmax = plot_axis.get_xlim()
             ymin, ymax = plot_axis.get_ylim()
+            if hasattr(cmap, '__len__') and \
+                    not isinstance(cmap, (str, dict)):
+                # list colormap
+                cmap = create_colormap(cmap)
             mappable = plot_axis.imshow(
                 np.linspace(vmin, vmax, 10).reshape(-1, 1),
                 vmin=vmin, vmax=vmax, cmap=cmap, norm=norm,

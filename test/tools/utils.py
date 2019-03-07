@@ -92,7 +92,7 @@ def assert_transform_equivalent(X, Y, transform, check=assert_all_equal,
         type(X).__name__)
 
 
-def assert_transform_raises(X, transform, exception=ValueError):
+def assert_transform_raises(X, transform, exception=ValueError, **kwargs):
     """Check that transform(X) raises exception
 
     Parameters
@@ -101,7 +101,7 @@ def assert_transform_raises(X, transform, exception=ValueError):
     transform : function to apply to X
     exception : expected exception class
     """
-    assert_raises(exception, transform, X)
+    assert_raises(exception, transform, X, **kwargs)
 
 
 def assert_matrix_class_equivalent(X, Y):

@@ -10,6 +10,30 @@ import warnings
 from . import measure, utils
 
 
+def _get_scaled_libsize(data, rescale='median', return_library_size=False):
+    if return_library_size or rescale in ['median', 'mean']:
+        libsize = measure.library_size(data)
+    else:
+        libsize = None
+    if rescale == 'median':
+        rescale = np.median(utils.toarray(libsize))
+        if rescale == 0:
+            warnings.warn("Median library size is zero. "
+                          "Rescaling to mean instead.",
+                          UserWarning)
+            rescale = np.mean(utils.toarray(libsize))
+    elif rescale == 'mean':
+        rescale = np.mean(utils.toarray(libsize))
+    elif isinstance(rescale, numbers.Number):
+        pass
+    elif rescale is None:
+        rescale = 1
+    else:
+        raise ValueError("Expected rescale in ['median', 'mean'], a number "
+                         "or `None`. Got {}".format(rescale))
+    return rescale, libsize
+
+
 def library_size_normalize(data, rescale='median',
                            return_library_size=False):
     """Performs L1 normalization on input data
@@ -46,58 +70,24 @@ def library_size_normalize(data, rescale='median',
         data = data.to_coo()
     elif isinstance(data, pd.DataFrame):
         columns, index = data.columns, data.index
+        data = data.values
 
-    if return_library_size or rescale in ['median', 'mean']:
-        libsize = measure.library_size(data)
+    calc_libsize = sparse.issparse(data) and (return_library_size or
+                                              data.nnz > 2**31)
+    rescale, libsize = _get_scaled_libsize(data, rescale, calc_libsize)
 
-    if rescale == 'median':
-        rescale = np.median(utils.toarray(libsize))
-        if rescale == 0:
-            warnings.warn("Median library size is zero. "
-                          "Rescaling to mean instead.",
-                          UserWarning)
-            rescale = np.mean(utils.toarray(libsize))
-    elif rescale == 'mean':
-        rescale = np.mean(utils.toarray(libsize))
-    elif isinstance(rescale, numbers.Number):
-        pass
-    elif rescale is None:
-        rescale = 1
+    if libsize is not None:
+        divisor = utils.toarray(libsize)
+        data_norm = utils.matrix_vector_elementwise_multiply(
+            data, 1 / np.where(divisor == 0, 1, divisor), axis=0)
     else:
-        raise ValueError("Expected rescale in ['median', 'mean'], a number "
-                         "or `None`. Got {}".format(rescale))
-
-    if sparse.issparse(data) and data.nnz >= 2**31:
-        # check we can access elements by index
-        try:
-            data[0, 0]
-        except TypeError:
-            data = sparse.csr_matrix(data)
-        # normalize in chunks - sklearn doesn't handle more
-        # than 2**31 non-zero elements
-        #
-        # determine maximum chunk size
-        split = 2**30 // (data.nnz // data.shape[0])
-        size_ok = False
-        while not size_ok:
-            for i in range(0, data.shape[0], split):
-                if data[i:i + split, :].nnz >= 2**31:
-                    split = split // 2
-                    break
-            size_ok = True
-        # normalize
-        data_norm = []
-        for i in range(0, data.shape[0], split):
-            data_norm.append(normalize(data[i:i + split, :], 'l1', axis=1))
-        # combine chunks
-        data_norm = sparse.vstack(data_norm)
-    else:
-        data_norm = normalize(data, norm='l1', axis=1)
-
-    # norm = 'l1' computes the L1 norm which computes the
-    # axis = 1 independently normalizes each sample
-
+        if return_library_size:
+            data_norm, libsize = normalize(
+                data, norm='l1', axis=1, return_norm=True)
+        else:
+            data_norm = normalize(data, norm='l1', axis=1)
     data_norm = data_norm * rescale
+
     if columns is not None:
         # pandas dataframe
         if sparse.issparse(data_norm):
@@ -107,8 +97,9 @@ def library_size_normalize(data, rescale='median',
         data_norm.columns = columns
         data_norm.index = index
     if return_library_size:
-        data_norm = (data_norm, libsize)
-    return data_norm
+        return data_norm, libsize
+    else:
+        return data_norm
 
 
 def batch_mean_center(data, sample_idx=None):

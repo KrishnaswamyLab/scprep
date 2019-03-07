@@ -1,23 +1,15 @@
 import numpy as np
-from decorator import decorator
 import platform
-try:
-    import matplotlib.pyplot as plt
-    import matplotlib as mpl
-    from mpl_toolkits.mplot3d import Axes3D
-except ImportError:
-    pass
+
+from .. import utils
+
+plt = utils._try_import("matplotlib.pyplot")
+mpl = utils._try_import("matplotlib")
+mplot3d = utils._try_import("mpl_toolkits.mplot3d")
 
 
-@decorator
-def _with_matplotlib(fun, *args, **kwargs):
-    try:
-        plt
-    except NameError:
-        raise ImportError(
-            "matplotlib not found. "
-            "Please install it with e.g. `pip install --user matplotlib`")
-    return fun(*args, **kwargs)
+def _with_default(param, default):
+    return param if param is not None else default
 
 
 def _mpl_is_gui_backend():
@@ -44,7 +36,8 @@ def _get_figure(ax=None, figsize=None, subplot_kw=None):
             else:
                 raise e
         if 'projection' in subplot_kw:
-            if subplot_kw['projection'] == '3d' and not isinstance(ax, Axes3D):
+            if subplot_kw['projection'] == '3d' and \
+                    not isinstance(ax, mplot3d.Axes3D):
                 raise TypeError("Expected ax with projection='3d'. "
                                 "Got 2D axis instead.")
         show_fig = False
@@ -68,7 +61,7 @@ def _in_ipynb():
         return False
 
 
-@_with_matplotlib
+@utils._with_pkg("matplotlib")
 def show(fig):
     """Show a matplotlib Figure correctly, regardless of platform
 
@@ -81,7 +74,7 @@ def show(fig):
         Figure to show
     """
     if _mpl_is_gui_backend():
-        plt.tight_layout()
+        fig.tight_layout()
         if platform.system() == "Windows":
             plt.show(block=True)
         else:
@@ -143,7 +136,7 @@ class temp_fontsize(object):
         plt.rcParams['font.size'] = self.old_size
 
 
-@_with_matplotlib
+@utils._with_pkg("matplotlib")
 def shift_ticklabels(axis, dx=0, dy=0):
     """Shifts ticklabels on an axis
 

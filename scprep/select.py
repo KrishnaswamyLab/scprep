@@ -4,6 +4,7 @@ import numbers
 from scipy import sparse
 import warnings
 import re
+from . import utils
 
 
 def _is_1d(data):
@@ -11,6 +12,12 @@ def _is_1d(data):
         return len(data.shape) == 1
     except AttributeError:
         return True
+
+
+def _check_idx_1d(idx):
+    if (not _is_1d(idx)) and np.prod(idx.shape) != np.max(idx.shape):
+        raise ValueError(
+            "Expected idx to be 1D. Got shape {}".format(idx.shape))
 
 
 def _get_columns(data):
@@ -64,9 +71,7 @@ def _check_rows_compatible(*data):
 
 
 def _convert_dataframe_1d(idx):
-    if (not _is_1d(idx)) and np.prod(idx.shape) != np.max(idx.shape):
-        raise ValueError(
-            "Expected idx to be 1D. Got shape {}".format(idx.shape))
+    _check_idx_1d(idx)
     idx = idx.iloc[:, 0] if idx.shape[1] == 1 else idx.iloc[0, :]
     return idx
 
@@ -176,7 +181,7 @@ def select_cols(data, *extra_data, idx=None,
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
-    extra_data : array-like, shape=[*, n_features], optional
+    extra_data : array-like, shape=[any, n_features], optional
         Optional additional data objects from which to select the same rows
     idx : list-like, shape=[m_features]
         Integer indices or string column names to be selected
@@ -191,7 +196,7 @@ def select_cols(data, *extra_data, idx=None,
     -------
     data : array-like, shape=[n_samples, m_features]
         Subsetted output data.
-    extra_data : array-like, shape=[*, m_features]
+    extra_data : array-like, shape=[any, m_features]
         Subsetted extra data, if passed.
 
     Examples
@@ -219,6 +224,10 @@ def select_cols(data, *extra_data, idx=None,
 
     if isinstance(idx, pd.DataFrame):
         idx = _convert_dataframe_1d(idx)
+    elif not isinstance(idx, (numbers.Integral, str)):
+        idx = utils.toarray(idx)
+        _check_idx_1d(idx)
+        idx = idx.flatten()
 
     if isinstance(data, pd.DataFrame):
         try:
@@ -268,7 +277,7 @@ def select_rows(data, *extra_data, idx=None,
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
-    extra_data : array-like, shape=[n_samples, *], optional
+    extra_data : array-like, shape=[n_samples, any], optional
         Optional additional data objects from which to select the same rows
     idx : list-like, shape=[m_samples], optional (default: None)
         Integer indices or string index names to be selected
@@ -283,7 +292,7 @@ def select_rows(data, *extra_data, idx=None,
     -------
     data : array-like, shape=[m_samples, n_features]
         Subsetted output data
-    extra_data : array-like, shape=[m_samples, *]
+    extra_data : array-like, shape=[m_samples, any]
         Subsetted extra data, if passed.
 
     Examples
@@ -308,8 +317,14 @@ def select_rows(data, *extra_data, idx=None,
                 "Please set `idx` to select specific rows.")
         idx = get_cell_set(data, starts_with=starts_with,
                            ends_with=ends_with, regex=regex)
+
     if isinstance(idx, pd.DataFrame):
         idx = _convert_dataframe_1d(idx)
+    elif not isinstance(idx, (numbers.Integral, str)):
+        idx = utils.toarray(idx)
+        _check_idx_1d(idx)
+        idx = idx.flatten()
+
     if isinstance(data, (pd.DataFrame, pd.Series)):
         try:
             with warnings.catch_warnings():
@@ -352,7 +367,7 @@ def subsample(*data, n=10000, seed=None):
 
     Parameters
     ----------
-    data : array-like, shape=[n_samples, *]
+    data : array-like, shape=[n_samples, any]
         Input data. Any number of datasets can be passed at once,
         so long as `n_samples` remains the same.
     n : int, optional (default: 10000)

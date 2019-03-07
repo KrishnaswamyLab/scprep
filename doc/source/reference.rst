@@ -95,7 +95,7 @@ Utilities
 HDF5
 ----
 
-.. automodule:: scprep.hdf5
+.. automodule:: scprep.io.hdf5
     :autosummary:
     :members:
     :inherited-members:

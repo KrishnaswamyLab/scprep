@@ -2,15 +2,15 @@ import numpy as np
 import pandas as pd
 
 from .. import utils, stats, select
-from .utils import (_with_matplotlib, _get_figure, show,
+from .utils import (_get_figure, show,
                     temp_fontsize, parse_fontsize, shift_ticklabels)
 from .tools import label_axis
 
 
-@_with_matplotlib
+@utils._with_pkg("matplotlib")
 def marker_plot(data, clusters, markers, gene_names=None,
                 normalize_expression=True, cmap='magma',
-                title=None, figsize=(8, 6),
+                title=None, figsize=None,
                 ax=None, fontsize=None):
     """
     Generate a plot indicating the expression level and enrichment of
@@ -23,9 +23,10 @@ def marker_plot(data, clusters, markers, gene_names=None,
     clusters : list-like, shape=[n_cells]
         Cluster assignments for each cell. Should be ints
         like the output of most sklearn.cluster methods.
-    markers : dict
-        Dictionary with keys being tissues and
+    markers : dict or list-like
+        If a dictionary, keys represent tissues and
         values being a list of marker genes in each tissue.
+        If a list, a list of marker genes.
     gene_names : list-like, shape=[n_genes]
         List of gene names.
     normalize_expression : bool, optional (default: True)
@@ -64,22 +65,28 @@ def marker_plot(data, clusters, markers, gene_names=None,
                     "be provided. "
                     "Got gene_names=None, data as a {}".format(type(data)))
             gene_names = data.columns
-        for gene in np.concatenate(list(markers.values())):
+
+        if isinstance(markers, dict):
+            tissues, markers = tuple(
+                zip(*[([k] * len(v), v) for k, v in markers.items()]))
+            tissues, markers = np.concatenate(tissues), np.concatenate(markers)
+        else:
+            markers = utils.toarray(markers)
+            tissues = None
+
+        for gene in markers:
             if gene not in gene_names:
                 raise ValueError('All genes in `markers` must appear '
                                  'in gene_names. Did not find: {}'.format(gene))
 
         data = utils.to_array_or_spmatrix(data)
 
-        tissues, markers = tuple(
-            zip(*[([k] * len(v), v) for k, v in markers.items()]))
-        tissues, markers = np.concatenate(tissues), np.concatenate(markers)
         cluster_names = np.unique(clusters)
 
         keep_genes = np.isin(gene_names, markers)
         data, gene_names = select.select_cols(data, gene_names, idx=keep_genes)
 
-        fig, ax, show_fig = _get_figure(ax)
+        fig, ax, show_fig = _get_figure(ax, figsize=figsize)
 
         cluster_labels = []
         marker_labels = []
@@ -106,7 +113,8 @@ def marker_plot(data, clusters, markers, gene_names=None,
                 y.append(j)
                 marker_labels.append(marker)
                 cluster_labels.append(cluster)
-                tissue_labels.append(tissues[j])
+                if tissues is not None:
+                    tissue_labels.append(tissues[j])
                 gidx = np.where(gene_names == marker)
                 marker_expr = in_cluster_expr[:, gidx]
                 s_row.append(stats.EMD(marker_expr,
@@ -149,14 +157,14 @@ def marker_plot(data, clusters, markers, gene_names=None,
         label_axis(ax.yaxis, ticks=y_unique,
                    ticklabels=np.array(marker_labels)[y_unique_idx])
 
-        # Right Y axis decorators
-        ax2 = ax.twinx()
-        ax2.set_ylim(ax.get_ylim())
-        label_axis(ax2.yaxis, ticks=y_unique,
-                   ticklabels=np.array(tissue_labels)[y_unique_idx])
+        if tissues is not None:
+            # Right Y axis decorators
+            ax2 = ax.twinx()
+            ax2.set_ylim(ax.get_ylim())
+            label_axis(ax2.yaxis, ticks=y_unique,
+                       ticklabels=np.array(tissue_labels)[y_unique_idx])
 
         if show_fig:
-            fig.tight_layout()
             show(fig)
 
     return ax

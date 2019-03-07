@@ -5,6 +5,21 @@ import numpy as np
 import pandas as pd
 
 
+def test_with_pkg():
+    @scprep.utils._with_pkg("invalid")
+    def invalid():
+        pass
+    assert_raise_message(ImportError,
+                         "invalid not found. Please install it with e.g. "
+                         "`pip install --user invalid`",
+                         invalid)
+
+
+def test_try_import():
+    assert scprep.utils._try_import("invalid") is None
+    assert scprep.utils._try_import("numpy") is np
+
+
 def test_combine_batches():
     X = data.load_10X()
     Y = pd.concat([X, scprep.select.select_rows(
@@ -102,36 +117,43 @@ def test_toarray():
                                  test_fun)
     test_fun([X, np.matrix(X)])
     assert_raise_message(TypeError,
-                         "Expected pandas DataFrame, scipy sparse matrix or "
-                         "numpy matrix. Got ",
+                         "Expected array-like. Got ",
                          scprep.utils.toarray,
                          "hello")
+
+
+def test_toarray_list_of_strings():
+    X = ['hello', 'world', [1, 2, 3]]
+    X = scprep.utils.toarray(X)
+    assert isinstance(X[2], np.ndarray)
 
 
 def test_matrix_sum():
     X = data.generate_positive_sparse_matrix(shape=(50, 100))
     sums = np.array(X.sum(0)).flatten()
+    matrix.test_all_matrix_types(X, utils.assert_transform_equals, Y=sums,
+                                 transform=scprep.utils.matrix_sum, axis=0,
+                                 check=utils.assert_all_close)
+    matrix.test_numpy_matrix(X, utils.assert_transform_equals, Y=sums,
+                             transform=scprep.utils.matrix_sum, axis=0,
+                             check=utils.assert_all_close)
 
-    def test_fun(X):
-        assert np.allclose(np.array(scprep.utils.matrix_sum(X, axis=0)), sums)
-    matrix.test_all_matrix_types(X,
-                                 test_fun)
-    test_fun(np.matrix(X))
     sums = np.array(X.sum(1)).flatten()
+    matrix.test_all_matrix_types(X, utils.assert_transform_equals, Y=sums,
+                                 transform=scprep.utils.matrix_sum, axis=1,
+                                 check=utils.assert_all_close)
+    matrix.test_numpy_matrix(X, utils.assert_transform_equals, Y=sums,
+                             transform=scprep.utils.matrix_sum, axis=1,
+                             check=utils.assert_all_close)
 
-    def test_fun(X):
-        assert np.allclose(
-            np.array(scprep.utils.matrix_sum(X, axis=1)), sums)
-    matrix.test_all_matrix_types(X,
-                                 test_fun)
-    test_fun(np.matrix(X))
     sums = np.array(X.sum(None)).flatten()
+    matrix.test_all_matrix_types(X, utils.assert_transform_equals, Y=sums,
+                                 transform=scprep.utils.matrix_sum, axis=None,
+                                 check=utils.assert_all_close)
+    matrix.test_numpy_matrix(X, utils.assert_transform_equals, Y=sums,
+                             transform=scprep.utils.matrix_sum, axis=None,
+                             check=utils.assert_all_close)
 
-    def test_fun(X):
-        assert np.allclose(scprep.utils.matrix_sum(X, axis=None), sums)
-    matrix.test_all_matrix_types(X,
-                                 test_fun)
-    test_fun(np.matrix(X))
     assert_raise_message(ValueError,
                          "Expected axis in [0, 1, None]. Got 5",
                          scprep.utils.matrix_sum,
@@ -139,33 +161,127 @@ def test_matrix_sum():
                          5)
 
 
+def test_matrix_elementwise_multiply_row():
+    X = data.generate_positive_sparse_matrix(shape=(50, 100))
+    x = X[:, 0] + 1
+    Y = pd.DataFrame(X).mul(x, axis=0)
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equivalent, Y=Y,
+        transform=scprep.utils.matrix_vector_elementwise_multiply,
+        check=utils.assert_all_close,
+        axis=0, multiplier=x)
+
+
+def test_matrix_elementwise_multiply_col():
+    X = data.generate_positive_sparse_matrix(shape=(50, 100))
+    x = X[0] + 1
+    Y = pd.DataFrame(X).mul(x, axis=1)
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equivalent, Y=Y,
+        transform=scprep.utils.matrix_vector_elementwise_multiply,
+        check=utils.assert_all_close,
+        axis=1, multiplier=x)
+
+
+def test_matrix_elementwise_multiply_guess_row():
+    X = data.generate_positive_sparse_matrix(shape=(50, 100))
+    x = X[:, 0] + 1
+    Y = pd.DataFrame(X).mul(x, axis=0)
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equivalent, Y=Y,
+        transform=scprep.utils.matrix_vector_elementwise_multiply,
+        check=utils.assert_all_close,
+        axis=None, multiplier=x)
+
+
+def test_matrix_elementwise_multiply_guess_col():
+    X = data.generate_positive_sparse_matrix(shape=(50, 100))
+    x = X[0] + 1
+    Y = pd.DataFrame(X).mul(x, axis=1)
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equivalent, Y=Y,
+        transform=scprep.utils.matrix_vector_elementwise_multiply,
+        check=utils.assert_all_close,
+        axis=None, multiplier=x)
+
+
+def test_matrix_elementwise_multiply_square_guess():
+    X = data.generate_positive_sparse_matrix(shape=(50, 50))
+    assert_raise_message(
+        RuntimeError,
+        "`data` is square, cannot guess axis from input. Please provide "
+        "`axis=0` to multiply along rows or "
+        "`axis=1` to multiply along columns.",
+        scprep.utils.matrix_vector_elementwise_multiply,
+        X, X[0])
+
+
+def test_matrix_elementwise_multiply_row_wrong_size():
+    X = data.generate_positive_sparse_matrix(shape=(50, 100))
+    assert_raise_message(
+        ValueError,
+        "Expected `multiplier` to be a vector of length `data.shape[0]` (50)."
+        " Got (100,)",
+        scprep.utils.matrix_vector_elementwise_multiply,
+        X, X[0], axis=0)
+
+
+def test_matrix_elementwise_multiply_col_wrong_size():
+    X = data.generate_positive_sparse_matrix(shape=(50, 100))
+    assert_raise_message(
+        ValueError,
+        "Expected `multiplier` to be a vector of length `data.shape[1]` (100)."
+        " Got (50,)",
+        scprep.utils.matrix_vector_elementwise_multiply,
+        X, X[:, 0], axis=1)
+
+
+def test_matrix_elementwise_multiply_guess_wrong_size():
+    X = data.generate_positive_sparse_matrix(shape=(50, 100))
+    assert_raise_message(
+        ValueError,
+        "Expected `multiplier` to be a vector of length `data.shape[0]` (50) "
+        "or `data.shape[1]` (100). Got (10,)",
+        scprep.utils.matrix_vector_elementwise_multiply,
+        X, X[0, :10])
+
+
+def test_matrix_elementwise_multiply_invalid_axis():
+    X = data.generate_positive_sparse_matrix(shape=(50, 100))
+    assert_raise_message(
+        ValueError,
+        "Expected axis in [0, 1, None]. Got 5",
+        scprep.utils.matrix_vector_elementwise_multiply,
+        X, X[0], axis=5)
+
+
 def test_deprecated():
     X = data.load_10X()
-    assert_warns_message(DeprecationWarning,
+    assert_warns_message(FutureWarning,
                          "`scprep.utils.select_cols` is deprecated. Use "
                          "`scprep.select.select_cols` instead.",
                          scprep.utils.select_cols,
                          X,
                          [1, 2, 3])
-    assert_warns_message(DeprecationWarning,
+    assert_warns_message(FutureWarning,
                          "`scprep.utils.select_rows` is deprecated. Use "
                          "`scprep.select.select_rows` instead.",
                          scprep.utils.select_rows,
                          X,
                          [1, 2, 3])
-    assert_warns_message(DeprecationWarning,
+    assert_warns_message(FutureWarning,
                          "`scprep.utils.get_gene_set` is deprecated. Use "
                          "`scprep.select.get_gene_set` instead.",
                          scprep.utils.get_gene_set,
                          X,
                          starts_with="D")
-    assert_warns_message(DeprecationWarning,
+    assert_warns_message(FutureWarning,
                          "`scprep.utils.get_cell_set` is deprecated. Use "
                          "`scprep.select.get_cell_set` instead.",
                          scprep.utils.get_cell_set,
                          X,
                          starts_with="A")
-    assert_warns_message(DeprecationWarning,
+    assert_warns_message(FutureWarning,
                          "`scprep.utils.subsample` is deprecated. Use "
                          "`scprep.select.subsample` instead.",
                          scprep.utils.subsample,

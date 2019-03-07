@@ -8,10 +8,7 @@ from sklearn import neighbors, metrics
 from . import plot, utils
 import warnings
 
-try:
-    import matplotlib.pyplot as plt
-except ImportError:
-    pass
+plt = utils._try_import("matplotlib.pyplot")
 
 
 def EMD(x, y):
@@ -286,7 +283,7 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
         return dremi
 
 
-@plot.utils._with_matplotlib
+@utils._with_pkg("matplotlib")
 def plot_knnDREMI(dremi, mutual_info, x, y, n_bins, n_mesh,
                   density, bin_density, drevi,
                   figsize=(12, 3.5), filename=None,

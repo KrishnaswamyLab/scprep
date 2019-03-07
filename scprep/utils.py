@@ -3,8 +3,34 @@ import pandas as pd
 import numbers
 from scipy import sparse
 import warnings
-import re
+import importlib
+from decorator import decorator
+
 from . import select
+
+try:
+    ModuleNotFoundError
+except NameError:
+    # python 3.5
+    ModuleNotFoundError = ImportError
+
+
+def _try_import(pkg):
+    try:
+        return importlib.import_module(pkg)
+    except ModuleNotFoundError:
+        return None
+
+
+@decorator
+def _with_pkg(fun, pkg=None, *args, **kwargs):
+    try:
+        importlib.import_module(pkg)
+    except ModuleNotFoundError:
+        raise ModuleNotFoundError(
+            "{0} not found. "
+            "Please install it with e.g. `pip install --user {0}`".format(pkg))
+    return fun(*args, **kwargs)
 
 
 def toarray(x):
@@ -23,19 +49,32 @@ def toarray(x):
         x = x.to_coo().toarray()
     elif isinstance(x, pd.SparseSeries):
         x = x.to_dense().values
-    elif isinstance(x, (pd.DataFrame, pd.Series)):
+    elif isinstance(x, (pd.DataFrame, pd.Series, pd.Index)):
         x = x.values
     elif isinstance(x, sparse.spmatrix):
         x = x.toarray()
     elif isinstance(x, np.matrix):
         x = np.array(x)
     elif isinstance(x, list):
-        x = np.array([toarray(i) for i in x])
+        x_out = []
+        for xi in x:
+            try:
+                xi = toarray(xi)
+            except TypeError:
+                # recursed too far
+                pass
+            x_out.append(xi)
+        try:
+            x = np.array(x_out)
+        except ValueError as e:
+            if str(e) == "setting an array element with a sequence":
+                x = np.array(x_out, dtype=object)
+            else:
+                raise
     elif isinstance(x, (np.ndarray, numbers.Number)):
         pass
     else:
-        raise TypeError("Expected pandas DataFrame, scipy sparse matrix or "
-                        "numpy matrix. Got {}".format(type(x)))
+        raise TypeError("Expected array-like. Got {}".format(type(x)))
     return x
 
 
@@ -53,17 +92,10 @@ def to_array_or_spmatrix(x):
     """
     if isinstance(x, pd.SparseDataFrame):
         x = x.to_coo()
-    elif isinstance(x, pd.SparseSeries):
-        x = x.to_dense().values
-    elif isinstance(x, (pd.DataFrame, pd.Series)):
-        x = x.values
-    elif isinstance(x, np.matrix):
-        x = np.array(x)
-    elif isinstance(x, (sparse.spmatrix, np.ndarray, numbers.Number)):
+    elif isinstance(x, sparse.spmatrix):
         pass
     else:
-        raise TypeError("Expected pandas DataFrame, scipy sparse matrix or "
-                        "numpy matrix. Got {}".format(type(x)))
+        x = toarray(x)
     return x
 
 
@@ -135,6 +167,83 @@ def matrix_sum(data, axis=None):
         if isinstance(sums, np.matrix):
             sums = np.array(sums).flatten()
     return sums
+
+
+def matrix_vector_elementwise_multiply(data, multiplier, axis=None):
+    """Elementwise multiply a matrix by a vector
+
+    Parameters
+    ----------
+    data : array-like, shape=[n_samples, n_features]
+        Input data
+    multiplier : array-like, shape=[n_samples, 1] or [1, n_features]
+        Vector by which to multiply `data`
+    axis : int or None, optional (default: None)
+        Axis across which to sum. axis=0 multiplies each column,
+        axis=1 multiplies each row. None guesses based on dimensions
+
+    Returns
+    -------
+    product : array-like
+        Multiplied matrix
+    """
+    if axis not in [0, 1, None]:
+        raise ValueError("Expected axis in [0, 1, None]. Got {}".format(axis))
+
+    if axis is None:
+        if data.shape[0] == data.shape[1]:
+            raise RuntimeError(
+                "`data` is square, cannot guess axis from input. "
+                "Please provide `axis=0` to multiply along rows or "
+                "`axis=1` to multiply along columns.")
+        elif np.prod(multiplier.shape) == data.shape[0]:
+            axis = 0
+        elif np.prod(multiplier.shape) == data.shape[1]:
+            axis = 1
+        else:
+            raise ValueError(
+                "Expected `multiplier` to be a vector of length "
+                "`data.shape[0]` ({}) or `data.shape[1]` ({}). Got {}".format(
+                    data.shape[0], data.shape[1], multiplier.shape))
+    multiplier = toarray(multiplier)
+    if axis == 0:
+        if not np.prod(multiplier.shape) == data.shape[0]:
+            raise ValueError(
+                "Expected `multiplier` to be a vector of length "
+                "`data.shape[0]` ({}). Got {}".format(
+                    data.shape[0], multiplier.shape))
+        multiplier = multiplier.reshape(-1, 1)
+    else:
+        if not np.prod(multiplier.shape) == data.shape[1]:
+            raise ValueError(
+                "Expected `multiplier` to be a vector of length "
+                "`data.shape[1]` ({}). Got {}".format(
+                    data.shape[1], multiplier.shape))
+        multiplier = multiplier.reshape(1, -1)
+
+    if isinstance(data, pd.SparseDataFrame):
+        data = data.copy()
+        multiplier = multiplier.flatten()
+        if axis == 0:
+            data = data.T
+            for col, mult in zip(data.columns, multiplier):
+                data[col] = data[col] * mult
+            data = data.T
+        else:
+            for col, mult in zip(data.columns, multiplier):
+                data[col] = data[col] * mult
+    elif isinstance(data, pd.DataFrame):
+        data = data.mul(multiplier.flatten(), axis=axis)
+    elif sparse.issparse(data):
+        if isinstance(data, (sparse.lil_matrix, sparse.dok_matrix,
+                             sparse.coo_matrix, sparse.bsr_matrix,
+                             sparse.dia_matrix)):
+            data = data.tocsr()
+        data = data.multiply(multiplier)
+    else:
+        data = data * multiplier
+
+    return data
 
 
 def matrix_min(data):
@@ -271,21 +380,21 @@ def combine_batches(data, batch_labels, append_to_cell_names=False):
 def select_cols(data, idx):
     warnings.warn("`scprep.utils.select_cols` is deprecated. Use "
                   "`scprep.select.select_cols` instead.",
-                  DeprecationWarning)
+                  FutureWarning)
     return select.select_cols(data, idx=idx)
 
 
 def select_rows(data, idx):
     warnings.warn("`scprep.utils.select_rows` is deprecated. Use "
                   "`scprep.select.select_rows` instead.",
-                  DeprecationWarning)
+                  FutureWarning)
     return select.select_rows(data, idx=idx)
 
 
 def get_gene_set(data, starts_with=None, ends_with=None, regex=None):
     warnings.warn("`scprep.utils.get_gene_set` is deprecated. Use "
                   "`scprep.select.get_gene_set` instead.",
-                  DeprecationWarning)
+                  FutureWarning)
     return select.get_gene_set(data, starts_with=starts_with,
                                ends_with=ends_with, regex=regex)
 
@@ -293,7 +402,7 @@ def get_gene_set(data, starts_with=None, ends_with=None, regex=None):
 def get_cell_set(data, starts_with=None, ends_with=None, regex=None):
     warnings.warn("`scprep.utils.get_cell_set` is deprecated. Use "
                   "`scprep.select.get_cell_set` instead.",
-                  DeprecationWarning)
+                  FutureWarning)
     return select.get_cell_set(data, starts_with=starts_with,
                                ends_with=ends_with, regex=regex)
 
@@ -301,5 +410,5 @@ def get_cell_set(data, starts_with=None, ends_with=None, regex=None):
 def subsample(*data, n=10000, seed=None):
     warnings.warn("`scprep.utils.subsample` is deprecated. Use "
                   "`scprep.select.subsample` instead.",
-                  DeprecationWarning)
+                  FutureWarning)
     return select.subsample(*data, n=n, seed=seed)

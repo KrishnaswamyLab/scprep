@@ -15,6 +15,7 @@ def _no_warning_dia_matrix(*args, **kwargs):
             " diagonals is inefficient")
         return sparse.dia_matrix(*args, **kwargs)
 
+SparseDataFrame = partial(pd.SparseDataFrame, default_fill_value=0.0)
 
 _scipy_matrix_types = [
     sparse.csr_matrix,
@@ -34,12 +35,12 @@ _pandas_dense_matrix_types = [
 ]
 
 _pandas_sparse_matrix_types = [
-    partial(pd.SparseDataFrame, default_fill_value=0.0),
+    SparseDataFrame,
 ]
 
 _pandas_matrix_types = [
     pd.DataFrame,
-    partial(pd.SparseDataFrame, default_fill_value=0.0),
+    SparseDataFrame,
 ]
 
 _indexable_matrix_types = [
@@ -49,7 +50,7 @@ _indexable_matrix_types = [
     sparse.dok_matrix,
     np.array,
     pd.DataFrame,
-    pd.SparseDataFrame
+    SparseDataFrame
 ]
 
 
@@ -130,4 +131,19 @@ def test_pandas_matrix_types(X, test_fun, *args, **kwargs):
     """
     test_matrix_types(
         X, test_fun, _pandas_matrix_types,
+        *args, **kwargs)
+
+
+def test_numpy_matrix(X, test_fun, *args, **kwargs):
+    """Test a function for np.matrix
+
+    Parameters
+    ----------
+    X : matrix input
+    test_fun : Function(X, *args, **kwargs) for testing
+    *args : positional arguments for test_fun
+    **kwargs : keyword arguments for test_fun
+    """
+    test_matrix_types(
+        X, test_fun, [np.matrix],
         *args, **kwargs)

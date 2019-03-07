@@ -7,6 +7,7 @@ from sklearn.utils.testing import assert_raise_message, assert_warns_message
 import unittest
 import scprep
 from scprep.plot.scatter import _ScatterParams
+from scprep.plot.jitter import _JitterParams
 import sys
 
 
@@ -52,6 +53,28 @@ def test_parse_fontsize():
         plt.rcParams[key] = default
     assert scprep.plot.utils.parse_fontsize('x-large', 'large') == 'x-large'
     assert scprep.plot.utils.parse_fontsize(None, 'large') == 'large'
+
+
+def test_generate_colorbar_str():
+    cb = scprep.plot.tools.generate_colorbar(cmap='viridis')
+    assert cb.cmap.name == 'viridis'
+
+
+def test_generate_colorbar_colormap():
+    cb = scprep.plot.tools.generate_colorbar(cmap=plt.cm.viridis)
+    assert cb.cmap.name == 'viridis'
+
+
+def test_generate_colorbar_list():
+    cb = scprep.plot.tools.generate_colorbar(cmap=['red', 'blue'])
+    assert cb.cmap.name == 'scprep_custom_cmap'
+
+
+def test_generate_colorbar_dict():
+    assert_raise_message(TypeError,
+                         "unhashable type: 'dict'",
+                         scprep.plot.tools.generate_colorbar,
+                         cmap={'+': 'r', '-': 'b'})
 
 
 class TestScatterParams(unittest.TestCase):
@@ -423,6 +446,12 @@ class TestScatterParams(unittest.TestCase):
             c=np.where(self.c > 0, '+', '-'),
         )
 
+    def test_jitter_x(self):
+        params = _JitterParams(x=np.where(self.x > 0, '+', '-'), y=self.y)
+        np.testing.assert_array_equal(params.x_labels, ['+', '-'])
+        np.testing.assert_array_equal(
+            params.x_coords, np.where(self.x > 0, 0, 1)[params.plot_idx])
+
 
 class Test10X(unittest.TestCase):
 
@@ -437,6 +466,7 @@ class Test10X(unittest.TestCase):
         try_remove("test.png")
         try_remove("test.gif")
         try_remove("test.mp4")
+        try_remove("test_jitter.png")
 
     def tearDown(self):
         plt.close('all')
@@ -447,8 +477,37 @@ class Test10X(unittest.TestCase):
                                       xlabel="x label", ylabel="y label")
 
     def test_histogram_multiple(self):
-        scprep.plot.histogram(scprep.utils.select_rows(self.X, [0, 1]),
+        scprep.plot.histogram([scprep.select.select_rows(self.X, idx=0),
+                               [1, 2, 2, 2, 3]],
                               color=['r', 'b'])
+
+    def test_plot_library_size_multiple(self):
+        scprep.plot.plot_library_size([
+            self.X, scprep.select.select_rows(
+                self.X, idx=np.arange(self.X.shape[0] // 2))],
+            color=['r', 'b'])
+
+    def test_plot_gene_set_expression_multiple(self):
+        scprep.plot.plot_gene_set_expression([
+            self.X, scprep.select.select_rows(
+                self.X, idx=np.arange(self.X.shape[0] // 2))],
+            starts_with="D",
+            color=['r', 'b'])
+
+    def test_plot_gene_set_expression_single_gene(self):
+        scprep.plot.plot_gene_set_expression(
+            self.X, color=["red"],
+            genes="Arl8b")
+
+    def test_histogram_single_gene_dataframe(self):
+        scprep.plot.histogram(
+            scprep.select.select_cols(self.X, idx=['Arl8b']),
+            color=["red"])
+
+    def test_histogram_single_gene_series(self):
+        scprep.plot.histogram(
+            scprep.select.select_cols(self.X, idx='Arl8b'),
+            color=["red"])
 
     def test_histogram_custom_axis(self):
         fig, ax = plt.subplots()
@@ -489,6 +548,25 @@ class Test10X(unittest.TestCase):
             legend_title="test", legend_loc='center left',
             legend_anchor=(1.02, 0.5))
         assert ax.get_legend().get_title().get_text() == 'test'
+
+    def test_jitter_discrete(self):
+        ax = scprep.plot.jitter(np.where(self.X_pca[:, 0] > 0, '+', '-'),
+                                self.X_pca[:, 1], c=np.random.choice(
+            ['hello', 'world'], self.X_pca.shape[0], replace=True),
+            legend_title="test", title="jitter", filename="test.png")
+        assert ax.get_legend().get_title().get_text() == 'test'
+        assert ax.get_title() == 'jitter'
+        assert ax.get_xlim() == (-0.5, 1.5)
+        assert [t.get_text() for t in ax.get_xticklabels()] == ['+', '-']
+
+    def test_jitter_continuous(self):
+        ax = scprep.plot.jitter(np.where(self.X_pca[:, 0] > 0, '+', '-'),
+                                self.X_pca[:, 1], c=self.X_pca[:, 1],
+                                title="jitter", legend_title="test")
+        assert ax.get_figure().get_axes()[1].get_ylabel() == 'test'
+        assert ax.get_title() == 'jitter'
+        assert ax.get_xlim() == (-0.5, 1.5)
+        assert [t.get_text() for t in ax.get_xticklabels()] == ['+', '-']
 
     def test_scatter_dict(self):
         scprep.plot.scatter2d(self.X_pca, c=np.random.choice(
@@ -598,12 +676,12 @@ class Test10X(unittest.TestCase):
         assert ax.azim == 270
 
     def test_scatter_rotate_gif(self):
-        scprep.plot.rotate_scatter3d(self.X_pca, fps=5, dpi=50,
+        scprep.plot.rotate_scatter3d(self.X_pca, fps=3, dpi=20,
                                      filename="test.gif")
         assert os.path.exists("test.gif")
 
     def test_scatter_rotate_mp4(self):
-        scprep.plot.rotate_scatter3d(self.X_pca, fps=5, dpi=50,
+        scprep.plot.rotate_scatter3d(self.X_pca, fps=3, dpi=20,
                                      filename="test.mp4")
         assert os.path.exists("test.mp4")
 
@@ -612,7 +690,7 @@ class Test10X(unittest.TestCase):
             ValueError,
             "filename must end in .gif or .mp4. Got test.invalid",
             scprep.plot.rotate_scatter3d,
-            self.X_pca, fps=5, dpi=50, filename="test.invalid")
+            self.X_pca, fps=3, dpi=20, filename="test.invalid")
 
     def test_scatter_invalid_data(self):
         assert_raise_message(
@@ -775,13 +853,20 @@ class Test10X(unittest.TestCase):
             "Got `vmax=None, vmin=0`",
             scprep.plot.tools.generate_colorbar, 'inferno', vmin=0)
 
-    def test_marker_plot(self):
+    def test_marker_plot_dict(self):
         scprep.plot.marker_plot(
             data=self.X,
             clusters=np.random.choice(
                 np.arange(10), replace=True, size=self.X.shape[0]),
             gene_names=self.X.columns,
             markers={'tissue': [self.X.columns[0]]})
+
+    def test_marker_plot_list(self):
+        scprep.plot.marker_plot(
+            data=self.X,
+            clusters=np.random.choice(
+                np.arange(10), replace=True, size=self.X.shape[0]),
+            markers=self.X.columns)
 
     def test_marker_plot_bad_gene_names(self):
         assert_raise_message(

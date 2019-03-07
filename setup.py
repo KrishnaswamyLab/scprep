@@ -16,7 +16,7 @@ test_requires = [
     'fcsparser',
     'tables',
     'h5py',
-    'matplotlib',
+    'matplotlib>=3.0.0',
     'coverage',
     'coveralls'
 ]
@@ -25,6 +25,8 @@ doc_requires = [
     'sphinx',
     'sphinxcontrib-napoleon',
     'autodocsumm',
+    'ipykernel',
+    'nbsphinx',
 ]
 
 if sys.version_info[:2] < (3, 5):
