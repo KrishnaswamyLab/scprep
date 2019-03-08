@@ -2,7 +2,7 @@ from .. import utils
 from .tools import label_axis
 
 
-@utils._with_pkg("matplotlib")
+@utils._with_pkg("matplotlib", min_version=3)
 def style_phate(ax, label_prefix="PHATE"):
     """Removes ticks from `ax` and adds axis labels.
 

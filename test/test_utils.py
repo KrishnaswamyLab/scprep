@@ -15,6 +15,77 @@ def test_with_pkg():
                          invalid)
 
 
+def test_with_pkg_version_none():
+    @scprep.utils._with_pkg("pandas", min_version=None)
+    def test():
+        return True
+    assert test()
+
+
+def test_with_pkg_version_exact():
+    major, minor = [int(v) for v in pd.__version__.split(".")[:2]]
+
+    @scprep.utils._with_pkg("pandas", min_version="{}.{}".format(major, minor))
+    def test():
+        return True
+    assert test()
+
+
+def test_with_pkg_version_exact_no_minor():
+    major, minor = [int(v) for v in pd.__version__.split(".")[:2]]
+
+    @scprep.utils._with_pkg("pandas", min_version=major)
+    def test():
+        return True
+    assert test()
+
+
+def test_with_pkg_version_pass_major():
+    major, minor = [int(v) for v in pd.__version__.split(".")[:2]]
+
+    @scprep.utils._with_pkg("pandas", min_version=major - 1)
+    def test():
+        return True
+    assert test()
+
+
+def test_with_pkg_version_pass_minor():
+    major, minor = [int(v) for v in pd.__version__.split(".")[:2]]
+
+    @scprep.utils._with_pkg("pandas", min_version="{}.{}".format(major, minor - 1))
+    def test():
+        return True
+    assert test()
+
+
+def test_with_pkg_version_fail_major():
+    major, minor = [int(v) for v in pd.__version__.split(".")[:2]]
+
+    @scprep.utils._with_pkg("pandas", min_version=major + 1)
+    def test():
+        return True
+    assert_raise_message(ImportError,
+                         "scprep requires pandas>={0} (installed: {1}). "
+                         "Please upgrade it with e.g."
+                         " `pip install --user --upgrade pandas".format(
+                             major + 1, pd.__version__),
+                         test)
+
+
+def test_with_pkg_version_fail_minor():
+    major, minor = [int(v) for v in pd.__version__.split(".")[:2]]
+
+    @scprep.utils._with_pkg("pandas", min_version="{}.{}".format(major, minor + 1))
+    def test():
+        return True
+    assert_raise_message(ImportError,
+                         "scprep requires pandas>={0}.{1} (installed: {2}). "
+                         "Please upgrade it with e.g."
+                         " `pip install --user --upgrade pandas".format(
+                             major, minor + 1, pd.__version__),
+                         test)
+
+
 def test_try_import():
     assert scprep.utils._try_import("invalid") is None
     assert scprep.utils._try_import("numpy") is np
