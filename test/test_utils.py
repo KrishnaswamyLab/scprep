@@ -16,7 +16,7 @@ def test_with_pkg():
 
 
 def test_with_pkg_version_none():
-    @scprep.utils._with_pkg("pandas", min_version=None)
+    @scprep.utils._with_pkg("pandas")
     def test():
         return True
     assert test()
@@ -84,6 +84,22 @@ def test_with_pkg_version_fail_minor():
                          " `pip install --user --upgrade pandas".format(
                              major, minor + 1, pd.__version__),
                          test)
+
+
+def test_with_pkg_version_memoize():
+    major, minor = [int(v) for v in pd.__version__.split(".")[:2]]
+    min_version = "{}.{}".format(major, minor + 1)
+
+    @scprep.utils._with_pkg("pandas", min_version=min_version)
+    def test():
+        return True
+    true_version = pd.__version__
+    pd.__version__ = min_version
+    # should pass
+    assert test()
+    pd.__version__ = true_version
+    # should fail, but already memoized
+    assert test()
 
 
 def test_try_import():
