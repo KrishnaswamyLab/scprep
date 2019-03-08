@@ -88,7 +88,10 @@ class _ScatterParams(object):
     @property
     def s(self):
         if self._s is not None:
-            return self._s
+            if isinstance(self._s, numbers.Number):
+                return self._s
+            else:
+                return self._s[self.plot_idx]
         else:
             return 200 / np.sqrt(self.size)
 
