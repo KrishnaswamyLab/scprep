@@ -715,6 +715,13 @@ class Test10X(unittest.TestCase):
             scprep.plot.scatter2d, self.X_pca,
             c=self.X_pca[0, :])
 
+    def test_scatter_invalid_s(self):
+        assert_raise_message(
+            ValueError, "Expected s of length {} or 1. Got {}".format(
+                self.X_pca.shape[0], self.X_pca.shape[1]),
+            scprep.plot.scatter2d, self.X_pca,
+            s=self.X_pca[0, :])
+
     def test_scatter_invalid_discrete(self):
         assert_raise_message(
             ValueError, "Cannot treat non-numeric data as continuous",

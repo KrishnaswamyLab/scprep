@@ -38,6 +38,7 @@ class _ScatterParams(object):
         self.shuffle = shuffle
         self.check_size()
         self.check_c()
+        self.check_s()
         self.check_discrete()
         self.check_legend()
         self.check_cmap()
@@ -301,6 +302,13 @@ class _ScatterParams(object):
             if not len(self._c) == self.size:
                 raise ValueError("Expected c of length {} or 1. Got {}".format(
                     self.size, len(self._c)))
+
+    def check_s(self):
+        if self._s is not None and not isinstance(self._s, numbers.Number):
+            self._s = utils.toarray(self._s).squeeze()
+            if not len(self._s) == self.size:
+                raise ValueError("Expected s of length {} or 1. Got {}".format(
+                    self.size, len(self._s)))
 
     def check_discrete(self):
         if self._discrete is False:
