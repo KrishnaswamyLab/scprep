@@ -16,7 +16,7 @@ def marker_plot(data, clusters, markers, gene_names=None,
                 cmap='magma',
                 title=None, figsize=None,
                 ax=None, fontsize=None):
-    """Marker gene enrichmewnt plot
+    """Marker gene enrichment plot
 
     Generate a plot indicating the expression level and enrichment of
     a set of marker genes for each cluster.
