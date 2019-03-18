@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 
-def test_with_pkg(pkg=):
+def test_with_pkg():
     @scprep.utils._with_pkg(pkg="invalid")
     def invalid():
         pass
