@@ -26,7 +26,7 @@ class _JitterParams(_ScatterParams):
         return self._x_coords[self.plot_idx]
 
 
-@utils._with_pkg("matplotlib", min_version=3)
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def jitter(labels, values, sigma=0.1,
            c=None, cmap=None, cmap_scale='linear',
            s=None,

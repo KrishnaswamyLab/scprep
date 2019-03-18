@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 
 
-def test_with_pkg():
-    @scprep.utils._with_pkg("invalid")
+def test_with_pkg(pkg=):
+    @scprep.utils._with_pkg(pkg="invalid")
     def invalid():
         pass
     assert_raise_message(ImportError,
@@ -16,7 +16,7 @@ def test_with_pkg():
 
 
 def test_with_pkg_version_none():
-    @scprep.utils._with_pkg("pandas")
+    @scprep.utils._with_pkg(pkg="pandas")
     def test():
         return True
     assert test()
@@ -25,7 +25,7 @@ def test_with_pkg_version_none():
 def test_with_pkg_version_exact():
     major, minor = [int(v) for v in pd.__version__.split(".")[:2]]
 
-    @scprep.utils._with_pkg("pandas", min_version="{}.{}".format(major, minor))
+    @scprep.utils._with_pkg(pkg="pandas", min_version="{}.{}".format(major, minor))
     def test():
         return True
     assert test()
@@ -34,7 +34,7 @@ def test_with_pkg_version_exact():
 def test_with_pkg_version_exact_no_minor():
     major, minor = [int(v) for v in pd.__version__.split(".")[:2]]
 
-    @scprep.utils._with_pkg("pandas", min_version=major)
+    @scprep.utils._with_pkg(pkg="pandas", min_version=major)
     def test():
         return True
     assert test()
@@ -43,7 +43,7 @@ def test_with_pkg_version_exact_no_minor():
 def test_with_pkg_version_pass_major():
     major, minor = [int(v) for v in pd.__version__.split(".")[:2]]
 
-    @scprep.utils._with_pkg("pandas", min_version=major - 1)
+    @scprep.utils._with_pkg(pkg="pandas", min_version=major - 1)
     def test():
         return True
     assert test()
@@ -52,7 +52,7 @@ def test_with_pkg_version_pass_major():
 def test_with_pkg_version_pass_minor():
     major, minor = [int(v) for v in pd.__version__.split(".")[:2]]
 
-    @scprep.utils._with_pkg("pandas", min_version="{}.{}".format(major, minor - 1))
+    @scprep.utils._with_pkg(pkg="pandas", min_version="{}.{}".format(major, minor - 1))
     def test():
         return True
     assert test()
@@ -61,7 +61,7 @@ def test_with_pkg_version_pass_minor():
 def test_with_pkg_version_fail_major():
     major, minor = [int(v) for v in pd.__version__.split(".")[:2]]
 
-    @scprep.utils._with_pkg("pandas", min_version=major + 1)
+    @scprep.utils._with_pkg(pkg="pandas", min_version=major + 1)
     def test():
         return True
     assert_raise_message(ImportError,
@@ -75,7 +75,7 @@ def test_with_pkg_version_fail_major():
 def test_with_pkg_version_fail_minor():
     major, minor = [int(v) for v in pd.__version__.split(".")[:2]]
 
-    @scprep.utils._with_pkg("pandas", min_version="{}.{}".format(major, minor + 1))
+    @scprep.utils._with_pkg(pkg="pandas", min_version="{}.{}".format(major, minor + 1))
     def test():
         return True
     assert_raise_message(ImportError,
@@ -90,7 +90,7 @@ def test_with_pkg_version_memoize():
     major, minor = [int(v) for v in pd.__version__.split(".")[:2]]
     min_version = "{}.{}".format(major, minor + 1)
 
-    @scprep.utils._with_pkg("pandas", min_version=min_version)
+    @scprep.utils._with_pkg(pkg="pandas", min_version=min_version)
     def test():
         return True
     true_version = pd.__version__

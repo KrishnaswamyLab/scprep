@@ -7,7 +7,7 @@ from .utils import (_get_figure, show,
 from .tools import label_axis
 
 
-@utils._with_pkg("matplotlib", min_version=3)
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def scree_plot(singular_values, cumulative=False, ax=None, figsize=None,
                xlabel='Principal Component', ylabel='Explained Variance (%)',
                fontsize=None,

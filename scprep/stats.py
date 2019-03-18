@@ -283,7 +283,7 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
         return dremi
 
 
-@utils._with_pkg("matplotlib", min_version=3)
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def plot_knnDREMI(dremi, mutual_info, x, y, n_bins, n_mesh,
                   density, bin_density, drevi,
                   figsize=(12, 3.5), filename=None,

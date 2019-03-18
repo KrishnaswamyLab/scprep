@@ -359,7 +359,7 @@ class _ScatterParams(object):
                 self._cmap_scale = 'linear'
 
 
-@utils._with_pkg("matplotlib", min_version=3)
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def scatter(x, y, z=None,
             c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
             ax=None,
@@ -565,7 +565,7 @@ def scatter(x, y, z=None,
     return ax
 
 
-@utils._with_pkg("matplotlib", min_version=3)
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def scatter2d(data,
               c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
               ax=None, legend=None, colorbar=None,
@@ -717,7 +717,7 @@ def scatter2d(data,
                    **plot_kwargs)
 
 
-@utils._with_pkg("matplotlib", min_version=3)
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def scatter3d(data,
               c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
               ax=None, legend=None, colorbar=None,
@@ -884,7 +884,7 @@ def scatter3d(data,
                    **plot_kwargs)
 
 
-@utils._with_pkg("matplotlib", min_version=3)
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def rotate_scatter3d(data,
                      filename=None,
                      rotation_speed=30,

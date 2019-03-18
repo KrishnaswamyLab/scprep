@@ -7,7 +7,7 @@ from .utils import (_get_figure, show,
 from .tools import label_axis
 
 
-@utils._with_pkg("matplotlib", min_version=3)
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def histogram(data,
               bins=100, log=False,
               cutoff=None, percentile=None,
@@ -89,7 +89,7 @@ def histogram(data,
     return ax
 
 
-@utils._with_pkg("matplotlib", min_version=3)
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def plot_library_size(data,
                       bins=100, log=True,
                       cutoff=None, percentile=None,
@@ -146,7 +146,7 @@ def plot_library_size(data,
                      xlabel=xlabel, title=title, fontsize=fontsize, **kwargs)
 
 
-@utils._with_pkg("matplotlib", min_version=3)
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def plot_gene_set_expression(data, genes=None,
                              starts_with=None, ends_with=None, regex=None,
                              bins=100, log=False,

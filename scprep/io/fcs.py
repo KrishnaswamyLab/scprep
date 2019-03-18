@@ -222,7 +222,7 @@ def _fcsextract(filename, channel_naming="$PnS", reformat_meta=True):
     return meta, events
 
 
-@utils._with_pkg("fcsparser")
+@utils._with_pkg(pkg="fcsparser")
 def load_fcs(filename, gene_names=True, cell_names=True,
              sparse=None,
              metadata_channels=['Time', 'Event_length', 'DNA1', 'DNA2',
