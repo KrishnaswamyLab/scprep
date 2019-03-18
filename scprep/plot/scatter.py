@@ -38,6 +38,7 @@ class _ScatterParams(object):
         self.shuffle = shuffle
         self.check_size()
         self.check_c()
+        self.check_s()
         self.check_discrete()
         self.check_legend()
         self.check_cmap()
@@ -88,7 +89,10 @@ class _ScatterParams(object):
     @property
     def s(self):
         if self._s is not None:
-            return self._s
+            if isinstance(self._s, numbers.Number):
+                return self._s
+            else:
+                return self._s[self.plot_idx]
         else:
             return 200 / np.sqrt(self.size)
 
@@ -299,6 +303,13 @@ class _ScatterParams(object):
                 raise ValueError("Expected c of length {} or 1. Got {}".format(
                     self.size, len(self._c)))
 
+    def check_s(self):
+        if self._s is not None and not isinstance(self._s, numbers.Number):
+            self._s = utils.toarray(self._s).squeeze()
+            if not len(self._s) == self.size:
+                raise ValueError("Expected s of length {} or 1. Got {}".format(
+                    self.size, len(self._s)))
+
     def check_discrete(self):
         if self._discrete is False:
             if not np.all([isinstance(x, numbers.Number) for x in self._c]):
@@ -348,7 +359,7 @@ class _ScatterParams(object):
                 self._cmap_scale = 'linear'
 
 
-@utils._with_pkg("matplotlib")
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def scatter(x, y, z=None,
             c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
             ax=None,
@@ -554,7 +565,7 @@ def scatter(x, y, z=None,
     return ax
 
 
-@utils._with_pkg("matplotlib")
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def scatter2d(data,
               c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
               ax=None, legend=None, colorbar=None,
@@ -706,7 +717,7 @@ def scatter2d(data,
                    **plot_kwargs)
 
 
-@utils._with_pkg("matplotlib")
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def scatter3d(data,
               c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
               ax=None, legend=None, colorbar=None,
@@ -873,7 +884,7 @@ def scatter3d(data,
                    **plot_kwargs)
 
 
-@utils._with_pkg("matplotlib")
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def rotate_scatter3d(data,
                      filename=None,
                      rotation_speed=30,

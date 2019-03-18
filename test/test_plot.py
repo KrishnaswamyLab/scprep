@@ -95,21 +95,25 @@ class TestScatterParams(unittest.TestCase):
         assert params.size == len(self.x)
 
     def test_plot_idx_shuffle(self):
-        params = _ScatterParams(x=self.x, y=self.y, z=self.z, c=self.c)
+        params = _ScatterParams(x=self.x, y=self.y, z=self.z, c=self.c,
+                                s=np.abs(self.x))
         assert not np.all(params.plot_idx == np.arange(params.size))
         np.testing.assert_equal(params.x, self.x[params.plot_idx])
         np.testing.assert_equal(params.y, self.y[params.plot_idx])
         np.testing.assert_equal(params.z, self.z[params.plot_idx])
         np.testing.assert_equal(params.c, self.c[params.plot_idx])
+        np.testing.assert_equal(params.s, np.abs(self.x)[params.plot_idx])
 
     def test_plot_idx_no_shuffle(self):
         params = _ScatterParams(x=self.x, y=self.y,
-                                z=self.z, c=self.c, shuffle=False)
+                                z=self.z, c=self.c,
+                                s=np.abs(self.x), shuffle=False)
         np.testing.assert_equal(params.plot_idx, np.arange(params.size))
         np.testing.assert_equal(params.x, self.x)
         np.testing.assert_equal(params.y, self.y)
         np.testing.assert_equal(params.z, self.z)
         np.testing.assert_equal(params.c, self.c)
+        np.testing.assert_equal(params.s, np.abs(self.x))
 
     def test_data_2d(self):
         params = _ScatterParams(x=self.x, y=self.y)
@@ -710,6 +714,13 @@ class Test10X(unittest.TestCase):
                 self.X_pca.shape[0], self.X_pca.shape[1]),
             scprep.plot.scatter2d, self.X_pca,
             c=self.X_pca[0, :])
+
+    def test_scatter_invalid_s(self):
+        assert_raise_message(
+            ValueError, "Expected s of length {} or 1. Got {}".format(
+                self.X_pca.shape[0], self.X_pca.shape[1]),
+            scprep.plot.scatter2d, self.X_pca,
+            s=self.X_pca[0, :])
 
     def test_scatter_invalid_discrete(self):
         assert_raise_message(

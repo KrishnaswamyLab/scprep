@@ -107,6 +107,8 @@ def _fcsextract(filename, channel_naming="$PnS", reformat_meta=True):
     Some files fail to load with `fcsparser.parse`. For these, we provide an
     alternative parser. It is not guaranteed to work in all cases.
 
+    Code copied from https://github.com/pontikos/fcstools/blob/master/fcs.extract.py
+
     Paramseters
     -----------
     channel_naming: '$PnS' | '$PnN'
@@ -123,8 +125,6 @@ def _fcsextract(filename, channel_naming="$PnS", reformat_meta=True):
         If true, the meta data is reformatted with the channel information organized
         into a DataFrame and moved into the '_channels_' key
     """
-    # FCS parser. Credit to:
-    # https://github.com/jbkinney/16_titeseq/blob/master/fcsextract.py
     meta = dict()
     with open(filename, 'rb') as handle:
         # Parse HEADER
@@ -222,7 +222,7 @@ def _fcsextract(filename, channel_naming="$PnS", reformat_meta=True):
     return meta, events
 
 
-@utils._with_pkg("fcsparser")
+@utils._with_pkg(pkg="fcsparser")
 def load_fcs(filename, gene_names=True, cell_names=True,
              sparse=None,
              metadata_channels=['Time', 'Event_length', 'DNA1', 'DNA2',
@@ -263,7 +263,7 @@ def load_fcs(filename, gene_names=True, cell_names=True,
     override : bool, optional (default: False)
         If true, uses an experimental override of fcsparser. Should only be
         used in cases where fcsparser fails to load the file, likely due to
-        a malformed header.
+        a malformed header. Credit to https://github.com/pontikos/fcstools
     **kwargs : optional arguments for `fcsparser.parse`.
 
     Returns

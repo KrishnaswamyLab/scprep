@@ -61,7 +61,7 @@ def _in_ipynb():
         return False
 
 
-@utils._with_pkg("matplotlib")
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def show(fig):
     """Show a matplotlib Figure correctly, regardless of platform
 
@@ -136,7 +136,7 @@ class temp_fontsize(object):
         plt.rcParams['font.size'] = self.old_size
 
 
-@utils._with_pkg("matplotlib")
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def shift_ticklabels(axis, dx=0, dy=0):
     """Shifts ticklabels on an axis
 

@@ -14,6 +14,8 @@ except NameError:
     # python 3.5
     ModuleNotFoundError = ImportError
 
+__imported_pkgs = set()
+
 
 def _try_import(pkg):
     try:
@@ -22,14 +24,52 @@ def _try_import(pkg):
         return None
 
 
+def _version_check(version, min_version=None):
+    if min_version is None:
+        # no requirement
+        return True
+    min_version = str(min_version)
+    min_version_split = min_version.split(".")
+    version_split = version.split(".")
+    version_major = int(version_split[0])
+    min_major = int(min_version_split[0])
+    if min_major > version_major:
+        # failed major version requirement
+        return False
+    elif min_major < version_major:
+        # exceeded major version requirement
+        return True
+    elif len(min_version_split) == 1:
+        # no minor version requirement
+        return True
+    else:
+        version_minor = int(version_split[1])
+        min_minor = int(min_version_split[1])
+        if min_minor > version_minor:
+            # failed minor version requirement
+            return False
+        else:
+            # met minor version requirement
+            return True
+
+
 @decorator
-def _with_pkg(fun, pkg=None, *args, **kwargs):
-    try:
-        importlib.import_module(pkg)
-    except ModuleNotFoundError:
-        raise ModuleNotFoundError(
-            "{0} not found. "
-            "Please install it with e.g. `pip install --user {0}`".format(pkg))
+def _with_pkg(fun, pkg=None, min_version=None, *args, **kwargs):
+    global __imported_pkgs
+    if (pkg, min_version) not in __imported_pkgs:
+        try:
+            module = importlib.import_module(pkg)
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError(
+                "{0} not found. "
+                "Please install it with e.g. `pip install --user {0}`".format(pkg))
+        if not _version_check(module.__version__, min_version):
+            raise ImportError(
+                "scprep requires {0}>={1} (installed: {2}). "
+                "Please upgrade it with e.g."
+                " `pip install --user --upgrade {0}".format(
+                    pkg, min_version, module.__version__))
+        __imported_pkgs.add((pkg, min_version))
     return fun(*args, **kwargs)
 
 
