@@ -110,8 +110,12 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol',
 
     try:
         m = sio.mmread(_find_gz_file(data_dir, "matrix.mtx"))
-        genes = pd.read_csv(_find_gz_file(data_dir, "genes.tsv"),
-                            delimiter='\t', header=None)
+        try:
+            genes = pd.read_csv(_find_gz_file(data_dir, "genes.tsv"),
+                                delimiter='\t', header=None)
+        except FileNotFoundError:
+            genes = pd.read_csv(_find_gz_file(data_dir, "features.tsv"),
+                                delimiter='\t', header=None)
         if genes.shape[1] == 2:
             # Cellranger < 3.0
             genes.columns = ['id', 'symbol']
