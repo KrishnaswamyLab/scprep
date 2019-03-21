@@ -275,7 +275,7 @@ def test_csv_and_tsv():
 
 def test_mtx():
     X = data.load_10X()
-    filename = os.path.join(data.data_dir, "test_10X", "matrix.mtx")
+    filename = os.path.join(data.data_dir, "test_10X", "matrix.mtx.gz")
     X_mtx = scprep.io.load_mtx(
         filename,
         gene_names=os.path.join(

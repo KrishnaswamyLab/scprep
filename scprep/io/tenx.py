@@ -56,6 +56,16 @@ def _parse_10x_genes(symbols, ids, gene_labels='symbol',
     return columns
 
 
+def _find_gz_file(*path):
+    """Find a file that could be gzipped.
+    """
+    path = os.path.join(*path)
+    if os.path.isfile(path):
+        return path
+    else:
+        return path + ".gz"
+
+
 def load_10X(data_dir, sparse=True, gene_labels='symbol',
              allow_duplicates=None):
     """Basic IO for 10X data produced from the 10X Cellranger pipeline.
@@ -99,8 +109,8 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol',
             "{} is not a directory".format(data_dir))
 
     try:
-        m = sio.mmread(os.path.join(data_dir, "matrix.mtx"))
-        genes = pd.read_csv(os.path.join(data_dir, "genes.tsv"),
+        m = sio.mmread(_find_gz_file(data_dir, "matrix.mtx"))
+        genes = pd.read_csv(_find_gz_file(data_dir, "genes.tsv"),
                             delimiter='\t', header=None)
         if genes.shape[1] == 2:
             # Cellranger < 3.0
@@ -108,7 +118,7 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol',
         else:
             # Cellranger >= 3.0
             genes.columns = ['id', 'symbol', 'measurement']
-        barcodes = pd.read_csv(os.path.join(data_dir, "barcodes.tsv"),
+        barcodes = pd.read_csv(_find_gz_file(data_dir, "barcodes.tsv"),
                                delimiter='\t', header=None)
 
     except (FileNotFoundError, IOError):
@@ -190,9 +200,9 @@ def load_10X_zip(filename, sparse=True, gene_labels='symbol',
         else:
             dirname = files[0].strip("/")
             subdir_files = [f.split("/")[-1] for f in files]
-            valid = ("barcodes.tsv" in subdir_files and
-                     "genes.tsv" in subdir_files and
-                     "matrix.mtx" in subdir_files)
+            valid = (("barcodes.tsv" in subdir_files or "barcodes.tsv.gz" in subdir_files) and
+                     ("genes.tsv" in subdir_files or "genes.tsv.gz" in subdir_files) and
+                     ("matrix.mtx" in subdir_files or "matrix.mtx.gz" in subdir_files))
         if not valid:
             raise ValueError(
                 "Expected a single zipped folder containing 'matrix.mtx', "
