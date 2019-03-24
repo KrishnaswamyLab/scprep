@@ -16,6 +16,8 @@ def histogram(data,
               ylabel='Number of cells',
               title=None,
               fontsize=None,
+              histtype='stepfilled',
+              alpha=None,
               **kwargs):
     """Plot a histogram.
 
@@ -45,6 +47,14 @@ def histogram(data,
         Axis title.
     fontsize : float or None (default: None)
         Base font size.
+    histtype : {'bar', 'barstacked', 'step', 'stepfilled'}, optional (default: 'stepfilled')
+        The type of histogram to draw.
+        'bar' is a traditional bar-type histogram. If multiple data are given the bars are arranged side by side.
+        'barstacked' is a bar-type histogram where multiple data are stacked on top of each other.
+        'step' generates a lineplot that is by default unfilled.
+        'stepfilled' generates a lineplot that is by default filled.
+    alpha : float, optional (default: 1 for a single dataset, 0.5 for multiple)
+        Histogram transparency
     **kwargs : additional arguments for `matplotlib.pyplot.hist`
 
     Returns
@@ -60,14 +70,18 @@ def histogram(data,
             data = [d for d in data]
             xmin = np.min([np.min(d) for d in data])
             xmax = np.max([np.max(d) for d in data])
+            if alpha is None:
+                alpha = 0.5
         else:
             xmin = np.min(data)
             xmax = np.max(data)
+            if alpha is None:
+                alpha = 1
         if log == 'x' or log is True:
             bins = np.logspace(np.log10(max(xmin, 1)),
                                np.log10(xmax),
                                bins)
-        ax.hist(data, bins=bins, **kwargs)
+        ax.hist(data, bins=bins, histtype=histtype, alpha=alpha, **kwargs)
 
         if log == 'x' or log is True:
             ax.set_xscale('log')
@@ -83,7 +97,14 @@ def histogram(data,
         cutoff = measure._get_percentile_cutoff(
             data, cutoff, percentile, required=False)
         if cutoff is not None:
-            ax.axvline(cutoff, color='red')
+            try:
+                ax.axvline(cutoff, color='red')
+            except ValueError as e:
+                if "array with more than one element" in str(e):
+                    for c in cutoff:
+                        ax.axvline(c, color='red')
+                else:
+                    raise
         if show_fig:
             show(fig)
     return ax
@@ -133,7 +154,7 @@ def plot_library_size(data,
     ax : `matplotlib.Axes`
         axis on which plot was drawn
     """
-    data = utils.toarray(data)
+    data = utils.to_array_or_spmatrix(data)
     if len(data.shape) > 2 or data.dtype.type is np.object_:
         # top level must be list
         libsize = [measure.library_size(d)
@@ -202,18 +223,24 @@ def plot_gene_set_expression(data, genes=None,
     ax : `matplotlib.Axes`
         axis on which plot was drawn
     """
-    if not isinstance(data, pd.DataFrame) and isinstance(data[0], pd.DataFrame):
-        # top level must be list
-        expression = [measure.gene_set_expression(
-            d, genes=genes,
-            starts_with=starts_with, ends_with=ends_with, regex=regex,
-            library_size_normalize=library_size_normalize)
-            for d in data]
-    else:
+    if hasattr(data, 'shape') and len(data.shape) == 2:
         expression = measure.gene_set_expression(
             data, genes=genes,
             starts_with=starts_with, ends_with=ends_with, regex=regex,
             library_size_normalize=library_size_normalize)
+    else:
+        data_array = utils.to_array_or_spmatrix(data)
+        if len(data_array.shape) == 2 and data_array.dtype.type is not np.object_:
+            expression = measure.gene_set_expression(
+                data, genes=genes,
+                starts_with=starts_with, ends_with=ends_with, regex=regex,
+                library_size_normalize=library_size_normalize)
+        else:
+            expression = [measure.gene_set_expression(
+                d, genes=genes,
+                starts_with=starts_with, ends_with=ends_with, regex=regex,
+                library_size_normalize=library_size_normalize)
+                for d in data]
     return histogram(expression,
                      cutoff=cutoff, percentile=percentile,
                      bins=bins, log=log, ax=ax, figsize=figsize,

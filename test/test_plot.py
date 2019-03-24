@@ -480,10 +480,22 @@ class Test10X(unittest.TestCase):
         scprep.plot.plot_library_size(self.X, cutoff=1000, log=True,
                                       xlabel="x label", ylabel="y label")
 
+    def test_histogram_list_of_lists(self):
+        scprep.plot.plot_library_size(scprep.utils.toarray(self.X).tolist())
+
+    def test_histogram_array(self):
+        scprep.plot.plot_library_size(scprep.utils.toarray(self.X))
+
     def test_histogram_multiple(self):
         scprep.plot.histogram([scprep.select.select_rows(self.X, idx=0),
                                [1, 2, 2, 2, 3]],
                               color=['r', 'b'])
+
+    def test_histogram_multiple_cutoff(self):
+        scprep.plot.plot_library_size(self.X, cutoff=[500, 1000], log=True)
+
+    def test_histogram_multiple_percentile(self):
+        scprep.plot.plot_library_size(self.X, percentile=[10, 90], log=True)
 
     def test_plot_library_size_multiple(self):
         scprep.plot.plot_library_size([
@@ -497,6 +509,14 @@ class Test10X(unittest.TestCase):
                 self.X, idx=np.arange(self.X.shape[0] // 2))],
             starts_with="D",
             color=['r', 'b'])
+
+    def test_gene_set_expression_list_of_lists(self):
+        scprep.plot.plot_gene_set_expression(
+            scprep.utils.toarray(self.X).tolist(), genes=[0, 1])
+
+    def test_gene_set_expression_array(self):
+        scprep.plot.plot_gene_set_expression(scprep.utils.toarray(self.X),
+                                             genes=[0, 1])
 
     def test_plot_gene_set_expression_single_gene(self):
         scprep.plot.plot_gene_set_expression(

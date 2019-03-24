@@ -134,6 +134,16 @@ def to_array_or_spmatrix(x):
         x = x.to_coo()
     elif isinstance(x, sparse.spmatrix):
         pass
+    elif isinstance(x, list):
+        x_out = []
+        for xi in x:
+            try:
+                xi = to_array_or_spmatrix(xi)
+            except TypeError:
+                # recursed too far
+                pass
+            x_out.append(xi)
+        x = np.array(x_out)
     else:
         x = toarray(x)
     return x

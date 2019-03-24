@@ -1,5 +1,6 @@
 from tools import data, matrix, utils
 import scprep
+from scipy import sparse
 from sklearn.utils.testing import assert_raise_message, assert_warns_message
 import numpy as np
 import pandas as pd
@@ -213,6 +214,14 @@ def test_toarray_list_of_strings():
     X = ['hello', 'world', [1, 2, 3]]
     X = scprep.utils.toarray(X)
     assert isinstance(X[2], np.ndarray)
+
+
+def test_to_array_or_spmatrix_list_of_strings():
+    X = data.generate_positive_sparse_matrix(shape=(50, 50))
+    X = [X, sparse.csr_matrix(X), 'hello', 'world', [1, 2, 3]]
+    assert isinstance(X[0], np.ndarray)
+    assert isinstance(X[1], sparse.csr_matrix)
+    assert isinstance(X[4], np.ndarray)
 
 
 def test_matrix_sum():
