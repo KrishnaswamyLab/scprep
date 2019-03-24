@@ -84,7 +84,8 @@ def _get_percentile_cutoff(data, cutoff=None, percentile=None, required=False):
                 "Only one of `cutoff` and `percentile` should be given."
                 "Got cutoff={}, percentile={}".format(cutoff, percentile))
         if not isinstance(percentile, numbers.Number):
-            return [_get_percentile_cutoff(p) for p in percentile]
+            return [_get_percentile_cutoff(data, percentile=p)
+                    for p in percentile]
         if percentile < 1:
             warnings.warn(
                 "`percentile` expects values between 0 and 100."
