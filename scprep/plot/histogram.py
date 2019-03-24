@@ -1,5 +1,5 @@
 import numpy as np
-import pandas as pd
+import numbers
 
 from .. import measure, utils
 from .utils import (_get_figure, show,
@@ -97,14 +97,11 @@ def histogram(data,
         cutoff = measure._get_percentile_cutoff(
             data, cutoff, percentile, required=False)
         if cutoff is not None:
-            try:
+            if isinstance(cutoff, numbers.Number):
                 ax.axvline(cutoff, color='red')
-            except ValueError as e:
-                if "array with more than one element" in str(e):
-                    for c in cutoff:
-                        ax.axvline(c, color='red')
-                else:
-                    raise
+            else:
+                for c in cutoff:
+                    ax.axvline(c, color='red')
         if show_fig:
             show(fig)
     return ax
