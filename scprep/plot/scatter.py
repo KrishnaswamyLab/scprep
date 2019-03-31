@@ -10,9 +10,8 @@ from .utils import (_get_figure, _is_color_array,
 from .tools import (create_colormap, create_normalize,
                     label_axis, generate_colorbar, generate_legend)
 
-plt = utils._try_import("matplotlib.pyplot")
-mpl = utils._try_import("matplotlib")
-animation = utils._try_import("matplotlib.animation")
+from .._lazyload import matplotlib as mpl
+plt = mpl.pyplot
 
 
 class _ScatterParams(object):
@@ -976,7 +975,7 @@ def rotate_scatter3d(data,
         ax.view_init(azim=azim + i * degrees_per_frame)
         return ax
 
-    ani = animation.FuncAnimation(
+    ani = mpl.animation.FuncAnimation(
         fig, animate, init_func=init,
         frames=range(frames), interval=interval, blit=False)
 

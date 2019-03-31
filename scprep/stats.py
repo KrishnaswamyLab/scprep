@@ -8,7 +8,8 @@ from sklearn import neighbors, metrics
 from . import plot, utils
 import warnings
 
-plt = utils._try_import("matplotlib.pyplot")
+from ._lazyload import matplotlib
+plt = matplotlib.pyplot
 
 
 def EMD(x, y):
