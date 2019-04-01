@@ -1,22 +1,26 @@
 from tools import utils, matrix, data
 import numpy as np
 import scprep
-import rpy2.rinterface
-import warnings
+import scprep.run.r_function
 import unittest
+
+
+def silent_warning(msg):
+    pass
+
+
+quiet_warning = scprep.run.r_function.quiet_console_warning
 
 
 class TestRFunctions(unittest.TestCase):
 
     @classmethod
     def setUp(self):
-        warnings.filterwarnings(
-            'ignore', category=rpy2.rinterface.RRuntimeWarning)
+        scprep.run.r_function.quiet_console_warning = silent_warning
 
     @classmethod
     def tearDown(self):
-        warnings.filterwarnings(
-            'default', category=rpy2.rinterface.RRuntimeWarning)
+        scprep.run.r_function.quiet_console_warning = quiet_warning
 
     def test_splatter_default(self):
         sim = scprep.run.SplatSimulate(batch_cells=10, n_genes=200)
