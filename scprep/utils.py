@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import numbers
+import re
 from scipy import sparse
 import warnings
 import importlib
@@ -29,8 +30,8 @@ def _version_check(version, min_version=None):
         # no requirement
         return True
     min_version = str(min_version)
-    min_version_split = min_version.split(".")
-    version_split = version.split(".")
+    min_version_split = re.split(r'[^0-9]+', min_version)
+    version_split = re.split(r'[^0-9]+', version)
     version_major = int(version_split[0])
     min_major = int(min_version_split[0])
     if min_major > version_major:
@@ -53,22 +54,26 @@ def _version_check(version, min_version=None):
             return True
 
 
+def check_version(pkg, min_version=None):
+    try:
+        module = importlib.import_module(pkg)
+    except ModuleNotFoundError:
+        raise ModuleNotFoundError(
+            "{0} not found. "
+            "Please install it with e.g. `pip install --user {0}`".format(pkg))
+    if not _version_check(module.__version__, min_version):
+        raise ImportError(
+            "scprep requires {0}>={1} (installed: {2}). "
+            "Please upgrade it with e.g."
+            " `pip install --user --upgrade {0}".format(
+                pkg, min_version, module.__version__))
+
+
 @decorator
 def _with_pkg(fun, pkg=None, min_version=None, *args, **kwargs):
     global __imported_pkgs
     if (pkg, min_version) not in __imported_pkgs:
-        try:
-            module = importlib.import_module(pkg)
-        except ModuleNotFoundError:
-            raise ModuleNotFoundError(
-                "{0} not found. "
-                "Please install it with e.g. `pip install --user {0}`".format(pkg))
-        if not _version_check(module.__version__, min_version):
-            raise ImportError(
-                "scprep requires {0}>={1} (installed: {2}). "
-                "Please upgrade it with e.g."
-                " `pip install --user --upgrade {0}".format(
-                    pkg, min_version, module.__version__))
+        check_version(pkg, min_version=min_version)
         __imported_pkgs.add((pkg, min_version))
     return fun(*args, **kwargs)
 
