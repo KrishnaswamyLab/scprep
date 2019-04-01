@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import numbers
+import re
 from scipy import sparse
 import warnings
 import importlib
@@ -29,8 +30,8 @@ def _version_check(version, min_version=None):
         # no requirement
         return True
     min_version = str(min_version)
-    min_version_split = min_version.split(".")
-    version_split = version.split(".")
+    min_version_split = re.split(r'[^0-9]+', min_version)
+    version_split = re.split(r'[^0-9]+', version)
     version_major = int(version_split[0])
     min_major = int(min_version_split[0])
     if min_major > version_major:

@@ -1,18 +1,15 @@
 import numpy as np
-import warnings
 
 from .. import utils
-
 from .._lazyload import rpy2
 
-_formatwarning = warnings.formatwarning
+
+loud_console_warning = rpy2.rinterface_lib.callbacks.consolewrite_warnerror
 
 
-def _quiet_rwarning(message, category, *args, **kwargs):
-    if category == rpy2.rinterface.RRuntimeWarning:
-        return 'RRuntimeWarning: ' + str(message)
-    else:
-        return _formatwarning(message, category, *args, **kwargs)
+def quiet_console_warning(s: str) -> None:
+    rpy2.rinterface_lib.callbacks.logger.warning(
+        rpy2.rinterface_lib.callbacks._WRITECONSOLE_EXCEPTION_LOG, s.strip())
 
 
 class RFunction(object):
@@ -31,7 +28,7 @@ class RFunction(object):
                         {setup}
                     }})))""".format(setup=self.setup)
 
-    @utils._with_pkg(pkg="rpy2")
+    @utils._with_pkg(pkg="rpy2", min_version="2-3")
     def _build(self):
         function_text = """
         {setup}
@@ -56,7 +53,7 @@ class RFunction(object):
     def is_r_object(self, obj):
         return "rpy2.robjects" in str(type(obj)) or obj is rpy2.rinterface.NULL
 
-    @utils._with_pkg(pkg="rpy2")
+    @utils._with_pkg(pkg="rpy2", min_version="2-3")
     def convert(self, robject):
         if self.is_r_object(robject):
             if isinstance(robject, rpy2.robjects.vectors.ListVector):
@@ -71,18 +68,18 @@ class RFunction(object):
                         obj) for name, obj in zip(robject.names, robject)}
             else:
                 # try numpy first
-                robject = rpy2.robjects.numpy2ri.ri2py(robject)
+                robject = rpy2.robjects.numpy2ri.rpy2py(robject)
                 if self.is_r_object(robject):
                     # try regular conversion
-                    robject = rpy2.robjects.conversion.ri2py(robject)
+                    robject = rpy2.robjects.conversion.rpy2py(robject)
                 if robject is rpy2.rinterface.NULL:
                     robject = None
         return robject
 
     def __call__(self, *args, **kwargs):
         # monkey patch warnings
-        warnings.formatwarning = _quiet_rwarning
+        rpy2.rinterface_lib.callbacks.consolewrite_warnerror = quiet_console_warning
         robject = self.function(*args, **kwargs)
         robject = self.convert(robject)
-        warnings.formatwarning = _formatwarning
+        rpy2.rinterface_lib.callbacks.consolewrite_warnerror = loud_console_warning
         return robject
