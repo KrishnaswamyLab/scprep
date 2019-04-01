@@ -8,10 +8,6 @@
 
   dist: xenial
 
-  env:
-    global:
-      - R_LIB_USER=$HOME/R/Library
-
   addons:
     apt:
       packages:
@@ -24,9 +20,6 @@
     - apt
     - directories:
       - $HOME/R/Library
-
-  before_install:
-    - mkdir -p $HOME/R/Library
 
   install:
     - python setup.py install
