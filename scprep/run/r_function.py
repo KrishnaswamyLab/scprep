@@ -4,10 +4,10 @@ from .. import utils
 from .._lazyload import rpy2
 
 
-loud_console_warning = rpy2.rinterface_lib.callbacks.consolewrite_warnerror
+default_console_warning = rpy2.rinterface_lib.callbacks.consolewrite_warnerror
 
 
-def quiet_console_warning(s: str) -> None:
+def strip_console_warning(s: str) -> None:
     rpy2.rinterface_lib.callbacks.logger.warning(
         rpy2.rinterface_lib.callbacks._WRITECONSOLE_EXCEPTION_LOG, s.strip())
 
@@ -16,7 +16,7 @@ class RFunction(object):
     """Run an R function from Python
     """
 
-    def __init__(self, name, args, setup, body, quiet_setup=True):
+    def __init__(self, name="fun", args="", setup="", body="", quiet_setup=True):
         self.name = name
         self.args = args
         self.setup = setup
@@ -58,7 +58,7 @@ class RFunction(object):
         if self.is_r_object(robject):
             if isinstance(robject, rpy2.robjects.vectors.ListVector):
                 names = self.convert(robject.names)
-                if names is rpy2.rinterface.NULL or \
+                if names is None or \
                         len(names) > len(np.unique(names)):
                     # list
                     robject = [self.convert(obj) for obj in robject]
@@ -78,8 +78,8 @@ class RFunction(object):
 
     def __call__(self, *args, **kwargs):
         # monkey patch warnings
-        rpy2.rinterface_lib.callbacks.consolewrite_warnerror = quiet_console_warning
+        rpy2.rinterface_lib.callbacks.consolewrite_warnerror = strip_console_warning
         robject = self.function(*args, **kwargs)
         robject = self.convert(robject)
-        rpy2.rinterface_lib.callbacks.consolewrite_warnerror = loud_console_warning
+        rpy2.rinterface_lib.callbacks.consolewrite_warnerror = default_console_warning
         return robject

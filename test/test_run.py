@@ -9,18 +9,23 @@ def silent_warning(msg):
     pass
 
 
-quiet_warning = scprep.run.r_function.quiet_console_warning
+default = scprep.run.r_function.strip_console_warning
+
+
+def test_verbose():
+    fun = scprep.run.RFunction(body="message('Verbose test\n'); list(1,2,3)")
+    assert fun() == [1, 2, 3]
 
 
 class TestRFunctions(unittest.TestCase):
 
     @classmethod
     def setUp(self):
-        scprep.run.r_function.quiet_console_warning = silent_warning
+        scprep.run.r_function.strip_console_warning = silent_warning
 
     @classmethod
     def tearDown(self):
-        scprep.run.r_function.quiet_console_warning = quiet_warning
+        scprep.run.r_function.strip_console_warning = default
 
     def test_splatter_default(self):
         sim = scprep.run.SplatSimulate(batch_cells=10, n_genes=200)
