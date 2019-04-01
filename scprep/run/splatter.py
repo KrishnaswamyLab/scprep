@@ -104,7 +104,7 @@ def SplatSimulate(
 
     SplatSimulate is a Python wrapper for the R package Splatter. For more
     details, read about Splatter  on [GitHub](https://github.com/Oshlack/splatter)
-    and [BioConductor](https://bioconductor.org/packages/devel/bioc/html/splatter.html).
+    and [Bioconductor](https://bioconductor.org/packages/release/bioc/html/splatter.html).
 
     Parameters
     ----------
