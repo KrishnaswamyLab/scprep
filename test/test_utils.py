@@ -44,7 +44,7 @@ def test_with_pkg_version_exact_no_minor():
 def test_with_pkg_version_pass_major():
     major, minor = [int(v) for v in np.__version__.split(".")[:2]]
 
-    @scprep.utils._with_pkg(pkg="numpy", min_version=major)
+    @scprep.utils._with_pkg(pkg="numpy", min_version=major - 1)
     def test():
         return True
     assert test()
