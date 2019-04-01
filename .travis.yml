@@ -14,6 +14,7 @@
         - libhdf5-dev
         - ffmpeg
         - pandoc
+        - r-base-dev
 
   cache: 
     - pip
@@ -21,6 +22,7 @@
 
   install:
     - python setup.py install
+    - Rscript travis_setup.R
 
   script:
     - pip install -U .[test]

@@ -16,6 +16,7 @@ test_requires = [
     'fcsparser',
     'tables',
     'h5py',
+    'rpy2',
     'matplotlib>=3.0.0',
     'coverage',
     'coveralls'

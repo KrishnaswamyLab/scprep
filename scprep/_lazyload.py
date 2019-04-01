@@ -10,6 +10,8 @@ importspec = {
                    'axes', 'lines', 'ticker', 'transforms'],
     'mpl_toolkits': ['mplot3d'],
     'fcsparser': ['api'],
+    'rpy2': [{'robjects': ['numpy2ri', 'packages', 'vectors', 'conversion']},
+             'rinterface'],
     'h5py': [],
     'tables': []
 }
