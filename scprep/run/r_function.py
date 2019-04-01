@@ -4,9 +4,6 @@ from .. import utils
 from .._lazyload import rpy2
 
 
-default_console_warning = rpy2.rinterface_lib.callbacks.consolewrite_warnerror
-
-
 def strip_console_warning(s: str) -> None:
     rpy2.rinterface_lib.callbacks.logger.warning(
         rpy2.rinterface_lib.callbacks._WRITECONSOLE_EXCEPTION_LOG, s.strip())
@@ -28,7 +25,7 @@ class RFunction(object):
                         {setup}
                     }})))""".format(setup=self.setup)
 
-    @utils._with_pkg(pkg="rpy2", min_version="2-3")
+    @utils._with_pkg(pkg="rpy2", min_version="3.0")
     def _build(self):
         function_text = """
         {setup}
@@ -53,7 +50,7 @@ class RFunction(object):
     def is_r_object(self, obj):
         return "rpy2.robjects" in str(type(obj)) or obj is rpy2.rinterface.NULL
 
-    @utils._with_pkg(pkg="rpy2", min_version="2-3")
+    @utils._with_pkg(pkg="rpy2", min_version="3.0")
     def convert(self, robject):
         if self.is_r_object(robject):
             if isinstance(robject, rpy2.robjects.vectors.ListVector):
@@ -76,8 +73,10 @@ class RFunction(object):
                     robject = None
         return robject
 
+    @utils._with_pkg(pkg="rpy2", min_version="3.0")
     def __call__(self, *args, **kwargs):
         # monkey patch warnings
+        default_console_warning = rpy2.rinterface_lib.callbacks.consolewrite_warnerror
         rpy2.rinterface_lib.callbacks.consolewrite_warnerror = strip_console_warning
         robject = self.function(*args, **kwargs)
         robject = self.convert(robject)

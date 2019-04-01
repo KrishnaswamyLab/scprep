@@ -5,7 +5,7 @@ import sys
 # { module : [{submodule1:[subsubmodule1, subsubmodule2]}, submodule2] }
 # each module loads submodules on initialization but is only imported
 # and loads methods/classes when these are accessed
-importspec = {
+_importspec = {
     'matplotlib': ['colors', 'pyplot', 'animation', 'cm',
                    'axes', 'lines', 'ticker', 'transforms'],
     'mpl_toolkits': ['mplot3d'],
@@ -48,9 +48,10 @@ class AliasModule(object):
         super_getattr = super().__getattribute__
         if not super_getattr("__loaded__"):
             # module hasn't been imported yet
-            importlib.import_module(super_getattr("__module_name__"))
+            name = super_getattr("__module_name__")
+            importlib.import_module(name)
         # access lazy loaded member from loaded module
-        return sys.modules[super_getattr("__module_name__")]
+        return sys.modules[name]
 
     def __getattribute__(self, attr):
         # easy access to AliasModule members to avoid recursionerror
@@ -74,5 +75,5 @@ class AliasModule(object):
 # these can be imported as
 # from scprep._lazyload import matplotlib
 # plt = matplotlib.pyplot
-for module, members in importspec.items():
+for module, members in _importspec.items():
     globals()[module] = AliasModule(module, members)
