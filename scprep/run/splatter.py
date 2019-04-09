@@ -32,6 +32,10 @@ _SplatSimulate = RFunction(
         path_skew <- as.numeric(path_skew)
         dropout_mid <- as.numeric(dropout_mid)
         dropout_shape <- as.numeric(dropout_shape)
+        de_fac_loc <- as.numeric(de_fac_loc)
+        de_prob <- as.numeric(de_prob)
+        de_down_prob <- as.numeric(de_down_prob)
+        de_fac_scale <- as.numeric(de_fac_scale)
         sim <- splatSimulate(
             method=method,
             batchCells=batch_cells, nGenes=n_genes,
