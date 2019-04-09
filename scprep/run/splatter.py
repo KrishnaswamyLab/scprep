@@ -36,24 +36,39 @@ _SplatSimulate = RFunction(
         de_prob <- as.numeric(de_prob)
         de_down_prob <- as.numeric(de_down_prob)
         de_fac_scale <- as.numeric(de_fac_scale)
-        sim <- splatSimulate(
-            method=method,
-            batchCells=batch_cells, nGenes=n_genes,
-            batch.facLoc=batch_fac_loc, batch.facScale=batch_fac_scale,
-            mean.rate=mean_rate, mean.shape=mean_shape,
-            lib.loc=lib_loc, lib.scale=lib_scale, lib.norm=lib_norm,
-            out.prob=out_prob,
-            out.facLoc=out_fac_loc, out.facScale=out_fac_scale,
-            de.prob=de_prob, de.downProb=de_down_prob,
-            de.facLoc=de_fac_loc, de.facScale=de_fac_scale,
-            bcv.common=bcv_common, bcv.df=bcv_df,
-            dropout.type=dropout_type, dropout.mid=dropout_mid,
-            dropout.shape=dropout_shape,
-            group.prob=group_prob,
-            path.from=path_from, path.length=path_length, path.skew=path_skew,
-            path.nonlinearProb=path_nonlinear_prob, path.sigmaFac=path_sigma_fac,
-            seed=seed
-        )
+
+        params <- newSplatParams()
+        params <- setParam(params, "group.prob", group_prob)
+        params <- setParam(params, "batchCells", batch_cells)
+        params <- setParam(params, "nGenes", n_genes)
+        params <- setParam(params, "batch.facLoc", batch_fac_loc)
+        params <- setParam(params, "batch.facScale", batch_fac_scale)
+        params <- setParam(params, "mean.rate", mean_rate)
+        params <- setParam(params, "mean.shape", mean_shape)
+        params <- setParam(params, "lib.loc", lib_loc)
+        params <- setParam(params, "lib.scale", lib_scale)
+        params <- setParam(params, "lib.norm", lib_norm)
+        params <- setParam(params, "out.prob", out_prob)
+        params <- setParam(params, "out.facLoc", out_fac_loc)
+        params <- setParam(params, "out.facScale", out_fac_scale)
+        params <- setParam(params, "de.prob", de_prob)
+        params <- setParam(params, "de.downProb", de_down_prob)
+        params <- setParam(params, "de.facLoc", de_fac_loc)
+        params <- setParam(params, "de.facScale", de_fac_scale)
+        params <- setParam(params, "bcv.common", bcv_common)
+        params <- setParam(params, "bcv.df", bcv_df)
+        params <- setParam(params, "dropout.type", dropout_type)
+        params <- setParam(params, "dropout.mid", dropout_mid)
+        params <- setParam(params, "dropout.shape", dropout_shape)
+        params <- setParam(params, "path.from", path_from)
+        params <- setParam(params, "path.length", path_length)
+        params <- setParam(params, "path.skew", path_skew)
+        params <- setParam(params, "path.nonlinearProb", path_nonlinear_prob)
+        params <- setParam(params, "path.sigmaFac", path_sigma_fac)
+        params <- setParam(params, "seed", seed)
+
+        sim <- splatSimulate(method=method, params)
+
         result <- list(counts=t(counts(sim)),
             group=colData(sim)$Group, step=colData(sim)$Step,
             exp_lib_size=colData(sim)$ExpLibSize,
