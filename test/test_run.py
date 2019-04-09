@@ -71,7 +71,8 @@ class TestRFunctions(unittest.TestCase):
 
     def test_splatter_groups(self):
         sim = scprep.run.SplatSimulate(method='groups', batch_cells=10,
-                                       group_prob=[0.5, 0.5], n_genes=200)
+                                       group_prob=[0.5, 0.5], n_genes=200,
+                                       de_fac_loc=[0.1, 0.5])
         assert sim['counts'].shape == (10, 200)
         assert sim['batch_cell_means'].shape == (10, 200)
         assert sim['base_cell_means'].shape == (10, 200)
@@ -93,7 +94,8 @@ class TestRFunctions(unittest.TestCase):
     def test_splatter_paths(self):
         sim = scprep.run.SplatSimulate(method='paths', batch_cells=10, n_genes=200,
                                        group_prob=[0.5, 0.5], path_from=[0, 0],
-                                       path_length=[100, 200], path_skew=[0.4, 0.6])
+                                       path_length=[100, 200], path_skew=[0.4, 0.6],
+                                       de_fac_loc=[0.1, 0.5])
         assert sim['counts'].shape == (10, 200)
         assert sim['batch_cell_means'].shape == (10, 200)
         assert sim['base_cell_means'].shape == (10, 200)
