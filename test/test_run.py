@@ -5,30 +5,18 @@ import scprep.run.r_function
 import unittest
 
 
-def silent_warning(msg):
-    pass
-
-
-default = scprep.run.r_function.strip_console_warning
-
-
 def test_verbose():
-    fun = scprep.run.RFunction(body="message('Verbose test\n'); list(1,2,3)")
-    assert fun() == [1, 2, 3]
+    fun = scprep.run.RFunction(
+        setup="message('This should not print')",
+        body="message('Verbose test\n\n'); list(1,2,3)", verbose=1)
+    assert np.all(fun() == np.array([[1], [2], [3]]))
 
 
 class TestRFunctions(unittest.TestCase):
 
-    @classmethod
-    def setUp(self):
-        scprep.run.r_function.strip_console_warning = silent_warning
-
-    @classmethod
-    def tearDown(self):
-        scprep.run.r_function.strip_console_warning = default
-
     def test_splatter_default(self):
-        sim = scprep.run.SplatSimulate(batch_cells=10, n_genes=200)
+        sim = scprep.run.SplatSimulate(
+            batch_cells=10, n_genes=200, verbose=0)
         assert sim['counts'].shape == (10, 200)
         assert sim['batch_cell_means'].shape == (10, 200)
         assert sim['base_cell_means'].shape == (10, 200)
@@ -48,7 +36,8 @@ class TestRFunctions(unittest.TestCase):
         assert sim['sigma_fac_1'].shape == (200,)
 
     def test_splatter_batch(self):
-        sim = scprep.run.SplatSimulate(batch_cells=[5, 5], n_genes=200)
+        sim = scprep.run.SplatSimulate(
+            batch_cells=[5, 5], n_genes=200, verbose=0)
         assert sim['counts'].shape == (10, 200)
         assert sim['batch_cell_means'].shape == (10, 200)
         assert sim['base_cell_means'].shape == (10, 200)
@@ -72,7 +61,7 @@ class TestRFunctions(unittest.TestCase):
     def test_splatter_groups(self):
         sim = scprep.run.SplatSimulate(method='groups', batch_cells=10,
                                        group_prob=[0.5, 0.5], n_genes=200,
-                                       de_fac_loc=[0.1, 0.5])
+                                       de_fac_loc=[0.1, 0.5], verbose=0)
         assert sim['counts'].shape == (10, 200)
         assert sim['batch_cell_means'].shape == (10, 200)
         assert sim['base_cell_means'].shape == (10, 200)
@@ -95,7 +84,7 @@ class TestRFunctions(unittest.TestCase):
         sim = scprep.run.SplatSimulate(method='paths', batch_cells=10, n_genes=200,
                                        group_prob=[0.5, 0.5], path_from=[0, 0],
                                        path_length=[100, 200], path_skew=[0.4, 0.6],
-                                       de_fac_loc=[0.1, 0.5])
+                                       de_fac_loc=[0.1, 0.5], verbose=0)
         assert sim['counts'].shape == (10, 200)
         assert sim['batch_cell_means'].shape == (10, 200)
         assert sim['base_cell_means'].shape == (10, 200)
@@ -118,7 +107,8 @@ class TestRFunctions(unittest.TestCase):
 
     def test_splatter_dropout(self):
         sim = scprep.run.SplatSimulate(batch_cells=10, n_genes=200,
-                                       dropout_type='experiment')
+                                       dropout_type='experiment',
+                                       verbose=0)
         assert sim['counts'].shape == (10, 200)
         assert sim['batch_cell_means'].shape == (10, 200)
         assert sim['base_cell_means'].shape == (10, 200)
@@ -140,7 +130,7 @@ class TestRFunctions(unittest.TestCase):
     def test_splatter_dropout_binomial(self):
         sim = scprep.run.SplatSimulate(batch_cells=10, n_genes=200,
                                        dropout_type='binomial',
-                                       dropout_prob=0.5)
+                                       dropout_prob=0.5, verbose=0)
         assert sim['counts'].shape == (10, 200)
         assert sim['batch_cell_means'].shape == (10, 200)
         assert sim['base_cell_means'].shape == (10, 200)

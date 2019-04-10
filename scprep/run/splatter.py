@@ -3,7 +3,7 @@ import numpy as np
 from .r_function import RFunction
 
 _SplatSimulate = RFunction(
-    name="splat", setup="""
+    setup="""
         library(splatter)
     """,
     args="""
@@ -104,7 +104,7 @@ def SplatSimulate(
         group_prob=1,
         path_from=0, path_length=100, path_skew=0.5,
         path_nonlinear_prob=0.1, path_sigma_fac=0.8,
-        seed=None):
+        seed=None, verbose=1):
     """Simulate count data from a fictional single-cell RNA-seq experiment using the Splat method.
 
     SplatSimulate is a Python wrapper for the R package Splatter. For more
@@ -187,6 +187,8 @@ def SplatSimulate(
         Sigma factor for non-linear gene paths.
     seed : int or None, optional (default: None)
         Seed to use for generating random numbers.
+    verbose : int, optional (default: 1)
+        Logging verbosity between 0 and 2.
 
     Returns
     -------
@@ -232,7 +234,7 @@ def SplatSimulate(
         group_prob=group_prob,
         path_from=path_from, path_length=path_length, path_skew=path_skew,
         path_nonlinear_prob=path_nonlinear_prob, path_sigma_fac=path_sigma_fac,
-        seed=seed)
+        seed=seed, rpy_verbose=verbose)
     if dropout_prob is not None:
         sim['counts'] = np.random.binomial(n=sim['counts'], p=1 - dropout_prob,
                                            size=sim['counts'].shape)
