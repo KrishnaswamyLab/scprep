@@ -1,9 +1,9 @@
-import scprep
-import sys
+import subprocess
+import os
 
 
 def test_lazyload():
-    loaded_modules = set([m.split('.')[0] for m in sys.modules.keys()])
-    exceptions = ['matplotlib', 'mpl_toolkits']
-    for module in scprep._lazyload._importspec.keys():
-        assert module not in loaded_modules.difference(exceptions), module
+    return_code = subprocess.call(
+        ['nose2', '--quiet', '_test_lazyload'],
+        cwd=os.path.dirname(os.path.realpath(__file__)))
+    assert return_code == 0
