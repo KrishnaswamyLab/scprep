@@ -14,3 +14,5 @@ def test_lazyload():
         lines = proc.stderr.read().decode().split('\n')
         lines = lines[4:-6]
         raise AssertionError("\n".join(lines))
+    finally:
+        proc.stderr.close()
