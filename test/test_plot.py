@@ -577,7 +577,8 @@ class Test10X(unittest.TestCase):
         ax = scprep.plot.jitter(np.where(self.X_pca[:, 0] > 0, '+', '-'),
                                 self.X_pca[:, 1], c=np.random.choice(
             ['hello', 'world'], self.X_pca.shape[0], replace=True),
-            legend_title="test", title="jitter", filename="test.png")
+            legend_title="test", title="jitter", filename="test_jitter.png")
+        assert os.path.exists("test_jitter.png")
         assert ax.get_legend().get_title().get_text() == 'test'
         assert ax.get_title() == 'jitter'
         assert ax.get_xlim() == (-0.5, 1.5)
