@@ -27,15 +27,19 @@ def _os_agnostic_fullpath_join(path):
     return path
 
 
+def _get_root_dir():
+    """Get path to scprep root
+    """
+    cwd = os.getcwd().split(os.path.sep)
+    while cwd[-1] in ["test_utils", "test"]:
+        cwd = cwd[:-1]
+    return _os_agnostic_fullpath_join(cwd)
+
+
 def _get_data_dir():
     """Get path to scprep data directory
     """
-    data_dir = os.getcwd().split(os.path.sep)
-    while data_dir[-1] in ["test_utils", "test"]:
-        data_dir = data_dir[:-1]
-    data_dir = data_dir + ["data", "test_data"]
-    data_dir = _os_agnostic_fullpath_join(data_dir)
-    return data_dir
+    return os.path.join(_get_root_dir(), "data", "test_data")
 
 
 data_dir = _get_data_dir()
