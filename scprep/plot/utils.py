@@ -48,7 +48,13 @@ def _get_figure(ax=None, figsize=None, subplot_kw=None):
 
 
 def _is_color_array(c):
-    return c is not None and np.all([mpl.colors.is_color_like(val) for val in c])
+    if c is None:
+        return False
+    else:
+        for val in c:
+            if not mpl.colors.is_color_like(val):
+                return False
+        return True
 
 
 def _in_ipynb():
