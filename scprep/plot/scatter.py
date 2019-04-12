@@ -99,7 +99,11 @@ class _ScatterParams(object):
         return self._c is None or mpl.colors.is_color_like(self._c)
 
     def array_c(self):
-        return _is_color_array(self._c)
+        try:
+            return self._array_c
+        except AttributeError:
+            self._array_c = _is_color_array(self._c)
+            return self._array_c
 
     @property
     def discrete(self):
