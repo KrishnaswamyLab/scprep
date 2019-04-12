@@ -23,7 +23,8 @@ def library_size(data):
 
 
 def gene_set_expression(data, genes=None, library_size_normalize=False,
-                        starts_with=None, ends_with=None, regex=None):
+                        starts_with=None, ends_with=None,
+                        exact_word=None, regex=None):
     """Measure the expression of a set of genes in each cell.
 
     Parameters
@@ -38,6 +39,8 @@ def gene_set_expression(data, genes=None, library_size_normalize=False,
         If not None, select genes that start with this prefix
     ends_with : str or None, optional (default: None)
         If not None, select genes that end with this suffix
+    exact_word : str, list-like or None, optional (default: None)
+        If not None, select genes that contain this exact word.
     regex : str or None, optional (default: None)
         If not None, select genes that match this regular expression
 
@@ -50,7 +53,8 @@ def gene_set_expression(data, genes=None, library_size_normalize=False,
         from .normalize import library_size_normalize
         data = library_size_normalize(data)
     gene_data = select.select_cols(data, idx=genes, starts_with=starts_with,
-                                   ends_with=ends_with, regex=regex)
+                                   ends_with=ends_with,
+                                   exact_word=exact_word, regex=regex)
     if len(gene_data.shape) > 1:
         gene_set_expression = library_size(gene_data)
     else:
