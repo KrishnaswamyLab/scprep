@@ -4,7 +4,7 @@ scikit-learn>=0.19.1
 pandas>=0.19.0,<0.24
 decorator
 matplotlib
-sphinx
+sphinx<=1.8.5
 sphinxcontrib-napoleon
 autodocsumm
 ipykernel

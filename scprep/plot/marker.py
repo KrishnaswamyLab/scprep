@@ -8,7 +8,7 @@ from .utils import (_get_figure, show,
 from .tools import label_axis
 
 
-@utils._with_pkg("matplotlib")
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def marker_plot(data, clusters, markers, gene_names=None,
                 normalize_expression=True, normalize_emd=True,
                 reorder_tissues=True,

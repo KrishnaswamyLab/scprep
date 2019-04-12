@@ -4,11 +4,11 @@ import warnings
 from .. import utils
 from .utils import _get_figure, parse_fontsize, temp_fontsize
 
-plt = utils._try_import("matplotlib.pyplot")
-mpl = utils._try_import("matplotlib")
+from .._lazyload import matplotlib as mpl
+plt = mpl.pyplot
 
 
-@utils._with_pkg("matplotlib")
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def create_colormap(colors, name="scprep_custom_cmap"):
     """Create a custom colormap from a list of colors
 
@@ -38,7 +38,7 @@ def create_colormap(colors, name="scprep_custom_cmap"):
     return cmap
 
 
-@utils._with_pkg("matplotlib")
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def create_normalize(vmin, vmax, scale=None):
     """Create a colormap normalizer
 
@@ -75,7 +75,7 @@ def create_normalize(vmin, vmax, scale=None):
     return norm
 
 
-@utils._with_pkg("matplotlib")
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def generate_legend(cmap, ax, title=None, marker='o', markersize=10,
                     loc='best', bbox_to_anchor=None,
                     fontsize=None, title_fontsize=None,
@@ -132,7 +132,7 @@ def generate_legend(cmap, ax, title=None, marker='o', markersize=10,
     return legend
 
 
-@utils._with_pkg("matplotlib")
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def generate_colorbar(cmap=None, vmin=None, vmax=None, scale=None, ax=None,
                       title=None, title_rotation=270, fontsize=None,
                       n_ticks='auto', labelpad=10, mappable=None, **kwargs):

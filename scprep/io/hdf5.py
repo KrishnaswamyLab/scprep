@@ -2,10 +2,8 @@
 # (C) 2018 Krishnaswamy Lab GPLv2
 from decorator import decorator
 
-from .. import utils
-
-tables = utils._try_import("tables")
-h5py = utils._try_import("h5py")
+from .._lazyload import tables
+from .._lazyload import h5py
 
 try:
     ModuleNotFoundError

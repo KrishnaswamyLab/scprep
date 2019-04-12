@@ -9,9 +9,8 @@ import string
 import warnings
 
 from .utils import _matrix_to_data_frame
+from .._lazyload import fcsparser
 from .. import utils
-
-fcsparser = utils._try_import("fcsparser")
 
 
 def _channel_names_from_meta(meta, channel_numbers, naming="N"):
@@ -222,7 +221,7 @@ def _fcsextract(filename, channel_naming="$PnS", reformat_meta=True):
     return meta, events
 
 
-@utils._with_pkg("fcsparser")
+@utils._with_pkg(pkg="fcsparser")
 def load_fcs(filename, gene_names=True, cell_names=True,
              sparse=None,
              metadata_channels=['Time', 'Event_length', 'DNA1', 'DNA2',
@@ -288,7 +287,7 @@ def load_fcs(filename, gene_names=True, cell_names=True,
             channel_naming=channel_naming, **kwargs)
     else:
         try:
-            channel_metadata, data = fcsparser.parse(
+            channel_metadata, data = fcsparser.api.parse(
                 filename, reformat_meta=reformat_meta, **kwargs)
         except (fcsparser.api.ParserFeatureNotImplementedError, ValueError):
             raise RuntimeError("fcsparser failed to load {}, likely due to a "

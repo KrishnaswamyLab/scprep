@@ -10,9 +10,8 @@ from .utils import (_get_figure, _is_color_array,
 from .tools import (create_colormap, create_normalize,
                     label_axis, generate_colorbar, generate_legend)
 
-plt = utils._try_import("matplotlib.pyplot")
-mpl = utils._try_import("matplotlib")
-animation = utils._try_import("matplotlib.animation")
+from .._lazyload import matplotlib as mpl
+plt = mpl.pyplot
 
 
 class _ScatterParams(object):
@@ -38,6 +37,7 @@ class _ScatterParams(object):
         self.shuffle = shuffle
         self.check_size()
         self.check_c()
+        self.check_s()
         self.check_discrete()
         self.check_legend()
         self.check_cmap()
@@ -88,7 +88,10 @@ class _ScatterParams(object):
     @property
     def s(self):
         if self._s is not None:
-            return self._s
+            if isinstance(self._s, numbers.Number):
+                return self._s
+            else:
+                return self._s[self.plot_idx]
         else:
             return 200 / np.sqrt(self.size)
 
@@ -96,7 +99,11 @@ class _ScatterParams(object):
         return self._c is None or mpl.colors.is_color_like(self._c)
 
     def array_c(self):
-        return _is_color_array(self._c)
+        try:
+            return self._array_c
+        except AttributeError:
+            self._array_c = _is_color_array(self._c)
+            return self._array_c
 
     @property
     def discrete(self):
@@ -299,6 +306,13 @@ class _ScatterParams(object):
                 raise ValueError("Expected c of length {} or 1. Got {}".format(
                     self.size, len(self._c)))
 
+    def check_s(self):
+        if self._s is not None and not isinstance(self._s, numbers.Number):
+            self._s = utils.toarray(self._s).squeeze()
+            if not len(self._s) == self.size:
+                raise ValueError("Expected s of length {} or 1. Got {}".format(
+                    self.size, len(self._s)))
+
     def check_discrete(self):
         if self._discrete is False:
             if not np.all([isinstance(x, numbers.Number) for x in self._c]):
@@ -348,7 +362,7 @@ class _ScatterParams(object):
                 self._cmap_scale = 'linear'
 
 
-@utils._with_pkg("matplotlib")
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def scatter(x, y, z=None,
             c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
             ax=None,
@@ -554,7 +568,7 @@ def scatter(x, y, z=None,
     return ax
 
 
-@utils._with_pkg("matplotlib")
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def scatter2d(data,
               c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
               ax=None, legend=None, colorbar=None,
@@ -706,7 +720,7 @@ def scatter2d(data,
                    **plot_kwargs)
 
 
-@utils._with_pkg("matplotlib")
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def scatter3d(data,
               c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
               ax=None, legend=None, colorbar=None,
@@ -873,7 +887,7 @@ def scatter3d(data,
                    **plot_kwargs)
 
 
-@utils._with_pkg("matplotlib")
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def rotate_scatter3d(data,
                      filename=None,
                      rotation_speed=30,
@@ -965,7 +979,7 @@ def rotate_scatter3d(data,
         ax.view_init(azim=azim + i * degrees_per_frame)
         return ax
 
-    ani = animation.FuncAnimation(
+    ani = mpl.animation.FuncAnimation(
         fig, animate, init_func=init,
         frames=range(frames), interval=interval, blit=False)
 

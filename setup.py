@@ -7,7 +7,7 @@ install_requires = [
     'scipy>=0.18.0',
     'scikit-learn>=0.19.1',
     'pandas>=0.19.0,<0.24',
-    'decorator'
+    'decorator>=4.3.0'
 ]
 
 test_requires = [
@@ -16,13 +16,14 @@ test_requires = [
     'fcsparser',
     'tables',
     'h5py',
+    'rpy2>=3.0',
     'matplotlib>=3.0.0',
     'coverage',
     'coveralls'
 ]
 
 doc_requires = [
-    'sphinx',
+    'sphinx<=1.8.5',
     'sphinxcontrib-napoleon',
     'autodocsumm',
     'ipykernel',
