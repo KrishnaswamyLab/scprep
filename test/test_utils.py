@@ -115,7 +115,8 @@ def test_combine_batches():
     Y2, sample_labels = scprep.utils.combine_batches(
         [X, scprep.select.select_rows(
             X, idx=np.arange(X.shape[0] // 2))],
-        batch_labels=[0, 1])
+        batch_labels=[0, 1],
+        append_to_cell_names=False)
     assert utils.assert_matrix_class_equivalent(Y, Y2)
     utils.assert_all_equal(Y, Y2)
     assert np.all(Y.index == Y2.index)
@@ -142,6 +143,17 @@ def test_combine_batches():
         check=utils.assert_all_equal)
 
 
+def test_combine_batches_uncommon_genes():
+    X = data.load_10X()
+    Y = X.iloc[:, :X.shape[1] // 2]
+    assert_warns_message(
+        UserWarning,
+        "Input data has inconsistent column names. "
+        "Subsetting to {} common columns.".format(Y.shape[1]),
+        scprep.utils.combine_batches,
+        [X, Y], ['x', 'y'])
+
+
 def test_combine_batches_errors():
     X = data.load_10X()
     assert_warns_message(
@@ -163,7 +175,8 @@ def test_combine_batches_errors():
         "Expected data all with the same number of columns. "
         "Got {}, {}".format(X.shape[1], X.shape[1] // 2),
         scprep.utils.combine_batches,
-        [X, scprep.select.select_cols(X, idx=np.arange(X.shape[1] // 2))],
+        [scprep.utils.toarray(X), scprep.select.select_cols(
+            scprep.utils.toarray(X), idx=np.arange(X.shape[1] // 2))],
         batch_labels=[0, 1])
     assert_raise_message(
         ValueError,

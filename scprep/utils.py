@@ -364,7 +364,7 @@ def matrix_any(condition):
     return np.sum(np.sum(condition)) > 0
 
 
-def combine_batches(data, batch_labels, append_to_cell_names=False):
+def combine_batches(data, batch_labels, append_to_cell_names=None):
     """Combine data matrices from multiple batches and store a batch label
 
     Parameters
@@ -374,9 +374,10 @@ def combine_batches(data, batch_labels, append_to_cell_names=False):
         columns (or genes.)
     batch_labels : list of `str`, shape=[n_batch]
         List of names assigned to each batch
-    append_to_cell_names : bool, optional (default: False)
+    append_to_cell_names : bool, optional (default: None)
         If input is a pandas dataframe, add the batch label corresponding to
         each cell to its existing index (or cell name / barcode.)
+        Default behavior is `True` for dataframes and `False` otherwise.
 
     Returns
     -------
@@ -389,6 +390,8 @@ def combine_batches(data, batch_labels, append_to_cell_names=False):
     if not len(data) == len(batch_labels):
         raise ValueError("Expected data ({}) and batch_labels ({}) to be the "
                          "same length.".format(len(data), len(batch_labels)))
+
+    # check consistent type
     matrix_type = type(data[0])
     if not issubclass(matrix_type, (np.ndarray,
                                     pd.DataFrame,
@@ -396,40 +399,62 @@ def combine_batches(data, batch_labels, append_to_cell_names=False):
         raise ValueError("Expected data to contain pandas DataFrames, "
                          "scipy sparse matrices or numpy arrays. "
                          "Got {}".format(matrix_type.__name__))
-
-    matrix_shape = data[0].shape[1]
     for d in data[1:]:
         if not isinstance(d, matrix_type):
             types = ", ".join([type(d).__name__ for d in data])
             raise TypeError("Expected data all of the same class. "
                             "Got {}".format(types))
 
-    if not d.shape[1] == matrix_shape:
-        shapes = ", ".join([str(d.shape[1]) for d in data])
-        raise ValueError("Expected data all with the same number of "
-                         "columns. Got {}".format(shapes))
+    # check consistent columns
+    matrix_shape = data[0].shape[1]
+    if issubclass(matrix_type, pd.DataFrame):
+        if not (np.all([d.shape[1] == matrix_shape for d in data[1:]]) and
+                np.all([data[0].columns == d.columns for d in data])):
+            common_genes = data[0].columns.values
+            for d in data[1:]:
+                common_genes = common_genes[np.isin(common_genes,
+                                                    d.columns.values)]
+            for i in range(len(data)):
+                data[i] = data[i][common_genes]
+            warnings.warn("Input data has inconsistent column names. "
+                          "Subsetting to {} common columns.".format(
+                              len(common_genes)), UserWarning)
+    else:
+        for d in data[1:]:
+            if not d.shape[1] == matrix_shape:
+                shapes = ", ".join([str(d.shape[1]) for d in data])
+                raise ValueError("Expected data all with the same number of "
+                                 "columns. Got {}".format(shapes))
 
+    # check append_to_cell_names
     if append_to_cell_names and not issubclass(matrix_type, pd.DataFrame):
         warnings.warn("append_to_cell_names only valid for pd.DataFrame input."
                       " Got {}".format(matrix_type.__name__), UserWarning)
+    elif append_to_cell_names is None:
+        if issubclass(matrix_type, pd.DataFrame):
+            append_to_cell_names = True
+        else:
+            append_to_cell_names = False
 
+    # concatenate labels
     sample_labels = np.concatenate([np.repeat(batch_labels[i], d.shape[0])
                                     for i, d in enumerate(data)])
+
+    # conatenate data
     if issubclass(matrix_type, pd.DataFrame):
+        data_combined = pd.concat(data)
         if append_to_cell_names:
             index = np.concatenate(
                 [np.core.defchararray.add(np.array(d.index, dtype=str),
                                           "_" + str(batch_labels[i]))
                  for i, d in enumerate(data)])
-        data = pd.concat(data)
-        if append_to_cell_names:
-            data.index = index
+            data_combined.index = index
     elif issubclass(matrix_type, sparse.spmatrix):
-        data = sparse.vstack(data)
+        data_combined = sparse.vstack(data)
     elif issubclass(matrix_type, np.ndarray):
-        data = np.vstack(data)
+        data_combined = np.vstack(data)
 
-    return data, sample_labels
+    return data_combined, sample_labels
 
 
 def select_cols(data, idx):
