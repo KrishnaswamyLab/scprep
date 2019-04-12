@@ -47,9 +47,9 @@ class AliasModule(object):
         # easy access to AliasModule members to avoid recursionerror
         super_getattr = super().__getattribute__
         super_setattr = super().__setattr__
+        name = super_getattr("__module_name__")
         if not super_getattr("__loaded__"):
             # module hasn't been imported yet
-            name = super_getattr("__module_name__")
             importlib.import_module(name)
             super_setattr('__loaded__', True)
         # access lazy loaded member from loaded module
