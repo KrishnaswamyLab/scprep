@@ -40,6 +40,15 @@ class TestNormalize(unittest.TestCase):
             transform=test_fun,
             check=utils.assert_all_close)
 
+    def test_libsize_norm_return_libsize_rescale_constant(self):
+        def test_fun(*args, **kwargs):
+            return scprep.normalize.library_size_normalize(
+                *args, return_library_size=True, rescale=1, **kwargs)[1]
+        matrix.test_all_matrix_types(
+            self.X, utils.assert_transform_equals, Y=self.libsize,
+            transform=test_fun,
+            check=utils.assert_all_close)
+
     def test_libsize_norm_rescale_mean(self):
         Y = self.X_norm * self.mean
         utils.assert_all_close(Y.sum(1), np.mean(np.sum(self.X, 1)))
