@@ -231,7 +231,7 @@ def load_10X_HDF5(filename, genome=None, sparse=True, gene_labels='symbol',
     genome : str or None, optional (default: None)
         Name of the genome to which CellRanger ran analysis. If None, selects
         the first available genome, and prints all available genomes if more
-        than one is available.
+        than one is available. Invalid for Cellranger 3.0 HDF5 files.
     sparse: boolean
         If True, a sparse Pandas DataFrame is returned.
     gene_labels: string, {'id', 'symbol', 'both'} optional, default: 'symbol'
@@ -257,41 +257,50 @@ def load_10X_HDF5(filename, genome=None, sparse=True, gene_labels='symbol',
             "Choose from ['symbol', 'id', 'both']".format(gene_labels))
 
     with hdf5.open_file(filename, 'r', backend=backend) as f:
-        if genome is None:
-            genomes = hdf5.list_nodes(f)
-            print_genomes = ", ".join(genomes)
-            genome = genomes[0]
-            if len(genomes) > 1:
-                print("Available genomes: {}. Selecting {} by default".format(
-                    print_genomes, genome))
-        try:
-            group = hdf5.get_node(f, genome)
-        except (AttributeError, KeyError):
-            genomes = hdf5.list_nodes(f)
-            print_genomes = ", ".join(genomes)
-            raise ValueError(
-                "Genome {} not found in {}. "
-                "Available genomes: {}".format(genome, filename,
-                                               print_genomes))
+
+        # handle genome
+        groups = hdf5.list_nodes(f)
+        if 'matrix' in groups:
+            if genome is not None:
+                raise NotImplementedError(
+                    "Selecting genomes for Cellranger 3.0 files is not "
+                    "currently supported. Please file an issue at "
+                    "https://github.com/KrishnaswamyLab/scprep/issues")
+        else:
+            if genome is None:
+                print_genomes = ", ".join(groups)
+                genome = groups[0]
+                if len(groups) > 1:
+                    print("Available genomes: {}. Selecting {} by default".format(
+                        print_genomes, genome))
+            try:
+                group = hdf5.get_node(f, genome)
+            except (AttributeError, KeyError):
+                print_genomes = ", ".join(groups)
+                raise ValueError(
+                    "Genome {} not found in {}. "
+                    "Available genomes: {}".format(genome, filename,
+                                                   print_genomes))
+
+        # default allow_duplicates
         if allow_duplicates is None:
             allow_duplicates = not sparse
+
         try:
+            # Cellranger 3.0
             features = hdf5.get_node(group, 'features')
-            gene_names = _parse_10x_genes(
-                symbols=[g.decode() for g in hdf5.get_values(
-                    hdf5.get_node(features, 'name'))],
-                ids=[g.decode()
-                     for g in hdf5.get_values(hdf5.get_node(features, 'id'))],
-                gene_labels=gene_labels, allow_duplicates=allow_duplicates)
+            gene_symbols = hdf5.get_node(features, 'name')
+            gene_ids = hdf5.get_node(features, 'id')
         except IndexError:
-            # If 'features' is not found then we switch over to an earlier
-            # version of the cellranger hdf5 format with flat arrays
-            gene_names = _parse_10x_genes(
-                symbols=[g.decode() for g in hdf5.get_values(
-                    hdf5.get_node(group, 'gene_names'))],
-                ids=[g.decode()
-                     for g in hdf5.get_values(hdf5.get_node(group, 'genes'))],
-                gene_labels=gene_labels, allow_duplicates=allow_duplicates)
+            # Cellranger 2.0
+            gene_symbols = hdf5.get_node(group, 'gene_names')
+            gene_ids = hdf5.get_node(group, 'genes')
+
+        # convert to string column names
+        gene_names = _parse_10x_genes(
+            symbols=[g.decode() for g in hdf5.get_values(gene_symbols)],
+            ids=[g.decode() for g in hdf5.get_values(gene_ids)],
+            gene_labels=gene_labels, allow_duplicates=allow_duplicates)
 
         cell_names = [b.decode() for b in hdf5.get_values(
             hdf5.get_node(group, 'barcodes'))]
