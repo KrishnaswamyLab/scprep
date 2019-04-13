@@ -283,7 +283,7 @@ def load_10X_HDF5(filename, genome=None, sparse=True, gene_labels='symbol',
                 ids=[g.decode()
                      for g in hdf5.get_values(hdf5.get_node(features, 'id'))],
                 gene_labels=gene_labels, allow_duplicates=allow_duplicates)
-        except IndexError:
+        except (KeyError, IndexError):
             # If 'features' is not found then we switch over to an earlier
             # version of the cellranger hdf5 format with flat arrays
             gene_names = _parse_10x_genes(
