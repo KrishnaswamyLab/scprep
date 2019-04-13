@@ -291,7 +291,7 @@ def load_10X_HDF5(filename, genome=None, sparse=True, gene_labels='symbol',
             features = hdf5.get_node(group, 'features')
             gene_symbols = hdf5.get_node(features, 'name')
             gene_ids = hdf5.get_node(features, 'id')
-        except IndexError:
+        except (KeyError, IndexError):
             # Cellranger 2.0
             gene_symbols = hdf5.get_node(group, 'gene_names')
             gene_ids = hdf5.get_node(group, 'genes')
