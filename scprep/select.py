@@ -4,7 +4,13 @@ import numbers
 from scipy import sparse
 import warnings
 import re
+import sys
 from . import utils
+
+if int(sys.version.split(".")[1]) < 7:
+    _re_pattern = type(re.compile(''))
+else:
+    _re_pattern = re.Pattern
 
 
 def _is_1d(data):
@@ -154,7 +160,7 @@ def _get_string_subset_mask(data, starts_with=None, ends_with=None,
             regex = re.compile(regex)
         regex_match = _string_vector_match(
             data, regex, lambda x, match: bool(match.search(x)),
-            dtype=re.Pattern)
+            dtype=_re_pattern)
         mask = np.logical_and(mask, regex_match)
     return mask
 
