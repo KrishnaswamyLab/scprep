@@ -212,6 +212,18 @@ def test_10X_HDF5_invalid_genome():
         genome="invalid")
 
 
+def test_10X_HDF5_genome_cellranger3():
+    h5_file = os.path.join(data.data_dir, "test_10X_cellranger3.h5")
+    assert_raise_message(
+        NotImplementedError,
+        "Selecting genomes for Cellranger 3.0 files is not "
+        "currently supported. Please file an issue at "
+        "https://github.com/KrishnaswamyLab/scprep/issues",
+        scprep.io.load_10X_HDF5,
+        filename=h5_file,
+        genome="GRCh38")
+
+
 def test_10X_HDF5_invalid_backend():
     h5_file = os.path.join(data.data_dir, "test_10X.h5")
     assert_raise_message(
