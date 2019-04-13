@@ -3,7 +3,7 @@ import numpy as np
 import scprep
 import scprep.run.r_function
 import unittest
-import rpy2
+import rpy2.rinterface_lib.callbacks
 
 builtin_warning = rpy2.rinterface_lib.callbacks.consolewrite_warnerror
 
@@ -158,10 +158,14 @@ class TestRFunctions(unittest.TestCase):
         assert sim['sigma_fac_1'].shape == (200,)
 
     def test_splatter_warning(self):
-        assert rpy2.rinterface_lib.callbacks.consolewrite_warnerror is builtin_warning
+        assert rpy2.rinterface_lib.callbacks.consolewrite_warnerror is \
+            builtin_warning
         scprep.run.r_function._ConsoleWarning.set_debug()
-        assert rpy2.rinterface_lib.callbacks.consolewrite_warnerror is scprep.run.r_function.debug
+        assert rpy2.rinterface_lib.callbacks.consolewrite_warnerror is \
+            scprep.run.r_function._ConsoleWarning.debug
         scprep.run.r_function._ConsoleWarning.set_warning()
-        assert rpy2.rinterface_lib.callbacks.consolewrite_warnerror is scprep.run.r_function.warning
+        assert rpy2.rinterface_lib.callbacks.consolewrite_warnerror is \
+            scprep.run.r_function._ConsoleWarning.warning
         scprep.run.r_function._ConsoleWarning.set_builtin()
-        assert rpy2.rinterface_lib.callbacks.consolewrite_warnerror is builtin_warning
+        assert rpy2.rinterface_lib.callbacks.consolewrite_warnerror is \
+            builtin_warning
