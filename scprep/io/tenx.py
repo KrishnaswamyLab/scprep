@@ -275,12 +275,24 @@ def load_10X_HDF5(filename, genome=None, sparse=True, gene_labels='symbol',
                                                print_genomes))
         if allow_duplicates is None:
             allow_duplicates = not sparse
-        gene_names = _parse_10x_genes(
-            symbols=[g.decode() for g in hdf5.get_values(
-                hdf5.get_node(group, 'gene_names'))],
-            ids=[g.decode()
-                 for g in hdf5.get_values(hdf5.get_node(group, 'genes'))],
-            gene_labels=gene_labels, allow_duplicates=allow_duplicates)
+        try:
+            features = hdf5.get_node(group, 'features')
+            gene_names = _parse_10x_genes(
+                symbols=[g.decode() for g in hdf5.get_values(
+                    hdf5.get_node(features, 'name'))],
+                ids=[g.decode()
+                     for g in hdf5.get_values(hdf5.get_node(features, 'id'))],
+                gene_labels=gene_labels, allow_duplicates=allow_duplicates)
+        except IndexError:
+            # If 'features' is not found then we switch over to an earlier
+            # version of the cellranger hdf5 format with flat arrays
+            gene_names = _parse_10x_genes(
+                symbols=[g.decode() for g in hdf5.get_values(
+                    hdf5.get_node(group, 'gene_names'))],
+                ids=[g.decode()
+                     for g in hdf5.get_values(hdf5.get_node(group, 'genes'))],
+                gene_labels=gene_labels, allow_duplicates=allow_duplicates)
+
         cell_names = [b.decode() for b in hdf5.get_values(
             hdf5.get_node(group, 'barcodes'))]
         data = hdf5.get_values(hdf5.get_node(group, 'data'))
