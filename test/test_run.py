@@ -3,12 +3,15 @@ import numpy as np
 import scprep
 import scprep.run.r_function
 import unittest
+import rpy2
+
+builtin_warning = rpy2.rinterface_lib.callbacks.consolewrite_warnerror
 
 
 def test_verbose():
     fun = scprep.run.RFunction(
         setup="message('This should not print')",
-        body="message('Verbose test\n\n'); list(1,2,3)", verbose=1)
+        body="message('Verbose test\n\n'); list(1,2,3)", verbose=True)
     assert np.all(fun() == np.array([[1], [2], [3]]))
 
 
@@ -130,7 +133,7 @@ class TestRFunctions(unittest.TestCase):
     def test_splatter_dropout_binomial(self):
         sim = scprep.run.SplatSimulate(batch_cells=10, n_genes=200,
                                        dropout_type='binomial',
-                                       dropout_prob=0.5, verbose=0)
+                                       dropout_prob=0.5, verbose=False)
         assert sim['counts'].shape == (10, 200)
         assert sim['batch_cell_means'].shape == (10, 200)
         assert sim['base_cell_means'].shape == (10, 200)
@@ -153,3 +156,12 @@ class TestRFunctions(unittest.TestCase):
         assert sim['de_fac_1'].shape == (200,)
         assert sum(['sigma_fac' in k for k in sim.keys()]) == 1
         assert sim['sigma_fac_1'].shape == (200,)
+
+    def test_splatter_warning(self):
+        assert rpy2.rinterface_lib.callbacks.consolewrite_warnerror is builtin_warning
+        scprep.run.r_function._ConsoleWarning.set_debug()
+        assert rpy2.rinterface_lib.callbacks.consolewrite_warnerror is scprep.run.r_function.debug
+        scprep.run.r_function._ConsoleWarning.set_warning()
+        assert rpy2.rinterface_lib.callbacks.consolewrite_warnerror is scprep.run.r_function.warning
+        scprep.run.r_function._ConsoleWarning.set_builtin()
+        assert rpy2.rinterface_lib.callbacks.consolewrite_warnerror is builtin_warning

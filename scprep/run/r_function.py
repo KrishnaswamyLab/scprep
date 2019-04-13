@@ -7,6 +7,10 @@ from .._lazyload import rpy2
 class _ConsoleWarning(object):
 
     def __init__(self, verbose=1):
+        if verbose is True:
+            verbose = 1
+        elif verbose is False:
+            verbose = 0
         self.verbose = verbose
 
     @staticmethod
@@ -70,10 +74,6 @@ class RFunction(object):
         self.args = args
         self.setup = setup
         self.body = body
-        if verbose is True:
-            verbose = 1
-        elif verbose is False:
-            verbose = 0
         self.verbose = verbose
 
     @utils._with_pkg(pkg="rpy2", min_version="3.0")
