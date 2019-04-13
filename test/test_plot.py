@@ -936,17 +936,6 @@ class Test10X(unittest.TestCase):
                 np.arange(10), replace=True, size=self.X.shape[0]),
             markers={'tissue': ['z']})
 
-    def test_style_phate(self):
-        ax = scprep.plot.scatter2d(self.X_pca)
-        scprep.plot.style.style_phate(ax)
-        assert len(ax.get_xticks()) == 0
-        assert len(ax.get_yticks()) == 0
-        ax = scprep.plot.scatter3d(self.X_pca)
-        scprep.plot.style.style_phate(ax)
-        assert len(ax.get_xticks()) == 0
-        assert len(ax.get_yticks()) == 0
-        assert len(ax.get_zticks()) == 0
-
     def test_label_axis_va(self):
         ax = scprep.plot.scatter2d(self.X_pca)
         scprep.plot.tools.label_axis(
