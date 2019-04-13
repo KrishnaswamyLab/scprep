@@ -891,14 +891,16 @@ class Test10X(unittest.TestCase):
             clusters=np.random.choice(
                 np.arange(10), replace=True, size=self.X.shape[0]),
             gene_names=self.X.columns,
-            markers={'tissue': [self.X.columns[0]]})
+            markers={'tissue': self.X.columns[:2],
+                     'other tissue': self.X.columns[2:4]})
 
     def test_marker_plot_list(self):
         scprep.plot.marker_plot(
             data=self.X,
             clusters=np.random.choice(
                 np.arange(10), replace=True, size=self.X.shape[0]),
-            markers=self.X.columns)
+            markers=self.X.columns,
+            normalize_emd=False, normalize_expression=False)
 
     def test_marker_plot_bad_gene_names(self):
         assert_raise_message(
