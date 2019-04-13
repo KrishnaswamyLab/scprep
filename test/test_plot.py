@@ -919,7 +919,10 @@ class Test10X(unittest.TestCase):
             data=self.X,
             clusters=np.random.choice(
                 np.arange(10), replace=True, size=self.X.shape[0]),
-            markers={'tissue': [self.X.columns[0]]})
+            markers={'tissue': self.X.columns[:2],
+                     'other tissue': self.X.columns[2:4]},
+            reorder_tissues=False,
+            reorder_markers=False)
 
     def test_marker_plot_no_gene_names(self):
         assert_raise_message(
