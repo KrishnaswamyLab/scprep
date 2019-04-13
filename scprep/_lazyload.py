@@ -27,7 +27,6 @@ class AliasModule(object):
             members = []
         super_setattr('__module_name__', name)
         super_setattr('__module_members__', members)
-        super_setattr('__loaded__', False)
         # create submodules
         submodules = []
         for member in members:
@@ -46,14 +45,13 @@ class AliasModule(object):
     def __loaded_module__(self):
         # easy access to AliasModule members to avoid recursionerror
         super_getattr = super().__getattribute__
-        super_setattr = super().__setattr__
         name = super_getattr("__module_name__")
-        if not super_getattr("__loaded__"):
+        try:
+            return sys.modules[name]
+        except KeyError:
             # module hasn't been imported yet
             importlib.import_module(name)
-            super_setattr('__loaded__', True)
-        # access lazy loaded member from loaded module
-        return sys.modules[name]
+            return sys.modules[name]
 
     def __getattribute__(self, attr):
         # easy access to AliasModule members to avoid recursionerror
