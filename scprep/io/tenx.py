@@ -256,17 +256,24 @@ def load_10X_HDF5(filename, genome=None, sparse=True, gene_labels='symbol',
             "gene_labels='{}' not recognized. "
             "Choose from ['symbol', 'id', 'both']".format(gene_labels))
 
+    # default allow_duplicates
+    if allow_duplicates is None:
+        allow_duplicates = not sparse
+
     with hdf5.open_file(filename, 'r', backend=backend) as f:
 
         # handle genome
         groups = hdf5.list_nodes(f)
-        if 'matrix' in groups:
+        try:
+            # Cellranger 3.0
+            group = hdf5.get_node(f, 'matrix')
             if genome is not None:
                 raise NotImplementedError(
                     "Selecting genomes for Cellranger 3.0 files is not "
                     "currently supported. Please file an issue at "
                     "https://github.com/KrishnaswamyLab/scprep/issues")
-        else:
+        except (KeyError, IndexError):
+            # Cellranger 2.0
             if genome is None:
                 print_genomes = ", ".join(groups)
                 genome = groups[0]
@@ -281,10 +288,6 @@ def load_10X_HDF5(filename, genome=None, sparse=True, gene_labels='symbol',
                     "Genome {} not found in {}. "
                     "Available genomes: {}".format(genome, filename,
                                                    print_genomes))
-
-        # default allow_duplicates
-        if allow_duplicates is None:
-            allow_duplicates = not sparse
 
         try:
             # Cellranger 3.0
