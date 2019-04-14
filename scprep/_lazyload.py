@@ -25,8 +25,8 @@ class AliasModule(object):
         super_setattr = super().__setattr__
         if members is None:
             members = []
+        builtin_members = ['__class__', '__doc__']
         super_setattr('__module_name__', name)
-        super_setattr('__module_members__', members)
         # create submodules
         submodules = []
         for member in members:
@@ -40,6 +40,7 @@ class AliasModule(object):
                     "{}.{}".format(name, member)))
                 submodules.append(member)
         super_setattr("__submodules__", submodules)
+        super_setattr("__builtin_members__", builtin_members)
 
     @property
     def __loaded_module__(self):
@@ -59,6 +60,13 @@ class AliasModule(object):
         if attr in super_getattr("__submodules__"):
             # accessing a submodule, return directly
             return super_getattr(attr)
+        elif attr in super_getattr("__builtin_members__"):
+            if super_getattr("__module_name__") in sys.modules:
+                # already loaded, return the attribute on the module
+                return getattr(super_getattr("__loaded_module__"), attr)
+            else:
+                # not loaded, return the attribute from this class
+                return super_getattr(attr)
         else:
             # accessing an unknown member
             # access lazy loaded member from loaded module
