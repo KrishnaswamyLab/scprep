@@ -73,6 +73,7 @@ def _is_tables(obj, allow_file=True, allow_group=True, allow_dataset=True):
             types.append(tables.Group)
         if allow_dataset:
             types.append(tables.CArray)
+            types.append(tables.Array)
     except NameError:
         return False
     return isinstance(obj, tuple(types))

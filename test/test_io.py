@@ -43,12 +43,12 @@ def test_10X():
     assert X.shape == (100, 100)
     assert isinstance(X, pd.SparseDataFrame)
     assert X.columns[0] == "Arl8b (ENSMUSG00000030105)"
-    X_generanger3 = scprep.io.load_10X(
-        os.path.join(data.data_dir, "test_10X_generanger3"),
+    X_cellranger3 = scprep.io.load_10X(
+        os.path.join(data.data_dir, "test_10X_cellranger3"),
         gene_labels="both")
-    np.testing.assert_array_equal(X.index, X_generanger3.index)
-    np.testing.assert_array_equal(X.columns, X_generanger3.columns)
-    np.testing.assert_array_equal(X.index, X_generanger3.index)
+    np.testing.assert_array_equal(X.index, X_cellranger3.index)
+    np.testing.assert_array_equal(X.columns, X_cellranger3.columns)
+    np.testing.assert_array_equal(X.index, X_cellranger3.index)
     assert_raise_message(
         ValueError,
         "gene_labels='invalid' not recognized. "
@@ -139,23 +139,61 @@ def test_10X_zip_not_a_file():
 
 def test_10X_HDF5():
     X = data.load_10X()
-    # tables backend
     h5_file = os.path.join(data.data_dir, "test_10X.h5")
+    # automatic tables backend
     X_hdf5 = scprep.io.load_10X_HDF5(h5_file)
     assert isinstance(X_hdf5, pd.SparseDataFrame)
     assert np.sum(np.sum(X != X_hdf5)) == 0
     np.testing.assert_array_equal(X.columns, X_hdf5.columns)
     np.testing.assert_array_equal(X.index, X_hdf5.index)
-    # hdf5 backend
+    # explicit tables backend
+    X_hdf5 = scprep.io.load_10X_HDF5(h5_file, backend='tables')
+    assert isinstance(X_hdf5, pd.SparseDataFrame)
+    assert np.sum(np.sum(X != X_hdf5)) == 0
+    np.testing.assert_array_equal(X.columns, X_hdf5.columns)
+    np.testing.assert_array_equal(X.index, X_hdf5.index)
+    # explicit h5py backend
     X_hdf5 = scprep.io.load_10X_HDF5(h5_file, backend='h5py')
     assert isinstance(X_hdf5, pd.SparseDataFrame)
     assert np.sum(np.sum(X != X_hdf5)) == 0
     np.testing.assert_array_equal(X.columns, X_hdf5.columns)
     np.testing.assert_array_equal(X.index, X_hdf5.index)
-    # forced h5py backend
+    # automatic h5py backend
     tables = scprep.io.hdf5.tables
     del scprep.io.hdf5.tables
+    X_hdf5 = scprep.io.load_10X_HDF5(h5_file)
+    assert isinstance(X_hdf5, pd.SparseDataFrame)
+    assert np.sum(np.sum(X != X_hdf5)) == 0
+    np.testing.assert_array_equal(X.columns, X_hdf5.columns)
+    np.testing.assert_array_equal(X.index, X_hdf5.index)
+    scprep.io.hdf5.tables = tables
+
+
+def test_10X_HDF5_cellranger3():
+    X = data.load_10X()
+    h5_file = os.path.join(data.data_dir, "test_10X_cellranger3.h5")
+    # automatic tables backend
+    X_hdf5 = scprep.io.load_10X_HDF5(h5_file)
+    assert isinstance(X_hdf5, pd.SparseDataFrame)
+    assert np.sum(np.sum(X != X_hdf5)) == 0
+    np.testing.assert_array_equal(X.columns, X_hdf5.columns)
+    np.testing.assert_array_equal(X.index, X_hdf5.index)
+    # explicit tables backend
+    X_hdf5 = scprep.io.load_10X_HDF5(h5_file, backend='tables')
+    assert isinstance(X_hdf5, pd.SparseDataFrame)
+    assert np.sum(np.sum(X != X_hdf5)) == 0
+    np.testing.assert_array_equal(X.columns, X_hdf5.columns)
+    np.testing.assert_array_equal(X.index, X_hdf5.index)
+    # explicit h5py backend
     X_hdf5 = scprep.io.load_10X_HDF5(h5_file, backend='h5py')
+    assert isinstance(X_hdf5, pd.SparseDataFrame)
+    assert np.sum(np.sum(X != X_hdf5)) == 0
+    np.testing.assert_array_equal(X.columns, X_hdf5.columns)
+    np.testing.assert_array_equal(X.index, X_hdf5.index)
+    # automatic h5py backend
+    tables = scprep.io.hdf5.tables
+    del scprep.io.hdf5.tables
+    X_hdf5 = scprep.io.load_10X_HDF5(h5_file)
     assert isinstance(X_hdf5, pd.SparseDataFrame)
     assert np.sum(np.sum(X != X_hdf5)) == 0
     np.testing.assert_array_equal(X.columns, X_hdf5.columns)
@@ -172,6 +210,18 @@ def test_10X_HDF5_invalid_genome():
         scprep.io.load_10X_HDF5,
         filename=h5_file,
         genome="invalid")
+
+
+def test_10X_HDF5_genome_cellranger3():
+    h5_file = os.path.join(data.data_dir, "test_10X_cellranger3.h5")
+    assert_raise_message(
+        NotImplementedError,
+        "Selecting genomes for Cellranger 3.0 files is not "
+        "currently supported. Please file an issue at "
+        "https://github.com/KrishnaswamyLab/scprep/issues",
+        scprep.io.load_10X_HDF5,
+        filename=h5_file,
+        genome="GRCh38")
 
 
 def test_10X_HDF5_invalid_backend():
