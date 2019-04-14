@@ -11,6 +11,10 @@ def test_lazyload():
     postloaded_modules = set([m.split('.')[0] for m in sys.modules.keys()])
     scprep_loaded = postloaded_modules.difference(preloaded_modules)
     for module in scprep._lazyload._importspec.keys():
-        assert getattr(
-            scprep._lazyload, module).__class__ is scprep._lazyload.AliasModule
+        if module in preloaded_modules:
+            assert getattr(
+                scprep._lazyload, module).__class__ is type(scprep)
+        else:
+            assert getattr(
+                scprep._lazyload, module).__class__ is scprep._lazyload.AliasModule
         assert module not in scprep_loaded, module
