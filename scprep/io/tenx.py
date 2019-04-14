@@ -272,7 +272,7 @@ def load_10X_HDF5(filename, genome=None, sparse=True, gene_labels='symbol',
                     "Selecting genomes for Cellranger 3.0 files is not "
                     "currently supported. Please file an issue at "
                     "https://github.com/KrishnaswamyLab/scprep/issues")
-        except (KeyError, IndexError):
+        except (AttributeError, KeyError):
             # Cellranger 2.0
             if genome is None:
                 print_genomes = ", ".join(groups)
