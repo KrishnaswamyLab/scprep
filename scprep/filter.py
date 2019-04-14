@@ -247,7 +247,8 @@ def filter_library_size(data, *extra_data, cutoff=None, percentile=None,
 
 
 def filter_gene_set_expression(data, *extra_data, genes=None,
-                               starts_with=None, ends_with=None, regex=None,
+                               starts_with=None, ends_with=None,
+                               exact_word=None, regex=None,
                                cutoff=None, percentile=None,
                                library_size_normalize=False,
                                keep_cells='below',
@@ -271,6 +272,8 @@ def filter_gene_set_expression(data, *extra_data, genes=None,
         If not None, select genes that start with this prefix
     ends_with : str or None, optional (default: None)
         If not None, select genes that end with this suffix
+    exact_word : str, list-like or None, optional (default: None)
+        If not None, select genes that contain this exact word.
     regex : str or None, optional (default: None)
         If not None, select genes that match this regular expression
     cutoff : float, optional (default: 2000)
@@ -301,7 +304,8 @@ def filter_gene_set_expression(data, *extra_data, genes=None,
     """
     cell_sums = measure.gene_set_expression(
         data, genes,
-        starts_with=starts_with, ends_with=ends_with, regex=regex,
+        starts_with=starts_with, ends_with=ends_with,
+        exact_word=exact_word, regex=regex,
         library_size_normalize=library_size_normalize)
     return filter_values(data, *extra_data, values=cell_sums,
                          cutoff=cutoff, percentile=percentile,

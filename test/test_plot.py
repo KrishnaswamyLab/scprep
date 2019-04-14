@@ -480,10 +480,22 @@ class Test10X(unittest.TestCase):
         scprep.plot.plot_library_size(self.X, cutoff=1000, log=True,
                                       xlabel="x label", ylabel="y label")
 
+    def test_histogram_list_of_lists(self):
+        scprep.plot.plot_library_size(scprep.utils.toarray(self.X).tolist())
+
+    def test_histogram_array(self):
+        scprep.plot.plot_library_size(scprep.utils.toarray(self.X))
+
     def test_histogram_multiple(self):
         scprep.plot.histogram([scprep.select.select_rows(self.X, idx=0),
                                [1, 2, 2, 2, 3]],
                               color=['r', 'b'])
+
+    def test_histogram_multiple_cutoff(self):
+        scprep.plot.plot_library_size(self.X, cutoff=[500, 1000], log=True)
+
+    def test_histogram_multiple_percentile(self):
+        scprep.plot.plot_library_size(self.X, percentile=[10, 90], log=True)
 
     def test_plot_library_size_multiple(self):
         scprep.plot.plot_library_size([
@@ -497,6 +509,14 @@ class Test10X(unittest.TestCase):
                 self.X, idx=np.arange(self.X.shape[0] // 2))],
             starts_with="D",
             color=['r', 'b'])
+
+    def test_gene_set_expression_list_of_lists(self):
+        scprep.plot.plot_gene_set_expression(
+            scprep.utils.toarray(self.X).tolist(), genes=[0, 1])
+
+    def test_gene_set_expression_array(self):
+        scprep.plot.plot_gene_set_expression(scprep.utils.toarray(self.X),
+                                             genes=[0, 1])
 
     def test_plot_gene_set_expression_single_gene(self):
         scprep.plot.plot_gene_set_expression(
@@ -557,7 +577,8 @@ class Test10X(unittest.TestCase):
         ax = scprep.plot.jitter(np.where(self.X_pca[:, 0] > 0, '+', '-'),
                                 self.X_pca[:, 1], c=np.random.choice(
             ['hello', 'world'], self.X_pca.shape[0], replace=True),
-            legend_title="test", title="jitter", filename="test.png")
+            legend_title="test", title="jitter", filename="test_jitter.png")
+        assert os.path.exists("test_jitter.png")
         assert ax.get_legend().get_title().get_text() == 'test'
         assert ax.get_title() == 'jitter'
         assert ax.get_xlim() == (-0.5, 1.5)
@@ -870,14 +891,16 @@ class Test10X(unittest.TestCase):
             clusters=np.random.choice(
                 np.arange(10), replace=True, size=self.X.shape[0]),
             gene_names=self.X.columns,
-            markers={'tissue': [self.X.columns[0]]})
+            markers={'tissue': self.X.columns[:2],
+                     'other tissue': self.X.columns[2:4]})
 
     def test_marker_plot_list(self):
         scprep.plot.marker_plot(
             data=self.X,
             clusters=np.random.choice(
                 np.arange(10), replace=True, size=self.X.shape[0]),
-            markers=self.X.columns)
+            markers=self.X.columns,
+            normalize_emd=False, normalize_expression=False)
 
     def test_marker_plot_bad_gene_names(self):
         assert_raise_message(
@@ -896,7 +919,10 @@ class Test10X(unittest.TestCase):
             data=self.X,
             clusters=np.random.choice(
                 np.arange(10), replace=True, size=self.X.shape[0]),
-            markers={'tissue': [self.X.columns[0]]})
+            markers={'tissue': self.X.columns[:2],
+                     'other tissue': self.X.columns[2:4]},
+            reorder_tissues=False,
+            reorder_markers=False)
 
     def test_marker_plot_no_gene_names(self):
         assert_raise_message(
@@ -909,17 +935,6 @@ class Test10X(unittest.TestCase):
             clusters=np.random.choice(
                 np.arange(10), replace=True, size=self.X.shape[0]),
             markers={'tissue': ['z']})
-
-    def test_style_phate(self):
-        ax = scprep.plot.scatter2d(self.X_pca)
-        scprep.plot.style.style_phate(ax)
-        assert len(ax.get_xticks()) == 0
-        assert len(ax.get_yticks()) == 0
-        ax = scprep.plot.scatter3d(self.X_pca)
-        scprep.plot.style.style_phate(ax)
-        assert len(ax.get_xticks()) == 0
-        assert len(ax.get_yticks()) == 0
-        assert len(ax.get_zticks()) == 0
 
     def test_label_axis_va(self):
         ax = scprep.plot.scatter2d(self.X_pca)

@@ -406,3 +406,43 @@ class Test10X(unittest.TestCase):
             ValueError,
             "Expected n (101) <= n_samples (100)",
             scprep.select.subsample, self.X, n=self.X.shape[0] + 1)
+
+
+def test_string_subset_exact_word():
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['hello', 'world'], exact_word='hello'), [True, False])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        [' hello ', 'world'], exact_word='hello'), [True, False])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['(hello)', 'world'], exact_word='hello'), [True, False])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['[hello]', 'world'], exact_word='hello'), [True, False])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['hello...?', 'world'], exact_word='hello'), [True, False])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['hello world', 'world'], exact_word='hello'), [True, False])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['(hello) world', 'world'], exact_word='hello'), [True, False])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['World, hello!', 'world'], exact_word='hello'), [True, False])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['helloooo!', 'world'], exact_word='hello'), [False, False])
+
+
+def test_string_subset_list():
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['hello', 'world'], exact_word=['hello', 'world']), [True, True])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['hello', 'world'], exact_word=['hello', 'earth']), [True, False])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['hello', 'world'], starts_with=['hell', 'w']), [True, True])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['hello', 'world'], starts_with=['hell', 'e']), [True, False])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['hello', 'world'], ends_with=['ello', 'ld']), [True, True])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['hello', 'world'], ends_with=['ello', 'h']), [True, False])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['hello', 'world'], regex=['^hell.', '^.or.*']), [True, True])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['hello', 'world'], regex=['^hell', '^earth']), [True, False])

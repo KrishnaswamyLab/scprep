@@ -1,5 +1,6 @@
 from tools import data, matrix, utils
 import scprep
+from scipy import sparse
 from sklearn.utils.testing import assert_raise_message, assert_warns_message
 import numpy as np
 import pandas as pd
@@ -16,88 +17,88 @@ def test_with_pkg():
 
 
 def test_with_pkg_version_none():
-    @scprep.utils._with_pkg(pkg="pandas")
+    @scprep.utils._with_pkg(pkg="numpy")
     def test():
         return True
     assert test()
 
 
 def test_with_pkg_version_exact():
-    major, minor = [int(v) for v in pd.__version__.split(".")[:2]]
+    major, minor = [int(v) for v in np.__version__.split(".")[:2]]
 
-    @scprep.utils._with_pkg(pkg="pandas", min_version="{}.{}".format(major, minor))
+    @scprep.utils._with_pkg(pkg="numpy", min_version="{}.{}".format(major, minor))
     def test():
         return True
     assert test()
 
 
 def test_with_pkg_version_exact_no_minor():
-    major, minor = [int(v) for v in pd.__version__.split(".")[:2]]
+    major, minor = [int(v) for v in np.__version__.split(".")[:2]]
 
-    @scprep.utils._with_pkg(pkg="pandas", min_version=major)
+    @scprep.utils._with_pkg(pkg="numpy", min_version=major)
     def test():
         return True
     assert test()
 
 
 def test_with_pkg_version_pass_major():
-    major, minor = [int(v) for v in pd.__version__.split(".")[:2]]
+    major, minor = [int(v) for v in np.__version__.split(".")[:2]]
 
-    @scprep.utils._with_pkg(pkg="pandas", min_version=major - 1)
+    @scprep.utils._with_pkg(pkg="numpy", min_version=major - 1)
     def test():
         return True
     assert test()
 
 
 def test_with_pkg_version_pass_minor():
-    major, minor = [int(v) for v in pd.__version__.split(".")[:2]]
+    major, minor = [int(v) for v in np.__version__.split(".")[:2]]
 
-    @scprep.utils._with_pkg(pkg="pandas", min_version="{}.{}".format(major, minor - 1))
+    @scprep.utils._with_pkg(pkg="numpy", min_version="{}.{}".format(major, minor - 1))
     def test():
         return True
     assert test()
 
 
 def test_with_pkg_version_fail_major():
-    major, minor = [int(v) for v in pd.__version__.split(".")[:2]]
+    major, minor = [int(v) for v in np.__version__.split(".")[:2]]
 
-    @scprep.utils._with_pkg(pkg="pandas", min_version=major + 1)
+    @scprep.utils._with_pkg(pkg="numpy", min_version=major + 1)
     def test():
         return True
     assert_raise_message(ImportError,
-                         "scprep requires pandas>={0} (installed: {1}). "
+                         "scprep requires numpy>={0} (installed: {1}). "
                          "Please upgrade it with e.g."
-                         " `pip install --user --upgrade pandas".format(
-                             major + 1, pd.__version__),
+                         " `pip install --user --upgrade numpy".format(
+                             major + 1, np.__version__),
                          test)
 
 
 def test_with_pkg_version_fail_minor():
-    major, minor = [int(v) for v in pd.__version__.split(".")[:2]]
+    major, minor = [int(v) for v in np.__version__.split(".")[:2]]
 
-    @scprep.utils._with_pkg(pkg="pandas", min_version="{}.{}".format(major, minor + 1))
+    @scprep.utils._with_pkg(pkg="numpy", min_version="{}.{}".format(major, minor + 1))
     def test():
         return True
     assert_raise_message(ImportError,
-                         "scprep requires pandas>={0}.{1} (installed: {2}). "
+                         "scprep requires numpy>={0}.{1} (installed: {2}). "
                          "Please upgrade it with e.g."
-                         " `pip install --user --upgrade pandas".format(
-                             major, minor + 1, pd.__version__),
+                         " `pip install --user --upgrade numpy".format(
+                             major, minor + 1, np.__version__),
                          test)
 
 
 def test_with_pkg_version_memoize():
-    major, minor = [int(v) for v in pd.__version__.split(".")[:2]]
+    major, minor = [int(v) for v in np.__version__.split(".")[:2]]
     min_version = "{}.{}".format(major, minor + 1)
 
-    @scprep.utils._with_pkg(pkg="pandas", min_version=min_version)
+    @scprep.utils._with_pkg(pkg="numpy", min_version=min_version)
     def test():
         return True
-    true_version = pd.__version__
-    pd.__version__ = min_version
+    true_version = np.__version__
+    np.__version__ = min_version
     # should pass
     assert test()
-    pd.__version__ = true_version
+    np.__version__ = true_version
     # should fail, but already memoized
     assert test()
 
@@ -114,7 +115,8 @@ def test_combine_batches():
     Y2, sample_labels = scprep.utils.combine_batches(
         [X, scprep.select.select_rows(
             X, idx=np.arange(X.shape[0] // 2))],
-        batch_labels=[0, 1])
+        batch_labels=[0, 1],
+        append_to_cell_names=False)
     assert utils.assert_matrix_class_equivalent(Y, Y2)
     utils.assert_all_equal(Y, Y2)
     assert np.all(Y.index == Y2.index)
@@ -141,6 +143,17 @@ def test_combine_batches():
         check=utils.assert_all_equal)
 
 
+def test_combine_batches_uncommon_genes():
+    X = data.load_10X()
+    Y = X.iloc[:, :X.shape[1] // 2]
+    assert_warns_message(
+        UserWarning,
+        "Input data has inconsistent column names. "
+        "Subsetting to {} common columns.".format(Y.shape[1]),
+        scprep.utils.combine_batches,
+        [X, Y], ['x', 'y'])
+
+
 def test_combine_batches_errors():
     X = data.load_10X()
     assert_warns_message(
@@ -162,7 +175,8 @@ def test_combine_batches_errors():
         "Expected data all with the same number of columns. "
         "Got {}, {}".format(X.shape[1], X.shape[1] // 2),
         scprep.utils.combine_batches,
-        [X, scprep.select.select_cols(X, idx=np.arange(X.shape[1] // 2))],
+        [scprep.utils.toarray(X), scprep.select.select_cols(
+            scprep.utils.toarray(X), idx=np.arange(X.shape[1] // 2))],
         batch_labels=[0, 1])
     assert_raise_message(
         ValueError,
@@ -213,6 +227,15 @@ def test_toarray_list_of_strings():
     X = ['hello', 'world', [1, 2, 3]]
     X = scprep.utils.toarray(X)
     assert isinstance(X[2], np.ndarray)
+
+
+def test_to_array_or_spmatrix_list_of_strings():
+    X = data.generate_positive_sparse_matrix(shape=(50, 50))
+    X = scprep.utils.to_array_or_spmatrix(
+        [X, sparse.csr_matrix(X), 'hello', 'world', [1, 2, 3]])
+    assert isinstance(X[0], np.ndarray)
+    assert isinstance(X[1], sparse.csr_matrix)
+    assert isinstance(X[4], np.ndarray)
 
 
 def test_matrix_sum():

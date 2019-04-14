@@ -16,13 +16,14 @@ test_requires = [
     'fcsparser',
     'tables',
     'h5py',
+    'rpy2>=3.0',
     'matplotlib>=3.0.0',
     'coverage',
     'coveralls'
 ]
 
 doc_requires = [
-    'sphinx',
+    'sphinx<=1.8.5',
     'sphinxcontrib-napoleon',
     'autodocsumm',
     'ipykernel',

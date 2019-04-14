@@ -2,10 +2,8 @@
 # (C) 2018 Krishnaswamy Lab GPLv2
 from decorator import decorator
 
-from .. import utils
-
-tables = utils._try_import("tables")
-h5py = utils._try_import("h5py")
+from .._lazyload import tables
+from .._lazyload import h5py
 
 try:
     ModuleNotFoundError
@@ -75,6 +73,7 @@ def _is_tables(obj, allow_file=True, allow_group=True, allow_dataset=True):
             types.append(tables.Group)
         if allow_dataset:
             types.append(tables.CArray)
+            types.append(tables.Array)
     except NameError:
         return False
     return isinstance(obj, tuple(types))

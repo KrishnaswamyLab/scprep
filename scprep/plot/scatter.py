@@ -10,9 +10,8 @@ from .utils import (_get_figure, _is_color_array,
 from .tools import (create_colormap, create_normalize,
                     label_axis, generate_colorbar, generate_legend)
 
-plt = utils._try_import("matplotlib.pyplot")
-mpl = utils._try_import("matplotlib")
-animation = utils._try_import("matplotlib.animation")
+from .._lazyload import matplotlib as mpl
+plt = mpl.pyplot
 
 
 class _ScatterParams(object):
@@ -100,7 +99,11 @@ class _ScatterParams(object):
         return self._c is None or mpl.colors.is_color_like(self._c)
 
     def array_c(self):
-        return _is_color_array(self._c)
+        try:
+            return self._array_c
+        except AttributeError:
+            self._array_c = _is_color_array(self._c)
+            return self._array_c
 
     @property
     def discrete(self):
@@ -976,7 +979,7 @@ def rotate_scatter3d(data,
         ax.view_init(azim=azim + i * degrees_per_frame)
         return ax
 
-    ani = animation.FuncAnimation(
+    ani = mpl.animation.FuncAnimation(
         fig, animate, init_func=init,
         frames=range(frames), interval=interval, blit=False)
 

@@ -4,8 +4,8 @@ import warnings
 from .. import utils
 from .utils import _get_figure, parse_fontsize, temp_fontsize
 
-plt = utils._try_import("matplotlib.pyplot")
-mpl = utils._try_import("matplotlib")
+from .._lazyload import matplotlib as mpl
+plt = mpl.pyplot
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)

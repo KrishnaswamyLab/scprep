@@ -3,9 +3,9 @@ import platform
 
 from .. import utils
 
-plt = utils._try_import("matplotlib.pyplot")
-mpl = utils._try_import("matplotlib")
-mplot3d = utils._try_import("mpl_toolkits.mplot3d")
+from .._lazyload import matplotlib as mpl
+from .._lazyload import mpl_toolkits
+plt = mpl.pyplot
 
 
 def _with_default(param, default):
@@ -24,6 +24,9 @@ def _get_figure(ax=None, figsize=None, subplot_kw=None):
     if subplot_kw is None:
         subplot_kw = {}
     if ax is None:
+        if 'projection' in subplot_kw and subplot_kw['projection'] == '3d':
+            # ensure mplot3d is loaded
+            mpl_toolkits.mplot3d.Axes3D
         fig, ax = plt.subplots(figsize=figsize, subplot_kw=subplot_kw)
         show_fig = True
     else:
@@ -37,7 +40,7 @@ def _get_figure(ax=None, figsize=None, subplot_kw=None):
                 raise e
         if 'projection' in subplot_kw:
             if subplot_kw['projection'] == '3d' and \
-                    not isinstance(ax, mplot3d.Axes3D):
+                    not isinstance(ax, mpl_toolkits.mplot3d.Axes3D):
                 raise TypeError("Expected ax with projection='3d'. "
                                 "Got 2D axis instead.")
         show_fig = False
@@ -45,7 +48,13 @@ def _get_figure(ax=None, figsize=None, subplot_kw=None):
 
 
 def _is_color_array(c):
-    return c is not None and np.all([mpl.colors.is_color_like(val) for val in c])
+    if c is None:
+        return False
+    else:
+        for val in c:
+            if not mpl.colors.is_color_like(val):
+                return False
+        return True
 
 
 def _in_ipynb():
