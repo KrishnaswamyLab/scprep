@@ -25,8 +25,8 @@ class AliasModule(object):
         super_setattr = super().__setattr__
         if members is None:
             members = []
+        builtin_members = ['__class__']
         super_setattr('__module_name__', name)
-        super_setattr('__module_members__', members)
         # create submodules
         submodules = []
         for member in members:
@@ -39,7 +39,7 @@ class AliasModule(object):
                 super_setattr(member, AliasModule(
                     "{}.{}".format(name, member)))
                 submodules.append(member)
-        super_setattr("__submodules__", submodules)
+        super_setattr("__members__", submodules + builtin_members)
 
     @property
     def __loaded_module__(self):
@@ -56,7 +56,7 @@ class AliasModule(object):
     def __getattribute__(self, attr):
         # easy access to AliasModule members to avoid recursionerror
         super_getattr = super().__getattribute__
-        if attr in super_getattr("__submodules__"):
+        if attr in super_getattr("__members__"):
             # accessing a submodule, return directly
             return super_getattr(attr)
         else:
