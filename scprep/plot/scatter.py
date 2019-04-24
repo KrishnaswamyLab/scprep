@@ -96,9 +96,13 @@ class _ScatterParams(object):
             return 200 / np.sqrt(self.size)
 
     def constant_c(self):
+        """Is c constant?
+
+        Either None or a single matplotlib color"""
         return self._c is None or mpl.colors.is_color_like(self._c)
 
     def array_c(self):
+        """Is c an array of matplotkib colors?"""
         try:
             return self._array_c
         except AttributeError:
@@ -107,6 +111,7 @@ class _ScatterParams(object):
 
     @property
     def c_unique(self):
+        """Get unique values in c to avoid recomputing every time"""
         try:
             return self._c_unique
         except AttributeError:
@@ -115,6 +120,7 @@ class _ScatterParams(object):
 
     @property
     def n_c_unique(self):
+        """Number of unique values in c"""
         try:
             return self._n_c_unique
         except AttributeError:
@@ -123,6 +129,13 @@ class _ScatterParams(object):
 
     @property
     def discrete(self):
+        """Is the color array discrete?
+
+        If not provided:
+        * If c is constant or an array, return None
+        * If cmap is a dict, return True
+        * If c has 20 or less unique values, return True
+        * Otherwise, return False"""
         if self._discrete is not None:
             return self._discrete
         else:
@@ -140,6 +153,11 @@ class _ScatterParams(object):
 
     @property
     def c_discrete(self):
+        """Discretized form of c
+
+        If c is discrete then this converts it to
+        integers from 0 to `n_c_unique`
+        """
         if self._c_discrete is None:
             if isinstance(self._cmap, dict):
                 self._labels = np.array(
@@ -163,6 +181,7 @@ class _ScatterParams(object):
 
     @property
     def labels(self):
+        """Labels associated with each integer c, if c is discrete"""
         if self.constant_c() or self.array_c():
             return None
         elif self.discrete:
@@ -203,6 +222,7 @@ class _ScatterParams(object):
                 return np.max(self.c)
 
     def list_cmap(self):
+        """Is the colormap a list?"""
         return hasattr(self._cmap, '__len__') and \
             not isinstance(self._cmap, (str, dict))
 
