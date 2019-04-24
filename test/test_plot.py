@@ -281,7 +281,7 @@ class TestScatterParams(unittest.TestCase):
         np.testing.assert_equal(params.cmap([0, 255]),
                                 [[1, 0, 0, 1], [0, 0, 0, 1]])
 
-    def test_dict_cmap(self):
+    def test_dict_cmap_fwd(self):
         params = _ScatterParams(x=self.x, y=self.y,
                                 c=np.where(self.c > 0, '+', '-'),
                                 cmap={'+': 'k', '-': 'r'})
@@ -299,6 +299,8 @@ class TestScatterParams(unittest.TestCase):
                 np.testing.assert_equal(params.cmap.colors,
                                         [[1, 0, 0, 1], [0, 0, 0, 1]])
                 assert np.all(params._labels == np.array(['-', '+']))
+
+    def test_dict_cmap_rev(self):
         params = _ScatterParams(x=self.x, y=self.y,
                                 c=np.where(self.c > 0, '+', '-'),
                                 cmap={'-': 'k', '+': 'r'})
@@ -315,6 +317,14 @@ class TestScatterParams(unittest.TestCase):
                 np.testing.assert_equal(params.cmap.colors,
                                         [[1, 0, 0, 1], [0, 0, 0, 1]])
                 assert np.all(params._labels == np.array(['+', '-']))
+
+    def test_dict_cmap_constant(self):
+        params = _ScatterParams(x=self.x, y=self.y,
+                                c=np.full_like(self.c, '+', dtype=str),
+                                cmap={'-': 'k', '+': 'r'})
+        np.testing.assert_equal(params.cmap.colors,
+                                [[1, 0, 0, 1]])
+        assert np.all(params._labels == np.array(['+']))
 
     def test_cmap_given(self):
         params = _ScatterParams(x=self.x, y=self.y, c=self.c, cmap='viridis')

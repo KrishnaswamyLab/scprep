@@ -106,11 +106,19 @@ class _ScatterParams(object):
             return self._array_c
 
     @property
+    def c_unique(self):
+        try:
+            return self._c_unique
+        except AttributeError:
+            self._c_unique = np.unique(self._c)
+            return self._c_unique
+
+    @property
     def n_c_unique(self):
         try:
             return self._n_c_unique
         except AttributeError:
-            self._n_c_unique = len(np.unique(self._c))
+            self._n_c_unique = len(self.c_unique)
             return self._n_c_unique
 
     @property
@@ -134,7 +142,8 @@ class _ScatterParams(object):
     def c_discrete(self):
         if self._c_discrete is None:
             if isinstance(self._cmap, dict):
-                self._labels = np.array(list(self._cmap.keys()))
+                self._labels = np.array(
+                    [k for k in self._cmap.keys() if k in self.c_unique])
                 self._c_discrete = np.zeros_like(self._c, dtype=int)
                 for i, label in enumerate(self._labels):
                     self._c_discrete[self._c == label] = i
