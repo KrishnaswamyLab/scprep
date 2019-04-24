@@ -187,7 +187,7 @@ class TestScatterParams(unittest.TestCase):
         assert params.discrete is False
         assert params.legend is True
         assert params.cmap_scale == 'linear'
-        assert params.cmap == 'inferno'
+        assert params.cmap is plt.cm.inferno
         params = _ScatterParams(x=self.x, y=self.y, discrete=False,
                                 c=np.round(self.c % 1, 1))
         assert not params.array_c()
@@ -196,9 +196,9 @@ class TestScatterParams(unittest.TestCase):
         assert params.legend is True
         assert params.labels is None
         assert params.cmap_scale == 'linear'
-        assert params.cmap == 'inferno'
+        assert params.cmap is plt.cm.inferno
 
-    def test_discrete(self):
+    def test_discrete_tab10(self):
         params = _ScatterParams(x=self.x, y=self.y,
                                 c=np.where(self.c > 0, '+', '-'))
         assert not params.array_c()
@@ -209,6 +209,8 @@ class TestScatterParams(unittest.TestCase):
         assert params.vmax is None
         assert params.cmap_scale is None
         np.testing.assert_equal(params.cmap.colors, plt.cm.tab10.colors[:2])
+
+    def test_discrete_tab20(self):
         params = _ScatterParams(x=self.x, y=self.y, discrete=True,
                                 c=np.round(self.c % 1, 1))
         assert not params.array_c()
@@ -219,7 +221,30 @@ class TestScatterParams(unittest.TestCase):
         assert params.vmax is None
         assert params.cmap_scale is None
         assert params.extend is None
-        assert params.cmap == 'tab20'
+        assert isinstance(params.cmap, matplotlib.colors.ListedColormap)
+        np.testing.assert_equal(
+            params.cmap.colors,
+            plt.cm.tab20.colors[:len(np.unique(np.round(self.c % 1, 1)))])
+
+    def test_continuous_tab20(self):
+        params = _ScatterParams(x=self.x, y=self.y, discrete=False,
+                                cmap='tab20', c=np.round(self.c % 1, 1))
+        assert params.cmap is plt.cm.tab20
+
+    def test_discrete_dark2(self):
+        params = _ScatterParams(x=self.x, y=self.y, discrete=True,
+                                cmap='Dark2',
+                                c=np.where(self.c > 0, '+', '-'))
+        assert not params.array_c()
+        assert not params.constant_c()
+        assert params.discrete is True
+        assert params.legend is True
+        assert params.vmin is None
+        assert params.vmax is None
+        assert params.cmap_scale is None
+        assert params.extend is None
+        assert isinstance(params.cmap, matplotlib.colors.ListedColormap)
+        np.testing.assert_equal(params.cmap.colors, plt.cm.Dark2.colors[:2])
 
     def test_c_discrete(self):
         c = np.where(self.c > 0, 'a', 'b')
@@ -293,7 +318,7 @@ class TestScatterParams(unittest.TestCase):
 
     def test_cmap_given(self):
         params = _ScatterParams(x=self.x, y=self.y, c=self.c, cmap='viridis')
-        assert params.cmap == 'viridis'
+        assert params.cmap is matplotlib.cm.viridis
         assert not params.list_cmap()
 
     def test_cmap_scale_symlog(self):

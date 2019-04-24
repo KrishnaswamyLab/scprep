@@ -106,6 +106,14 @@ class _ScatterParams(object):
             return self._array_c
 
     @property
+    def n_c_unique(self):
+        try:
+            return self._n_c_unique
+        except AttributeError:
+            self._n_c_unique = len(np.unique(self._c))
+            return self._n_c_unique
+
+    @property
     def discrete(self):
         if self._discrete is not None:
             return self._discrete
@@ -120,7 +128,7 @@ class _ScatterParams(object):
                     return True
                 else:
                     # guess based on number of unique elements
-                    return len(np.unique(self._c)) <= 20
+                    return self.n_c_unique <= 20
 
     @property
     def c_discrete(self):
@@ -189,6 +197,15 @@ class _ScatterParams(object):
         return hasattr(self._cmap, '__len__') and \
             not isinstance(self._cmap, (str, dict))
 
+    def process_string_cmap(self, cmap):
+        """If necessary, subset a discrete colormap based on the number of colors"""
+        cmap = mpl.cm.get_cmap(cmap)
+        if self.discrete and cmap.N <= 20 and self.n_c_unique <= cmap.N:
+            return mpl.colors.ListedColormap(
+                cmap.colors[:self.n_c_unique])
+        else:
+            return cmap
+
     @property
     def cmap(self):
         if self._cmap is not None:
@@ -197,20 +214,21 @@ class _ScatterParams(object):
                     [mpl.colors.to_rgba(self._cmap[l]) for l in self.labels])
             elif self.list_cmap():
                 return create_colormap(self._cmap)
+            elif isinstance(self._cmap, str):
+                return self.process_string_cmap(self._cmap)
             else:
                 return self._cmap
         else:
             if self.constant_c() or self.array_c():
                 return None
             elif self.discrete:
-                n_unique_colors = len(np.unique(self.c))
+                n_unique_colors = self.n_c_unique
                 if n_unique_colors <= 10:
-                    return mpl.colors.ListedColormap(
-                        mpl.cm.tab10.colors[:n_unique_colors])
+                    return self.process_string_cmap('tab10')
                 else:
-                    return 'tab20'
+                    return self.process_string_cmap('tab20')
             else:
-                return 'inferno'
+                return self.process_string_cmap('inferno')
 
     @property
     def cmap_scale(self):
