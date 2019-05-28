@@ -2,22 +2,16 @@ import numpy as np
 import numbers
 import pandas as pd
 import warnings
-try:
-    import matplotlib.pyplot as plt
-    import matplotlib as mpl
-    from matplotlib import animation
-except ImportError:
-    pass
 
 from .. import utils, select
-from .utils import (_get_figure, _with_matplotlib, _is_color_array,
-                    show, _in_ipynb, parse_fontsize, temp_fontsize)
+from .utils import (_get_figure, _is_color_array,
+                    show, _in_ipynb, parse_fontsize, temp_fontsize,
+                    _with_default)
 from .tools import (create_colormap, create_normalize,
                     label_axis, generate_colorbar, generate_legend)
 
-
-def _with_default(param, default):
-    return param if param is not None else default
+from .._lazyload import matplotlib as mpl
+plt = mpl.pyplot
 
 
 class _ScatterParams(object):
@@ -43,6 +37,7 @@ class _ScatterParams(object):
         self.shuffle = shuffle
         self.check_size()
         self.check_c()
+        self.check_s()
         self.check_discrete()
         self.check_legend()
         self.check_cmap()
@@ -93,18 +88,54 @@ class _ScatterParams(object):
     @property
     def s(self):
         if self._s is not None:
-            return self._s
+            if isinstance(self._s, numbers.Number):
+                return self._s
+            else:
+                return self._s[self.plot_idx]
         else:
             return 200 / np.sqrt(self.size)
 
     def constant_c(self):
+        """Is c constant?
+
+        Either None or a single matplotlib color"""
         return self._c is None or mpl.colors.is_color_like(self._c)
 
     def array_c(self):
-        return _is_color_array(self._c)
+        """Is c an array of matplotkib colors?"""
+        try:
+            return self._array_c
+        except AttributeError:
+            self._array_c = _is_color_array(self._c)
+            return self._array_c
+
+    @property
+    def c_unique(self):
+        """Get unique values in c to avoid recomputing every time"""
+        try:
+            return self._c_unique
+        except AttributeError:
+            self._c_unique = np.unique(self._c)
+            return self._c_unique
+
+    @property
+    def n_c_unique(self):
+        """Number of unique values in c"""
+        try:
+            return self._n_c_unique
+        except AttributeError:
+            self._n_c_unique = len(self.c_unique)
+            return self._n_c_unique
 
     @property
     def discrete(self):
+        """Is the color array discrete?
+
+        If not provided:
+        * If c is constant or an array, return None
+        * If cmap is a dict, return True
+        * If c has 20 or less unique values, return True
+        * Otherwise, return False"""
         if self._discrete is not None:
             return self._discrete
         else:
@@ -118,13 +149,19 @@ class _ScatterParams(object):
                     return True
                 else:
                     # guess based on number of unique elements
-                    return len(np.unique(self._c)) <= 20
+                    return self.n_c_unique <= 20
 
     @property
     def c_discrete(self):
+        """Discretized form of c
+
+        If c is discrete then this converts it to
+        integers from 0 to `n_c_unique`
+        """
         if self._c_discrete is None:
             if isinstance(self._cmap, dict):
-                self._labels = np.array(list(self._cmap.keys()))
+                self._labels = np.array(
+                    [k for k in self._cmap.keys() if k in self.c_unique])
                 self._c_discrete = np.zeros_like(self._c, dtype=int)
                 for i, label in enumerate(self._labels):
                     self._c_discrete[self._c == label] = i
@@ -144,6 +181,7 @@ class _ScatterParams(object):
 
     @property
     def labels(self):
+        """Labels associated with each integer c, if c is discrete"""
         if self.constant_c() or self.array_c():
             return None
         elif self.discrete:
@@ -184,8 +222,18 @@ class _ScatterParams(object):
                 return np.max(self.c)
 
     def list_cmap(self):
+        """Is the colormap a list?"""
         return hasattr(self._cmap, '__len__') and \
             not isinstance(self._cmap, (str, dict))
+
+    def process_string_cmap(self, cmap):
+        """If necessary, subset a discrete colormap based on the number of colors"""
+        cmap = mpl.cm.get_cmap(cmap)
+        if self.discrete and cmap.N <= 20 and self.n_c_unique <= cmap.N:
+            return mpl.colors.ListedColormap(
+                cmap.colors[:self.n_c_unique])
+        else:
+            return cmap
 
     @property
     def cmap(self):
@@ -195,20 +243,21 @@ class _ScatterParams(object):
                     [mpl.colors.to_rgba(self._cmap[l]) for l in self.labels])
             elif self.list_cmap():
                 return create_colormap(self._cmap)
+            elif isinstance(self._cmap, str):
+                return self.process_string_cmap(self._cmap)
             else:
                 return self._cmap
         else:
             if self.constant_c() or self.array_c():
                 return None
             elif self.discrete:
-                n_unique_colors = len(np.unique(self.c))
+                n_unique_colors = self.n_c_unique
                 if n_unique_colors <= 10:
-                    return mpl.colors.ListedColormap(
-                        mpl.cm.tab10.colors[:n_unique_colors])
+                    return self.process_string_cmap('tab10')
                 else:
-                    return 'tab20'
+                    return self.process_string_cmap('tab20')
             else:
-                return 'inferno'
+                return self.process_string_cmap('inferno')
 
     @property
     def cmap_scale(self):
@@ -304,6 +353,13 @@ class _ScatterParams(object):
                 raise ValueError("Expected c of length {} or 1. Got {}".format(
                     self.size, len(self._c)))
 
+    def check_s(self):
+        if self._s is not None and not isinstance(self._s, numbers.Number):
+            self._s = utils.toarray(self._s).squeeze()
+            if not len(self._s) == self.size:
+                raise ValueError("Expected s of length {} or 1. Got {}".format(
+                    self.size, len(self._s)))
+
     def check_discrete(self):
         if self._discrete is False:
             if not np.all([isinstance(x, numbers.Number) for x in self._c]):
@@ -353,7 +409,7 @@ class _ScatterParams(object):
                 self._cmap_scale = 'linear'
 
 
-@_with_matplotlib
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def scatter(x, y, z=None,
             c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
             ax=None,
@@ -501,7 +557,8 @@ def scatter(x, y, z=None,
             x, y, z, c=c, discrete=discrete,
             cmap=cmap, cmap_scale=cmap_scale,
             vmin=vmin, vmax=vmax, s=s,
-            legend=legend, colorbar=colorbar)
+            legend=legend, colorbar=colorbar,
+            shuffle=shuffle)
 
         fig, ax, show_fig = _get_figure(
             ax, figsize, subplot_kw=params.subplot_kw)
@@ -558,7 +615,7 @@ def scatter(x, y, z=None,
     return ax
 
 
-@_with_matplotlib
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def scatter2d(data,
               c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
               ax=None, legend=None, colorbar=None,
@@ -710,7 +767,7 @@ def scatter2d(data,
                    **plot_kwargs)
 
 
-@_with_matplotlib
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def scatter3d(data,
               c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
               ax=None, legend=None, colorbar=None,
@@ -877,7 +934,7 @@ def scatter3d(data,
                    **plot_kwargs)
 
 
-@_with_matplotlib
+@utils._with_pkg(pkg="matplotlib", min_version=3)
 def rotate_scatter3d(data,
                      filename=None,
                      rotation_speed=30,
@@ -969,7 +1026,7 @@ def rotate_scatter3d(data,
         ax.view_init(azim=azim + i * degrees_per_frame)
         return ax
 
-    ani = animation.FuncAnimation(
+    ani = mpl.animation.FuncAnimation(
         fig, animate, init_func=init,
         frames=range(frames), interval=interval, blit=False)
 

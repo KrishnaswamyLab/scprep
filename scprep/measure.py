@@ -1,5 +1,6 @@
 import numpy as np
 import warnings
+import numbers
 
 from . import utils, select
 
@@ -21,8 +22,9 @@ def library_size(data):
     return library_size
 
 
-def gene_set_expression(data, genes=None, library_size_normalize=True,
-                        starts_with=None, ends_with=None, regex=None):
+def gene_set_expression(data, genes=None, library_size_normalize=False,
+                        starts_with=None, ends_with=None,
+                        exact_word=None, regex=None):
     """Measure the expression of a set of genes in each cell.
 
     Parameters
@@ -31,12 +33,14 @@ def gene_set_expression(data, genes=None, library_size_normalize=True,
         Input data
     genes : list-like, shape<=[n_features], optional (default: None)
         Integer column indices or string gene names included in gene set
-    library_size_normalize : bool, optional (default: True)
+    library_size_normalize : bool, optional (default: False)
         Divide gene set expression by library size
     starts_with : str or None, optional (default: None)
         If not None, select genes that start with this prefix
     ends_with : str or None, optional (default: None)
         If not None, select genes that end with this suffix
+    exact_word : str, list-like or None, optional (default: None)
+        If not None, select genes that contain this exact word.
     regex : str or None, optional (default: None)
         If not None, select genes that match this regular expression
 
@@ -45,13 +49,16 @@ def gene_set_expression(data, genes=None, library_size_normalize=True,
     gene_set_expression : list-like, shape=[n_samples]
         Sum over genes for each cell
     """
-    gene_data = select.select_cols(data, idx=genes, starts_with=starts_with,
-                                   ends_with=ends_with, regex=regex)
-    gene_set_expression = library_size(gene_data)
     if library_size_normalize:
-        libsize = library_size(data)
-        libsize[libsize == 0] = 1
-        gene_set_expression /= libsize * np.median(np.array(libsize))
+        from .normalize import library_size_normalize
+        data = library_size_normalize(data)
+    gene_data = select.select_cols(data, idx=genes, starts_with=starts_with,
+                                   ends_with=ends_with,
+                                   exact_word=exact_word, regex=regex)
+    if len(gene_data.shape) > 1:
+        gene_set_expression = library_size(gene_data)
+    else:
+        gene_set_expression = gene_data
     return gene_set_expression
 
 
@@ -80,6 +87,9 @@ def _get_percentile_cutoff(data, cutoff=None, percentile=None, required=False):
             raise ValueError(
                 "Only one of `cutoff` and `percentile` should be given."
                 "Got cutoff={}, percentile={}".format(cutoff, percentile))
+        if not isinstance(percentile, numbers.Number):
+            return [_get_percentile_cutoff(data, percentile=p)
+                    for p in percentile]
         if percentile < 1:
             warnings.warn(
                 "`percentile` expects values between 0 and 100."

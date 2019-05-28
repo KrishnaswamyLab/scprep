@@ -8,6 +8,7 @@ Data Input/Output
     :autosummary:
     :members:
     :inherited-members:
+    :imported-members:
     :show-inheritance:
 
 Filtering
@@ -92,10 +93,20 @@ Utilities
     :inherited-members:
     :show-inheritance:
 
+External Tools
+--------------
+
+.. automodule:: scprep.run
+    :autosummary:
+    :members:
+    :inherited-members:
+    :imported-members:
+    :show-inheritance:
+
 HDF5
 ----
 
-.. automodule:: scprep.hdf5
+.. automodule:: scprep.io.hdf5
     :autosummary:
     :members:
     :inherited-members:

@@ -153,7 +153,7 @@ class SparseInputPCA(sklearn.base.BaseEstimator):
         """Principal axes in feature space, representing the
         directions of maximum variance in the data.
 
-        The components are sorted by explained_variance_.
+        The components are sorted by explained variance.
         """
         return self.proj_op.inverse_transform(self.pca_op.components_)
 

@@ -4,7 +4,14 @@ import numbers
 from scipy import sparse
 import warnings
 import re
+import sys
+
 from . import utils
+
+if int(sys.version.split(".")[1]) < 7:
+    _re_pattern = type(re.compile(''))
+else:
+    _re_pattern = re.Pattern
 
 
 def _is_1d(data):
@@ -12,6 +19,12 @@ def _is_1d(data):
         return len(data.shape) == 1
     except AttributeError:
         return True
+
+
+def _check_idx_1d(idx):
+    if (not _is_1d(idx)) and np.prod(idx.shape) != np.max(idx.shape):
+        raise ValueError(
+            "Expected idx to be 1D. Got shape {}".format(idx.shape))
 
 
 def _get_columns(data):
@@ -65,29 +78,60 @@ def _check_rows_compatible(*data):
 
 
 def _convert_dataframe_1d(idx):
-    if (not _is_1d(idx)) and np.prod(idx.shape) != np.max(idx.shape):
-        raise ValueError(
-            "Expected idx to be 1D. Got shape {}".format(idx.shape))
-    if idx.shape[1] == 1:
-        idx = idx.loc[:, idx.columns[0]]
-    else:
-        idx = idx.loc[idx.index[0], :]
+    _check_idx_1d(idx)
+    idx = idx.iloc[:, 0] if idx.shape[1] == 1 else idx.iloc[0, :]
     return idx
 
 
-def _get_string_subset(data, starts_with=None, ends_with=None, regex=None):
+def _string_vector_match(data, match, fun, dtype=str):
+    """Get a boolean match array from a vector
+
+    Parameters
+    ----------
+    data : list-like
+        Vector to be matched against
+    match : `dtype` or list-like
+        Match criteria
+    fun : callable(x, match)
+        Function that returns True if `match` matches `x`
+    dtype : type, optional (default: str)
+        Expected type(match) (if not list-like)
+
+    Returns
+    -------
+    data_match : list-like, dtype=bool
+    """
+    if isinstance(match, dtype):
+        fun = np.vectorize(fun)
+        return fun(data, match)
+    else:
+        return np.any([_string_vector_match(data, m, fun, dtype=dtype)
+                       for m in match], axis=0)
+
+
+def _exact_word_regex(word):
+    allowed_chars = ['\\(', '\\)', '\\[', '\\]', '\\.',
+                     ',', '!', '\\?', ' ', '^', '$']
+    wildcard = "(" + "|".join(allowed_chars) + ")+"
+    return "{wildcard}{word}{wildcard}".format(wildcard=wildcard, word=word)
+
+
+def _get_string_subset_mask(data, starts_with=None, ends_with=None,
+                            exact_word=None, regex=None):
     """Get a subset from a string array
 
     Parameters
     ----------
     data : array-like, shape=[n_samples, n_features] or [n_features]
         Input pd.DataFrame, or list of names
-    starts_with : str or None, optional (default: None)
-        If not None, only return names that start with this prefix
-    ends_with : str or None, optional (default: None)
-        If not None, only return names that end with this suffix
-    regex : str or None, optional (default: None)
-        If not None, only return names that match this regular expression
+    starts_with : str, list-like or None, optional (default: None)
+        If not None, only return names that start with this prefix.
+    ends_with : str, list-like or None, optional (default: None)
+        If not None, only return names that end with this suffix.
+    exact_word : str, list-like or None, optional (default: None)
+        If not None, only return names that contain this exact word.
+    regex : str, list-like or None, optional (default: None)
+        If not None, only return names that match this regular expression.
 
     Returns
     -------
@@ -96,31 +140,77 @@ def _get_string_subset(data, starts_with=None, ends_with=None, regex=None):
     """
     mask = np.full_like(data, True, dtype=bool)
     if starts_with is not None:
-        start_match = np.vectorize(lambda x: x.startswith(starts_with))
-        mask = np.logical_and(mask, start_match(data))
+        start_match = _string_vector_match(
+            data, starts_with, lambda x, match: x.startswith(match))
+        mask = np.logical_and(mask, start_match)
     if ends_with is not None:
-        end_match = np.vectorize(lambda x: x.endswith(ends_with))
-        mask = np.logical_and(mask, end_match(data))
+        end_match = _string_vector_match(
+            data, ends_with, lambda x, match: x.endswith(match))
+        mask = np.logical_and(mask, end_match)
+    if exact_word is not None:
+        if not isinstance(exact_word, str):
+            exact_word = [_exact_word_regex(w) for w in exact_word]
+        else:
+            exact_word = _exact_word_regex(exact_word)
+        exact_word_match = _get_string_subset_mask(data, regex=exact_word)
+        mask = np.logical_and(mask, exact_word_match)
     if regex is not None:
-        regex = re.compile(regex)
-        regex_match = np.vectorize(lambda x: bool(regex.search(x)))
-        mask = np.logical_and(mask, regex_match(data))
+        if not isinstance(regex, str):
+            regex = [re.compile(r) for r in regex]
+        else:
+            regex = re.compile(regex)
+        regex_match = _string_vector_match(
+            data, regex, lambda x, match: bool(match.search(x)),
+            dtype=_re_pattern)
+        mask = np.logical_and(mask, regex_match)
+    return mask
+
+
+def _get_string_subset(data, starts_with=None, ends_with=None,
+                       exact_word=None, regex=None):
+    """Get a subset from a string array
+
+    Parameters
+    ----------
+    data : array-like, shape=[n_samples, n_features] or [n_features]
+        Input pd.DataFrame, or list of names
+    starts_with : str, list-like or None, optional (default: None)
+        If not None, only return names that start with this prefix.
+    ends_with : str, list-like or None, optional (default: None)
+        If not None, only return names that end with this suffix.
+    exact_word : str, list-like or None, optional (default: None)
+        If not None, only return names that contain this exact word.
+    regex : str, list-like or None, optional (default: None)
+        If not None, only return names that match this regular expression.
+
+    Returns
+    -------
+    data : list-like, shape<=[n_features]
+        List of matching strings
+    """
+    data = utils.toarray(data)
+    mask = _get_string_subset_mask(
+        data, starts_with=starts_with, ends_with=ends_with,
+        exact_word=exact_word, regex=regex)
     return data[mask]
 
 
-def get_gene_set(data, starts_with=None, ends_with=None, regex=None):
+def get_gene_set(data, starts_with=None, ends_with=None,
+                 exact_word=None, regex=None):
     """Get a list of genes from data
 
     Parameters
     ----------
     data : array-like, shape=[n_samples, n_features] or [n_features]
         Input pd.DataFrame, or list of gene names
-    starts_with : str or None, optional (default: None)
-        If not None, only return gene names that start with this prefix
-    ends_with : str or None, optional (default: None)
-        If not None, only return gene names that end with this suffix
-    regex : str or None, optional (default: None)
-        If not None, only return gene names that match this regular expression
+    starts_with : str, list-like or None, optional (default: None)
+        If not None, only return gene names that start with this prefix.
+    ends_with : str, list-like or None, optional (default: None)
+        If not None, only return gene names that end with this suffix.
+    exact_word : str, list-like or None, optional (default: None)
+        If not None, only return gene names that contain this exact word.
+    regex : str, list-like or None, optional (default: None)
+        If not None, only return gene names that match this regular expression.
 
     Returns
     -------
@@ -137,22 +227,26 @@ def get_gene_set(data, starts_with=None, ends_with=None, regex=None):
         warnings.warn("No selection conditions provided. "
                       "Returning all genes.", UserWarning)
     return _get_string_subset(data, starts_with=starts_with,
-                              ends_with=ends_with, regex=regex)
+                              ends_with=ends_with,
+                              exact_word=exact_word, regex=regex)
 
 
-def get_cell_set(data, starts_with=None, ends_with=None, regex=None):
+def get_cell_set(data, starts_with=None, ends_with=None,
+                 exact_word=None, regex=None):
     """Get a list of cells from data
 
     Parameters
     ----------
     data : array-like, shape=[n_samples, n_features] or [n_samples]
         Input pd.DataFrame, or list of cell names
-    starts_with : str or None, optional (default: None)
-        If not None, only return cell names that start with this prefix
-    ends_with : str or None, optional (default: None)
-        If not None, only return cell names that end with this suffix
-    regex : str or None, optional (default: None)
-        If not None, only return cell names that match this regular expression
+    starts_with : str, list-like or None, optional (default: None)
+        If not None, only return cell names that start with this prefix.
+    ends_with : str, list-like or None, optional (default: None)
+        If not None, only return cell names that end with this suffix.
+    exact_word : str, list-like or None, optional (default: None)
+        If not None, only return cell names that contain this exact word.
+    regex : str, list-like or None, optional (default: None)
+        If not None, only return cell names that match this regular expression.
 
     Returns
     -------
@@ -169,33 +263,37 @@ def get_cell_set(data, starts_with=None, ends_with=None, regex=None):
         warnings.warn("No selection conditions provided. "
                       "Returning all cells.", UserWarning)
     return _get_string_subset(data, starts_with=starts_with,
-                              ends_with=ends_with, regex=regex)
+                              ends_with=ends_with,
+                              exact_word=exact_word, regex=regex)
 
 
 def select_cols(data, *extra_data, idx=None,
-                starts_with=None, ends_with=None, regex=None):
+                starts_with=None, ends_with=None,
+                exact_word=None, regex=None):
     """Select columns from a data matrix
 
     Parameters
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
-    extra_data : array-like, shape=[*, n_features], optional
+    extra_data : array-like, shape=[any, n_features], optional
         Optional additional data objects from which to select the same rows
     idx : list-like, shape=[m_features]
         Integer indices or string column names to be selected
-    starts_with : str or None, optional (default: None)
-        If not None, select columns that start with this prefix
-    ends_with : str or None, optional (default: None)
-        If not None, select columns that end with this suffix
-    regex : str or None, optional (default: None)
-        If not None, select columns that match this regular expression
+    starts_with : str, list-like or None, optional (default: None)
+        If not None, select columns that start with this prefix.
+    ends_with : str, list-like or None, optional (default: None)
+        If not None, select columns that end with this suffix.
+    exact_word : str, list-like or None, optional (default: None)
+        If not None, select columns that contain this exact word.
+    regex : str, list-like or None, optional (default: None)
+        If not None, select columns that match this regular expression.
 
     Returns
     -------
     data : array-like, shape=[n_samples, m_features]
         Subsetted output data.
-    extra_data : array-like, shape=[*, m_features]
+    extra_data : array-like, shape=[any, m_features]
         Subsetted extra data, if passed.
 
     Examples
@@ -219,10 +317,15 @@ def select_cols(data, *extra_data, idx=None,
                 "Can only select based on column names with DataFrame input. "
                 "Please set `idx` to select specific columns.")
         idx = get_gene_set(data, starts_with=starts_with,
-                           ends_with=ends_with, regex=regex)
+                           ends_with=ends_with,
+                           exact_word=exact_word, regex=regex)
 
     if isinstance(idx, pd.DataFrame):
         idx = _convert_dataframe_1d(idx)
+    elif not isinstance(idx, (numbers.Integral, str)):
+        idx = utils.toarray(idx)
+        _check_idx_1d(idx)
+        idx = idx.flatten()
 
     idx = utils.toarray(idx)
 
@@ -275,29 +378,32 @@ def select_cols(data, *extra_data, idx=None,
 
 
 def select_rows(data, *extra_data, idx=None,
-                starts_with=None, ends_with=None, regex=None):
+                starts_with=None, ends_with=None,
+                exact_word=None, regex=None):
     """Select rows from a data matrix
 
     Parameters
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
-    extra_data : array-like, shape=[n_samples, *], optional
+    extra_data : array-like, shape=[n_samples, any], optional
         Optional additional data objects from which to select the same rows
     idx : list-like, shape=[m_samples], optional (default: None)
         Integer indices or string index names to be selected
-    starts_with : str or None, optional (default: None)
-        If not None, select rows that start with this prefix
-    ends_with : str or None, optional (default: None)
-        If not None, select rows that end with this suffix
-    regex : str or None, optional (default: None)
-        If not None, select rows that match this regular expression
+    starts_with : str, list-like or None, optional (default: None)
+        If not None, select rows that start with this prefix.
+    ends_with : str, list-like or None, optional (default: None)
+        If not None, select rows that end with this suffix.
+    exact_word : str, list-like or None, optional (default: None)
+        If not None, select rows that contain this exact word.
+    regex : str, list-like or None, optional (default: None)
+        If not None, select rows that match this regular expression.
 
     Returns
     -------
     data : array-like, shape=[m_samples, n_features]
         Subsetted output data
-    extra_data : array-like, shape=[m_samples, *]
+    extra_data : array-like, shape=[m_samples, any]
         Subsetted extra data, if passed.
 
     Examples
@@ -321,11 +427,15 @@ def select_rows(data, *extra_data, idx=None,
                 "Can only select based on row names with DataFrame input. "
                 "Please set `idx` to select specific rows.")
         idx = get_cell_set(data, starts_with=starts_with,
-                           ends_with=ends_with, regex=regex)
+                           ends_with=ends_with,
+                           exact_word=exact_word, regex=regex)
+
     if isinstance(idx, pd.DataFrame):
         idx = _convert_dataframe_1d(idx)
-
-    idx = utils.toarray(idx)
+    elif not isinstance(idx, (numbers.Integral, str)):
+        idx = utils.toarray(idx)
+        _check_idx_1d(idx)
+        idx = idx.flatten()
 
     if isinstance(data, (pd.DataFrame, pd.Series)):
         try:
@@ -373,7 +483,7 @@ def subsample(*data, n=10000, seed=None):
 
     Parameters
     ----------
-    data : array-like, shape=[n_samples, *]
+    data : array-like, shape=[n_samples, any]
         Input data. Any number of datasets can be passed at once,
         so long as `n_samples` remains the same.
     n : int, optional (default: 10000)

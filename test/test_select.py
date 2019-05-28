@@ -4,6 +4,7 @@ from sklearn.utils.testing import assert_raise_message, assert_warns_message
 import numpy as np
 import pandas as pd
 import unittest
+from scipy import sparse
 
 
 class Test10X(unittest.TestCase):
@@ -206,6 +207,22 @@ class Test10X(unittest.TestCase):
             idx=pd.DataFrame(np.random.choice([True, False], [1, self.X.shape[1]]),
                              index=[1], columns=self.X.columns))
 
+    def test_select_cols_sparse_index(self):
+        matrix.test_all_matrix_types(
+            self.X, scprep.select.select_cols,
+            idx=sparse.coo_matrix(np.random.choice([True, False], [1, self.X.shape[1]])))
+        matrix.test_all_matrix_types(
+            self.X, scprep.select.select_cols,
+            idx=sparse.coo_matrix(np.random.choice([True, False], [self.X.shape[1], 1])))
+
+    def test_select_rows_sparse_index(self):
+        matrix.test_all_matrix_types(
+            self.X, scprep.select.select_rows,
+            idx=sparse.coo_matrix(np.random.choice([True, False], [1, self.X.shape[0]])))
+        matrix.test_all_matrix_types(
+            self.X, scprep.select.select_rows,
+            idx=sparse.coo_matrix(np.random.choice([True, False], [self.X.shape[0], 1])))
+
     def test_select_cols_series_data_boolean_index(self):
         scprep.select.select_cols(
             self.X, self.X.iloc[0, :], idx=np.random.choice([True, False], [self.X.shape[1]]))
@@ -262,19 +279,37 @@ class Test10X(unittest.TestCase):
                              self.X,
                              idx='not_a_gene')
 
-    def test_select_rows_2d_index(self):
+    def test_select_rows_2d_dataframe_index(self):
         assert_raise_message(ValueError,
-                             "Expected idx to be 1D. Got shape ",
+                             "Expected idx to be 1D. "
+                             "Got shape (2, {})".format(self.X.shape[0]),
                              scprep.select.select_rows,
                              self.X,
                              idx=pd.DataFrame([self.X.index, self.X.index]))
 
-    def test_select_cols_2d_index(self):
+    def test_select_rows_2d_list_index(self):
         assert_raise_message(ValueError,
-                             "Expected idx to be 1D. Got shape ",
+                             "Expected idx to be 1D. "
+                             "Got shape (2, {})".format(self.X.shape[0]),
+                             scprep.select.select_rows,
+                             self.X,
+                             idx=[self.X.index, self.X.index])
+
+    def test_select_cols_2d_dataframe_index(self):
+        assert_raise_message(ValueError,
+                             "Expected idx to be 1D. "
+                             "Got shape (2, {})".format(self.X.shape[1]),
                              scprep.select.select_cols,
                              self.X,
-                             idx=pd.DataFrame([self.X.index, self.X.index]))
+                             idx=pd.DataFrame([self.X.columns, self.X.columns]))
+
+    def test_select_cols_2d_list_index(self):
+        assert_raise_message(ValueError,
+                             "Expected idx to be 1D. "
+                             "Got shape (2, {})".format(self.X.shape[1]),
+                             scprep.select.select_cols,
+                             self.X,
+                             idx=[self.X.columns, self.X.columns])
 
     def test_select_cols_unequal_columns(self):
         assert_raise_message(
@@ -371,3 +406,43 @@ class Test10X(unittest.TestCase):
             ValueError,
             "Expected n (101) <= n_samples (100)",
             scprep.select.subsample, self.X, n=self.X.shape[0] + 1)
+
+
+def test_string_subset_exact_word():
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['hello', 'world'], exact_word='hello'), [True, False])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        [' hello ', 'world'], exact_word='hello'), [True, False])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['(hello)', 'world'], exact_word='hello'), [True, False])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['[hello]', 'world'], exact_word='hello'), [True, False])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['hello...?', 'world'], exact_word='hello'), [True, False])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['hello world', 'world'], exact_word='hello'), [True, False])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['(hello) world', 'world'], exact_word='hello'), [True, False])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['World, hello!', 'world'], exact_word='hello'), [True, False])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['helloooo!', 'world'], exact_word='hello'), [False, False])
+
+
+def test_string_subset_list():
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['hello', 'world'], exact_word=['hello', 'world']), [True, True])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['hello', 'world'], exact_word=['hello', 'earth']), [True, False])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['hello', 'world'], starts_with=['hell', 'w']), [True, True])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['hello', 'world'], starts_with=['hell', 'e']), [True, False])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['hello', 'world'], ends_with=['ello', 'ld']), [True, True])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['hello', 'world'], ends_with=['ello', 'h']), [True, False])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['hello', 'world'], regex=['^hell.', '^.or.*']), [True, True])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['hello', 'world'], regex=['^hell', '^earth']), [True, False])

@@ -1,0 +1,7 @@
+Examples
+--------
+
+.. toctree::
+
+    scatter
+    jitter

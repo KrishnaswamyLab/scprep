@@ -48,14 +48,14 @@ def filter_empty_genes(data, *extra_data):
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
-    extra_data : array-like, shape=[*, n_features], optional
+    extra_data : array-like, shape=[any, n_features], optional
         Optional additional data objects from which to select the same genes
 
     Returns
     -------
     data : array-like, shape=[n_samples, m_features]
         Filtered output data, where m_features <= n_features
-    extra_data : array-like, shape=[*, m_features]
+    extra_data : array-like, shape=[any, m_features]
         Filtered extra data, if passed.
     """
     gene_sums = np.array(utils.matrix_sum(data, axis=0)).reshape(-1)
@@ -71,7 +71,7 @@ def filter_rare_genes(data, *extra_data, cutoff=0, min_cells=5):
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
-    extra_data : array-like, shape=[*, n_features], optional
+    extra_data : array-like, shape=[any, n_features], optional
         Optional additional data objects from which to select the same rows
     cutoff : float, optional (default: 0)
         Number of counts above which expression is deemed non-negligible
@@ -82,7 +82,7 @@ def filter_rare_genes(data, *extra_data, cutoff=0, min_cells=5):
     -------
     data : array-like, shape=[n_samples, m_features]
         Filtered output data, where m_features <= n_features
-    extra_data : array-like, shape=[*, m_features]
+    extra_data : array-like, shape=[any, m_features]
         Filtered extra data, if passed.
     """
     gene_sums = np.array(utils.matrix_sum(data > cutoff, axis=0)).reshape(-1)
@@ -98,7 +98,7 @@ def filter_empty_cells(data, *extra_data, sample_labels=None):
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
-    extra_data : array-like, shape=[n_samples, *], optional
+    extra_data : array-like, shape=[n_samples, any], optional
         Optional additional data objects from which to select the same rows
     sample_labels : Deprecated
 
@@ -106,7 +106,7 @@ def filter_empty_cells(data, *extra_data, sample_labels=None):
     -------
     data : array-like, shape=[m_samples, n_features]
         Filtered output data, where m_samples <= n_samples
-    extra_data : array-like, shape=[m_samples, *]
+    extra_data : array-like, shape=[m_samples, any]
         Filtered extra data, if passed.
     """
     if sample_labels is not None:
@@ -150,7 +150,7 @@ def filter_values(data, *extra_data, values=None,
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
-    extra_data : array-like, shape=[n_samples, *], optional
+    extra_data : array-like, shape=[n_samples, any], optional
         Optional additional data objects from which to select the same rows
     values : list-like, shape=[n_samples]
         Value upon which to filter
@@ -175,7 +175,7 @@ def filter_values(data, *extra_data, values=None,
     filtered_values : list-like, shape=[m_samples]
         Values corresponding to retained samples,
         returned only if return_values is True
-    extra_data : array-like, shape=[m_samples, *]
+    extra_data : array-like, shape=[m_samples, any]
         Filtered extra data, if passed.
     """
     if sample_labels is not None:
@@ -211,7 +211,7 @@ def filter_library_size(data, *extra_data, cutoff=None, percentile=None,
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
-    extra_data : array-like, shape=[n_samples, *], optional
+    extra_data : array-like, shape=[n_samples, any], optional
         Optional additional data objects from which to select the same rows
     cutoff : float, optional (default: None)
         Minimum library size required to retain a cell. Only one of `cutoff`
@@ -234,7 +234,7 @@ def filter_library_size(data, *extra_data, cutoff=None, percentile=None,
     filtered_library_size : list-like, shape=[m_samples]
         Library sizes corresponding to retained samples,
         returned only if return_library_size is True
-    extra_data : array-like, shape=[m_samples, *]
+    extra_data : array-like, shape=[m_samples, any]
         Filtered extra data, if passed.
     """
     cell_sums = measure.library_size(data)
@@ -247,9 +247,10 @@ def filter_library_size(data, *extra_data, cutoff=None, percentile=None,
 
 
 def filter_gene_set_expression(data, *extra_data, genes=None,
-                               starts_with=None, ends_with=None, regex=None,
+                               starts_with=None, ends_with=None,
+                               exact_word=None, regex=None,
                                cutoff=None, percentile=None,
-                               library_size_normalize=True,
+                               library_size_normalize=False,
                                keep_cells='below',
                                return_expression=False,
                                sample_labels=None,
@@ -263,7 +264,7 @@ def filter_gene_set_expression(data, *extra_data, genes=None,
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
-    extra_data : array-like, shape=[n_samples, *], optional
+    extra_data : array-like, shape=[n_samples, any], optional
         Optional additional data objects from which to select the same rows
     genes : list-like, optional (default: None)
         Integer column indices or string gene names included in gene set
@@ -271,10 +272,10 @@ def filter_gene_set_expression(data, *extra_data, genes=None,
         If not None, select genes that start with this prefix
     ends_with : str or None, optional (default: None)
         If not None, select genes that end with this suffix
+    exact_word : str, list-like or None, optional (default: None)
+        If not None, select genes that contain this exact word.
     regex : str or None, optional (default: None)
         If not None, select genes that match this regular expression
-    extra_data : array-like, shape=[n_samples, *], optional
-        Optional additional data objects from which to select the same rows
     cutoff : float, optional (default: 2000)
         Value above or below which to remove cells. Only one of `cutoff`
         and `percentile` should be specified.
@@ -282,7 +283,7 @@ def filter_gene_set_expression(data, *extra_data, genes=None,
         Percentile above or below which to remove cells.
         Must be an integer between 0 and 100. Only one of `cutoff`
         and `percentile` should be specified.
-    library_size_normalize : bool, optional (default: True)
+    library_size_normalize : bool, optional (default: False)
         Divide gene set expression by library size
     keep_cells : {'above', 'below'}, optional (default: 'below')
         Keep cells above or below the cutoff
@@ -298,12 +299,13 @@ def filter_gene_set_expression(data, *extra_data, genes=None,
     filtered_expression : list-like, shape=[m_samples]
         Gene set expression corresponding to retained samples,
         returned only if return_expression is True
-    extra_data : array-like, shape=[m_samples, *]
+    extra_data : array-like, shape=[m_samples, any]
         Filtered extra data, if passed.
     """
     cell_sums = measure.gene_set_expression(
         data, genes=genes,
-        starts_with=starts_with, ends_with=ends_with, regex=regex,
+        starts_with=starts_with, ends_with=ends_with,
+        exact_word=exact_word, regex=regex,
         library_size_normalize=library_size_normalize)
     return filter_values(data, *extra_data, values=cell_sums,
                          cutoff=cutoff, percentile=percentile,
@@ -348,7 +350,7 @@ def filter_duplicates(data, *extra_data, sample_labels=None):
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
-    extra_data : array-like, shape=[n_samples, *], optional
+    extra_data : array-like, shape=[n_samples, any], optional
         Optional additional data objects from which to select the same rows
     sample_labels : Deprecated
 
@@ -356,7 +358,7 @@ def filter_duplicates(data, *extra_data, sample_labels=None):
     -------
     data : array-like, shape=[m_samples, n_features]
         Filtered output data, where m_samples <= n_samples
-    extra_data : array-like, shape=[m_samples, *]
+    extra_data : array-like, shape=[m_samples, any]
         Filtered extra data, if passed.
     """
     if sample_labels is not None:

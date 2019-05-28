@@ -27,15 +27,19 @@ def _os_agnostic_fullpath_join(path):
     return path
 
 
+def _get_root_dir():
+    """Get path to scprep root
+    """
+    cwd = os.getcwd().split(os.path.sep)
+    while cwd[-1] in ["test_utils", "test"]:
+        cwd = cwd[:-1]
+    return _os_agnostic_fullpath_join(cwd)
+
+
 def _get_data_dir():
     """Get path to scprep data directory
     """
-    data_dir = os.getcwd().split(os.path.sep)
-    while data_dir[-1] in ["test_utils", "test"]:
-        data_dir = data_dir[:-1]
-    data_dir = data_dir + ["data", "test_data"]
-    data_dir = _os_agnostic_fullpath_join(data_dir)
-    return data_dir
+    return os.path.join(_get_root_dir(), "data", "test_data")
 
 
 data_dir = _get_data_dir()
@@ -56,7 +60,7 @@ def load_10X(**kwargs):
         os.path.join(data_dir, "test_10X"), **kwargs)
 
 
-def generate_positive_sparse_matrix(shape=[500, 500], seed=42,
+def generate_positive_sparse_matrix(shape=[200, 500], seed=42,
                                     poisson_mean=0.1):
     """Returns an ndarray of shape=shape filled mostly with zeros
 
