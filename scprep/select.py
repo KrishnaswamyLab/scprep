@@ -306,7 +306,8 @@ def select_cols(data, *extra_data, idx=None,
     """
     if len(extra_data) > 0:
         _check_columns_compatible(data, *extra_data)
-    if idx is None and starts_with is None and ends_with is None and regex is None:
+    if idx is None and starts_with is None and ends_with is None and \
+            exact_word is None and regex is None:
         warnings.warn("No selection conditions provided. "
                       "Returning all columns.", UserWarning)
         return tuple([data] + list(extra_data)) if len(extra_data) > 0 else data
@@ -406,7 +407,8 @@ def select_rows(data, *extra_data, idx=None,
     """
     if len(extra_data) > 0:
         _check_rows_compatible(data, *extra_data)
-    if idx is None and starts_with is None and ends_with is None and regex is None:
+    if idx is None and starts_with is None and ends_with is None and \
+            exact_word is None and regex is None:
         warnings.warn("No selection conditions provided. "
                       "Returning all rows.", UserWarning)
         return tuple([data] + list(extra_data)) if len(extra_data) > 0 else data
