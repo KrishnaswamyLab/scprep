@@ -21,6 +21,7 @@ class TestRFunctions(unittest.TestCase):
         sim = scprep.run.SplatSimulate(
             batch_cells=10, n_genes=200, verbose=0)
         assert sim['counts'].shape == (10, 200)
+        assert np.all(sim['batch'] == 'Batch1')
         assert sim['batch_cell_means'].shape == (10, 200)
         assert sim['base_cell_means'].shape == (10, 200)
         assert sim['bcv'].shape == (10, 200)
@@ -42,6 +43,8 @@ class TestRFunctions(unittest.TestCase):
         sim = scprep.run.SplatSimulate(
             batch_cells=[5, 5], n_genes=200, verbose=0)
         assert sim['counts'].shape == (10, 200)
+        assert np.all(sim['batch'][:5] == 'Batch1')
+        assert np.all(sim['batch'][5:] == 'Batch2')
         assert sim['batch_cell_means'].shape == (10, 200)
         assert sim['base_cell_means'].shape == (10, 200)
         assert sim['bcv'].shape == (10, 200)
@@ -66,6 +69,7 @@ class TestRFunctions(unittest.TestCase):
                                        group_prob=[0.5, 0.5], n_genes=200,
                                        de_fac_loc=[0.1, 0.5], verbose=0)
         assert sim['counts'].shape == (10, 200)
+        assert np.all(sim['batch'] == 'Batch1')
         assert sim['batch_cell_means'].shape == (10, 200)
         assert sim['base_cell_means'].shape == (10, 200)
         assert sim['bcv'].shape == (10, 200)
@@ -89,6 +93,7 @@ class TestRFunctions(unittest.TestCase):
                                        path_length=[100, 200], path_skew=[0.4, 0.6],
                                        de_fac_loc=[0.1, 0.5], verbose=0)
         assert sim['counts'].shape == (10, 200)
+        assert np.all(sim['batch'] == 'Batch1')
         assert sim['batch_cell_means'].shape == (10, 200)
         assert sim['base_cell_means'].shape == (10, 200)
         assert sim['bcv'].shape == (10, 200)
@@ -113,6 +118,7 @@ class TestRFunctions(unittest.TestCase):
                                        dropout_type='experiment',
                                        verbose=0)
         assert sim['counts'].shape == (10, 200)
+        assert np.all(sim['batch'] == 'Batch1')
         assert sim['batch_cell_means'].shape == (10, 200)
         assert sim['base_cell_means'].shape == (10, 200)
         assert sim['bcv'].shape == (10, 200)
@@ -135,6 +141,7 @@ class TestRFunctions(unittest.TestCase):
                                        dropout_type='binomial',
                                        dropout_prob=0.5, verbose=False)
         assert sim['counts'].shape == (10, 200)
+        assert np.all(sim['batch'] == 'Batch1')
         assert sim['batch_cell_means'].shape == (10, 200)
         assert sim['base_cell_means'].shape == (10, 200)
         assert sim['bcv'].shape == (10, 200)
