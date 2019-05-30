@@ -222,7 +222,8 @@ def get_gene_set(data, starts_with=None, ends_with=None,
         except AttributeError:
             raise TypeError("data must be a list of gene names or a pandas "
                             "DataFrame. Got {}".format(type(data).__name__))
-    if starts_with is None and ends_with is None and regex is None:
+    if starts_with is None and ends_with is None and \
+            regex is None and exact_word is None:
         warnings.warn("No selection conditions provided. "
                       "Returning all genes.", UserWarning)
     return _get_string_subset(data, starts_with=starts_with,
@@ -258,7 +259,8 @@ def get_cell_set(data, starts_with=None, ends_with=None,
         except AttributeError:
             raise TypeError("data must be a list of cell names or a pandas "
                             "DataFrame. Got {}".format(type(data).__name__))
-    if starts_with is None and ends_with is None and regex is None:
+    if starts_with is None and ends_with is None and \
+            regex is None and exact_word is None:
         warnings.warn("No selection conditions provided. "
                       "Returning all cells.", UserWarning)
     return _get_string_subset(data, starts_with=starts_with,
