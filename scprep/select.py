@@ -356,6 +356,8 @@ def select_cols(data, *extra_data, idx=None,
                              sparse.lil_matrix,
                              sparse.dia_matrix)):
             data = data.tocsr()
+        if isinstance(idx, pd.Series):
+            idx = utils.toarray(idx)
         data = data[:, idx]
     if _get_column_length(data) == 0:
         warnings.warn("Selecting 0 columns.", UserWarning)
@@ -450,6 +452,8 @@ def select_rows(data, *extra_data, idx=None,
                              sparse.bsr_matrix,
                              sparse.dia_matrix)):
             data = data.tocsr()
+        if isinstance(idx, pd.Series):
+            idx = utils.toarray(idx)
         data = data[idx, :]
     if _get_row_length(data) == 0:
         warnings.warn("Selecting 0 rows.", UserWarning)
