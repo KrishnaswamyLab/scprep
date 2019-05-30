@@ -172,13 +172,13 @@ def jitter(labels, values, sigma=0.1,
         # Plotting means
         if plot_means:
             ax.scatter(np.arange(len(params.x_labels)),
-                       [np.mean(params.y[params.x_coords == i])
+                       [np.nanmean(params.y[params.x_coords == i])
                         for i in range(len(params.x_labels))],
                        c=means_c, edgecolors='black', lw=1.5,
                        marker='o', zorder=3, s=means_s)
 
         # Plotting vetical lines
-        for i in np.unique(labels):
+        for i in range(len(params.x_labels)):
             ax.axvline(i, c='k', lw=.1, zorder=0)
 
         # x axis labels
@@ -195,8 +195,9 @@ def jitter(labels, values, sigma=0.1,
                    _with_default(yticklabels, ticklabels), ylabel)
 
         # manually set x limits
-        ax.set_xlim(np.min(params.x_coords) - 0.5,
-                    np.max(params.x_coords) + 0.5)
+        xmin = np.min(params.x_coords)
+        xmax = np.max(params.x_coords)
+        ax.set_xlim(xmin - 0.5, xmax + 0.5)
 
         if title is not None:
             ax.set_title(title, fontsize=parse_fontsize(None, 'xx-large'))
