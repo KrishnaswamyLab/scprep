@@ -155,6 +155,9 @@ def _matrix_to_data_frame(data, gene_names=None, cell_names=None, sparse=None):
                 if sp.issparse(data):
                     data = data.toarray()
                 data = pd.DataFrame(data, index=cell_names, columns=gene_names)
+        
+        # convert data to float
+        data = data.astype(float)
         return data
 
 
