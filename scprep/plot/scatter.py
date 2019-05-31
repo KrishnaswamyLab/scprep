@@ -106,7 +106,8 @@ class _ScatterParams(object):
         try:
             return self._array_c
         except AttributeError:
-            self._array_c = _is_color_array(self._c)
+            self._array_c = (not self.constant_c()) and _is_color_array(
+                self._c)
             return self._array_c
 
     @property
@@ -347,7 +348,7 @@ class _ScatterParams(object):
                     ". Got {}".format([len(d) for d in self._data]))
 
     def check_c(self):
-        if not self.constant_c() or self.array_c():
+        if not self.constant_c():
             self._c = utils.toarray(self._c).squeeze()
             if not len(self._c) == self.size:
                 raise ValueError("Expected c of length {} or 1. Got {}".format(
