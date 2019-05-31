@@ -65,7 +65,7 @@ def check_version(pkg, min_version=None):
         raise ImportError(
             "scprep requires {0}>={1} (installed: {2}). "
             "Please upgrade it with e.g."
-            " `pip install --user --upgrade {0}".format(
+            " `pip install --user --upgrade {0}`".format(
                 pkg, min_version, module.__version__))
 
 
