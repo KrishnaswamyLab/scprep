@@ -77,18 +77,8 @@ def _check_rows_compatible(*data):
 
 
 def _convert_dataframe_1d(idx):
-<<<<<<< HEAD
     _check_idx_1d(idx)
     idx = idx.iloc[:, 0] if idx.shape[1] == 1 else idx.iloc[0, :]
-=======
-    if (not _is_1d(idx)) and np.prod(idx.shape) != np.max(idx.shape):
-        raise ValueError(
-            "Expected idx to be 1D. Got shape {}".format(idx.shape))
-    if idx.shape[1] == 1:
-        idx = idx.loc[:, idx.columns[0]]
-    else:
-        idx = idx.loc[idx.index[0], :]
->>>>>>> first attempt at pandas 0.24 support
     return idx
 
 
@@ -336,8 +326,6 @@ def select_cols(data, *extra_data, idx=None,
         _check_idx_1d(idx)
         idx = idx.flatten()
 
-    idx = utils.toarray(idx)
-
     if isinstance(data, pd.DataFrame):
         try:
             if np.issubdtype(idx.dtype, np.dtype(bool).type):
@@ -441,15 +429,10 @@ def select_rows(data, *extra_data, idx=None,
 
     if isinstance(idx, pd.DataFrame):
         idx = _convert_dataframe_1d(idx)
-<<<<<<< HEAD
     elif not isinstance(idx, (numbers.Integral, str)):
         idx = utils.toarray(idx)
         _check_idx_1d(idx)
         idx = idx.flatten()
-=======
-
-    idx = utils.toarray(idx)
->>>>>>> first attempt at pandas 0.24 support
 
     if isinstance(data, (pd.DataFrame, pd.Series)):
         try:

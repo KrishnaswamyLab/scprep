@@ -4,13 +4,8 @@ import numbers
 import re
 from scipy import sparse
 import warnings
-<<<<<<< HEAD
 import importlib
 from decorator import decorator
-
-from . import select
-=======
->>>>>>> first attempt at pandas 0.24 support
 
 try:
     ModuleNotFoundError
