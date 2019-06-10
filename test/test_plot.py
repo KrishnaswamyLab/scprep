@@ -929,6 +929,24 @@ class Test10X(unittest.TestCase):
             markers={'tissue': self.X.columns[:2],
                      'other tissue': self.X.columns[2:4]})
 
+    def test_marker_plot_single_marker(self):
+        scprep.plot.marker_plot(
+            data=self.X,
+            clusters=np.random.choice(
+                np.arange(10), replace=True, size=self.X.shape[0]),
+            gene_names=self.X.columns,
+            markers={'tissue': [self.X.columns[0]],
+                     'other tissue': self.X.columns[2:4]})
+
+    def test_marker_plot_repeat_marker(self):
+        scprep.plot.marker_plot(
+            data=self.X,
+            clusters=np.random.choice(
+                np.arange(10), replace=True, size=self.X.shape[0]),
+            gene_names=self.X.columns,
+            markers={'tissue': self.X.columns[:3],
+                     'other tissue': self.X.columns[2:4]})
+
     def test_marker_plot_list(self):
         scprep.plot.marker_plot(
             data=self.X,
