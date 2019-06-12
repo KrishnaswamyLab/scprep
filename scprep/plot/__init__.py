@@ -3,4 +3,4 @@ from .histogram import histogram, plot_library_size, plot_gene_set_expression
 from .marker import marker_plot
 from .scree import scree_plot
 from .jitter import jitter
-from . import tools
+from . import tools, colors

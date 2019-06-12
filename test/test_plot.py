@@ -77,6 +77,55 @@ def test_generate_colorbar_dict():
                          cmap={'+': 'r', '-': 'b'})
 
 
+def test_tab40():
+    cmap = scprep.plot.colors.tab40()
+    np.testing.assert_array_equal(
+        cmap.colors[:20], matplotlib.cm.tab20c.colors)
+    np.testing.assert_array_equal(
+        cmap.colors[20:], matplotlib.cm.tab20b.colors)
+
+
+def test_tab10_continuous():
+    cmap = scprep.plot.colors.tab10_continuous(
+        n_colors=10, n_step=2, reverse=True)
+    np.testing.assert_allclose(
+        cmap.colors,
+        np.hstack([matplotlib.cm.tab20.colors, np.ones((20, 1))]),
+        atol=0.06)
+
+
+def test_tab10_continuous_no_reverse():
+    cmap = scprep.plot.colors.tab10_continuous(
+        n_colors=10, n_step=2, reverse=False)
+    colors = np.array(cmap.colors)
+    for i in range(len(colors) // 2):
+        tmp = np.array(colors[2 * i])
+        colors[2 * i] = colors[2 * i + 1]
+        colors[2 * i + 1] = tmp
+    np.testing.assert_allclose(
+        colors,
+        np.hstack([matplotlib.cm.tab20.colors, np.ones((20, 1))]),
+        atol=0.06)
+
+
+def test_tab10_continuous_invalid_n_colors():
+    assert_raise_message(
+        ValueError,
+        "Expected 0 < n_colors <= 10. Got 0",
+        scprep.plot.colors.tab10_continuous,
+        n_colors=0)
+    assert_raise_message(
+        ValueError,
+        "Expected 0 < n_colors <= 10. Got 11",
+        scprep.plot.colors.tab10_continuous,
+        n_colors=11)
+    assert_raise_message(
+        ValueError,
+        "Expected n_step >= 2. Got 1",
+        scprep.plot.colors.tab10_continuous,
+        n_step=1)
+
+
 class TestScatterParams(unittest.TestCase):
 
     @classmethod
