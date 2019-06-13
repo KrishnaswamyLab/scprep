@@ -77,6 +77,71 @@ def test_generate_colorbar_dict():
                          cmap={'+': 'r', '-': 'b'})
 
 
+def test_tab30():
+    cmap = scprep.plot.colors.tab30()
+    np.testing.assert_array_equal(
+        cmap.colors[:15],
+        np.array(matplotlib.cm.tab20c.colors)[[0, 1, 2, 4, 5, 6, 8, 9,
+                                               10, 12, 13, 14, 16, 17, 18]])
+    np.testing.assert_array_equal(
+        cmap.colors[15:],
+        np.array(matplotlib.cm.tab20b.colors)[[0, 1, 2, 4, 5, 6, 8, 9,
+                                               10, 12, 13, 14, 16, 17, 18]])
+
+
+def test_is_color_array_none():
+    assert not scprep.plot.utils._is_color_array(None)
+
+
+def test_tab40():
+    cmap = scprep.plot.colors.tab40()
+    np.testing.assert_array_equal(
+        cmap.colors[:20], matplotlib.cm.tab20c.colors)
+    np.testing.assert_array_equal(
+        cmap.colors[20:], matplotlib.cm.tab20b.colors)
+
+
+def test_tab10_continuous():
+    cmap = scprep.plot.colors.tab10_continuous(
+        n_colors=10, n_step=2, reverse=True)
+    np.testing.assert_allclose(
+        cmap.colors,
+        np.hstack([matplotlib.cm.tab20.colors, np.ones((20, 1))]),
+        atol=0.06)
+
+
+def test_tab10_continuous_no_reverse():
+    cmap = scprep.plot.colors.tab10_continuous(
+        n_colors=10, n_step=2, reverse=False)
+    colors = np.array(cmap.colors)
+    for i in range(len(colors) // 2):
+        tmp = np.array(colors[2 * i])
+        colors[2 * i] = colors[2 * i + 1]
+        colors[2 * i + 1] = tmp
+    np.testing.assert_allclose(
+        colors,
+        np.hstack([matplotlib.cm.tab20.colors, np.ones((20, 1))]),
+        atol=0.06)
+
+
+def test_tab10_continuous_invalid_n_colors():
+    assert_raise_message(
+        ValueError,
+        "Expected 0 < n_colors <= 10. Got 0",
+        scprep.plot.colors.tab10_continuous,
+        n_colors=0)
+    assert_raise_message(
+        ValueError,
+        "Expected 0 < n_colors <= 10. Got 11",
+        scprep.plot.colors.tab10_continuous,
+        n_colors=11)
+    assert_raise_message(
+        ValueError,
+        "Expected n_step >= 2. Got 1",
+        scprep.plot.colors.tab10_continuous,
+        n_step=1)
+
+
 class TestScatterParams(unittest.TestCase):
 
     @classmethod
@@ -187,7 +252,7 @@ class TestScatterParams(unittest.TestCase):
         assert params.discrete is False
         assert params.legend is True
         assert params.cmap_scale == 'linear'
-        assert params.cmap == 'inferno'
+        assert params.cmap is plt.cm.inferno
         params = _ScatterParams(x=self.x, y=self.y, discrete=False,
                                 c=np.round(self.c % 1, 1))
         assert not params.array_c()
@@ -196,9 +261,9 @@ class TestScatterParams(unittest.TestCase):
         assert params.legend is True
         assert params.labels is None
         assert params.cmap_scale == 'linear'
-        assert params.cmap == 'inferno'
+        assert params.cmap is plt.cm.inferno
 
-    def test_discrete(self):
+    def test_discrete_tab10(self):
         params = _ScatterParams(x=self.x, y=self.y,
                                 c=np.where(self.c > 0, '+', '-'))
         assert not params.array_c()
@@ -209,6 +274,8 @@ class TestScatterParams(unittest.TestCase):
         assert params.vmax is None
         assert params.cmap_scale is None
         np.testing.assert_equal(params.cmap.colors, plt.cm.tab10.colors[:2])
+
+    def test_discrete_tab20(self):
         params = _ScatterParams(x=self.x, y=self.y, discrete=True,
                                 c=np.round(self.c % 1, 1))
         assert not params.array_c()
@@ -219,7 +286,35 @@ class TestScatterParams(unittest.TestCase):
         assert params.vmax is None
         assert params.cmap_scale is None
         assert params.extend is None
-        assert params.cmap == 'tab20'
+        assert isinstance(params.cmap, matplotlib.colors.ListedColormap)
+        np.testing.assert_equal(
+            params.cmap.colors,
+            plt.cm.tab20.colors[:len(np.unique(np.round(self.c % 1, 1)))])
+
+    def test_continuous_tab20_str(self):
+        params = _ScatterParams(x=self.x, y=self.y, discrete=False,
+                                cmap='tab20', c=np.round(self.c % 1, 1))
+        assert params.cmap is plt.cm.tab20
+
+    def test_continuous_tab20_obj(self):
+        params = _ScatterParams(x=self.x, y=self.y, discrete=False,
+                                cmap=plt.get_cmap('tab20'), c=np.round(self.c % 1, 1))
+        assert params.cmap is plt.cm.tab20
+
+    def test_discrete_dark2(self):
+        params = _ScatterParams(x=self.x, y=self.y, discrete=True,
+                                cmap='Dark2',
+                                c=np.where(self.c > 0, '+', '-'))
+        assert not params.array_c()
+        assert not params.constant_c()
+        assert params.discrete is True
+        assert params.legend is True
+        assert params.vmin is None
+        assert params.vmax is None
+        assert params.cmap_scale is None
+        assert params.extend is None
+        assert isinstance(params.cmap, matplotlib.colors.ListedColormap)
+        np.testing.assert_equal(params.cmap.colors, plt.cm.Dark2.colors[:2])
 
     def test_c_discrete(self):
         c = np.where(self.c > 0, 'a', 'b')
@@ -256,7 +351,7 @@ class TestScatterParams(unittest.TestCase):
         np.testing.assert_equal(params.cmap([0, 255]),
                                 [[1, 0, 0, 1], [0, 0, 0, 1]])
 
-    def test_dict_cmap(self):
+    def test_dict_cmap_fwd(self):
         params = _ScatterParams(x=self.x, y=self.y,
                                 c=np.where(self.c > 0, '+', '-'),
                                 cmap={'+': 'k', '-': 'r'})
@@ -274,6 +369,8 @@ class TestScatterParams(unittest.TestCase):
                 np.testing.assert_equal(params.cmap.colors,
                                         [[1, 0, 0, 1], [0, 0, 0, 1]])
                 assert np.all(params._labels == np.array(['-', '+']))
+
+    def test_dict_cmap_rev(self):
         params = _ScatterParams(x=self.x, y=self.y,
                                 c=np.where(self.c > 0, '+', '-'),
                                 cmap={'-': 'k', '+': 'r'})
@@ -291,9 +388,17 @@ class TestScatterParams(unittest.TestCase):
                                         [[1, 0, 0, 1], [0, 0, 0, 1]])
                 assert np.all(params._labels == np.array(['+', '-']))
 
+    def test_dict_cmap_constant(self):
+        params = _ScatterParams(x=self.x, y=self.y,
+                                c=np.full_like(self.c, '+', dtype=str),
+                                cmap={'-': 'k', '+': 'r'})
+        np.testing.assert_equal(params.cmap.colors,
+                                [[1, 0, 0, 1]])
+        assert np.all(params._labels == np.array(['+']))
+
     def test_cmap_given(self):
         params = _ScatterParams(x=self.x, y=self.y, c=self.c, cmap='viridis')
-        assert params.cmap == 'viridis'
+        assert params.cmap is matplotlib.cm.viridis
         assert not params.list_cmap()
 
     def test_cmap_scale_symlog(self):
@@ -892,6 +997,24 @@ class Test10X(unittest.TestCase):
                 np.arange(10), replace=True, size=self.X.shape[0]),
             gene_names=self.X.columns,
             markers={'tissue': self.X.columns[:2],
+                     'other tissue': self.X.columns[2:4]})
+
+    def test_marker_plot_single_marker(self):
+        scprep.plot.marker_plot(
+            data=self.X,
+            clusters=np.random.choice(
+                np.arange(10), replace=True, size=self.X.shape[0]),
+            gene_names=self.X.columns,
+            markers={'tissue': [self.X.columns[0]],
+                     'other tissue': self.X.columns[2:4]})
+
+    def test_marker_plot_repeat_marker(self):
+        scprep.plot.marker_plot(
+            data=self.X,
+            clusters=np.random.choice(
+                np.arange(10), replace=True, size=self.X.shape[0]),
+            gene_names=self.X.columns,
+            markers={'tissue': self.X.columns[:3],
                      'other tissue': self.X.columns[2:4]})
 
     def test_marker_plot_list(self):

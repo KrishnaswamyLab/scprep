@@ -96,17 +96,47 @@ class _ScatterParams(object):
             return 200 / np.sqrt(self.size)
 
     def constant_c(self):
+        """Is c constant?
+
+        Either None or a single matplotlib color"""
         return self._c is None or mpl.colors.is_color_like(self._c)
 
     def array_c(self):
+        """Is c an array of matplotkib colors?"""
         try:
             return self._array_c
         except AttributeError:
-            self._array_c = _is_color_array(self._c)
+            self._array_c = (not self.constant_c()) and _is_color_array(
+                self._c)
             return self._array_c
 
     @property
+    def c_unique(self):
+        """Get unique values in c to avoid recomputing every time"""
+        try:
+            return self._c_unique
+        except AttributeError:
+            self._c_unique = np.unique(self._c)
+            return self._c_unique
+
+    @property
+    def n_c_unique(self):
+        """Number of unique values in c"""
+        try:
+            return self._n_c_unique
+        except AttributeError:
+            self._n_c_unique = len(self.c_unique)
+            return self._n_c_unique
+
+    @property
     def discrete(self):
+        """Is the color array discrete?
+
+        If not provided:
+        * If c is constant or an array, return None
+        * If cmap is a dict, return True
+        * If c has 20 or less unique values, return True
+        * Otherwise, return False"""
         if self._discrete is not None:
             return self._discrete
         else:
@@ -120,13 +150,19 @@ class _ScatterParams(object):
                     return True
                 else:
                     # guess based on number of unique elements
-                    return len(np.unique(self._c)) <= 20
+                    return self.n_c_unique <= 20
 
     @property
     def c_discrete(self):
+        """Discretized form of c
+
+        If c is discrete then this converts it to
+        integers from 0 to `n_c_unique`
+        """
         if self._c_discrete is None:
             if isinstance(self._cmap, dict):
-                self._labels = np.array(list(self._cmap.keys()))
+                self._labels = np.array(
+                    [k for k in self._cmap.keys() if k in self.c_unique])
                 self._c_discrete = np.zeros_like(self._c, dtype=int)
                 for i, label in enumerate(self._labels):
                     self._c_discrete[self._c == label] = i
@@ -146,6 +182,7 @@ class _ScatterParams(object):
 
     @property
     def labels(self):
+        """Labels associated with each integer c, if c is discrete"""
         if self.constant_c() or self.array_c():
             return None
         elif self.discrete:
@@ -186,8 +223,18 @@ class _ScatterParams(object):
                 return np.max(self.c)
 
     def list_cmap(self):
+        """Is the colormap a list?"""
         return hasattr(self._cmap, '__len__') and \
             not isinstance(self._cmap, (str, dict))
+
+    def process_string_cmap(self, cmap):
+        """If necessary, subset a discrete colormap based on the number of colors"""
+        cmap = mpl.cm.get_cmap(cmap)
+        if self.discrete and cmap.N <= 20 and self.n_c_unique <= cmap.N:
+            return mpl.colors.ListedColormap(
+                cmap.colors[:self.n_c_unique])
+        else:
+            return cmap
 
     @property
     def cmap(self):
@@ -197,20 +244,21 @@ class _ScatterParams(object):
                     [mpl.colors.to_rgba(self._cmap[l]) for l in self.labels])
             elif self.list_cmap():
                 return create_colormap(self._cmap)
+            elif isinstance(self._cmap, str):
+                return self.process_string_cmap(self._cmap)
             else:
                 return self._cmap
         else:
             if self.constant_c() or self.array_c():
                 return None
             elif self.discrete:
-                n_unique_colors = len(np.unique(self.c))
+                n_unique_colors = self.n_c_unique
                 if n_unique_colors <= 10:
-                    return mpl.colors.ListedColormap(
-                        mpl.cm.tab10.colors[:n_unique_colors])
+                    return self.process_string_cmap('tab10')
                 else:
-                    return 'tab20'
+                    return self.process_string_cmap('tab20')
             else:
-                return 'inferno'
+                return self.process_string_cmap('inferno')
 
     @property
     def cmap_scale(self):
@@ -300,7 +348,7 @@ class _ScatterParams(object):
                     ". Got {}".format([len(d) for d in self._data]))
 
     def check_c(self):
-        if not self.constant_c() or self.array_c():
+        if not self.constant_c():
             self._c = utils.toarray(self._c).squeeze()
             if not len(self._c) == self.size:
                 raise ValueError("Expected c of length {} or 1. Got {}".format(

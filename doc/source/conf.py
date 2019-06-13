@@ -51,6 +51,8 @@ extensions = ['sphinx.ext.napoleon',
               'autodocsumm',
               'IPython.sphinxext.ipython_console_highlighting']
 
+autodoc_mock_imports = ["h5py", "tables", "rpy2", "fcsparser"]
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['ytemplates']
 

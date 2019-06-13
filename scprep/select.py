@@ -222,7 +222,8 @@ def get_gene_set(data, starts_with=None, ends_with=None,
         except AttributeError:
             raise TypeError("data must be a list of gene names or a pandas "
                             "DataFrame. Got {}".format(type(data).__name__))
-    if starts_with is None and ends_with is None and regex is None:
+    if starts_with is None and ends_with is None and \
+            regex is None and exact_word is None:
         warnings.warn("No selection conditions provided. "
                       "Returning all genes.", UserWarning)
     return _get_string_subset(data, starts_with=starts_with,
@@ -258,7 +259,8 @@ def get_cell_set(data, starts_with=None, ends_with=None,
         except AttributeError:
             raise TypeError("data must be a list of cell names or a pandas "
                             "DataFrame. Got {}".format(type(data).__name__))
-    if starts_with is None and ends_with is None and regex is None:
+    if starts_with is None and ends_with is None and \
+            regex is None and exact_word is None:
         warnings.warn("No selection conditions provided. "
                       "Returning all cells.", UserWarning)
     return _get_string_subset(data, starts_with=starts_with,
@@ -306,7 +308,8 @@ def select_cols(data, *extra_data, idx=None,
     """
     if len(extra_data) > 0:
         _check_columns_compatible(data, *extra_data)
-    if idx is None and starts_with is None and ends_with is None and regex is None:
+    if idx is None and starts_with is None and ends_with is None and \
+            exact_word is None and regex is None:
         warnings.warn("No selection conditions provided. "
                       "Returning all columns.", UserWarning)
         return tuple([data] + list(extra_data)) if len(extra_data) > 0 else data
@@ -355,6 +358,8 @@ def select_cols(data, *extra_data, idx=None,
                              sparse.lil_matrix,
                              sparse.dia_matrix)):
             data = data.tocsr()
+        if isinstance(idx, pd.Series):
+            idx = utils.toarray(idx)
         data = data[:, idx]
     if _get_column_length(data) == 0:
         warnings.warn("Selecting 0 columns.", UserWarning)
@@ -406,7 +411,8 @@ def select_rows(data, *extra_data, idx=None,
     """
     if len(extra_data) > 0:
         _check_rows_compatible(data, *extra_data)
-    if idx is None and starts_with is None and ends_with is None and regex is None:
+    if idx is None and starts_with is None and ends_with is None and \
+            exact_word is None and regex is None:
         warnings.warn("No selection conditions provided. "
                       "Returning all rows.", UserWarning)
         return tuple([data] + list(extra_data)) if len(extra_data) > 0 else data
@@ -448,6 +454,8 @@ def select_rows(data, *extra_data, idx=None,
                              sparse.bsr_matrix,
                              sparse.dia_matrix)):
             data = data.tocsr()
+        if isinstance(idx, pd.Series):
+            idx = utils.toarray(idx)
         data = data[idx, :]
     if _get_row_length(data) == 0:
         warnings.warn("Selecting 0 rows.", UserWarning)

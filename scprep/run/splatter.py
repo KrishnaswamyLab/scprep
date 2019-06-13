@@ -57,6 +57,7 @@ _SplatSimulate = RFunction(
 
         result <- list(counts=t(counts(sim)),
             group=colData(sim)$Group, step=colData(sim)$Step,
+            batch=colData(sim)$Batch,
             exp_lib_size=colData(sim)$ExpLibSize,
             base_gene_mean=rowData(sim)$BaseGeneMean,
             outlier_factor=rowData(sim)$OutlierFactor,
@@ -195,6 +196,7 @@ def SplatSimulate(
     sim : dict
         counts : Simulated expression counts.
         group : The group or path the cell belongs to.
+        batch : The batch the cell was sampled from.
         exp_lib_size : The expected library size for that cell.
         step (paths only) : how far along the path each cell is.
         base_gene_mean : The base expression level for that gene.
