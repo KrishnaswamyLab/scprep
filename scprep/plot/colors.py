@@ -46,6 +46,22 @@ def tab10_continuous(n_colors=10, n_step=200, reverse=False):
     return restricted_cmap
 
 
+def tab30():
+    """A discrete colormap with 30 unique colors
+
+    This colormap combines `matplotlib`'s `tab20b` and `tab20c` colormaps,
+    removing the lightest color of each hue.
+
+    Returns
+    -------
+    cmap : `matplotlib.colors.ListedColormap`
+    """
+    colors = np.vstack([mpl.cm.tab20c.colors,
+                        mpl.cm.tab20b.colors])
+    select_idx = np.repeat(np.arange(10), 3) * 4 + np.tile(np.arange(3), 10)
+    return mpl.colors.ListedColormap(colors[select_idx])
+
+
 def tab40():
     """A discrete colormap with 40 unique colors
 

@@ -77,6 +77,18 @@ def test_generate_colorbar_dict():
                          cmap={'+': 'r', '-': 'b'})
 
 
+def test_tab30():
+    cmap = scprep.plot.colors.tab40()
+    np.testing.assert_array_equal(
+        cmap.colors[:15],
+        np.array(matplotlib.cm.tab20c.colors)[[0, 1, 2, 4, 5, 6, 8, 9,
+                                               10, 12, 13, 14, 16, 17, 18]])
+    np.testing.assert_array_equal(
+        cmap.colors[15:],
+        np.array(matplotlib.cm.tab20b.colors)[[0, 1, 2, 4, 5, 6, 8, 9,
+                                               10, 12, 13, 14, 16, 17, 18]])
+
+
 def test_tab40():
     cmap = scprep.plot.colors.tab40()
     np.testing.assert_array_equal(
