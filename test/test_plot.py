@@ -89,6 +89,10 @@ def test_tab30():
                                                10, 12, 13, 14, 16, 17, 18]])
 
 
+def test_is_color_array_none():
+    assert not scprep.plot.utils._is_color_array(None)
+
+
 def test_tab40():
     cmap = scprep.plot.colors.tab40()
     np.testing.assert_array_equal(
@@ -287,9 +291,14 @@ class TestScatterParams(unittest.TestCase):
             params.cmap.colors,
             plt.cm.tab20.colors[:len(np.unique(np.round(self.c % 1, 1)))])
 
-    def test_continuous_tab20(self):
+    def test_continuous_tab20_str(self):
         params = _ScatterParams(x=self.x, y=self.y, discrete=False,
                                 cmap='tab20', c=np.round(self.c % 1, 1))
+        assert params.cmap is plt.cm.tab20
+
+    def test_continuous_tab20_obj(self):
+        params = _ScatterParams(x=self.x, y=self.y, discrete=False,
+                                cmap=plt.get_cmap('tab20'), c=np.round(self.c % 1, 1))
         assert params.cmap is plt.cm.tab20
 
     def test_discrete_dark2(self):
