@@ -209,7 +209,7 @@ class Test10X(unittest.TestCase):
             self.X_sparse, genes=genes, cutoff=None, percentile=None)
         assert_raise_message(
             KeyError,
-            "the label [not_a_gene] is not in the [columns]",
+            "not_a_gene",
             scprep.filter.filter_gene_set_expression,
             self.X_sparse, genes=no_genes, percentile=90.0, keep_cells='below')
 

@@ -328,11 +328,16 @@ def select_cols(data, *extra_data, idx=None,
 
     if isinstance(data, pd.DataFrame):
         try:
-            if np.issubdtype(idx.dtype, np.dtype(bool).type):
-                # temporary workaround for pandas error
-                raise TypeError
-            data = data.loc[:, idx]
+            if isinstance(idx, (numbers.Integral, str)):
+                data = data.loc[:, idx]
+            else:
+                if np.issubdtype(idx.dtype, np.dtype(bool).type):
+                    # temporary workaround for pandas error
+                    raise TypeError
+                data = data.loc[:, idx]
         except (KeyError, TypeError):
+            if isinstance(idx, str):
+                raise
             if isinstance(idx, numbers.Integral) or \
                     np.issubdtype(idx.dtype, np.dtype(int)) or \
                     np.issubdtype(idx.dtype, np.dtype(bool)):
@@ -436,14 +441,19 @@ def select_rows(data, *extra_data, idx=None,
 
     if isinstance(data, (pd.DataFrame, pd.Series)):
         try:
-            if np.issubdtype(idx.dtype, np.dtype(bool).type):
-                # temporary workaround for pandas error
-                raise TypeError
-            with warnings.catch_warnings():
-                warnings.filterwarnings(
-                    "error", "Passing list-likes to .loc")
-                data = data.loc[idx]
+            if isinstance(idx, (numbers.Integral, str)):
+                data = data.loc[:, idx]
+            else:
+                if np.issubdtype(idx.dtype, np.dtype(bool).type):
+                    # temporary workaround for pandas error
+                    raise TypeError
+                with warnings.catch_warnings():
+                    warnings.filterwarnings(
+                        "error", "Passing list-likes to .loc")
+                    data = data.loc[idx]
         except (KeyError, TypeError, FutureWarning):
+            if isinstance(idx, str):
+                raise
             if isinstance(idx, numbers.Integral) or \
                     np.issubdtype(idx.dtype, np.dtype(int)) or \
                     np.issubdtype(idx.dtype, np.dtype(bool)):

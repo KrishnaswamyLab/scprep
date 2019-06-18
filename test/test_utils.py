@@ -370,30 +370,30 @@ def test_deprecated():
     assert_warns_message(FutureWarning,
                          "`scprep.utils.select_cols` is deprecated. Use "
                          "`scprep.select.select_cols` instead.",
-                         scprep.utils.select_cols,
+                         scprep.select.select_cols,
                          X,
                          [1, 2, 3])
     assert_warns_message(FutureWarning,
                          "`scprep.utils.select_rows` is deprecated. Use "
                          "`scprep.select.select_rows` instead.",
-                         scprep.utils.select_rows,
+                         scprep.select.select_rows,
                          X,
                          [1, 2, 3])
     assert_warns_message(FutureWarning,
                          "`scprep.utils.get_gene_set` is deprecated. Use "
                          "`scprep.select.get_gene_set` instead.",
-                         scprep.utils.get_gene_set,
+                         scprep.select.get_gene_set,
                          X,
                          starts_with="D")
     assert_warns_message(FutureWarning,
                          "`scprep.utils.get_cell_set` is deprecated. Use "
                          "`scprep.select.get_cell_set` instead.",
-                         scprep.utils.get_cell_set,
+                         scprep.select.get_cell_set,
                          X,
                          starts_with="A")
     assert_warns_message(FutureWarning,
                          "`scprep.utils.subsample` is deprecated. Use "
                          "`scprep.select.subsample` instead.",
-                         scprep.utils.subsample,
+                         scprep.select.subsample,
                          X,
                          n=10)

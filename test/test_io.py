@@ -116,7 +116,7 @@ def test_10X_zip_url_not_a_zip():
 def test_10X_zip_url_not_a_real_website():
     assert_raise_message(
         urllib.error.URLError,
-        "<urlopen error [Errno -2] Name or service not known>",
+        "<urlopen error [Errno 8] nodename nor servname provided, or not known>",
         scprep.io.load_10X_zip,
         'http://invalid.not.a.url/scprep')
 
