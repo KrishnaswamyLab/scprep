@@ -276,8 +276,8 @@ class TestScatterParams(unittest.TestCase):
         np.testing.assert_equal(params.cmap.colors, plt.cm.tab10.colors[:2])
 
     def test_discrete_tab20(self):
-        params = _ScatterParams(x=self.x, y=self.y, discrete=True,
-                                c=np.round(self.c % 1, 1))
+        params = _ScatterParams(x=self.x, y=self.y,
+                                c=10 * np.round(self.c % 1, 1))
         assert not params.array_c()
         assert not params.constant_c()
         assert params.discrete is True
@@ -290,6 +290,19 @@ class TestScatterParams(unittest.TestCase):
         np.testing.assert_equal(
             params.cmap.colors,
             plt.cm.tab20.colors[:len(np.unique(np.round(self.c % 1, 1)))])
+
+    def test_continuous_less_than_20(self):
+        params = _ScatterParams(x=self.x, y=self.y,
+                                c=np.round(self.c % 1, 1))
+        assert not params.array_c()
+        assert not params.constant_c()
+        assert params.discrete is False
+        assert params.legend is True
+        assert params.vmin == 0
+        assert params.vmax == 1
+        assert params.cmap_scale == 'linear'
+        assert params.extend == 'neither'
+        assert params.cmap is matplotlib.cm.inferno
 
     def test_continuous_tab20_str(self):
         params = _ScatterParams(x=self.x, y=self.y, discrete=False,

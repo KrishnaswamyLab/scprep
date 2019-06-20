@@ -150,7 +150,11 @@ class _ScatterParams(object):
                     return True
                 else:
                     # guess based on number of unique elements
-                    return self.n_c_unique <= 20
+                    if self.n_c_unique > 20:
+                        return False
+                    else:
+                        # are the unique elements integer-like?
+                        return np.allclose(self.c_unique % 1, 0, atol=1e-4)
 
     @property
     def c_discrete(self):
