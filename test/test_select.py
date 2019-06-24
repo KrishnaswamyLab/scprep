@@ -397,8 +397,8 @@ class Test10X(unittest.TestCase):
         libsize = self.libsize[:25]
         assert_raise_message(
             ValueError,
-            "Expected all data to have the same number of rows. "
-            "Got [100, 25]",
+            "Expected `data` and `extra_data` to have the same number of "
+            "rows. Got [100, 25]",
             scprep.select.subsample, self.X, libsize, n=20)
 
     def test_subsample_n_too_large(self):
