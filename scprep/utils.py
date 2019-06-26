@@ -7,6 +7,8 @@ import warnings
 import importlib
 from decorator import decorator
 
+from . import select
+
 try:
     ModuleNotFoundError
 except NameError:
@@ -63,7 +65,7 @@ def check_version(pkg, min_version=None):
         raise ImportError(
             "scprep requires {0}>={1} (installed: {2}). "
             "Please upgrade it with e.g."
-            " `pip install --user --upgrade {0}".format(
+            " `pip install --user --upgrade {0}`".format(
                 pkg, min_version, module.__version__))
 
 
@@ -135,7 +137,13 @@ def to_array_or_spmatrix(x):
     """
     if isinstance(x, pd.SparseDataFrame):
         x = x.to_coo()
-    elif isinstance(x, sparse.spmatrix):
+    elif isinstance(x, pd.SparseSeries):
+        x = x.to_dense().to_numpy()
+    elif isinstance(x, (pd.DataFrame, pd.Series)):
+        x = x.to_numpy()
+    elif isinstance(x, np.matrix):
+        x = np.array(x)
+    elif isinstance(x, (sparse.spmatrix, np.ndarray, numbers.Number)):
         pass
     elif isinstance(x, list):
         x_out = []
