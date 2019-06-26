@@ -99,7 +99,7 @@ def toarray(x):
     elif isinstance(x, sparse.spmatrix):
         x = x.toarray()
     elif isinstance(x, np.matrix):
-        x = np.array(x)
+        x = x.A
     elif isinstance(x, list):
         x_out = []
         for xi in x:

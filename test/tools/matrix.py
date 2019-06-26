@@ -19,6 +19,8 @@ SparseDataFrame = partial(pd.SparseDataFrame, default_fill_value=0.0)
 
 SparseDataFrame = partial(pd.SparseDataFrame, default_fill_value=0.0)
 
+SparseDataFrame = partial(pd.SparseDataFrame, default_fill_value=0.0)
+
 _scipy_matrix_types = [
     sparse.csr_matrix,
     sparse.csc_matrix,
