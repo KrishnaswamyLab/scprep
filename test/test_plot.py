@@ -236,6 +236,9 @@ class TestScatterParams(unittest.TestCase):
                                 c=self.array_c)
         assert params.array_c()
         assert not params.constant_c()
+        np.testing.assert_array_equal(params.x, params._x[params.plot_idx])
+        np.testing.assert_array_equal(params.y, params._y[params.plot_idx])
+        np.testing.assert_array_equal(params.c, params._c[params.plot_idx])
         assert params.discrete is None
         assert params.legend is False
         assert params.vmin is None
@@ -249,6 +252,9 @@ class TestScatterParams(unittest.TestCase):
         params = _ScatterParams(x=self.x, y=self.y, c=self.c)
         assert not params.array_c()
         assert not params.constant_c()
+        np.testing.assert_array_equal(params.x, params._x[params.plot_idx])
+        np.testing.assert_array_equal(params.y, params._y[params.plot_idx])
+        np.testing.assert_array_equal(params.c, params._c[params.plot_idx])
         assert params.discrete is False
         assert params.legend is True
         assert params.cmap_scale == 'linear'
@@ -257,6 +263,9 @@ class TestScatterParams(unittest.TestCase):
                                 c=np.round(self.c % 1, 1))
         assert not params.array_c()
         assert not params.constant_c()
+        np.testing.assert_array_equal(params.x, params._x[params.plot_idx])
+        np.testing.assert_array_equal(params.y, params._y[params.plot_idx])
+        np.testing.assert_array_equal(params.c, params._c[params.plot_idx])
         assert params.discrete is False
         assert params.legend is True
         assert params.labels is None
@@ -268,6 +277,10 @@ class TestScatterParams(unittest.TestCase):
                                 c=np.where(self.c > 0, '+', '-'))
         assert not params.array_c()
         assert not params.constant_c()
+        np.testing.assert_array_equal(params.x, params._x[params.plot_idx])
+        np.testing.assert_array_equal(params.y, params._y[params.plot_idx])
+        np.testing.assert_array_equal(
+            params.c, params.c_discrete[params.plot_idx])
         assert params.discrete is True
         assert params.legend is True
         assert params.vmin is None

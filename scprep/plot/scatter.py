@@ -177,12 +177,13 @@ class _ScatterParams(object):
 
     @property
     def c(self):
-        if self.constant_c() or self.array_c():
+        if self.constant_c():
             return self._c
-        elif self.discrete:
-            return self.c_discrete[self.plot_idx]
-        else:
+        elif self.array_c() or not self.discrete:
             return self._c[self.plot_idx]
+        else:
+            # discrete c
+            return self.c_discrete[self.plot_idx]
 
     @property
     def labels(self):
