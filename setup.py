@@ -17,7 +17,6 @@ test_requires = [
     'tables',
     'h5py',
     'rpy2>=3.0',
-    'matplotlib>=3.0.0',
     'coverage',
     'coveralls'
 ]
@@ -32,6 +31,10 @@ doc_requires = [
 
 if sys.version_info[:2] < (3, 5):
     raise RuntimeError("Python version >=3.5 required.")
+elif sys.version_info[:2] < (3, 6):
+    test_requires += ['matplotlib>=3.0,<3.1']
+else:
+    test_requires += ['matplotlib>=3.0']
 
 version_py = os.path.join(os.path.dirname(
     __file__), 'scprep', 'version.py')
