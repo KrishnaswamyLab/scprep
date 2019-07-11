@@ -63,7 +63,7 @@ def check_version(pkg, min_version=None):
             "Please install it with e.g. `pip install --user {0}`".format(pkg))
     if not _version_check(module.__version__, min_version):
         raise ImportError(
-            "scprep requires {0}>={1} (installed: {2}). "
+            "{0}>={1} is required (installed: {2}). "
             "Please upgrade it with e.g."
             " `pip install --user --upgrade {0}`".format(
                 pkg, min_version, module.__version__))

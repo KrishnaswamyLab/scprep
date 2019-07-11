@@ -89,10 +89,6 @@ def test_tab30():
                                                10, 12, 13, 14, 16, 17, 18]])
 
 
-def test_is_color_array_none():
-    assert not scprep.plot.utils._is_color_array(None)
-
-
 def test_tab40():
     cmap = scprep.plot.colors.tab40()
     np.testing.assert_array_equal(
@@ -142,6 +138,80 @@ def test_tab10_continuous_invalid_n_colors():
         n_step=1)
 
 
+def test_tab_exact():
+    assert scprep.plot.colors.tab(1) is plt.cm.tab10
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(10).colors, plt.cm.tab10.colors)
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(20).colors, plt.cm.tab20.colors)
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(30).colors, scprep.plot.colors.tab30().colors)
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(40).colors, scprep.plot.colors.tab40().colors)
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(50).colors,
+        scprep.plot.colors.tab10_continuous(n_colors=10, n_step=5).colors)
+
+
+def test_tab_first10():
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(19).colors[:10], plt.cm.tab10.colors)
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(29).colors[:10],
+        scprep.plot.colors.tab30().colors[::3])
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(39).colors[:10],
+        scprep.plot.colors.tab40().colors[::4])
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(49).colors[:10],
+        scprep.plot.colors.tab10_continuous(
+            n_colors=10, n_step=5).colors[::5])
+
+
+def test_tab_first20():
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(29).colors[10:20],
+        scprep.plot.colors.tab30().colors[1::3])
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(39).colors[10:20],
+        scprep.plot.colors.tab40().colors[1::4])
+
+
+def test_tab_first30():
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(39).colors[20:30],
+        scprep.plot.colors.tab40().colors[2::4])
+
+
+def test_tab_overhang():
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(9).colors, plt.cm.tab10.colors[:9])
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(19).colors[10:], plt.cm.tab20.colors[1:-1:2])
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(29).colors[20:],
+        scprep.plot.colors.tab30().colors[2:-1:3])
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(39).colors[30:],
+        scprep.plot.colors.tab40().colors[3:-1:4])
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(49).colors[40:],
+        scprep.plot.colors.tab10_continuous(
+            n_colors=10, n_step=5).colors[4:-1:5])
+
+
+def test_tab_invalid():
+    assert_raise_message(
+        ValueError,
+        "Expected n >= 1. Got 0",
+        scprep.plot.colors.tab,
+        n=0)
+
+
+def test_is_color_array_none():
+    assert not scprep.plot.utils._is_color_array(None)
+
+
 class TestScatterParams(unittest.TestCase):
 
     @classmethod
@@ -179,6 +249,11 @@ class TestScatterParams(unittest.TestCase):
         np.testing.assert_equal(params.z, self.z)
         np.testing.assert_equal(params.c, self.c)
         np.testing.assert_equal(params.s, np.abs(self.x))
+
+    def test_data_int(self):
+        params = _ScatterParams(x=1, y=2)
+        np.testing.assert_equal(params._data, [np.array([1]), np.array([2])])
+        assert params.subplot_kw == {}
 
     def test_data_2d(self):
         params = _ScatterParams(x=self.x, y=self.y)
@@ -301,8 +376,11 @@ class TestScatterParams(unittest.TestCase):
         assert params.extend is None
         assert isinstance(params.cmap, matplotlib.colors.ListedColormap)
         np.testing.assert_equal(
-            params.cmap.colors,
-            plt.cm.tab20.colors[:len(np.unique(np.round(self.c % 1, 1)))])
+            params.cmap.colors[:10],
+            plt.cm.tab10.colors)
+        np.testing.assert_equal(
+            params.cmap.colors[10:],
+            plt.cm.tab20.colors[1:1 + (len(params.cmap.colors) - 10) * 2:2])
 
     def test_continuous_less_than_20(self):
         params = _ScatterParams(x=self.x, y=self.y,
