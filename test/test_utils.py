@@ -66,7 +66,7 @@ def test_with_pkg_version_fail_major():
     def test():
         return True
     assert_raise_message(ImportError,
-                         "scprep requires numpy>={0} (installed: {1}). "
+                         "numpy>={0} is required (installed: {1}). "
                          "Please upgrade it with e.g."
                          " `pip install --user --upgrade numpy".format(
                              major + 1, np.__version__),
@@ -80,7 +80,7 @@ def test_with_pkg_version_fail_minor():
     def test():
         return True
     assert_raise_message(ImportError,
-                         "scprep requires numpy>={0}.{1} (installed: {2}). "
+                         "numpy>={0}.{1} is required (installed: {2}). "
                          "Please upgrade it with e.g."
                          " `pip install --user --upgrade numpy".format(
                              major, minor + 1, np.__version__),
