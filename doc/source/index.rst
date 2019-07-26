@@ -4,6 +4,11 @@ scprep
 
 .. raw:: html
 
+    <a href="https://github.com/KrishnaswamyLab/scprep/"><img src="https://raw.githubusercontent.com/KrishnaswamyLab/scprep/dev/logo.png" alt="scprep logo"></a>
+
+
+.. raw:: html
+
     <a href="https://pypi.org/project/scprep/"><img src="https://img.shields.io/pypi/v/scprep.svg" alt="Latest PyPi version"></a>
 
 .. raw:: html
@@ -26,7 +31,14 @@ scprep
 
     <a href="https://github.com/KrishnaswamyLab/scprep/"><img src="https://img.shields.io/github/stars/KrishnaswamyLab/scprep.svg?style=social&label=Stars" alt="GitHub stars"></a>
 
-Tools for building and manipulating graphs in Python.
+`scprep` provides an all-in-one framework for loading, preprocessing, and plotting matrices in Python, with a focus on single-cell genomics.
+
+The philosophy of `scprep`:
+
+* Data shouldn't be hidden in a complex and bespoke class object. `scprep` works with `numpy` arrays, `pandas` data frames, and `scipy` sparse matrices, all of which are popular data formats in Python and accepted as input to most common algorithms.
+* Your analysis pipeline shouldn't have to change based on data format. Changing from a `numpy` array to a `pandas` data frame introduces endless technical differences (e.g. in indexing matrices). `scprep` provides data-agnostic methods that work the same way on all formats.
+* Simple analysis should mean simple code. `scprep` takes care of annoying edge cases and sets nice defaults so you don't have to.
+* Using a framework shouldn't be limiting. Because nothing is hidden from you, you have access to the power of `numpy`, `scipy`, `pandas` and `matplotlib` just as you would if you used them directly.
 
 .. toctree::
     :maxdepth: 2
