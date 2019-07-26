@@ -1,4 +1,5 @@
-![scprep logo](logo.png)
+.. image:: logo.png
+    :alt: scprep logo
 
 .. image:: https://img.shields.io/pypi/v/scprep.svg
     :target: https://pypi.org/project/scprep/
