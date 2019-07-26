@@ -1,6 +1,4 @@
-=============
-scprep
-=============
+![scprep logo](logo.png)
 
 .. image:: https://img.shields.io/pypi/v/scprep.svg
     :target: https://pypi.org/project/scprep/
@@ -24,8 +22,14 @@ scprep
     :target: https://github.com/KrishnaswamyLab/scprep/
     :alt: GitHub stars
 
+`scprep` provides an all-in-one framework for loading, preprocessing, and plotting matrices in Python, with a focus on single-cell genomics.
 
-Tools for loading and preprocessing biological matrices in Python.
+The philosophy of `scprep`:
+
+* Data shouldn't be hidden in a complex and bespoke class object. `scprep` works with `numpy` arrays, `pandas` data frames, and `scipy` sparse matrices, all of which are popular data formats in Python and accepted as input to most common algorithms.
+* Your analysis pipeline shouldn't have to change based on data format. Changing from a `numpy` array to a `pandas` data frame introduces endless technical differences (e.g. in indexing matrices). `scprep` provides data-agnostic methods that work the same way on all formats.
+* Simple analysis should mean simple code. `scprep` takes care of annoying edge cases and sets nice defaults so you don't have to.
+* Using a framework shouldn't be limiting. Because nothing is hidden from you, you have access to the power of `numpy`, `scipy`, `pandas` and `matplotlib` just as you would if you used them directly.
 
 Installation
 ------------
