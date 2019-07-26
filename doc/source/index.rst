@@ -1,11 +1,6 @@
-===========================================================================
-scprep
-===========================================================================
-
 .. raw:: html
 
-    <a href="https://github.com/KrishnaswamyLab/scprep/"><img src="https://raw.githubusercontent.com/KrishnaswamyLab/scprep/dev/logo.png" alt="scprep logo"></a>
-
+    <a href="https://github.com/KrishnaswamyLab/scprep/"><img src="https://raw.githubusercontent.com/KrishnaswamyLab/scprep/dev/logo.png" alt="scprep logo"></a><br>
 
 .. raw:: html
 
