@@ -137,12 +137,8 @@ def to_array_or_spmatrix(x):
     """
     if isinstance(x, pd.SparseDataFrame):
         x = x.to_coo()
-    elif isinstance(x, (pd.DataFrame, pd.Series)):
-        try:
-            x = x.sparse.to_coo()
-        except AttributeError:
-            # not sparse
-            x = toarray(x)
+    elif is_sparse_dataframe(x) or is_sparse_series(x):
+        x = x.sparse.to_coo()
     elif isinstance(x, (sparse.spmatrix, np.ndarray, numbers.Number)):
         pass
     elif isinstance(x, list):
@@ -158,6 +154,30 @@ def to_array_or_spmatrix(x):
     else:
         x = toarray(x)
     return x
+
+
+def is_sparse_dataframe(x):
+    if isinstance(x, pd.DataFrame):
+        try:
+            x.sparse
+            return True
+        except AttributeError:
+            pass
+    return False
+
+
+def is_sparse_series(x):
+    if isinstance(x, pd.Series):
+        try:
+            x.sparse
+            return True
+        except AttributeError:
+            pass
+    return False
+
+
+def dataframe_to_sparse(x, fill_value=0):
+    return x.astype(pd.SparseDtype(float, fill_value=fill_value))
 
 
 def matrix_transform(data, fun, *args, **kwargs):
