@@ -7,7 +7,7 @@ install_requires = [
     'scipy>=0.18.1',
     'scikit-learn>=0.19.1',
     'decorator>=4.3.0',
-    'pandas>=0.24',
+    'pandas>=0.25',
 ]
 
 test_requires = [
