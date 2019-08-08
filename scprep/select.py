@@ -449,7 +449,7 @@ def select_rows(data, *extra_data, idx=None,
     if isinstance(data, (pd.DataFrame, pd.Series)):
         try:
             if isinstance(idx, (numbers.Integral, str)):
-                data = data.loc[:, idx]
+                data = data.loc[idx]
             else:
                 if np.issubdtype(idx.dtype, np.dtype(bool).type):
                     # temporary workaround for pandas error
