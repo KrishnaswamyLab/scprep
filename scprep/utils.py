@@ -137,12 +137,12 @@ def to_array_or_spmatrix(x):
     """
     if isinstance(x, pd.SparseDataFrame):
         x = x.to_coo()
-    elif isinstance(x, pd.SparseSeries):
-        x = x.to_dense().to_numpy()
     elif isinstance(x, (pd.DataFrame, pd.Series)):
-        x = x.to_numpy()
-    elif isinstance(x, np.matrix):
-        x = np.array(x)
+        try:
+            x = x.sparse.to_coo()
+        except AttributeError:
+            # not sparse
+            x = toarray(x)
     elif isinstance(x, (sparse.spmatrix, np.ndarray, numbers.Number)):
         pass
     elif isinstance(x, list):
@@ -329,7 +329,7 @@ def matrix_min(data):
     elif isinstance(data, sparse.lil_matrix):
         data = [np.min(d) for d in data.data] + [0]
     elif isinstance(data, sparse.dok_matrix):
-        data = list(data.to_numpy()()) + [0]
+        data = list(data.values()) + [0]
     elif isinstance(data, sparse.dia_matrix):
         data = [np.min(data.data), 0]
     return np.min(data)
