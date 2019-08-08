@@ -367,33 +367,33 @@ def test_matrix_elementwise_multiply_invalid_axis():
 
 def test_deprecated():
     X = data.load_10X()
-    assert_warns_message(FutureWarning,
+    assert_raise_message(RuntimeError,
                          "`scprep.utils.select_cols` is deprecated. Use "
                          "`scprep.select.select_cols` instead.",
-                         scprep.select.select_cols,
+                         scprep.utils.select_cols,
                          X,
                          [1, 2, 3])
-    assert_warns_message(FutureWarning,
+    assert_raise_message(RuntimeError,
                          "`scprep.utils.select_rows` is deprecated. Use "
                          "`scprep.select.select_rows` instead.",
-                         scprep.select.select_rows,
+                         scprep.utils.select_rows,
                          X,
                          [1, 2, 3])
-    assert_warns_message(FutureWarning,
+    assert_raise_message(RuntimeError,
                          "`scprep.utils.get_gene_set` is deprecated. Use "
                          "`scprep.select.get_gene_set` instead.",
-                         scprep.select.get_gene_set,
+                         scprep.utils.get_gene_set,
                          X,
                          starts_with="D")
-    assert_warns_message(FutureWarning,
+    assert_raise_message(RuntimeError,
                          "`scprep.utils.get_cell_set` is deprecated. Use "
                          "`scprep.select.get_cell_set` instead.",
-                         scprep.select.get_cell_set,
+                         scprep.utils.get_cell_set,
                          X,
                          starts_with="A")
-    assert_warns_message(FutureWarning,
+    assert_raise_message(RuntimeError,
                          "`scprep.utils.subsample` is deprecated. Use "
                          "`scprep.select.subsample` instead.",
-                         scprep.select.subsample,
+                         scprep.utils.subsample,
                          X,
                          n=10)
