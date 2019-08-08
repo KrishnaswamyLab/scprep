@@ -9,9 +9,19 @@ from .utils import (_get_figure, _is_color_array,
                     _with_default)
 from .tools import (create_colormap, create_normalize,
                     label_axis, generate_colorbar, generate_legend)
+from . import colors
 
 from .._lazyload import matplotlib as mpl
 plt = mpl.pyplot
+
+
+def _squeeze_array(x):
+    x = utils.toarray([x]).squeeze()
+    try:
+        len(x)
+    except TypeError:
+        x = x[None]
+    return x
 
 
 class _ScatterParams(object):
@@ -20,9 +30,9 @@ class _ScatterParams(object):
                  cmap=None, cmap_scale=None, vmin=None,
                  vmax=None, s=None, legend=None, colorbar=None,
                  shuffle=True):
-        self._x = utils.toarray(x).squeeze()
-        self._y = utils.toarray(y).squeeze()
-        self._z = utils.toarray(z).squeeze() if z is not None else None
+        self._x = _squeeze_array(x)
+        self._y = _squeeze_array(y)
+        self._z = _squeeze_array(z) if z is not None else None
         self._c = c
         self._discrete = discrete
         self._cmap = cmap
@@ -150,7 +160,11 @@ class _ScatterParams(object):
                     return True
                 else:
                     # guess based on number of unique elements
-                    return self.n_c_unique <= 20
+                    if self.n_c_unique > 20:
+                        return False
+                    else:
+                        # are the unique elements integer-like?
+                        return np.allclose(self.c_unique % 1, 0, atol=1e-4)
 
     @property
     def c_discrete(self):
@@ -173,12 +187,13 @@ class _ScatterParams(object):
 
     @property
     def c(self):
-        if self.constant_c() or self.array_c():
+        if self.constant_c():
             return self._c
-        elif self.discrete:
-            return self.c_discrete[self.plot_idx]
-        else:
+        elif self.array_c() or not self.discrete:
             return self._c[self.plot_idx]
+        else:
+            # discrete c
+            return self.c_discrete[self.plot_idx]
 
     @property
     def labels(self):
@@ -252,11 +267,7 @@ class _ScatterParams(object):
             if self.constant_c() or self.array_c():
                 return None
             elif self.discrete:
-                n_unique_colors = self.n_c_unique
-                if n_unique_colors <= 10:
-                    return self.process_string_cmap('tab10')
-                else:
-                    return self.process_string_cmap('tab20')
+                return colors.tab(n=self.n_c_unique)
             else:
                 return self.process_string_cmap('inferno')
 

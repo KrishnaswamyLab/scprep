@@ -314,7 +314,7 @@ class Test10X(unittest.TestCase):
     def test_select_cols_unequal_columns(self):
         assert_raise_message(
             ValueError,
-            "Expected all data to have the same number of "
+            "Expected `data` and `extra_data` to have the same number of "
             "columns. Got [100, 50]",
             scprep.select.select_cols,
             self.X,
@@ -323,7 +323,7 @@ class Test10X(unittest.TestCase):
     def test_select_rows_unequal_rows(self):
         assert_raise_message(
             ValueError,
-            "Expected all data to have the same number of "
+            "Expected `data` and `extra_data` to have the same number of "
             "rows. Got [100, 50]",
             scprep.select.select_rows,
             self.X,
@@ -332,9 +332,9 @@ class Test10X(unittest.TestCase):
     def test_select_cols_conflicting_data(self):
         assert_raise_message(
             ValueError,
-            "Expected all pandas inputs to have the same columns. "
-            "Fix with "
-            "`scprep.select.select_cols(extra_data, data.columns)`",
+            "Expected `data` and `extra_data` pandas inputs to have the same "
+            "column names. Fix with "
+            "`scprep.select.select_cols(*extra_data, data.columns)`",
             scprep.select.select_cols,
             self.X,
             scprep.select.subsample(self.X.T, n=self.X.shape[0]).T)
@@ -342,9 +342,9 @@ class Test10X(unittest.TestCase):
     def test_select_rows_conflicting_data(self):
         assert_raise_message(
             ValueError,
-            "Expected all pandas inputs to have the same index. "
-            "Fix with "
-            "`scprep.select.select_rows(extra_data, data.index)`",
+            "Expected `data` and `extra_data` pandas inputs to have the same "
+            "index. Fix with "
+            "`scprep.select.select_rows(*extra_data, data.index)`",
             scprep.select.select_rows,
             self.X,
             scprep.select.subsample(self.X, n=self.X.shape[0]))
@@ -397,8 +397,8 @@ class Test10X(unittest.TestCase):
         libsize = self.libsize[:25]
         assert_raise_message(
             ValueError,
-            "Expected all data to have the same number of rows. "
-            "Got [100, 25]",
+            "Expected `data` and `extra_data` to have the same number of "
+            "rows. Got [100, 25]",
             scprep.select.subsample, self.X, libsize, n=20)
 
     def test_subsample_n_too_large(self):

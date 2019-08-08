@@ -49,32 +49,32 @@ def _check_columns_compatible(*data):
     for d in data:
         if not _get_column_length(d) == _get_column_length(data[0]):
             raise ValueError(
-                "Expected all data to have the same number of "
+                "Expected `data` and `extra_data` to have the same number of "
                 "columns. Got {}".format(
                     [_get_column_length(d) for d in data]))
         if isinstance(d, (pd.DataFrame, pd.Series)) and \
                 isinstance(data[0], (pd.DataFrame, pd.Series)):
             if not np.all(_get_columns(data[0]) == _get_columns(d)):
                 raise ValueError(
-                    "Expected all pandas inputs to have the same columns. "
-                    "Fix with "
-                    "`scprep.select.select_cols(extra_data, data.columns)`")
+                    "Expected `data` and `extra_data` pandas inputs to have "
+                    "the same column names. Fix with "
+                    "`scprep.select.select_cols(*extra_data, data.columns)`")
 
 
 def _check_rows_compatible(*data):
     for d in data:
         if not _get_row_length(d) == _get_row_length(data[0]):
             raise ValueError(
-                "Expected all data to have the same number of "
+                "Expected `data` and `extra_data` to have the same number of "
                 "rows. Got {}".format(
                     [d.shape[0] for d in data]))
         if isinstance(d, (pd.DataFrame, pd.Series)) and \
                 isinstance(data[0], (pd.DataFrame, pd.Series)):
             if not np.all(data[0].index == d.index):
                 raise ValueError(
-                    "Expected all pandas inputs to have the same index. "
-                    "Fix with "
-                    "`scprep.select.select_rows(extra_data, data.index)`")
+                    "Expected `data` and `extra_data` pandas inputs to have "
+                    "the same index. Fix with "
+                    "`scprep.select.select_rows(*extra_data, data.index)`")
 
 
 def _convert_dataframe_1d(idx):

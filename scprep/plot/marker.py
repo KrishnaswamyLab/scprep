@@ -78,25 +78,33 @@ def _cluster_tissues(tissue_names, cluster_names,
     return tissues_order
 
 
-def _cluster_markers(markers, marker_labels,
+def _cluster_markers(markers, tissues,
+                     marker_labels, tissue_labels,
                      marker_groups_order,
                      s, c):
     # cluster markers hierarchically using mean size and color
     markers_order = []
     for marker_group in marker_groups_order:
-        marker_names = markers[marker_group]
-        marker_features = []
-        for marker in marker_names:
-            marker_idx = np.array(marker_labels) == marker
-            marker_features.append(np.concatenate(
-                [s[marker_idx], c[marker_idx]]))
-        marker_features = np.array(marker_features)
-        # normalize
-        marker_features = marker_features / \
-            np.sqrt(np.sum(marker_features ** 2))
-        marker_group_order = hierarchy.leaves_list(
-            hierarchy.linkage(marker_features))
-        markers_order.append(marker_group[marker_group_order])
+        if len(marker_group) > 1:
+            marker_names = markers[marker_group]
+            marker_features = []
+            for marker in marker_names:
+                marker_idx = np.array(marker_labels) == marker
+                if tissues is not None:
+                    # check for markers that appear in multiple tissues
+                    marker_idx = marker_idx & (
+                        tissue_labels == tissues[marker_group[0]])
+                marker_features.append(np.concatenate(
+                    [s[marker_idx], c[marker_idx]]))
+            marker_features = np.array(marker_features)
+            # normalize
+            marker_features = marker_features / \
+                np.sqrt(np.sum(marker_features ** 2))
+            marker_group_order = hierarchy.leaves_list(
+                hierarchy.linkage(marker_features))
+            markers_order.append(marker_group[marker_group_order])
+        else:
+            markers_order.append(marker_group)
     markers_order = np.concatenate(markers_order)
     return markers_order
 
@@ -225,7 +233,8 @@ def marker_plot(data, clusters, markers, gene_names=None,
             marker_groups_order = [np.arange(len(markers))]
 
         if reorder_markers and len(markers) > 1:
-            markers_order = _cluster_markers(markers, marker_labels,
+            markers_order = _cluster_markers(markers, tissues,
+                                             marker_labels, tissue_labels,
                                              marker_groups_order,
                                              s, c)
         else:
