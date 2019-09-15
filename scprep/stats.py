@@ -391,7 +391,7 @@ def mean_difference(X, Y):
 
 
 def differential_expression(X, Y,
-                            test='difference',
+                            measure='difference',
                             direction='up',
                             gene_names=None,
                             n_jobs=-2):
@@ -401,26 +401,26 @@ def differential_expression(X, Y,
     ----------
     X : array-like, shape=[n_cells, n_genes]
     Y : array-like, shape=[m_cells, n_genes]
-    test : {'difference', 'emd'}, optional (default: 'difference')
-        The statistical test to be used to rank genes
+    measure : {'difference', 'emd'}, optional (default: 'difference')
+        The measurement to be used to rank genes
     direction : {'up', 'down', 'both'}, optional (default: 'up')
         The direction in which to consider genes significant. If 'up', rank genes where X > Y. If 'down', rank genes where X < Y. If 'both', rank genes by absolute value.
     gene_names : list-like or `None`, optional (default: `None`)
         List of gene names associated with the columns of X and Y
     n_jobs : int, optional (default: -2)
-        Number of threads to use if the test is parallelizable (currently used for EMD). If negative, -1 refers to all available cores.
+        Number of threads to use if the measurement is parallelizable (currently used for EMD). If negative, -1 refers to all available cores.
 
     Returns
     -------
     result : pd.DataFrame
-        Ordered DataFrame with a column "gene" and a column named `test`.
+        Ordered DataFrame with a column "gene" and a column named `measure`.
     """
     if not direction in ['up', 'down', 'both']:
         raise ValueError("Expected `direction` in ['up', 'down', 'both']. "
-                         "Got {}".format(test))
-    if not test in ['difference', 'emd']:
-        raise ValueError("Expected `test` in ['difference', 'emd']. "
-                         "Got {}".format(test))
+                         "Got {}".format(direction))
+    if not measure in ['difference', 'emd']:
+        raise ValueError("Expected `measure` in ['difference', 'emd']. "
+                         "Got {}".format(measure))
     if not (len(X.shape) == 2 and len(Y.shape) == 2):
         raise ValueError("Expected `X` and `Y` to be matrices. "
                          "Got shapes {}, {}".format(X.shape, Y.shape))
@@ -447,53 +447,53 @@ def differential_expression(X, Y,
         X = X.tocsr()
     if sparse.issparse(Y):
         Y = Y.tocsr()
-    if test == 'difference':
+    if measure == 'difference':
         difference = mean_difference(X, Y)
-    elif test == 'emd':
+    elif measure == 'emd':
         difference = joblib.Parallel(n_jobs)(joblib.delayed(EMD)(
             select.select_cols(X, idx=i),
             select.select_cols(Y, idx=i))
                                              for i in range(X.shape[1]))
         difference = np.array(difference) * np.sign(mean_difference(X, Y))
-    result = pd.DataFrame({'gene' : gene_names, test : difference})
+    result = pd.DataFrame({'gene' : gene_names, measure : difference})
     if direction == 'up':
-        result = result.sort_values([test, 'gene'], ascending=False)
+        result = result.sort_values([measure, 'gene'], ascending=False)
     elif direction == 'down':
-        result = result.sort_values([test, 'gene'], ascending=True)
+        result = result.sort_values([measure, 'gene'], ascending=True)
     elif direction == 'both':
-        result['test_abs'] = np.abs(difference)
-        result = result.sort_values(['test_abs', 'gene'], ascending=False)
-        del result['test_abs']
+        result['measure_abs'] = np.abs(difference)
+        result = result.sort_values(['measure_abs', 'gene'], ascending=False)
+        del result['measure_abs']
     result.index = np.arange(result.shape[0])
     return result
 
 
 def differential_expression_by_cluster(data, clusters,
-                                       test='difference',
+                                       measure='difference',
                                        direction='up',
                                        gene_names=None,
                                        n_jobs=-2):
     """Calculate the most significant genes for each cluster in a dataset
 
-    Tests are run for each cluster against the rest of the dataset.
+    Measurements are run for each cluster against the rest of the dataset.
 
     Parameters
     ----------
     data : array-like, shape=[n_cells, n_genes]
     clusters : list-like, shape=[n_cells]
-    test : {'difference', 'emd'}, optional (default: 'difference')
-        The statistical test to be used to rank genes
+    measure : {'difference', 'emd'}, optional (default: 'difference')
+        The measurement to be used to rank genes
     direction : {'up', 'down', 'both'}, optional (default: 'up')
         The direction in which to consider genes significant. If 'up', rank genes where X > Y. If 'down', rank genes where X < Y. If 'both', rank genes by absolute value.
     gene_names : list-like or `None`, optional (default: `None`)
         List of gene names associated with the columns of X and Y
     n_jobs : int, optional (default: -2)
-        Number of threads to use if the test is parallelizable (currently used for EMD). If negative, -1 refers to all available cores.
+        Number of threads to use if the measurement is parallelizable (currently used for EMD). If negative, -1 refers to all available cores.
 
     Returns
     -------
     result : dict(pd.DataFrame)
-        Dictionary containing an ordered DataFrame with a column "gene" and a column named `test` for each cluster.
+        Dictionary containing an ordered DataFrame with a column "gene" and a column named `measure` for each cluster.
     """
     if gene_names is not None and isinstance(data, pd.DataFrame):
         data = select.select_cols(data, idx=gene_names)
@@ -508,7 +508,7 @@ def differential_expression_by_cluster(data, clusters,
     result = {cluster : differential_expression(
         select.select_rows(data, idx=clusters==cluster),
         select.select_rows(data, idx=clusters!=cluster),
-        test = test, direction = direction,
+        measure = measure, direction = direction,
         gene_names = gene_names, n_jobs = n_jobs)
               for cluster in np.unique(clusters)}
     return result
