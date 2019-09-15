@@ -221,9 +221,9 @@ def test_differential_expression_error():
         X, X.iloc[:,:20])
 
 
-@parameterized([('difference', 'up'), ('difference', 'down'), ('difference', 'both'),
-               ('emd', 'up'), ('emd', 'down'), ('emd', 'both')])
-def test_differential_expression_by_cluster(measure, direction):
+def test_differential_expression_by_cluster():
+    measure = 'difference'
+    direction = 'up'
     X = data.load_10X()
     np.random.seed(42)
     clusters = np.random.choice(4, X.shape[0], replace=True)
@@ -235,4 +235,22 @@ def test_differential_expression_by_cluster(measure, direction):
             scprep.select.select_rows(X, idx=clusters==cluster),
             scprep.select.select_rows(X, idx=clusters!=cluster),
         measure=measure, direction=direction)
+        assert np.all(result[cluster] == r)
+
+
+def test_differential_expression_by_cluster_subset():
+    measure = 'difference'
+    direction = 'up'
+    X = data.load_10X()
+    np.random.seed(42)
+    clusters = np.random.choice(4, X.shape[0], replace=True)
+    result = scprep.stats.differential_expression_by_cluster(
+        X, clusters,
+        measure=measure, direction=direction, gene_names=X.columns[:X.shape[0]//2])
+    for cluster in range(4):
+        r = scprep.stats.differential_expression(
+            scprep.select.select_rows(X, idx=clusters==cluster),
+            scprep.select.select_rows(X, idx=clusters!=cluster),
+            measure=measure, direction=direction,
+            gene_names=X.columns[:X.shape[0]//2])
         assert np.all(result[cluster] == r)
