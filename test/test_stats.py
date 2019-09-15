@@ -163,6 +163,10 @@ def test_differential_expression(measure, direction):
     assert result['gene'][0] == expected_results[(measure, direction)][0], result['gene'][0]
     assert np.allclose(result[measure][0],
                        expected_results[(measure, direction)][1])
+    result_unnamed = scprep.stats.differential_expression(X.iloc[:20].to_coo(), X.iloc[20:100].to_coo(),
+                                                         measure=measure, direction=direction)
+    unique_results = ~np.isin(result[measure], result[measure][result[measure].duplicated()])
+    assert np.all(X.columns[result_unnamed['gene']][unique_results] == result['gene'][unique_results])
     def test_fun(X, **kwargs):
         return scprep.stats.differential_expression(
             scprep.select.select_rows(X, idx=np.arange(20)),
