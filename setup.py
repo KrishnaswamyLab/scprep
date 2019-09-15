@@ -18,7 +18,8 @@ test_requires = [
     'h5py',
     'rpy2>=3.0',
     'coverage',
-    'coveralls'
+    'coveralls',
+    'parameterized',
 ]
 
 doc_requires = [
