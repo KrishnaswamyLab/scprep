@@ -3,9 +3,11 @@
 
 import numbers
 import numpy as np
+import pandas as pd
 from scipy import stats, sparse
 from sklearn import neighbors, metrics
-from . import plot, utils
+import joblib
+from . import plot, utils, select
 import warnings
 
 from ._lazyload import matplotlib
@@ -363,6 +365,154 @@ def plot_knnDREMI(dremi, mutual_info, x, y, n_bins, n_mesh,
     plot.utils.show(fig)
 
 
+def mean_difference(X, Y):
+    """Calculate the mean difference in genes between two datasets
+
+    In the case where the data has been log normalized,
+    this is equivalent to fold change.
+
+    Parameters
+    ----------
+    X : array-like, shape=[n_cells, n_genes]
+    Y : array-like, shape=[m_cells, n_genes]
+
+    Returns
+    -------
+    difference : list-like, shape=[n_genes]
+    """
+    if not X.shape[1] == Y.shape[1]:
+        raise ValueError("Expected X and Y to have the same number of columns. "
+                         "Got shapes {}, {}".format(X.shape, Y.shape))
+    X = utils.to_array_or_spmatrix(X)
+    Y = utils.to_array_or_spmatrix(Y)
+    X = utils.toarray(X.mean(axis=0)).flatten()
+    Y = utils.toarray(Y.mean(axis=0)).flatten()
+    return X - Y
+
+
+def differential_expression(X, Y,
+                            test='difference',
+                            direction='up',
+                            gene_names=None,
+                            n_jobs=-2):
+    """Calculate the most significant genes between two datasets
+
+    Parameters
+    ----------
+    X : array-like, shape=[n_cells, n_genes]
+    Y : array-like, shape=[m_cells, n_genes]
+    test : {'difference', 'emd'}, optional (default: 'difference')
+        The statistical test to be used to rank genes
+    direction : {'up', 'down', 'both'}, optional (default: 'up')
+        The direction in which to consider genes significant. If 'up', rank genes where X > Y. If 'down', rank genes where X < Y. If 'both', rank genes by absolute value.
+    gene_names : list-like or `None`, optional (default: `None`)
+        List of gene names associated with the columns of X and Y
+    n_jobs : int, optional (default: -2)
+        Number of threads to use if the test is parallelizable (currently used for EMD). If negative, -1 refers to all available cores.
+
+    Returns
+    -------
+    result : pd.DataFrame
+        Ordered DataFrame with a column "gene" and a column named `test`.
+    """
+    if not direction in ['up', 'down', 'both']:
+        raise ValueError("Expected `direction` in ['up', 'down', 'both']. "
+                         "Got {}".format(test))
+    if not test in ['difference', 'emd']:
+        raise ValueError("Expected `test` in ['difference', 'emd']. "
+                         "Got {}".format(test))
+    if not (len(X.shape) == 2 and len(Y.shape) == 2):
+        raise ValueError("Expected `X` and `Y` to be matrices. "
+                         "Got shapes {}, {}".format(X.shape, Y.shape))
+    [X, Y] = utils.check_consistent_columns([X, Y])
+    if gene_names is not None:
+        if isinstance(X, pd.DataFrame):
+            X = select.select_cols(X, idx=gene_names)
+            gene_names = X.columns
+        if isinstance(Y, pd.DataFrame):
+            Y = select.select_cols(Y, idx=gene_names)
+            gene_names = Y.columns
+        if not len(gene_names) == X.shape[1]:
+            raise ValueError("Expected gene_names to have length {}. "
+                             "Got {}".format(X.shape[1], len(gene_names)))
+    else:
+        if isinstance(X, pd.DataFrame) and isinstance(Y, pd.DataFrame):
+            gene_names = X.columns
+        else:
+            gene_names = np.arange(X.shape[1])
+    X = utils.to_array_or_spmatrix(X)
+    Y = utils.to_array_or_spmatrix(Y)
+    # inconsistent behaviour from csr and csc
+    if sparse.issparse(X):
+        X = X.tocsr()
+    if sparse.issparse(Y):
+        Y = Y.tocsr()
+    if test == 'difference':
+        difference = mean_difference(X, Y)
+    elif test == 'emd':
+        difference = joblib.Parallel(n_jobs)(joblib.delayed(EMD)(
+            select.select_cols(X, idx=i),
+            select.select_cols(Y, idx=i))
+                                             for i in range(X.shape[1]))
+        difference = np.array(difference) * np.sign(mean_difference(X, Y))
+    result = pd.DataFrame({'gene' : gene_names, test : difference})
+    if direction == 'up':
+        result = result.sort_values([test, 'gene'], ascending=False)
+    elif direction == 'down':
+        result = result.sort_values([test, 'gene'], ascending=True)
+    elif direction == 'both':
+        result['test_abs'] = np.abs(difference)
+        result = result.sort_values(['test_abs', 'gene'], ascending=False)
+        del result['test_abs']
+    result.index = np.arange(result.shape[0])
+    return result
+
+
+def differential_expression_by_cluster(data, clusters,
+                                       test='difference',
+                                       direction='up',
+                                       gene_names=None,
+                                       n_jobs=-2):
+    """Calculate the most significant genes for each cluster in a dataset
+
+    Tests are run for each cluster against the rest of the dataset.
+
+    Parameters
+    ----------
+    data : array-like, shape=[n_cells, n_genes]
+    clusters : list-like, shape=[n_cells]
+    test : {'difference', 'emd'}, optional (default: 'difference')
+        The statistical test to be used to rank genes
+    direction : {'up', 'down', 'both'}, optional (default: 'up')
+        The direction in which to consider genes significant. If 'up', rank genes where X > Y. If 'down', rank genes where X < Y. If 'both', rank genes by absolute value.
+    gene_names : list-like or `None`, optional (default: `None`)
+        List of gene names associated with the columns of X and Y
+    n_jobs : int, optional (default: -2)
+        Number of threads to use if the test is parallelizable (currently used for EMD). If negative, -1 refers to all available cores.
+
+    Returns
+    -------
+    result : dict(pd.DataFrame)
+        Dictionary containing an ordered DataFrame with a column "gene" and a column named `test` for each cluster.
+    """
+    if gene_names is not None and isinstance(data, pd.DataFrame):
+        data = select.select_cols(data, idx=gene_names)
+        gene_names = data.columns
+    if gene_names is None:
+        if isinstance(data, pd.DataFrame):
+            gene_names = data.columns
+    elif not len(gene_names) == data.shape[1]:
+        raise ValueError("Expected gene_names to have length {}. "
+                         "Got {}".format(data.shape[1], len(gene_names)))
+    data = utils.to_array_or_spmatrix(data)
+    result = {cluster : differential_expression(
+        select.select_rows(data, idx=clusters==cluster),
+        select.select_rows(data, idx=clusters!=cluster),
+        test = test, direction = direction,
+        gene_names = gene_names, n_jobs = n_jobs)
+              for cluster in np.unique(clusters)}
+    return result
+
 def _vector_coerce_dense(x):
     x = utils.toarray(x)
     x_1d = x.flatten()
@@ -381,5 +531,5 @@ def _vector_coerce_two_dense(x, y):
             raise ValueError("Expected x and y to be 1D arrays. "
                              "Got shapes x {}, y {}".format(x.shape, y.shape))
         else:
-            raise
+            raise e
     return x, y
