@@ -157,7 +157,7 @@ def to_array_or_spmatrix(x):
 
 
 def is_sparse_dataframe(x):
-    if isinstance(x, pd.DataFrame):
+    if isinstance(x, pd.DataFrame) and not isinstance(x, pd.SparseDataFrame):
         try:
             x.sparse
             return True
@@ -167,7 +167,7 @@ def is_sparse_dataframe(x):
 
 
 def is_sparse_series(x):
-    if isinstance(x, pd.Series):
+    if isinstance(x, pd.Series) and not isinstance(x, pd.SparseSeries):
         try:
             x.sparse
             return True

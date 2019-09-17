@@ -125,11 +125,12 @@ def assert_matrix_class_equivalent(X, Y):
     if sparse.issparse(X):
         assert sparse.issparse(Y)
         assert X.tocoo().nnz == Y.tocoo().nnz
-    elif _is_sparse_dataframe(X):
+    elif isinstance(X, pd.SparseDataFrame):
         assert _is_sparse_dataframe(Y)
-        assert _sparse_dataframe_density(X) == _sparse_dataframe_density(Y)
     else:
         assert type(X) == type(Y)
+    if _is_sparse_dataframe(X):
+        assert _sparse_dataframe_density(X) == _sparse_dataframe_density(Y)
     if isinstance(X, pd.DataFrame):
         assert np.all(X.columns == Y.columns)
         assert np.all(X.index == Y.index)
