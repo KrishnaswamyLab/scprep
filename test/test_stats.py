@@ -165,13 +165,19 @@ def test_differential_expression(measure, direction):
                        expected_results[(measure, direction)][1])
     result_unnamed = scprep.stats.differential_expression(X.iloc[:20].to_coo(), X.iloc[20:100].to_coo(),
                                                          measure=measure, direction=direction)
-    unique_results = ~np.isin(result[measure], result[measure][result[measure].duplicated()])
-    assert np.all(X.columns[result_unnamed['gene']][unique_results] == result['gene'][unique_results])
+    if direction != 'both':
+        values = result[measure]
+    else:
+        values = np.abs(result[measure])
+
+    unique_values = ~np.isin(values, values[values.duplicated()])
+    assert np.all(X.columns[result_unnamed['gene']][unique_values] == result['gene'][unique_values])
     def test_fun(X, **kwargs):
         return scprep.stats.differential_expression(
             scprep.select.select_rows(X, idx=np.arange(20)),
             scprep.select.select_rows(X, idx=np.arange(20, 100)),
         **kwargs)
+
     def check_fun(Y1, Y2):
         if direction == 'both':
             Y1[measure] = np.abs(Y1[measure])
@@ -180,6 +186,7 @@ def test_differential_expression(measure, direction):
         Y1 = Y1.sort_values('gene')
         Y2 = Y2.sort_values('gene')
         np.testing.assert_allclose(Y1[measure], Y2[measure], atol=5e-4)
+
     matrix.test_all_matrix_types(
         X, utils.assert_transform_equals, Y=result,
         transform=test_fun,
