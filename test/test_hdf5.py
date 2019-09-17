@@ -26,7 +26,7 @@ def test_failed_import_h5py():
     h5py = scprep.io.hdf5.h5py
     del scprep.io.hdf5.h5py
     assert hdf5_available() is True
-    with h5py.File(h5_file) as f:
+    with h5py.File(h5_file, 'r') as f:
         assert scprep.io.hdf5._is_h5py(f) is False
     scprep.io.hdf5.h5py = h5py
 
