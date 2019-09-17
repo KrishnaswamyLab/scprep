@@ -330,6 +330,8 @@ def _find_unique_cells(data):
     """
     if isinstance(data, pd.SparseDataFrame):
         unique_idx = _find_unique_cells(data.to_coo())
+    elif utils.is_sparse_dataframe(data):
+        unique_idx = _find_unique_cells(data.sparse.to_coo())
     elif isinstance(data, pd.DataFrame):
         unique_idx = ~data.duplicated()
     elif isinstance(data, np.ndarray):
