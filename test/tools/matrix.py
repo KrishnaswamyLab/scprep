@@ -15,7 +15,21 @@ def _no_warning_dia_matrix(*args, **kwargs):
             " diagonals is inefficient")
         return sparse.dia_matrix(*args, **kwargs)
 
-SparseDataFrame = partial(pd.SparseDataFrame, default_fill_value=0.0)
+def SparseDataFrame_deprecated(X, default_fill_value=0.0):
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message="SparseSeries is deprecated and will be removed in a future version.",
+            category=FutureWarning)
+        warnings.filterwarnings(
+            "ignore",
+            message="SparseDataFrame is deprecated and will be removed in a future version.",
+            category=FutureWarning)
+        return pd.SparseDataFrame(X, default_fill_value=default_fill_value)
+
+def SparseDataFrame(X, default_fill_value=0.0):
+    return pd.DataFrame(X).astype(pd.SparseDtype(float, fill_value=default_fill_value))
+
 
 _scipy_matrix_types = [
     sparse.csr_matrix,
@@ -36,22 +50,17 @@ _pandas_dense_matrix_types = [
 
 _pandas_sparse_matrix_types = [
     SparseDataFrame,
+    SparseDataFrame_deprecated,
 ]
 
-_pandas_matrix_types = [
-    pd.DataFrame,
-    SparseDataFrame,
-]
+_pandas_matrix_types = _pandas_dense_matrix_types + _pandas_sparse_matrix_types
 
 _indexable_matrix_types = [
     sparse.csr_matrix,
     sparse.csc_matrix,
     sparse.lil_matrix,
-    sparse.dok_matrix,
-    np.array,
-    pd.DataFrame,
-    SparseDataFrame
-]
+    sparse.dok_matrix
+] + _numpy_matrix_types + _pandas_matrix_types
 
 
 def test_matrix_types(X, test_fun, matrix_types, *args, **kwargs):
