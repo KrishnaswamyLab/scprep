@@ -120,7 +120,7 @@ def batch_mean_center(data, sample_idx=None):
     data : array-like, shape=[n_samples, n_features]
         Batch mean-centered output data.
     """
-    if sparse.issparse(data) or isinstance(data, pd.SparseDataFrame):
+    if sparse.issparse(data) or isinstance(data, pd.SparseDataFrame) or utils.is_sparse_dataframe(data):
         raise ValueError("Cannot mean center sparse data. "
                          "Convert to dense matrix first.")
     if sample_idx is None:
