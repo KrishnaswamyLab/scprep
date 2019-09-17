@@ -316,14 +316,18 @@ def matrix_vector_elementwise_multiply(data, multiplier, axis=None):
                     data.shape[1], multiplier.shape))
         multiplier = multiplier.reshape(1, -1)
 
-    if isinstance(data, pd.SparseDataFrame):
+    if isinstance(data, pd.SparseDataFrame) or is_sparse_dataframe(data):
         data = data.copy()
         multiplier = multiplier.flatten()
         if axis == 0:
-            data = data.T
-            for col, mult in zip(data.columns, multiplier):
-                data[col] = data[col] * mult
-            data = data.T
+            for col in data.columns:
+                try:
+                    mult_indices = data[col].values.sp_index.indices
+                except AttributeError:
+                    mult_indices = data[col].values.sp_index.to_int_index().indices
+                new_data = data[col].values.sp_values * multiplier[mult_indices]
+                data[col].values.sp_values.put(np.arange(data[col].sparse.npoints),
+                                              new_data)
         else:
             for col, mult in zip(data.columns, multiplier):
                 data[col] = data[col] * mult
