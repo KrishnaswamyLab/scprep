@@ -390,6 +390,48 @@ def matrix_any(condition):
     return np.sum(np.sum(condition)) > 0
 
 
+def check_consistent_columns(data):
+    """Ensure that a set of data matrices have consistent columns
+
+    Parameters
+    ----------
+    data : list of array-likes
+        List of matrices to be checked
+
+    Returns
+    -------
+    data : list of array-likes
+        List of matrices with consistent columns, subsetted if necessary
+
+    Raises
+    ------
+    ValueError
+        Raised if data has inconsistent number of columns and does not
+        have column names for subsetting
+    """
+    matrix_type = type(data[0])
+    matrix_shape = data[0].shape[1]
+    if issubclass(matrix_type, pd.DataFrame):
+        if not (np.all([d.shape[1] == matrix_shape for d in data[1:]]) and
+                np.all([data[0].columns == d.columns for d in data])):
+            common_genes = data[0].columns.values
+            for d in data[1:]:
+                common_genes = common_genes[np.isin(common_genes,
+                                                    d.columns.values)]
+            for i in range(len(data)):
+                data[i] = data[i][common_genes]
+            warnings.warn("Input data has inconsistent column names. "
+                          "Subsetting to {} common columns.".format(
+                              len(common_genes)), UserWarning)
+    else:
+        for d in data[1:]:
+            if not d.shape[1] == matrix_shape:
+                shapes = ", ".join([str(d.shape[1]) for d in data])
+                raise ValueError("Expected data all with the same number of "
+                                 "columns. Got {}".format(shapes))
+    return data
+
+
 def combine_batches(data, batch_labels, append_to_cell_names=None):
     """Combine data matrices from multiple batches and store a batch label
 
@@ -431,26 +473,7 @@ def combine_batches(data, batch_labels, append_to_cell_names=None):
             raise TypeError("Expected data all of the same class. "
                             "Got {}".format(types))
 
-    # check consistent columns
-    matrix_shape = data[0].shape[1]
-    if issubclass(matrix_type, pd.DataFrame):
-        if not (np.all([d.shape[1] == matrix_shape for d in data[1:]]) and
-                np.all([data[0].columns == d.columns for d in data])):
-            common_genes = data[0].columns.values
-            for d in data[1:]:
-                common_genes = common_genes[np.isin(common_genes,
-                                                    d.columns.values)]
-            for i in range(len(data)):
-                data[i] = data[i][common_genes]
-            warnings.warn("Input data has inconsistent column names. "
-                          "Subsetting to {} common columns.".format(
-                              len(common_genes)), UserWarning)
-    else:
-        for d in data[1:]:
-            if not d.shape[1] == matrix_shape:
-                shapes = ", ".join([str(d.shape[1]) for d in data])
-                raise ValueError("Expected data all with the same number of "
-                                 "columns. Got {}".format(shapes))
+    data = check_consistent_columns(data)
 
     # check append_to_cell_names
     if append_to_cell_names and not issubclass(matrix_type, pd.DataFrame):
