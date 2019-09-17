@@ -163,7 +163,7 @@ def test_differential_expression(measure, direction):
     assert result['gene'][0] == expected_results[(measure, direction)][0], result['gene'][0]
     assert np.allclose(result[measure][0],
                        expected_results[(measure, direction)][1])
-    result_unnamed = scprep.stats.differential_expression(X.iloc[:20].to_coo(), X.iloc[20:100].to_coo(),
+    result_unnamed = scprep.stats.differential_expression(X.iloc[:20].sparse.to_coo(), X.iloc[20:100].sparse.to_coo(),
                                                          measure=measure, direction=direction)
     if direction != 'both':
         values = result[measure]
@@ -214,12 +214,12 @@ def test_differential_expression_error():
         ValueError, "Expected gene_names to have length {}. "
         "Got {}".format(X.shape[0], X.shape[0]//2),
         scprep.stats.differential_expression,
-        X.to_coo(), X.to_coo(), gene_names=np.arange(X.shape[0]//2))
+        X.sparse.to_coo(), X.sparse.to_coo(), gene_names=np.arange(X.shape[0]//2))
     assert_raise_message(
         ValueError, "Expected gene_names to have length {}. "
         "Got {}".format(X.shape[0], X.shape[0]//2),
         scprep.stats.differential_expression_by_cluster,
-        X.to_coo(), np.random.choice(2, X.shape[0], replace=True),
+        X.sparse.to_coo(), np.random.choice(2, X.shape[0], replace=True),
         gene_names=np.arange(X.shape[0]//2))
     assert_warns_message(
         UserWarning, "Input data has inconsistent column names. "
