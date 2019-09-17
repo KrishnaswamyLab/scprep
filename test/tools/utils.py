@@ -3,6 +3,7 @@ from scipy import sparse
 import pandas as pd
 from nose.tools import assert_raises
 from scprep.utils import toarray
+from . import matrix
 
 
 def assert_all_equal(X, Y):
@@ -40,15 +41,10 @@ def assert_transform_equals(X, Y, transform, check=assert_all_equal, **kwargs):
     -------
     Y2 : returned value of transform(X, **kwargs)
     """
-    try:
-        Y2 = transform(X, **kwargs)
-    except Exception as e:
-        raise RuntimeError("{} with {} input to {}\n{}".format(
-            type(e).__name__, type(X).__name__, transform,
-            str(e)))
+    Y2 = transform(X, **kwargs)
     check(Y, Y2), "{} failed on {}".format(
         transform,
-        type(X).__name__)
+        matrix._typename(X))
     return Y2
 
 
@@ -89,7 +85,7 @@ def assert_transform_equivalent(X, Y, transform, check=assert_all_equal,
     Y2 = assert_transform_equals(X, Y, transform, check=check, **kwargs)
     assert assert_matrix_class_equivalent(X, Y2), \
         "{} produced inconsistent matrix output".format(
-        type(X).__name__)
+        _typename(X))
 
 
 def assert_transform_raises(X, transform, exception=ValueError, **kwargs):

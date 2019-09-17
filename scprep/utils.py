@@ -211,7 +211,7 @@ def matrix_transform(data, fun, *args, **kwargs):
     data : array-like, shape=[n_samples, n_features]
         Transformed output data
     """
-    if isinstance(data, pd.SparseDataFrame):
+    if is_sparse_dataframe(data) or isinstance(data, pd.SparseDataFrame):
         data = data.copy()
         for col in data.columns:
             data[col] = fun(data[col], *args, **kwargs)

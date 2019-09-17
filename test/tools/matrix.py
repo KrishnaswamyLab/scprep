@@ -64,6 +64,13 @@ _indexable_matrix_types = [
 ] + _numpy_matrix_types + _pandas_matrix_types
 
 
+def _typename(X):
+    if isinstance(X, pd.DataFrame) and hasattr(X, "sparse"):
+        return "DataFrame[SparseArray]"
+    else:
+        return type(X).__name__
+
+
 def test_matrix_types(X, test_fun, matrix_types, *args, **kwargs):
     """Test a function across a range of matrix types
 
@@ -81,7 +88,7 @@ def test_matrix_types(X, test_fun, matrix_types, *args, **kwargs):
             test_fun(Y, *args, **kwargs)
         except Exception as e:
             raise RuntimeError("{} with {} input to {}\n{}".format(
-                type(e).__name__, type(Y).__name__, test_fun.__name__,
+                type(e).__name__, _typename(Y), test_fun.__name__,
                 str(e)))
 
 
