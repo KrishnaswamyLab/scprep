@@ -176,8 +176,22 @@ def is_sparse_series(x):
     return False
 
 
-def dataframe_to_sparse(x, fill_value=0):
+def dataframe_to_sparse(x, fill_value=0.0):
     return x.astype(pd.SparseDtype(float, fill_value=fill_value))
+
+
+def SparseDataFrame(X, columns=None, index=None, default_fill_value=0.0):
+    if sparse.issparse(X):
+        X = pd.DataFrame.sparse.from_spmatrix(X)
+        X.sparse.fill_value = default_fill_value
+    elif not isinstance(X, pd.DataFrame):
+        X = pd.DataFrame(X)
+    X = dataframe_to_sparse(X, fill_value=default_fill_value)
+    if columns is not None:
+        X.columns = columns
+    if index is not None:
+        X.index = index
+    return X
 
 
 def matrix_transform(data, fun, *args, **kwargs):

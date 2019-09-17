@@ -27,6 +27,7 @@ def SparseDataFrame_deprecated(X, default_fill_value=0.0):
             category=FutureWarning)
         return pd.SparseDataFrame(X, default_fill_value=default_fill_value)
 
+
 def SparseDataFrame(X, default_fill_value=0.0):
     return pd.DataFrame(X).astype(pd.SparseDtype(float, fill_value=default_fill_value))
 

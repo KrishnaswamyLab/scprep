@@ -104,6 +104,18 @@ def assert_transform_raises(X, transform, exception=ValueError, **kwargs):
     assert_raises(exception, transform, X, **kwargs)
 
 
+def _is_sparse_dataframe(X):
+    return isinstance(X, pd.SparseDataFrame) or \
+            (isinstance(X, pd.DataFrame) and hasattr(X, "sparse"))
+
+
+def _sparse_dataframe_density(X):
+    try:
+        return X.sparse.density
+    except AttributeError:
+        return X.density
+
+
 def assert_matrix_class_equivalent(X, Y):
     """Check the format of X and Y are the same
 
@@ -117,11 +129,12 @@ def assert_matrix_class_equivalent(X, Y):
     if sparse.issparse(X):
         assert sparse.issparse(Y)
         assert X.tocoo().nnz == Y.tocoo().nnz
+    elif _is_sparse_dataframe(X):
+        assert _is_sparse_dataframe(Y)
+        assert _sparse_dataframe_density(X) == _sparse_dataframe_density(Y)
     else:
         assert type(X) == type(Y)
     if isinstance(X, pd.DataFrame):
         assert np.all(X.columns == Y.columns)
         assert np.all(X.index == Y.index)
-    if isinstance(X, pd.SparseDataFrame) or isinstance(Y, pd.SparseDataFrame):
-        assert X.density == Y.density
     return True
