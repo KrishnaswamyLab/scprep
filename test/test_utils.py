@@ -161,14 +161,14 @@ def test_combine_batches_errors():
         "append_to_cell_names only valid for pd.DataFrame input. "
         "Got coo_matrix",
         scprep.utils.combine_batches,
-        [X.to_coo(), X.iloc[:X.shape[0] // 2].to_coo()],
+        [X.sparse.to_coo(), X.iloc[:X.shape[0] // 2].sparse.to_coo()],
         batch_labels=[0, 1],
         append_to_cell_names=True)
     assert_raise_message(
         TypeError,
-        "Expected data all of the same class. Got SparseDataFrame, coo_matrix",
+        "Expected data all of the same class. Got DataFrame, coo_matrix",
         scprep.utils.combine_batches,
-        [X, X.iloc[:X.shape[0] // 2].to_coo()],
+        [X, X.iloc[:X.shape[0] // 2].sparse.to_coo()],
         batch_labels=[0, 1])
     assert_raise_message(
         ValueError,
