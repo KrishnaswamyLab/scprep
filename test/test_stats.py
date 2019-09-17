@@ -6,6 +6,7 @@ from sklearn.metrics import mutual_info_score
 import scprep
 from functools import partial
 import warnings
+from parameterized import parameterized
 
 
 def _test_fun_2d(X, fun, **kwargs):
@@ -121,3 +122,142 @@ def test_knnDREMI():
         "Attempting to calculate kNN-DREMI on a constant array. "
         "Returning `0`", scprep.stats.knnDREMI, X[:, 0],
         np.zeros_like(X[:, 1]))
+
+
+def test_mean_difference():
+    X = data.load_10X()
+    X = scprep.filter.filter_empty_genes(X)
+    Y = scprep.stats.mean_difference(X.iloc[:20], X.iloc[20:100])
+    assert np.allclose(np.max(Y), 16.8125)
+    assert np.allclose(np.min(Y), -0.5625)
+    def test_fun(X, **kwargs):
+        return scprep.stats.mean_difference(
+            scprep.select.select_rows(X, idx=np.arange(20)),
+            scprep.select.select_rows(X, idx=np.arange(20, 100)),
+        **kwargs)
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equals, Y=Y,
+        transform=test_fun,
+        check=utils.assert_all_close)
+    assert_raise_message(
+        ValueError,
+        "Expected X and Y to have the same number of columns. "
+        "Got shapes {}, {}".format(X.shape, X.iloc[:,:10].shape),
+        scprep.stats.mean_difference,
+        X, X.iloc[:,:10])
+
+
+@parameterized([('difference', 'up'), ('difference', 'down'), ('difference', 'both'),
+               ('emd', 'up'), ('emd', 'down'), ('emd', 'both')])
+def test_differential_expression(measure, direction):
+    X = data.load_10X()
+    X = scprep.filter.filter_empty_genes(X)
+    result = scprep.stats.differential_expression(X.iloc[:20], X.iloc[20:100],
+                                                 measure=measure, direction=direction)
+    expected_results = {('difference', 'up') : ('Gstm5', 16.8125),
+                        ('difference', 'down') : ('Slc2a3', -0.5625),
+                        ('difference', 'both') : ('Gstm5', 16.8125),
+                        ('emd', 'up') : ('Gstm5', 17.5625),
+                        ('emd', 'down') : ('Slc2a3', -0.6875),
+                        ('emd', 'both') : ('Gstm5', 17.5625)}
+    assert result['gene'][0] == expected_results[(measure, direction)][0], result['gene'][0]
+    assert np.allclose(result[measure][0],
+                       expected_results[(measure, direction)][1])
+    result_unnamed = scprep.stats.differential_expression(X.iloc[:20].to_coo(), X.iloc[20:100].to_coo(),
+                                                         measure=measure, direction=direction)
+    if direction != 'both':
+        values = result[measure]
+    else:
+        values = np.abs(result[measure])
+
+    unique_values = ~np.isin(values, values[values.duplicated()])
+    assert np.all(X.columns[result_unnamed['gene']][unique_values] == result['gene'][unique_values])
+    def test_fun(X, **kwargs):
+        return scprep.stats.differential_expression(
+            scprep.select.select_rows(X, idx=np.arange(20)),
+            scprep.select.select_rows(X, idx=np.arange(20, 100)),
+        **kwargs)
+
+    def check_fun(Y1, Y2):
+        if direction == 'both':
+            Y1[measure] = np.abs(Y1[measure])
+            Y2[measure] = np.abs(Y2[measure])
+        np.testing.assert_allclose(Y1[measure], Y2[measure], atol=5e-4)
+        Y1 = Y1.sort_values('gene')
+        Y2 = Y2.sort_values('gene')
+        np.testing.assert_allclose(Y1[measure], Y2[measure], atol=5e-4)
+
+    matrix.test_all_matrix_types(
+        X, utils.assert_transform_equals, Y=result,
+        transform=test_fun,
+        check=check_fun,
+        gene_names=X.columns,
+        measure=measure, direction=direction)
+
+
+def test_differential_expression_error():
+    X = data.load_10X()
+    assert_raise_message(
+        ValueError, "Expected `direction` in ['up', 'down', 'both']. "
+        "Got invalid", scprep.stats.differential_expression,
+        X, X, direction='invalid')
+    assert_raise_message(
+        ValueError, "Expected `measure` in ['difference', 'emd']. "
+        "Got invalid", scprep.stats.differential_expression,
+        X, X, measure='invalid')
+    assert_raise_message(
+        ValueError, "Expected `X` and `Y` to be matrices. "
+        "Got shapes {}, {}".format(X.shape, X.iloc[0].shape),
+        scprep.stats.differential_expression,
+        X, X.iloc[0])
+    assert_raise_message(
+        ValueError, "Expected gene_names to have length {}. "
+        "Got {}".format(X.shape[0], X.shape[0]//2),
+        scprep.stats.differential_expression,
+        X.to_coo(), X.to_coo(), gene_names=np.arange(X.shape[0]//2))
+    assert_raise_message(
+        ValueError, "Expected gene_names to have length {}. "
+        "Got {}".format(X.shape[0], X.shape[0]//2),
+        scprep.stats.differential_expression_by_cluster,
+        X.to_coo(), np.random.choice(2, X.shape[0], replace=True),
+        gene_names=np.arange(X.shape[0]//2))
+    assert_warns_message(
+        UserWarning, "Input data has inconsistent column names. "
+        "Subsetting to 20 common columns.",
+        scprep.stats.differential_expression,
+        X, X.iloc[:,:20])
+
+
+def test_differential_expression_by_cluster():
+    measure = 'difference'
+    direction = 'up'
+    X = data.load_10X()
+    np.random.seed(42)
+    clusters = np.random.choice(4, X.shape[0], replace=True)
+    result = scprep.stats.differential_expression_by_cluster(
+        X, clusters,
+        measure=measure, direction=direction)
+    for cluster in range(4):
+        r = scprep.stats.differential_expression(
+            scprep.select.select_rows(X, idx=clusters==cluster),
+            scprep.select.select_rows(X, idx=clusters!=cluster),
+        measure=measure, direction=direction)
+        assert np.all(result[cluster] == r)
+
+
+def test_differential_expression_by_cluster_subset():
+    measure = 'difference'
+    direction = 'up'
+    X = data.load_10X()
+    np.random.seed(42)
+    clusters = np.random.choice(4, X.shape[0], replace=True)
+    result = scprep.stats.differential_expression_by_cluster(
+        X, clusters,
+        measure=measure, direction=direction, gene_names=X.columns[:X.shape[0]//2])
+    for cluster in range(4):
+        r = scprep.stats.differential_expression(
+            scprep.select.select_rows(X, idx=clusters==cluster),
+            scprep.select.select_rows(X, idx=clusters!=cluster),
+            measure=measure, direction=direction,
+            gene_names=X.columns[:X.shape[0]//2])
+        assert np.all(result[cluster] == r)
