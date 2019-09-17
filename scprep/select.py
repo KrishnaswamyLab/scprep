@@ -330,6 +330,9 @@ def select_cols(data, *extra_data, idx=None,
         _check_idx_1d(idx)
         idx = idx.flatten()
 
+    if isinstance(data, pd.SparseDataFrame):
+        # evil deprecated dataframe; get rid of it
+        data = utils.SparseDataFrame(data)
     if isinstance(data, pd.DataFrame):
         try:
             if isinstance(idx, (numbers.Integral, str)):
@@ -446,6 +449,9 @@ def select_rows(data, *extra_data, idx=None,
         _check_idx_1d(idx)
         idx = idx.flatten()
 
+    if isinstance(data, pd.SparseDataFrame):
+        # evil deprecated dataframe; get rid of it
+        data = utils.SparseDataFrame(data)
     if isinstance(data, (pd.DataFrame, pd.Series)):
         try:
             if isinstance(idx, (numbers.Integral, str)):

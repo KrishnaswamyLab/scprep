@@ -407,6 +407,17 @@ class Test10X(unittest.TestCase):
             "Expected n (101) <= n_samples (100)",
             scprep.select.subsample, self.X, n=self.X.shape[0] + 1)
 
+    def test_sparse_dataframe_fill_value(self):
+        def test_fun(X):
+            Y = scprep.select.select_rows(X, idx=np.arange(X.shape[0]//2))
+            for col in Y.columns:
+                assert X[col].dtype == Y[col].dtype, (X[col].dtype, Y[col].dtype)
+            Y = scprep.select.select_cols(X, idx=np.arange(X.shape[1]//2))
+            for col in Y.columns:
+                assert X[col].dtype == Y[col].dtype, (X[col].dtype, Y[col].dtype)
+        matrix.test_matrix_types(
+            self.X, test_fun, matrix._pandas_sparse_matrix_types)
+
 
 def test_string_subset_exact_word():
     np.testing.assert_array_equal(scprep.select._get_string_subset_mask(

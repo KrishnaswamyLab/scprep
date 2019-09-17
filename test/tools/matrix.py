@@ -14,17 +14,26 @@ def _ignore_pandas_sparse_warning():
         "ignore",
         category=FutureWarning,
         message="SparseDataFrame")
-
-
-def _reset_pandas_sparse_warning():
     warnings.filterwarnings(
-        "default",
+        "error",
+        category=pd.errors.PerformanceWarning)
+
+
+def _reset_warnings():
+    warnings.filterwarnings(
+        "error",
         category=FutureWarning,
         message="SparseSeries")
     warnings.filterwarnings(
-        "default",
+        "error",
         category=FutureWarning,
         message="SparseDataFrame")
+    warnings.filterwarnings(
+        "error",
+        category=pd.errors.PerformanceWarning)
+
+
+_reset_warnings()
 
 
 def _no_warning_dia_matrix(*args, **kwargs):
@@ -42,7 +51,12 @@ def SparseDataFrame_deprecated(X, default_fill_value=0.0):
 
 
 def SparseDataFrame(X, default_fill_value=0.0):
-    return pd.DataFrame(X).astype(pd.SparseDtype(float, fill_value=default_fill_value))
+    if sparse.issparse(X):
+        X = pd.DataFrame.sparse.from_spmatrix(X)
+        X.sparse.fill_value = default_fill_value
+    elif isinstance(X, pd.SparseDataFrame) or not isinstance(X, pd.DataFrame):
+        X = pd.DataFrame(X)
+    return X.astype(pd.SparseDtype(float, fill_value=default_fill_value))
 
 
 _scipy_matrix_types = [
@@ -106,8 +120,7 @@ def test_matrix_types(X, test_fun, matrix_types, *args, **kwargs):
                 type(e).__name__, _typename(Y), test_fun.__name__,
                 str(e)))
         finally:
-            if fun is SparseDataFrame_deprecated:
-                _reset_pandas_sparse_warning()
+            _reset_warnings()
 
 
 def test_dense_matrix_types(X, test_fun, *args, **kwargs):

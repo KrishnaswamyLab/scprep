@@ -184,7 +184,7 @@ def SparseDataFrame(X, columns=None, index=None, default_fill_value=0.0):
     if sparse.issparse(X):
         X = pd.DataFrame.sparse.from_spmatrix(X)
         X.sparse.fill_value = default_fill_value
-    elif not isinstance(X, pd.DataFrame):
+    elif isinstance(X, pd.SparseDataFrame) or not isinstance(X, pd.DataFrame):
         X = pd.DataFrame(X)
     X = dataframe_to_sparse(X, fill_value=default_fill_value)
     if columns is not None:
@@ -252,6 +252,13 @@ def matrix_sum(data, axis=None):
             else:
                 index = data.index if axis == 1 else data.columns
                 sums = pd.Series(np.array(data.to_coo().sum(axis)).flatten(),
+                                 index=index)
+        elif is_sparse_dataframe(data):
+            if axis is None:
+                sums = data.sparse.to_coo().sum()
+            else:
+                index = data.index if axis == 1 else data.columns
+                sums = pd.Series(np.array(data.sparse.to_coo().sum(axis)).flatten(),
                                  index=index)
         elif axis is None:
             sums = data.to_numpy().sum()
@@ -479,6 +486,8 @@ def combine_batches(data, batch_labels, append_to_cell_names=None):
 
     # check consistent type
     matrix_type = type(data[0])
+    if matrix_type is pd.SparseDataFrame:
+        matrix_type = pd.DataFrame
     if not issubclass(matrix_type, (np.ndarray,
                                     pd.DataFrame,
                                     sparse.spmatrix)):

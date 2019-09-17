@@ -24,12 +24,14 @@ def test_check_numeric_inplace():
         [matrix.SparseDataFrame],
         transform=scprep.sanitize.check_numeric,
         copy=False)
+    matrix._ignore_pandas_sparse_warning()
     assert_raise_message(
         TypeError,
         "pd.SparseDataFrame does not support "
         "copy=False. Please use copy=True.",
         scprep.sanitize.check_numeric,
         data=matrix.SparseDataFrame_deprecated(X), copy=False)
+    matrix._reset_warnings()
 
     class TypeErrorClass(object):
 

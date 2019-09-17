@@ -33,17 +33,13 @@ def test_log_transform():
         Y=Y, transform=scprep.transform.log,
         base=2)
     Y = np.log2(X + 5)
-    assert_warns_message(
-        RuntimeWarning,
-        "log transform on sparse data requires pseudocount = 1",
-        scprep.transform.log,
-        data=sparse.csr_matrix(X), base=2, pseudocount=5)
-    assert_warns_message(
-        RuntimeWarning,
-        "log transform on sparse data requires pseudocount = 1",
-        scprep.transform.log,
-        data=pd.SparseDataFrame(X, default_fill_value=0.0),
-        base=2, pseudocount=5)
+    def test_fun(X):
+        assert_warns_message(
+            RuntimeWarning,
+            "log transform on sparse data requires pseudocount = 1",
+            scprep.transform.log,
+            data=X, base=2, pseudocount=5)
+    matrix.test_sparse_matrix_types(X, test_fun)
     matrix.test_dense_matrix_types(
         X, utils.assert_transform_equivalent,
         Y=Y, transform=scprep.transform.log,
