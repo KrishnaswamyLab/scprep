@@ -4,10 +4,78 @@ import scprep.io.utils
 from sklearn.utils.testing import assert_warns_message, assert_raise_message, assert_raises
 import pandas as pd
 import numpy as np
+from scipy import sparse
 import os
 import fcsparser
 import zipfile
 import urllib
+import unittest
+
+
+class TestMatrixToDataFrame(unittest.TestCase):
+
+    def setUpClass(self):
+        self.X_dense = data.load_10X(sparse=False)
+        self.X_sparse = data.load_10X(sparse=True)
+        self.X_numpy = self.X_dense.to_numpy()
+        self.cell_names = self.X_dense.index
+        self.gene_names = self.X_dense.columns
+
+    def test_matrix_to_dataframe_no_names_sparse():
+        Y = scprep.io.utils._matrix_to_dataframe(self.X_dense, sparse=True)
+        assert isinstance(Y, sparse.csr_matrix)
+        assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
+        Y = scprep.io.utils._matrix_to_dataframe(self.X_sparse, sparse=True)
+        assert isinstance(Y, sparse.csr_matrix)
+        assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
+        Y = scprep.io.utils._matrix_to_dataframe(self.X_numpy, sparse=True)
+        assert isinstance(Y, sparse.csr_matrix)
+        assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
+
+    def test_matrix_to_dataframe_no_names_dense():
+        Y = scprep.io.utils._matrix_to_dataframe(self.X_dense, sparse=False)
+        assert isinstance(Y, np.ndarray)
+        assert np.all(Y == self.X_numpy)
+        Y = scprep.io.utils._matrix_to_dataframe(self.X_sparse, sparse=False)
+        assert isinstance(Y, np.ndarray)
+        assert np.all(Y == self.X_numpy)
+        Y = scprep.io.utils._matrix_to_dataframe(self.X_numpy, sparse=False)
+        assert isinstance(Y, np.ndarray)
+        assert np.all(Y == self.X_numpy)
+
+    def test_matrix_to_dataframe_names_sparse():
+        Y = scprep.io.utils._matrix_to_dataframe(self.X_dense, cell_names=self.cell_names,
+                                                 gene_names=self.gene_names, sparse=True)
+        assert scprep.utils.is_sparse_dataframe(Y)
+        assert not isinstance(Y, pd.SparseDataFrame)
+        assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
+        Y = scprep.io.utils._matrix_to_dataframe(self.X_sparse, cell_names=self.cell_names,
+                                                 gene_names=self.gene_names, sparse=True)
+        assert scprep.utils.is_sparse_dataframe(Y)
+        assert not isinstance(Y, pd.SparseDataFrame)
+        assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
+        Y = scprep.io.utils._matrix_to_dataframe(self.X_numpy, cell_names=self.cell_names,
+                                                 gene_names=self.gene_names, sparse=True)
+        assert scprep.utils.is_sparse_dataframe(Y)
+        assert not isinstance(Y, pd.SparseDataFrame)
+        assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
+
+    def test_matrix_to_dataframe_names_dense():
+        Y = scprep.io.utils._matrix_to_dataframe(self.X_dense, cell_names=self.cell_names,
+                                                 gene_names=self.gene_names, sparse=False)
+        assert isinstance(Y, pd.DataFrame)
+        assert not isinstance(Y, pd.SparseDataFrame)
+        assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
+        Y = scprep.io.utils._matrix_to_dataframe(self.X_sparse, cell_names=self.cell_names,
+                                                 gene_names=self.gene_names, sparse=False)
+        assert isinstance(Y, pd.DataFrame)
+        assert not isinstance(Y, pd.SparseDataFrame)
+        assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
+        Y = scprep.io.utils._matrix_to_dataframe(self.X_numpy, cell_names=self.cell_names,
+                                                 gene_names=self.gene_names, sparse=False)
+        assert isinstance(Y, pd.DataFrame)
+        assert not isinstance(Y, pd.SparseDataFrame)
+        assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
 
 
 def test_10X_duplicate_gene_names():

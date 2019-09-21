@@ -128,7 +128,7 @@ def assert_matrix_class_equivalent(X, Y):
     elif isinstance(X, pd.SparseDataFrame):
         assert _is_sparse_dataframe(Y)
     else:
-        assert type(X) == type(Y)
+        assert type(X) == type(Y), (type(X), type(Y))
     if _is_sparse_dataframe(X):
         assert _sparse_dataframe_density(X) == _sparse_dataframe_density(Y)
         assert _sparse_dataframe_density(X) == _sparse_dataframe_density(Y)

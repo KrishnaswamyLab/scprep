@@ -49,6 +49,12 @@ def _no_warning_dia_matrix(*args, **kwargs):
 def SparseDataFrame_deprecated(X, default_fill_value=0.0):
     return pd.SparseDataFrame(X, default_fill_value=default_fill_value)
 
+def SparseSeries(X, default_fill_value=0.0):
+    return pd.Series(X).astype(pd.SparseDtype(float, fill_value=default_fill_value))
+
+def SparseSeries_deprecated(X, default_fill_value=0.0):
+    return pd.SparseSeries(X, fill_value=default_fill_value)
+
 
 def SparseDataFrame(X, default_fill_value=0.0):
     if sparse.issparse(X):
@@ -81,6 +87,12 @@ _pandas_sparse_matrix_types = [
     SparseDataFrame_deprecated,
 ]
 
+_pandas_vector_types = [
+    pd.Series,
+    SparseSeries,
+    SparseSeries_deprecated
+]
+
 _pandas_matrix_types = _pandas_dense_matrix_types + _pandas_sparse_matrix_types
 
 _indexable_matrix_types = [
@@ -110,7 +122,7 @@ def test_matrix_types(X, test_fun, matrix_types, *args, **kwargs):
     **kwargs : keyword arguments for test_fun
     """
     for fun in matrix_types:
-        if fun is SparseDataFrame_deprecated:
+        if fun is SparseDataFrame_deprecated or fun is SparseSeries_deprecated:
             _ignore_pandas_sparse_warning()
         Y = fun(X.copy())
         try:
