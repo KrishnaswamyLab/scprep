@@ -1,5 +1,6 @@
 import numpy as np
 import numbers
+import warnings
 
 from .. import measure, utils
 from .utils import (_get_figure, show,
@@ -86,8 +87,20 @@ def histogram(data,
             if alpha is None:
                 alpha = 1
         if log == 'x' or log is True:
-            bins = np.logspace(np.log10(max(xmin, 1)),
-                               np.log10(xmax),
+            if xmax < np.finfo('float').eps:
+                raise ValueError("Expected positive data for log = {}. "
+                                 "Got max(data) = {:.2f}".format(log, xmax))
+            elif xmin < np.finfo('float').eps:
+                warnings.warn("Expected positive data for log = {}. "
+                              "Got min(data) = {:.2f}".format(log, xmin), UserWarning)
+                xmin = np.finfo('float').eps
+            xmin = np.log10(xmin)
+            xmax = np.log10(xmax)
+            xrange = max(xmax - xmin, 1)
+            xmin = xmin - xrange * 0.1
+            xmax = xmax + xrange * 0.1
+            bins = np.logspace(xmin,
+                               xmax,
                                bins)
         ax.hist(data, bins=bins, histtype=histtype, alpha=alpha, **kwargs)
 

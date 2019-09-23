@@ -212,6 +212,32 @@ def test_is_color_array_none():
     assert not scprep.plot.utils._is_color_array(None)
 
 
+def test_histogram_log_negative_min():
+    assert_warns_message(
+        UserWarning,
+        "Expected positive data for log = x. Got min(data) = -1.00",
+        scprep.plot.histogram,
+        [-1, 1, 1, 1], log='x')
+    assert_warns_message(
+        UserWarning,
+        "Expected positive data for log = True. Got min(data) = -1.00",
+        scprep.plot.histogram,
+        [-1, 1, 1, 1], log=True)
+
+
+def test_histogram_log_negative_max():
+    assert_raise_message(
+        ValueError,
+        "Expected positive data for log = x. Got max(data) = -1.00",
+        scprep.plot.histogram,
+        [-1, -1, -1, -2], log='x')
+    assert_raise_message(
+        ValueError,
+        "Expected positive data for log = True. Got max(data) = -1.00",
+        scprep.plot.histogram,
+        [-1, -1, -1, -2], log=True)
+
+
 class TestScatterParams(unittest.TestCase):
 
     @classmethod
@@ -671,6 +697,7 @@ class Test10X(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.X = data.load_10X(sparse=False)
+        self.X_filt = scprep.filter.filter_empty_cells(self.X)
         self.X_pca, self.S = scprep.reduce.pca(self.X, n_components=10,
                                                return_singular_values=True)
 
@@ -688,15 +715,15 @@ class Test10X(unittest.TestCase):
         plt.close('all')
 
     def test_histogram(self):
-        scprep.plot.plot_library_size(self.X, cutoff=1000, log=True)
-        scprep.plot.plot_library_size(self.X, cutoff=1000, log=True,
+        scprep.plot.plot_library_size(self.X_filt, cutoff=1000, log=True)
+        scprep.plot.plot_library_size(self.X_filt, cutoff=1000, log=True,
                                       xlabel="x label", ylabel="y label")
 
     def test_histogram_list_of_lists(self):
-        scprep.plot.plot_library_size(scprep.utils.toarray(self.X).tolist())
+        scprep.plot.plot_library_size(scprep.utils.toarray(self.X_filt).tolist())
 
     def test_histogram_array(self):
-        scprep.plot.plot_library_size(scprep.utils.toarray(self.X))
+        scprep.plot.plot_library_size(scprep.utils.toarray(self.X_filt))
 
     def test_histogram_multiple(self):
         scprep.plot.histogram([scprep.select.select_rows(self.X, idx=0),
@@ -704,15 +731,15 @@ class Test10X(unittest.TestCase):
                               color=['r', 'b'])
 
     def test_histogram_multiple_cutoff(self):
-        scprep.plot.plot_library_size(self.X, cutoff=[500, 1000], log=True)
+        scprep.plot.plot_library_size(self.X_filt, cutoff=[500, 1000], log=True)
 
     def test_histogram_multiple_percentile(self):
-        scprep.plot.plot_library_size(self.X, percentile=[10, 90], log=True)
+        scprep.plot.plot_library_size(self.X_filt, percentile=[10, 90], log=True)
 
     def test_plot_library_size_multiple(self):
         scprep.plot.plot_library_size([
-            self.X, scprep.select.select_rows(
-                self.X, idx=np.arange(self.X.shape[0] // 2))],
+            self.X_filt, scprep.select.select_rows(
+                self.X_filt, idx=np.arange(self.X_filt.shape[0] // 2))],
             color=['r', 'b'],
             filename="test_library_size.png")
         assert os.path.exists("test_library_size.png")
