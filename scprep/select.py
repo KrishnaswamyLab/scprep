@@ -112,7 +112,7 @@ def _exact_word_regex(word):
     allowed_chars = ['\\(', '\\)', '\\[', '\\]', '\\.',
                      ',', '!', '\\?', ' ', '^', '$']
     wildcard = "(" + "|".join(allowed_chars) + ")+"
-    return "{wildcard}{word}{wildcard}".format(wildcard=wildcard, word=word)
+    return "{wildcard}{word}{wildcard}".format(wildcard=wildcard, word=re.escape(word))
 
 
 def _get_string_subset_mask(data, starts_with=None, ends_with=None,

@@ -427,6 +427,8 @@ def test_string_subset_exact_word():
         ['World, hello!', 'world'], exact_word='hello'), [True, False])
     np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
         ['helloooo!', 'world'], exact_word='hello'), [False, False])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['(hello) world', 'world'], exact_word='(hello) world'), [True, False])
 
 
 def test_string_subset_list():
