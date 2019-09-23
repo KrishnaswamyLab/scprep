@@ -18,6 +18,8 @@ def histogram(data,
               fontsize=None,
               histtype='stepfilled',
               alpha=None,
+              filename=None,
+              dpi=None,
               **kwargs):
     """Plot a histogram.
 
@@ -55,6 +57,12 @@ def histogram(data,
         'stepfilled' generates a lineplot that is by default filled.
     alpha : float, optional (default: 1 for a single dataset, 0.5 for multiple)
         Histogram transparency
+    filename : str or None (default: None)
+        file to which the output is saved
+    dpi : int or None, optional (default: None)
+        The resolution in dots per inch. If None it will default to the value
+        savefig.dpi in the matplotlibrc file. If 'figure' it will set the dpi
+        to be the value of the figure. Only used if filename is not None.
     **kwargs : additional arguments for `matplotlib.pyplot.hist`
 
     Returns
@@ -102,6 +110,9 @@ def histogram(data,
             else:
                 for c in cutoff:
                     ax.axvline(c, color='red')
+        # save and show
+        if filename is not None:
+            fig.savefig(filename, dpi=dpi)
         if show_fig:
             show(fig)
     return ax
@@ -115,6 +126,8 @@ def plot_library_size(data,
                       xlabel='Library size',
                       title=None,
                       fontsize=None,
+                      filename=None,
+                      dpi=None,
                       **kwargs):
     """Plot the library size histogram.
 
@@ -144,6 +157,12 @@ def plot_library_size(data,
         Axis title.
     fontsize : float or None (default: None)
         Base font size.
+    filename : str or None (default: None)
+        file to which the output is saved
+    dpi : int or None, optional (default: None)
+        The resolution in dots per inch. If None it will default to the value
+        savefig.dpi in the matplotlibrc file. If 'figure' it will set the dpi
+        to be the value of the figure. Only used if filename is not None.
     **kwargs : additional arguments for `matplotlib.pyplot.hist`
 
     Returns
@@ -161,7 +180,8 @@ def plot_library_size(data,
     return histogram(libsize,
                      cutoff=cutoff, percentile=percentile,
                      bins=bins, log=log, ax=ax, figsize=figsize,
-                     xlabel=xlabel, title=title, fontsize=fontsize, **kwargs)
+                     xlabel=xlabel, title=title, fontsize=fontsize,
+                     filename=filename, dpi=dpi, **kwargs)
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
@@ -175,6 +195,8 @@ def plot_gene_set_expression(data, genes=None,
                              xlabel='Gene expression',
                              title=None,
                              fontsize=None,
+                             filename=None,
+                             dpi=None,
                              **kwargs):
     """Plot the histogram of the expression of a gene set.
 
@@ -216,6 +238,12 @@ def plot_gene_set_expression(data, genes=None,
         Axis title.
     fontsize : float or None (default: None)
         Base font size.
+    filename : str or None (default: None)
+        file to which the output is saved
+    dpi : int or None, optional (default: None)
+        The resolution in dots per inch. If None it will default to the value
+        savefig.dpi in the matplotlibrc file. If 'figure' it will set the dpi
+        to be the value of the figure. Only used if filename is not None.
     **kwargs : additional arguments for `matplotlib.pyplot.hist`
 
     Returns
@@ -245,4 +273,5 @@ def plot_gene_set_expression(data, genes=None,
     return histogram(expression,
                      cutoff=cutoff, percentile=percentile,
                      bins=bins, log=log, ax=ax, figsize=figsize,
-                     xlabel=xlabel, title=title, fontsize=fontsize, **kwargs)
+                     xlabel=xlabel, title=title, fontsize=fontsize,
+                     filename=filename, dpi=dpi, **kwargs)

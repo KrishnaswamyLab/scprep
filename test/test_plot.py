@@ -710,7 +710,9 @@ class Test10X(unittest.TestCase):
         scprep.plot.plot_library_size([
             self.X, scprep.select.select_rows(
                 self.X, idx=np.arange(self.X.shape[0] // 2))],
-            color=['r', 'b'])
+            color=['r', 'b'],
+            filename="test_library_size.png")
+        assert os.path.exists("test_library_size.png")
 
     def test_plot_gene_set_expression_multiple(self):
         scprep.plot.plot_gene_set_expression([
@@ -730,7 +732,9 @@ class Test10X(unittest.TestCase):
     def test_plot_gene_set_expression_single_gene(self):
         scprep.plot.plot_gene_set_expression(
             self.X, color=["red"],
-            genes="Arl8b")
+            genes="Arl8b",
+            filename="test_gene_expression.png")
+        assert os.path.exists("test_gene_expression.png")
 
     def test_histogram_single_gene_dataframe(self):
         scprep.plot.histogram(
@@ -746,7 +750,10 @@ class Test10X(unittest.TestCase):
         fig, ax = plt.subplots()
         scprep.plot.plot_gene_set_expression(
             self.X, genes=scprep.select.get_gene_set(self.X, starts_with="D"),
-            percentile=90, log='y', ax=ax, title="histogram")
+            percentile=90, log='y', ax=ax, title="histogram",
+            filename="test_histogram.png")
+        assert os.path.exists("test_histogram.png")
+        assert ax.get_title() == 'histogram'
 
     def test_histogram_invalid_axis(self):
         assert_raise_message(
