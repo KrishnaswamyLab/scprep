@@ -6,6 +6,7 @@ from sklearn.metrics import mutual_info_score
 import scprep
 from functools import partial
 import warnings
+import os
 from parameterized import parameterized
 
 
@@ -98,6 +99,8 @@ def test_knnDREMI():
     Y2, drevi = scprep.stats.knnDREMI(X[:, 0], X[:, 1],
                                       plot=True, filename="test.png",
                                       return_drevi=True)
+    assert os.path.isfile("test.png")
+    os.remove("test.png")
     assert Y2 == Y
     assert drevi.shape == (20, 20)
     matrix.test_all_matrix_types(

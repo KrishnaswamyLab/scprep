@@ -680,6 +680,9 @@ class Test10X(unittest.TestCase):
         try_remove("test.gif")
         try_remove("test.mp4")
         try_remove("test_jitter.png")
+        try_remove("test_histogram.png")
+        try_remove("test_library_size.png")
+        try_remove("test_gene_expression.png")
 
     def tearDown(self):
         plt.close('all')
