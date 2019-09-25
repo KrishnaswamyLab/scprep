@@ -120,7 +120,7 @@ def filter_empty_cells(data, *extra_data, sample_labels=None):
     return data
 
 
-def _get_filter_idx(data, values,
+def _get_filter_idx(values,
                     cutoff, percentile,
                     keep_cells):
     cutoff = measure._get_percentile_cutoff(
@@ -188,7 +188,7 @@ def filter_values(data, *extra_data, values=None,
                       "Filtering as a single sample.",
                       DeprecationWarning)
     assert values is not None
-    keep_cells_idx = _get_filter_idx(data, values,
+    keep_cells_idx = _get_filter_idx(values,
                                      cutoff, percentile,
                                      keep_cells)
     if return_values:
