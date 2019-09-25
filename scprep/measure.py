@@ -3,6 +3,7 @@ import warnings
 import numbers
 
 from . import utils, select
+from ._lazyload import statsmodels
 
 
 def library_size(data):
@@ -60,6 +61,37 @@ def gene_set_expression(data, genes=None, library_size_normalize=False,
     else:
         gene_set_expression = gene_data
     return gene_set_expression
+
+
+@utils._with_pkg(pkg="statsmodels")
+def variable_genes(data, span=0.7, interpolate=0.2):
+    """Measure the variability of each gene in a dataset
+
+    Variability is computed as the deviation from a loess fit of the mean-variance curve
+
+    Parameters
+    ----------
+    data : array-like, shape=[n_samples, n_features]
+        Input data
+    span : float, optional (default: 0.7)
+        Fraction of genes to use when computing the loess estimate at each point
+    interpolate : float, optional (default: 0.2)
+        Multiple of the standard deviation of variances at which to interpolate
+        linearly in order to reduce computation time.
+
+    Returns
+    -------
+    variability : list-like, shape=[n_samples]
+        Variability for each gene
+    """
+    data = utils.to_array_or_spmatrix(data)
+    data_mean = utils.toarray(np.mean(data, axis=0)).flatten()
+    data_std = utils.matrix_std(data, axis=0) ** 2
+    delta = np.std(data_std) * interpolate
+    lowess = statsmodels.nonparametric.smoothers_lowess.lowess(
+        data_std, data_mean,
+        delta=delta, frac=span, return_sorted=False)
+    return data_std - lowess
 
 
 def _get_percentile_cutoff(data, cutoff=None, percentile=None, required=False):

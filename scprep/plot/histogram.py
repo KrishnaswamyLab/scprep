@@ -288,3 +288,83 @@ def plot_gene_set_expression(data, genes=None,
                      bins=bins, log=log, ax=ax, figsize=figsize,
                      xlabel=xlabel, title=title, fontsize=fontsize,
                      filename=filename, dpi=dpi, **kwargs)
+
+
+@utils._with_pkg(pkg="matplotlib", min_version=3)
+def plot_variable_genes(data, span=0.7, interpolate=0.2,
+                        bins=100, log=False,
+                        cutoff=None, percentile=None,
+                        ax=None, figsize=None,
+                        xlabel='Gene variability',
+                        ylabel='Number of genes',
+                        title=None,
+                        fontsize=None,
+                        filename=None,
+                        dpi=None, **kwargs):
+    """Plot the histogram of gene variability
+
+    Variability is computed as the deviation from a loess fit of the mean-variance curve
+
+    Parameters
+    ----------
+    data : array-like, shape=[n_samples, n_features]
+        Input data. Multiple datasets may be given as a list of array-likes.
+    span : float, optional (default: 0.7)
+        Fraction of genes to use when computing the loess estimate at each point
+    interpolate : float, optional (default: 0.2)
+        Multiple of the standard deviation of variances at which to interpolate
+        linearly in order to reduce computation time.
+    bins : int, optional (default: 100)
+        Number of bins to draw in the histogram
+    log : bool, or {'x', 'y'}, optional (default: False)
+        If True, plot both axes on a log scale. If 'x' or 'y',
+        only plot the given axis on a log scale. If False,
+        plot both axes on a linear scale.
+    cutoff : float or `None`, optional (default: `None`)
+        Absolute cutoff at which to draw a vertical line.
+        Only one of `cutoff` and `percentile` may be given.
+    percentile : float or `None`, optional (default: `None`)
+        Percentile between 0 and 100 at which to draw a vertical line.
+        Only one of `cutoff` and `percentile` may be given.
+    library_size_normalize : bool, optional (default: False)
+        Divide gene set expression by library size
+    ax : `matplotlib.Axes` or None, optional (default: None)
+        Axis to plot on. If None, a new axis will be created.
+    figsize : tuple or None, optional (default: None)
+        If not None, sets the figure size (width, height)
+    [x,y]label : str, optional
+        Labels to display on the x and y axis.
+    title : str or None, optional (default: None)
+        Axis title.
+    fontsize : float or None (default: None)
+        Base font size.
+    filename : str or None (default: None)
+        file to which the output is saved
+    dpi : int or None, optional (default: None)
+        The resolution in dots per inch. If None it will default to the value
+        savefig.dpi in the matplotlibrc file. If 'figure' it will set the dpi
+        to be the value of the figure. Only used if filename is not None.
+    **kwargs : additional arguments for `matplotlib.pyplot.hist`
+
+    Returns
+    -------
+    ax : `matplotlib.Axes`
+        axis on which plot was drawn
+    """
+    if hasattr(data, 'shape') and len(data.shape) == 2:
+        var_genes = measure.variable_genes(
+            data, span=span, interpolate=interpolate)
+    else:
+        data_array = utils.to_array_or_spmatrix(data)
+        if len(data_array.shape) == 2 and data_array.dtype.type is not np.object_:
+            var_genes = measure.variable_genes(
+                data_array, span=span, interpolate=interpolate)
+        else:
+            var_genes = [measure.variable_genes(
+                d, span=span, interpolate=interpolate)
+                for d in data]
+    return histogram(var_genes,
+                     cutoff=cutoff, percentile=percentile,
+                     bins=bins, log=log, ax=ax, figsize=figsize,
+                     xlabel=xlabel, title=title, fontsize=fontsize,
+                     filename=filename, dpi=dpi, **kwargs)

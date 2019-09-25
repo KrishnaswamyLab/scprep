@@ -271,6 +271,39 @@ def test_matrix_sum():
                          5)
 
 
+def test_matrix_std():
+    X = data.generate_positive_sparse_matrix(shape=(50, 100))
+    stds = np.array(X.std(0)).flatten()
+    matrix.test_all_matrix_types(X, utils.assert_transform_equals, Y=stds,
+                                 transform=scprep.utils.matrix_std, axis=0,
+                                 check=utils.assert_all_close)
+    matrix.test_numpy_matrix(X, utils.assert_transform_equals, Y=stds,
+                             transform=scprep.utils.matrix_std, axis=0,
+                             check=utils.assert_all_close)
+
+    stds = np.array(X.std(1)).flatten()
+    matrix.test_all_matrix_types(X, utils.assert_transform_equals, Y=stds,
+                                 transform=scprep.utils.matrix_std, axis=1,
+                                 check=utils.assert_all_close)
+    matrix.test_numpy_matrix(X, utils.assert_transform_equals, Y=stds,
+                             transform=scprep.utils.matrix_std, axis=1,
+                             check=utils.assert_all_close)
+
+    stds = np.array(X.std(None)).flatten()
+    matrix.test_all_matrix_types(X, utils.assert_transform_equals, Y=stds,
+                                 transform=scprep.utils.matrix_std, axis=None,
+                                 check=utils.assert_all_close)
+    matrix.test_numpy_matrix(X, utils.assert_transform_equals, Y=stds,
+                             transform=scprep.utils.matrix_std, axis=None,
+                             check=utils.assert_all_close)
+
+    assert_raise_message(ValueError,
+                         "Expected axis in [0, 1, None]. Got 5",
+                         scprep.utils.matrix_std,
+                         data,
+                         5)
+
+
 def test_matrix_elementwise_multiply_row():
     X = data.generate_positive_sparse_matrix(shape=(50, 100))
     x = X[:, 0] + 1
