@@ -29,10 +29,11 @@ class _ScatterParams(object):
     def __init__(self, x, y, z=None, c=None, discrete=None,
                  cmap=None, cmap_scale=None, vmin=None,
                  vmax=None, s=None, legend=None, colorbar=None,
-                 shuffle=True):
-        self._x = _squeeze_array(x)
-        self._y = _squeeze_array(y)
-        self._z = _squeeze_array(z) if z is not None else None
+                 xlabel=None, ylabel=None, zlabel=None,
+                 label_prefix=None, shuffle=True):
+        self._x = x
+        self._y = y
+        self._z = z if z is not None else None
         self._c = c
         self._discrete = discrete
         self._cmap = cmap
@@ -44,6 +45,10 @@ class _ScatterParams(object):
         self._colorbar = colorbar
         self._labels = None
         self._c_discrete = None
+        self._label_prefix = label_prefix
+        self._xlabel = xlabel
+        self._ylabel = ylabel
+        self._zlabel = zlabel
         self.shuffle = shuffle
         self.check_size()
         self.check_c()
@@ -55,8 +60,24 @@ class _ScatterParams(object):
         self.check_vmin_vmax()
 
     @property
+    def x_array(self):
+        return _squeeze_array(self._x)
+
+    @property
+    def y_array(self):
+        return _squeeze_array(self._y)
+
+    @property
+    def z_array(self):
+        return _squeeze_array(self._z) if self._z is not None else None
+
+    @property
     def size(self):
-        return len(self._x)
+        try:
+            return self._size
+        except AttributeError:
+            self._size = len(self.x_array)
+            return self._size
 
     @property
     def plot_idx(self):
@@ -71,15 +92,15 @@ class _ScatterParams(object):
 
     @property
     def x(self):
-        return self._x[self.plot_idx]
+        return self.x_array[self.plot_idx]
 
     @property
     def y(self):
-        return self._y[self.plot_idx]
+        return self.y_array[self.plot_idx]
 
     @property
     def z(self):
-        return self._z[self.plot_idx] if self._z is not None else None
+        return self.z_array[self.plot_idx] if self._z is not None else None
 
     @property
     def data(self):
@@ -91,9 +112,9 @@ class _ScatterParams(object):
     @property
     def _data(self):
         if self._z is not None:
-            return [self._x, self._y, self._z]
+            return [self.x_array, self.y_array, self.z_array]
         else:
-            return [self._x, self._y]
+            return [self.x_array, self.y_array]
 
     @property
     def s(self):
@@ -420,6 +441,41 @@ class _ScatterParams(object):
                     UserWarning)
                 self._cmap_scale = 'linear'
 
+    @property
+    def xlabel(self):
+        if self._xlabel is not None:
+            return self._xlabel
+        elif self._label_prefix is not None:
+            return self._label_prefix + "1"
+        elif isinstance(self._x, pd.Series):
+            return self._x.name
+        else:
+            return None
+
+    @property
+    def ylabel(self):
+        if self._ylabel is not None:
+            return self._ylabel
+        elif self._label_prefix is not None:
+            return self._label_prefix + "2"
+        elif isinstance(self._y, pd.Series):
+            return self._y.name
+        else:
+            return None
+
+    @property
+    def zlabel(self):
+        if self._z is None:
+            return None
+        elif self._zlabel is not None:
+            return self._zlabel
+        elif self._label_prefix is not None:
+            return self._label_prefix + "3"
+        elif isinstance(self._z, pd.Series):
+            return self._z.name
+        else:
+            return None
+
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
 def scatter(x, y, z=None,
@@ -570,7 +626,8 @@ def scatter(x, y, z=None,
             cmap=cmap, cmap_scale=cmap_scale,
             vmin=vmin, vmax=vmax, s=s,
             legend=legend, colorbar=colorbar,
-            shuffle=shuffle)
+            xlabel=xlabel, ylabel=ylabel, zlabel=zlabel,
+            label_prefix=label_prefix, shuffle=shuffle)
 
         fig, ax, show_fig = _get_figure(
             ax, figsize, subplot_kw=params.subplot_kw)
@@ -581,23 +638,14 @@ def scatter(x, y, z=None,
             c=params.c, cmap=params.cmap, norm=params.norm, s=params.s,
             vmin=params.vmin, vmax=params.vmax, **plot_kwargs)
 
-        # automatic axis labels
-        if label_prefix is not None:
-            if xlabel is None:
-                xlabel = label_prefix + "1"
-            if ylabel is None:
-                ylabel = label_prefix + "2"
-            if zlabel is None:
-                zlabel = label_prefix + "3"
-
         # label axes
         label_axis(ax.xaxis, _with_default(xticks, ticks),
-                   _with_default(xticklabels, ticklabels), xlabel)
+                   _with_default(xticklabels, ticklabels), params.xlabel)
         label_axis(ax.yaxis, _with_default(yticks, ticks),
-                   _with_default(yticklabels, ticklabels), ylabel)
+                   _with_default(yticklabels, ticklabels), params.ylabel)
         if z is not None:
             label_axis(ax.zaxis, _with_default(zticks, ticks),
-                       _with_default(zticklabels, ticklabels), zlabel)
+                       _with_default(zticklabels, ticklabels), params.zlabel)
 
         if title is not None:
             ax.set_title(title, fontsize=parse_fontsize(None, 'xx-large'))

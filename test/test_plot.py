@@ -2,6 +2,7 @@ from tools import data
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import os
 from sklearn.utils.testing import assert_raise_message, assert_warns_message
 import unittest
@@ -685,6 +686,38 @@ class TestScatterParams(unittest.TestCase):
             c=np.where(self.c > 0, '+', '-'),
         )
 
+    def test_series_labels(self):
+        params = _ScatterParams(x=pd.Series(self.x, name='x'), y=self.y, c=self.c)
+        assert params.xlabel == 'x'
+        assert params.ylabel is None
+        assert params.zlabel is None
+        params = _ScatterParams(x=self.x, y=pd.Series(self.y, name='y'), c=self.c)
+        assert params.xlabel is None
+        assert params.ylabel == 'y'
+        assert params.zlabel is None
+        params = _ScatterParams(x=self.x, y=self.y, z=pd.Series(self.y, name='z'), c=self.c)
+        assert params.xlabel is None
+        assert params.ylabel is None
+        assert params.zlabel == 'z'
+        # xlabel overrides series
+        params = _ScatterParams(x=pd.Series(self.x, name='x'), y=self.y, c=self.c,
+                               xlabel='y')
+        assert params.xlabel == 'y'
+        assert params.ylabel is None
+        assert params.zlabel is None
+        # label_prefix overrides series
+        params = _ScatterParams(x=pd.Series(self.x, name='x'), y=self.y, c=self.c,
+                               label_prefix='y')
+        assert params.xlabel == 'y1'
+        assert params.ylabel == 'y2'
+        assert params.zlabel is None
+        # xlabel overrides label_prefix
+        params = _ScatterParams(x=pd.Series(self.x, name='x'), y=self.y, z=self.y, c=self.c,
+                               label_prefix='y', xlabel='test')
+        assert params.xlabel == 'test'
+        assert params.ylabel == 'y2'
+        assert params.zlabel == 'y3'
+
     def test_jitter_x(self):
         params = _JitterParams(x=np.where(self.x > 0, '+', '-'), y=self.y)
         np.testing.assert_array_equal(params.x_labels, ['+', '-'])
@@ -839,6 +872,18 @@ class Test10X(unittest.TestCase):
         assert ax.get_xlim() == (-0.5, 1.5)
         assert [t.get_text() for t in ax.get_xticklabels()] == ['+', '-']
 
+    def test_jitter_axis_labels(self):
+        ax = scprep.plot.jitter(np.where(self.X_pca[:, 0] > 0, '+', '-'),
+                                self.X_pca[:, 1],
+                                xlabel="test")
+        assert ax.get_xlabel() == "test"
+        assert ax.get_ylabel() == ''
+        ax = scprep.plot.jitter(
+            pd.Series(np.where(self.X_pca[:, 0] > 0, '+', '-'), name='x'),
+            pd.Series(self.X_pca[:, 1], name='y'), ylabel="override")
+        assert ax.get_xlabel() == "x"
+        assert ax.get_ylabel() == "override"
+
     def test_scatter_dict(self):
         scprep.plot.scatter2d(self.X_pca, c=np.random.choice(
             ['hello', 'world'], self.X_pca.shape[0], replace=True),
@@ -934,6 +979,13 @@ class Test10X(unittest.TestCase):
             self.X_pca, label_prefix="test", xlabel="override")
         assert ax.get_xlabel() == "override"
         assert ax.get_ylabel() == "test2"
+        ax = scprep.plot.scatter(
+            x=self.X_pca[:,0], y=pd.Series(self.X_pca[:,1], name='y'),
+            z=pd.Series(self.X_pca[:,2], name='z'),
+            ylabel='override')
+        assert ax.get_xlabel() == ''
+        assert ax.get_ylabel() == "override"
+        assert ax.get_zlabel() == "z"
 
     def test_scatter_axis_savefig(self):
         scprep.plot.scatter2d(
