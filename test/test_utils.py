@@ -310,6 +310,17 @@ def test_matrix_std():
                              transform=scprep.utils.matrix_std, axis=None,
                              check=utils.assert_all_close)
 
+    X_df = pd.DataFrame(X, index=np.arange(X.shape[0]).astype(str),
+                        columns=np.arange(X.shape[1]).astype(str))
+    def test_fun(X):
+        x = scprep.utils.matrix_std(X, axis=0)
+        assert x.name == 'std'
+        assert np.all(x.index == X_df.columns)
+        x = scprep.utils.matrix_std(X, axis=1)
+        assert x.name == 'std'
+        assert np.all(x.index == X_df.index)
+    matrix.test_pandas_matrix_types(
+        X_df, test_fun)
     assert_raise_message(ValueError,
                          "Expected axis in [0, 1, None]. Got 5",
                          scprep.utils.matrix_std,

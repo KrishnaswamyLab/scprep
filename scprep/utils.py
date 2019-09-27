@@ -244,6 +244,12 @@ def matrix_std(data, axis=None):
     """
     if axis not in [0, 1, None]:
         raise ValueError("Expected axis in [0, 1, None]. Got {}".format(axis))
+    index = None
+    if isinstance(data, pd.DataFrame) and axis is not None:
+        if axis == 1:
+            index = data.index
+        elif axis == 0:
+            index = data.columns
     data = to_array_or_spmatrix(data)
     if sparse.issparse(data):
         if axis is None:
@@ -272,6 +278,8 @@ def matrix_std(data, axis=None):
             std = np.array(std)
     else:
         std = np.std(data, axis=axis)
+    if index is not None:
+        std = pd.Series(std, index=index, name='std')
     return std
 
 

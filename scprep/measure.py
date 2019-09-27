@@ -89,14 +89,18 @@ def variable_genes(data, span=0.7, interpolate=0.2):
     variability : list-like, shape=[n_samples]
         Variability for each gene
     """
+    columns = data.columns if isinstance(data, pd.DataFrame) else None
     data = utils.to_array_or_spmatrix(data)
-    data_mean = utils.toarray(np.mean(data, axis=0)).flatten()
     data_std = utils.matrix_std(data, axis=0) ** 2
+    data_mean = utils.toarray(np.mean(data, axis=0)).flatten()
     delta = np.std(data_std) * interpolate
     lowess = statsmodels.nonparametric.smoothers_lowess.lowess(
         data_std, data_mean,
         delta=delta, frac=span, return_sorted=False)
-    return data_std - lowess
+    variability = data_std - lowess
+    if columns is not None:
+        variability = pd.Series(variability, index=columns, name='variability')
+    return variability
 
 
 def _get_percentile_cutoff(data, cutoff=None, percentile=None, required=False):
