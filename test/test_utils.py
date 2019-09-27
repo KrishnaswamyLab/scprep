@@ -122,6 +122,8 @@ def test_combine_batches():
     assert np.all(Y.index == Y2.index)
     assert np.all(sample_labels == np.concatenate(
         [np.repeat(0, X.shape[0]), np.repeat(1, X.shape[0] // 2)]))
+    assert np.all(sample_labels.index == Y2.index)
+    assert sample_labels.name == 'sample_labels'
     Y2, sample_labels = scprep.utils.combine_batches(
         [X, scprep.select.select_rows(
             X, idx=np.arange(X.shape[0] // 2))],
@@ -131,6 +133,8 @@ def test_combine_batches():
     assert np.all(np.core.defchararray.add(
         "_", sample_labels.astype(str)) == np.array(
         [i[-2:] for i in Y2.index], dtype=str))
+    assert np.all(sample_labels.index == Y2.index)
+    assert sample_labels.name == 'sample_labels'
     transform = lambda X: scprep.utils.combine_batches(
         [X, scprep.select.select_rows(X, idx=np.arange(X.shape[0] // 2))],
         batch_labels=[0, 1])[0]
@@ -141,6 +145,15 @@ def test_combine_batches():
         Y=Y,
         transform=transform,
         check=utils.assert_all_equal)
+    def test_fun(X):
+        Y, sample_labels = scprep.utils.combine_batches(
+            [X, scprep.select.select_rows(X, idx=np.arange(X.shape[0] // 2))],
+            batch_labels=[0, 1])
+        assert np.all(sample_labels.index == Y.index)
+        assert sample_labels.name == 'sample_labels'
+    matrix.test_pandas_matrix_types(
+        X,
+        test_fun)
 
 
 def test_combine_batches_uncommon_genes():

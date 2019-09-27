@@ -51,3 +51,19 @@ class TestGeneSetExpression(unittest.TestCase):
             self.X_dense, utils.assert_transform_equals,
             Y=self.Y, transform=scprep.measure.gene_set_expression,
             genes=[0])
+
+    def test_library_size(self):
+        def test_fun(X):
+            x = scprep.measure.library_size(X)
+            assert x.name == 'library_size'
+            assert np.all(x.index == self.X_dense.index)
+        matrix.test_pandas_matrix_types(
+            self.X_dense, test_fun)
+
+    def test_library_size(self):
+        def test_fun(X):
+            x = scprep.measure.gene_set_expression(X, genes=[0, 1])
+            assert x.name == 'expression'
+            assert np.all(x.index == self.X_dense.index)
+        matrix.test_pandas_matrix_types(
+            self.X_dense, test_fun)

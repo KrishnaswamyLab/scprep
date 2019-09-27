@@ -506,7 +506,11 @@ def combine_batches(data, batch_labels, append_to_cell_names=None):
                       " Got {}".format(matrix_type.__name__), UserWarning)
     elif append_to_cell_names is None:
         if issubclass(matrix_type, pd.DataFrame):
-            append_to_cell_names = True
+            if all([isinstance(d.index, pd.RangeIndex) for d in data]):
+                # rangeindex should still be a rangeindex
+                append_to_cell_names = False
+            else:
+                append_to_cell_names = True
         else:
             append_to_cell_names = False
 
@@ -523,6 +527,11 @@ def combine_batches(data, batch_labels, append_to_cell_names=None):
                                           "_" + str(batch_labels[i]))
                  for i, d in enumerate(data)])
             data_combined.index = index
+        elif all([isinstance(d.index, pd.RangeIndex) for d in data]):
+            # rangeindex should still be a rangeindex
+            data_combined = data_combined.reset_index(drop=True)
+        sample_labels = pd.Series(sample_labels, index=data_combined.index,
+                                  name='sample_labels')
     elif issubclass(matrix_type, sparse.spmatrix):
         data_combined = sparse.vstack(data)
     elif issubclass(matrix_type, np.ndarray):
