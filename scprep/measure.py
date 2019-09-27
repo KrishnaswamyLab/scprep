@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import warnings
 import numbers
 
@@ -19,6 +20,8 @@ def library_size(data):
         Sum over all genes for each cell
     """
     library_size = utils.matrix_sum(data, axis=1)
+    if isinstance(library_size, pd.Series):
+        library_size.name = 'library_size'
     return library_size
 
 
@@ -59,6 +62,8 @@ def gene_set_expression(data, genes=None, library_size_normalize=False,
         gene_set_expression = library_size(gene_data)
     else:
         gene_set_expression = gene_data
+    if isinstance(gene_set_expression, pd.Series):
+        gene_set_expression.name = 'expression'
     return gene_set_expression
 
 
