@@ -743,6 +743,7 @@ class Test10X(unittest.TestCase):
         try_remove("test_histogram.png")
         try_remove("test_library_size.png")
         try_remove("test_gene_expression.png")
+        try_remove("test_scree.png")
 
     def tearDown(self):
         plt.close('all')
@@ -828,7 +829,8 @@ class Test10X(unittest.TestCase):
     def test_scree(self):
         scprep.plot.scree_plot(self.S)
         scprep.plot.scree_plot(self.S, cumulative=True,
-                               xlabel="x label", ylabel="y label")
+                               xlabel="x label", ylabel="y label", filename="test_scree.png")
+        assert os.path.isfile("test_scree.png")
 
     def test_scree_custom_axis(self):
         fig, ax = plt.subplots()

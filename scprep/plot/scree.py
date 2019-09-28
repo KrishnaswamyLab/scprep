@@ -10,7 +10,7 @@ from .tools import label_axis
 @utils._with_pkg(pkg="matplotlib", min_version=3)
 def scree_plot(singular_values, cumulative=False, ax=None, figsize=None,
                xlabel='Principal Component', ylabel='Explained Variance (%)',
-               fontsize=None,
+               fontsize=None, filename=None, dpi=None,
                **kwargs):
     """Plot the explained variance of each principal component
 
@@ -28,6 +28,12 @@ def scree_plot(singular_values, cumulative=False, ax=None, figsize=None,
         Labels to display on the x and y axis.
     fontsize : float or None (default: None)
         Base font size.
+    filename : str or None (default: None)
+        file to which the output is saved
+    dpi : int or None, optional (default: None)
+        The resolution in dots per inch. If None it will default to the value
+        savefig.dpi in the matplotlibrc file. If 'figure' it will set the dpi
+        to be the value of the figure. Only used if filename is not None.
     **kwargs : additional arguments for `matplotlib.pyplot.plot`
 
     Returns
@@ -56,4 +62,6 @@ def scree_plot(singular_values, cumulative=False, ax=None, figsize=None,
         label_axis(ax.yaxis, label=ylabel)
         if show_fig:
             show(fig)
+        if filename is not None:
+            fig.savefig(filename, dpi=dpi)
     return ax
