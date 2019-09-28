@@ -46,7 +46,7 @@ def scree_plot(singular_values, cumulative=False, ax=None, figsize=None,
     """
     with temp_fontsize(fontsize):
         explained_variance = singular_values ** 2
-        explained_variance = explained_variance / explained_variance.sum()
+        explained_variance = explained_variance / explained_variance.sum() * 100
         if cumulative:
             explained_variance = np.cumsum(explained_variance)
         fig, ax, show_fig = _get_figure(ax, figsize)
