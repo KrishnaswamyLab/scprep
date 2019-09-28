@@ -212,8 +212,8 @@ def jitter(labels, values, sigma=0.1,
                                   scale=sc.norm)
 
         # save and show
-        if filename is not None:
-            fig.savefig(filename, dpi=dpi)
         if show_fig:
             show(fig)
+        if filename is not None:
+            fig.savefig(filename, dpi=dpi)
     return ax

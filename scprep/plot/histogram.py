@@ -124,10 +124,10 @@ def histogram(data,
                 for c in cutoff:
                     ax.axvline(c, color='red')
         # save and show
-        if filename is not None:
-            fig.savefig(filename, dpi=dpi)
         if show_fig:
             show(fig)
+        if filename is not None:
+            fig.savefig(filename, dpi=dpi)
     return ax
 
 

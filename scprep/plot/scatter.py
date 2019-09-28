@@ -668,10 +668,10 @@ def scatter(x, y, z=None,
             ax.view_init(elev=elev, azim=azim)
 
         # save and show
-        if filename is not None:
-            fig.savefig(filename, dpi=dpi)
         if show_fig:
             show(fig)
+        if filename is not None:
+            fig.savefig(filename, dpi=dpi)
     return ax
 
 
