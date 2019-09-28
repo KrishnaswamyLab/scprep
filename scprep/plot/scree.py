@@ -1,6 +1,7 @@
 import numpy as np
 
 from .. import utils
+from .._lazyload import matplotlib as mpl
 
 from .utils import (_get_figure, show,
                     temp_fontsize)
@@ -56,10 +57,11 @@ def scree_plot(singular_values, cumulative=False, ax=None, figsize=None,
         if cumulative:
             explained_variance = np.cumsum(explained_variance)
         fig, ax, show_fig = _get_figure(ax, figsize)
-        ax.bar(np.arange(len(explained_variance)),
+        ax.bar(np.arange(len(explained_variance)) + 1,
                explained_variance, **kwargs)
         label_axis(ax.xaxis, label=xlabel)
         label_axis(ax.yaxis, label=ylabel)
+        ax.xaxis.set_major_locator(mpl.ticker.MaxNLocator(integer=True))
         if show_fig:
             show(fig)
         if filename is not None:

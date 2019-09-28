@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import os
+import numbers
 from sklearn.utils.testing import assert_raise_message, assert_warns_message
 import unittest
 import scprep
@@ -827,14 +828,17 @@ class Test10X(unittest.TestCase):
             self.X, ax="invalid")
 
     def test_scree(self):
-        scprep.plot.scree_plot(self.S)
-        scprep.plot.scree_plot(self.S, cumulative=True,
+        ax = scprep.plot.scree_plot(self.S)
+        assert all([t == int(t) for t in ax.get_xticks()]), ax.get_xticks()
+        ax = scprep.plot.scree_plot(self.S, cumulative=True,
                                xlabel="x label", ylabel="y label", filename="test_scree.png")
+        assert all([t == int(t) for t in ax.get_xticks()]), ax.get_xticks()
         assert os.path.isfile("test_scree.png")
 
     def test_scree_custom_axis(self):
         fig, ax = plt.subplots()
         scprep.plot.scree_plot(self.S, ax=ax)
+        assert all([t == int(t) for t in ax.get_xticks()]), ax.get_xticks()
 
     def test_scree_invalid_axis(self):
         assert_raise_message(
