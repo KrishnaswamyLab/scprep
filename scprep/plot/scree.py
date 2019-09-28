@@ -62,7 +62,7 @@ def scree_plot(singular_values, cumulative=False, ax=None, figsize=None,
         label_axis(ax.xaxis, label=xlabel)
         label_axis(ax.yaxis, label=ylabel)
         ax.xaxis.set_major_locator(mpl.ticker.MaxNLocator(integer=True))
-        ax.set_xlim(0.3, len(explained_variance) + 0.3)
+        ax.set_xlim(0.3, len(explained_variance) + 0.7)
         if show_fig:
             show(fig)
         if filename is not None:
