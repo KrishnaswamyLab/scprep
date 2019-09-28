@@ -82,8 +82,8 @@ def show(fig):
     fig : matplotlib.Figure
         Figure to show
     """
+    fig.tight_layout()
     if _mpl_is_gui_backend():
-        fig.tight_layout()
         if platform.system() == "Windows":
             plt.show(block=True)
         else:
