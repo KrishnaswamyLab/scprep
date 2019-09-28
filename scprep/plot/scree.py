@@ -50,8 +50,8 @@ def scree_plot(singular_values, cumulative=False, ax=None, figsize=None,
         if cumulative:
             explained_variance = np.cumsum(explained_variance)
         fig, ax, show_fig = _get_figure(ax, figsize)
-        ax.plot(np.arange(len(explained_variance)),
-                explained_variance, **kwargs)
+        ax.bar(np.arange(len(explained_variance)),
+               explained_variance, **kwargs)
         label_axis(ax.xaxis, label=xlabel)
         label_axis(ax.yaxis, label=ylabel)
         if show_fig:
