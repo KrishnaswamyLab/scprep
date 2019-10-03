@@ -1,6 +1,27 @@
 import numpy as np
 
-from .r_function import RFunction
+from .r_function import RFunction, install_bioconductor
+
+
+def install(site_repository = None, update = False, version = None):
+    """Install the required R packages to run Splatter
+    
+    Parameters
+    ----------
+    site_repository : string, optional (default: None)
+        additional repository in which to look for packages to install.
+        This repository will be prepended to the default repositories
+    update : boolean, optional (default: False)
+        When False, don't attempt to update old packages.
+        When True, update old packages automatically.
+    version : string, optional (default: None)
+        Bioconductor version to install, e.g., version = "3.8".
+        The special symbol version = "devel" installs the current 'development' version.
+        If None, installs from the current version.
+    """
+    install_bioconductor('splatter', site_repository=site_repository,
+                         update=update, version=version)
+
 
 _SplatSimulate = RFunction(
     setup="""
