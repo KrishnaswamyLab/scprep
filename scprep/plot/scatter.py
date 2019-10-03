@@ -969,6 +969,8 @@ def scatter3d(data,
         y = select.select_cols(data, idx=1)
         z = select.select_cols(data, idx=2)
     except IndexError:
+        if isinstance(data, list):
+            data = utils.toarray(data)
         raise ValueError("Expected data.shape[1] >= 3. Got {}".format(data.shape[1]))
     return scatter(x=x, y=y, z=z,
                    c=c, cmap=cmap, cmap_scale=cmap_scale, s=s, discrete=discrete,
