@@ -964,9 +964,13 @@ def scatter3d(data,
     >>> data[colors == 'a'] += 5
     >>> scprep.plot.scatter3d(data, c=colors, cmap={'a' : [1,0,0,1], 'b' : 'xkcd:sky blue'})
     """
-    return scatter(x=select.select_cols(data, idx=0),
-                   y=select.select_cols(data, idx=1),
-                   z=select.select_cols(data, idx=2),
+    try:
+        x = select.select_cols(data, idx=0)
+        y = select.select_cols(data, idx=1)
+        z = select.select_cols(data, idx=2)
+    except IndexError:
+        raise ValueError("Expected data.shape[1] >= 3. Got {}".format(data.shape[1]))
+    return scatter(x=x, y=y, z=z,
                    c=c, cmap=cmap, cmap_scale=cmap_scale, s=s, discrete=discrete,
                    ax=ax, legend=legend, colorbar=colorbar,
                    shuffle=shuffle, figsize=figsize,

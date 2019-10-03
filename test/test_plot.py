@@ -1004,6 +1004,20 @@ class Test10X(unittest.TestCase):
         assert ax.elev == 80
         assert ax.azim == 270
 
+    def test_scatter3d_data_2d(self):
+        assert_raise_message(
+            ValueError,
+            "Expected data.shape[1] >= 3. Got 2",
+            scprep.plot.scatter3d,
+            self.X_pca[:,:2])
+
+    def test_scatter3d_data_2d_list(self):
+        assert_raise_message(
+            ValueError,
+            "Expected data.shape[1] >= 3. Got 2",
+            scprep.plot.scatter3d,
+            self.X_pca[:,:2].tolist())
+
     def test_scatter_rotate_gif(self):
         scprep.plot.rotate_scatter3d(self.X_pca, fps=3, dpi=20,
                                      filename="test.gif")
