@@ -20,6 +20,15 @@ HDF5
     :inherited-members:
     :show-inheritance:
 
+Download
+~~~~
+
+.. automodule:: scprep.io.download
+    :autosummary:
+    :members:
+    :inherited-members:
+    :show-inheritance:
+
 Filtering
 ---------
 
