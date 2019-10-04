@@ -151,6 +151,8 @@ def Slingshot(
     pseudotime : array-like, shape=[n_samples, n_curves]
         Pseudotime projection of each cell onto each principal curve.
         Value is `np.nan` if the cell does not lie on the curve
+    branch : list-like, shape=[n_samples]
+        Branch assignment for each cell
     curves : array_like, shape=[n_curves, n_samples, n_dimensions]
         Coordinates of each principle curve in the reduced dimension
 
@@ -204,6 +206,11 @@ def Slingshot(
         seed=seed, rpy_verbose=verbose)
     slingshot['curves'] = np.array(list(slingshot['curves'].values()))
 
+    membership = (~np.isnan(slingshot['pseudotime'])).astype(int)
+    branch = np.sum(membership * (2**np.arange(membership.shape[1])), axis=1)
+    branch, _ = pd.factorize(branch)
+
     if index is not None:
         slingshot['pseudotime'] = pd.DataFrame(slingshot['pseudotime'], index=index)
-    return slingshot['pseudotime'], slingshot['curves']
+        branch = pd.Series(branch, name='branch', index=index)
+    return slingshot['pseudotime'], branch, slingshot['curves']

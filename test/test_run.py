@@ -195,22 +195,32 @@ class TestSlingshot(unittest.TestCase):
         self.clusters = sklearn.cluster.KMeans(6).fit_predict(self.X_pca)
 
     def test_slingshot(self):
-        pseudotime, curves = scprep.run.Slingshot(self.X_pca[:,:2], self.clusters, verbose=False)
+        pseudotime, branch, curves = scprep.run.Slingshot(self.X_pca[:,:2], self.clusters, verbose=False)
         assert pseudotime.shape[0] == self.X_pca.shape[0]
         assert pseudotime.shape[1] == curves.shape[0]
+        assert branch.shape[0] == self.X_pca.shape[0]
+        for i in np.unique(branch):
+            branch_membership = np.isnan(pseudotime[branch==i])
+            assert np.all(branch_membership == branch_membership[0])
         assert curves.shape[1] == self.X_pca.shape[0]
         assert curves.shape[2] == 2
         assert np.all(np.any(~np.isnan(pseudotime), axis=1))
 
     def test_slingshot_pandas(self):
-        pseudotime, curves = scprep.run.Slingshot(pd.DataFrame(self.X_pca[:,:2], index=self.X.index),
+        pseudotime, branch, curves = scprep.run.Slingshot(pd.DataFrame(self.X_pca[:,:2], index=self.X.index),
                                                   self.clusters, verbose=False)
+        assert np.all(pseudotime.index == self.X.index)
+        assert np.all(branch.index == self.X.index)
+        assert branch.name == 'branch'
         assert pseudotime.shape[0] == self.X_pca.shape[0]
         assert pseudotime.shape[1] == curves.shape[0]
+        assert branch.shape[0] == self.X_pca.shape[0]
+        for i in np.unique(branch):
+            branch_membership = np.isnan(pseudotime.loc[branch==i])
+            assert np.all(branch_membership == branch_membership.iloc[0])
         assert curves.shape[1] == self.X_pca.shape[0]
         assert curves.shape[2] == 2
         assert np.all(np.any(~np.isnan(pseudotime), axis=1))
-        assert np.all(pseudotime.index == self.X.index)
 
     def test_slingshot_distance(self):
         assert_raise_message(
@@ -220,16 +230,24 @@ class TestSlingshot(unittest.TestCase):
             self.X_pca, self.clusters, distance=lambda X, Y : np.sum(X-Y))
 
     def test_slingshot_optional_args(self):
-        pseudotime, curves = scprep.run.Slingshot(self.X_pca[:,:2], self.clusters,
+        pseudotime, branch, curves = scprep.run.Slingshot(self.X_pca[:,:2], self.clusters,
                                                   start_cluster=4, omega=0.1, verbose=False)
         assert pseudotime.shape[0] == self.X_pca.shape[0]
         assert pseudotime.shape[1] == curves.shape[0]
+        assert branch.shape[0] == self.X_pca.shape[0]
+        for i in np.unique(branch):
+            branch_membership = np.isnan(pseudotime[branch==i])
+            assert np.all(branch_membership == branch_membership[0])
         assert curves.shape[1] == self.X_pca.shape[0]
         assert curves.shape[2] == 2
-        pseudotime, curves = scprep.run.Slingshot(self.X_pca[:,:2], self.clusters,
+        pseudotime, branch, curves = scprep.run.Slingshot(self.X_pca[:,:2], self.clusters,
                                                   end_cluster=0, verbose=False)
         assert pseudotime.shape[0] == self.X_pca.shape[0]
         assert pseudotime.shape[1] == curves.shape[0]
+        assert branch.shape[0] == self.X_pca.shape[0]
+        for i in np.unique(branch):
+            branch_membership = np.isnan(pseudotime[branch==i])
+            assert np.all(branch_membership == branch_membership[0])
         assert curves.shape[1] == self.X_pca.shape[0]
         assert curves.shape[2] == 2
         assert np.all(np.any(~np.isnan(pseudotime), axis=1))
