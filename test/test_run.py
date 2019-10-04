@@ -1,9 +1,13 @@
 from tools import utils, matrix, data
 import numpy as np
+import pandas as pd
 import scprep
 import scprep.run.r_function
 import unittest
+import sklearn.cluster
 import rpy2.rinterface_lib.callbacks
+import rpy2.rinterface_lib.embedded
+from sklearn.utils.testing import assert_raise_message, assert_warns_message
 
 builtin_warning = rpy2.rinterface_lib.callbacks.consolewrite_warnerror
 
@@ -15,7 +19,20 @@ def test_verbose():
     assert np.all(fun() == np.array([[1], [2], [3]]))
 
 
-class TestRFunctions(unittest.TestCase):
+def test_install_bioc():
+    assert_raise_message(
+        rpy2.rinterface_lib.embedded.RRuntimeError,
+        "Error: Bioconductor version '3.1' requires R version '3.2'; see",
+        scprep.run.install_bioconductor,
+        version='3.1', site_repository='https://bioconductor.org/packages/3.1/bioc',
+        verbose=False)
+
+
+class TestSplatter(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        scprep.run.splatter.install(verbose=False)
 
     def test_splatter_default(self):
         sim = scprep.run.SplatSimulate(
@@ -176,3 +193,105 @@ class TestRFunctions(unittest.TestCase):
         scprep.run.r_function._ConsoleWarning.set_builtin()
         assert rpy2.rinterface_lib.callbacks.consolewrite_warnerror is \
             builtin_warning
+
+
+class TestSlingshot(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        scprep.run.slingshot.install(verbose=False)
+        self.X = data.load_10X()
+        self.X_pca = scprep.reduce.pca(self.X)
+        self.clusters = sklearn.cluster.KMeans(6).fit_predict(self.X_pca)
+
+    def test_slingshot(self):
+        pseudotime, branch, curves = scprep.run.Slingshot(self.X_pca[:,:2], self.clusters, verbose=False)
+        assert pseudotime.shape[0] == self.X_pca.shape[0]
+        assert pseudotime.shape[1] == curves.shape[0]
+        assert branch.shape[0] == self.X_pca.shape[0]
+        current_pseudotime = -1
+        for i in np.unique(branch):
+            branch_membership = np.isnan(pseudotime[branch==i])
+            assert np.all(branch_membership == branch_membership[0])
+            new_pseudotime = np.nanmean(pseudotime[branch==i])
+            assert new_pseudotime > current_pseudotime
+            current_pseudotime = new_pseudotime
+        assert curves.shape[1] == self.X_pca.shape[0]
+        assert curves.shape[2] == 2
+        assert np.all(np.any(~np.isnan(pseudotime), axis=1))
+
+    def test_slingshot_pandas(self):
+        pseudotime, branch, curves = scprep.run.Slingshot(pd.DataFrame(self.X_pca[:,:2], index=self.X.index),
+                                                  self.clusters, verbose=False)
+        assert np.all(pseudotime.index == self.X.index)
+        assert np.all(branch.index == self.X.index)
+        assert branch.name == 'branch'
+        assert pseudotime.shape[0] == self.X_pca.shape[0]
+        assert pseudotime.shape[1] == curves.shape[0]
+        assert branch.shape[0] == self.X_pca.shape[0]
+        current_pseudotime = -1
+        for i in np.unique(branch):
+            branch_membership = np.isnan(pseudotime.loc[branch==i])
+            assert np.all(branch_membership == branch_membership.iloc[0])
+            new_pseudotime = np.nanmean(np.nanmean(pseudotime.loc[branch==i]))
+            assert new_pseudotime > current_pseudotime
+            current_pseudotime = new_pseudotime
+        assert curves.shape[1] == self.X_pca.shape[0]
+        assert curves.shape[2] == 2
+        assert np.all(np.any(~np.isnan(pseudotime), axis=1))
+
+    def test_slingshot_distance(self):
+        assert_raise_message(
+            NotImplementedError,
+            "distance argument not currently implemented",
+            scprep.run.Slingshot,
+            self.X_pca, self.clusters, distance=lambda X, Y : np.sum(X-Y))
+
+    def test_slingshot_optional_args(self):
+        pseudotime, branch, curves = scprep.run.Slingshot(self.X_pca[:,:2], self.clusters,
+                                                  start_cluster=4, omega=0.1, verbose=False)
+        assert pseudotime.shape[0] == self.X_pca.shape[0]
+        assert pseudotime.shape[1] == curves.shape[0]
+        assert branch.shape[0] == self.X_pca.shape[0]
+        current_pseudotime = -1
+        for i in np.unique(branch):
+            branch_membership = np.isnan(pseudotime[branch==i])
+            assert np.all(branch_membership == branch_membership[0])
+            if np.all(np.isnan(pseudotime[branch==i])):
+                assert i == -1
+            else:
+                new_pseudotime = np.nanmean(pseudotime[branch==i])
+                assert new_pseudotime > current_pseudotime
+                current_pseudotime = new_pseudotime
+        assert curves.shape[1] == self.X_pca.shape[0]
+        assert curves.shape[2] == 2
+        pseudotime, branch, curves = scprep.run.Slingshot(self.X_pca[:,:2], self.clusters,
+                                                  end_cluster=0, verbose=False)
+        assert pseudotime.shape[0] == self.X_pca.shape[0]
+        assert pseudotime.shape[1] == curves.shape[0]
+        assert branch.shape[0] == self.X_pca.shape[0]
+        current_pseudotime = -1
+        for i in np.unique(branch):
+            branch_membership = np.isnan(pseudotime[branch==i])
+            assert np.all(branch_membership == branch_membership[0])
+            new_pseudotime = np.nanmean(pseudotime[branch==i])
+            assert new_pseudotime > current_pseudotime
+            current_pseudotime = new_pseudotime
+        assert curves.shape[1] == self.X_pca.shape[0]
+        assert curves.shape[2] == 2
+        assert np.all(np.any(~np.isnan(pseudotime), axis=1))
+
+    def test_slingshot_errors(self):
+        assert_warns_message(
+            UserWarning,
+            "Expected data to be low-dimensional. "
+            "Got data.shape[1] = 4",
+            scprep.run.Slingshot,
+            self.X_pca[:, :4], self.clusters, verbose=False)
+        assert_raise_message(
+            ValueError,
+            "Expected len(cluster_labels) ({}) to equal "
+            "data.shape[0] ({})".format(
+                self.X.shape[0]//2, self.X.shape[0]),
+            scprep.run.Slingshot,
+            self.X_pca[:, :2], self.clusters[:self.X.shape[0]//2], verbose=False)
