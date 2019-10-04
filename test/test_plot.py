@@ -977,12 +977,12 @@ class Test10X(unittest.TestCase):
 
     def test_scatter_axis_labels(self):
         ax = scprep.plot.scatter3d(
-            self.X_pca, label_prefix="test")
+            self.X_pca.tolist(), label_prefix="test")
         assert ax.get_xlabel() == "test1"
         assert ax.get_ylabel() == "test2"
         assert ax.get_zlabel() == "test3"
         ax = scprep.plot.scatter2d(
-            self.X_pca, label_prefix="test", xlabel="override")
+            self.X_pca, label_prefix="test", zlabel="override")
         assert ax.get_xlabel() == "override"
         assert ax.get_ylabel() == "test2"
         ax = scprep.plot.scatter(
