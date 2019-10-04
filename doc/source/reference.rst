@@ -21,7 +21,7 @@ HDF5
     :show-inheritance:
 
 Download
-~~~~
+~~~~~~~~
 
 .. automodule:: scprep.io.download
     :autosummary:
