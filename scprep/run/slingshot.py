@@ -47,15 +47,15 @@ _Slingshot = RFunction(
         cluster_labels <- as.factor(cluster_labels)
 
         # Run Slingshot
-        sce <- slingshot(data, clusterLabels = cluster_labels,
+        sling <- slingshot(data, clusterLabels = cluster_labels,
                          start.clus = start_cluster, end.clus = end_cluster,
                          dist.fun = distance, omega = omega, lineages = lineages, shrink = shrink,
                          extend = extend, reweight = reweight, reassign = reassign, thresh = thresh,
                          maxit = max_iter, stretch = stretch,
                          smoother = smoother, shrink.method = shrink_method,
                          allow.breaks = allow_breaks)
-        list(pseudotime = slingPseudotime(sce),
-             curves = lapply(SlingshotDataSet(sce)@curves, function(curve) curve$s[curve$ord,]))
+        list(pseudotime = slingPseudotime(sling),
+             curves = lapply(sling@curves, function(curve) curve$s[curve$ord,]))
     """)
 
 
