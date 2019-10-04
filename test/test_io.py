@@ -596,7 +596,7 @@ def test_download_url():
     X = data.load_10X()
     scprep.io.download.download_url("https://github.com/KrishnaswamyLab/scprep/raw/master/data/test_data/test_10X/matrix.mtx.gz", "url_test.mtx.gz")
     Y = scprep.io.load_mtx("url_test.mtx.gz").T
-    assert (X.to_coo() - Y).nnz == 0
+    assert (X.sparse.to_coo() - Y).nnz == 0
     os.remove("url_test.mtx.gz")
 
 def test_download_zip():
