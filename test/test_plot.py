@@ -976,6 +976,10 @@ class Test10X(unittest.TestCase):
         assert np.all(xticklabels == np.array(['a', 'b', 'c']))
 
     def test_scatter_axis_labels(self):
+        ax = scprep.plot.scatter2d(
+            self.X_pca.tolist(), label_prefix="test")
+        assert ax.get_xlabel() == "test1"
+        assert ax.get_ylabel() == "test2"
         ax = scprep.plot.scatter3d(
             self.X_pca.tolist(), label_prefix="test")
         assert ax.get_xlabel() == "test1"
