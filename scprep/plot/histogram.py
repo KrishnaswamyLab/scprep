@@ -115,7 +115,7 @@ def histogram(data,
         if title is not None:
             ax.set_title(title, fontsize=parse_fontsize(None, 'xx-large'))
 
-        cutoff = measure._get_percentile_cutoff(
+        cutoff = utils._get_percentile_cutoff(
             data, cutoff, percentile, required=False)
         if cutoff is not None:
             if isinstance(cutoff, numbers.Number):

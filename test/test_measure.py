@@ -60,10 +60,18 @@ class TestGeneSetExpression(unittest.TestCase):
         matrix.test_pandas_matrix_types(
             self.X_dense, test_fun)
 
-    def test_library_size(self):
+    def test_gene_set_expression(self):
         def test_fun(X):
             x = scprep.measure.gene_set_expression(X, genes=[0, 1])
             assert x.name == 'expression'
             assert np.all(x.index == self.X_dense.index)
+        matrix.test_pandas_matrix_types(
+            self.X_dense, test_fun)
+
+    def test_variable_genes(self):
+        def test_fun(X):
+            x = scprep.measure.gene_variability(X)
+            assert x.name == 'variability'
+            assert np.all(x.index == self.X_dense.columns)
         matrix.test_pandas_matrix_types(
             self.X_dense, test_fun)

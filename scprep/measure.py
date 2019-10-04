@@ -2,8 +2,10 @@ import numpy as np
 import pandas as pd
 import warnings
 import numbers
+import scipy.signal
 
 from . import utils, select
+from ._lazyload import statsmodels
 
 
 def library_size(data):
@@ -67,42 +69,50 @@ def gene_set_expression(data, genes=None, library_size_normalize=False,
     return gene_set_expression
 
 
-def _get_percentile_cutoff(data, cutoff=None, percentile=None, required=False):
-    """Get a cutoff for a dataset
+@utils._with_pkg(pkg="statsmodels")
+def gene_variability(data, span=0.7, interpolate=0.2, kernel_size=0.05, return_means=False):
+    """Measure the variability of each gene in a dataset
+
+    Variability is computed as the deviation from a loess fit
+    to the rolling median of the mean-variance curve
 
     Parameters
     ----------
-    data : array-like
-    cutoff : float or None, optional (default: None)
-        Absolute cutoff value. Only one of cutoff and percentile may be given
-    percentile : float or None, optional (default: None)
-        Percentile cutoff value between 0 and 100.
-        Only one of cutoff and percentile may be given
-    required : bool, optional (default: False)
-        If True, one of cutoff and percentile must be given.
+    data : array-like, shape=[n_samples, n_features]
+        Input data
+    span : float, optional (default: 0.7)
+        Fraction of genes to use when computing the loess estimate at each point
+    interpolate : float, optional (default: 0.2)
+        Multiple of the standard deviation of variances at which to interpolate
+        linearly in order to reduce computation time.
+    kernel_size : float or int, optional (default: 0.05)
+        Width of rolling median window. If a float between 0 and 1, the width is given by
+        kernel_size * data.shape[1]. Otherwise should be an odd integer
+    return_means : boolean, optional (default: False)
+        If True, return the gene means
 
     Returns
     -------
-    cutoff : float or None
-        Absolute cutoff value. Can only be None if required is False and
-        cutoff and percentile are both None.
+    variability : list-like, shape=[n_samples]
+        Variability for each gene
     """
-    if percentile is not None:
-        if cutoff is not None:
-            raise ValueError(
-                "Only one of `cutoff` and `percentile` should be given."
-                "Got cutoff={}, percentile={}".format(cutoff, percentile))
-        if not isinstance(percentile, numbers.Number):
-            return [_get_percentile_cutoff(data, percentile=p)
-                    for p in percentile]
-        if percentile < 1:
-            warnings.warn(
-                "`percentile` expects values between 0 and 100."
-                "Got {}. Did you mean {}?".format(percentile,
-                                                  percentile * 100),
-                UserWarning)
-        cutoff = np.percentile(np.array(data).reshape(-1), percentile)
-    elif cutoff is None and required:
-        raise ValueError(
-            "One of either `cutoff` or `percentile` must be given.")
-    return cutoff
+    columns = data.columns if isinstance(data, pd.DataFrame) else None
+    data = utils.to_array_or_spmatrix(data)
+    data_std = utils.matrix_std(data, axis=0) ** 2
+    if kernel_size < 1:
+        kernel_size = 2*(int(kernel_size * len(data_std))//2)+1
+    order = np.argsort(data_std)
+    data_std_med = np.empty_like(data_std)
+    data_std_med[order] = scipy.signal.medfilt(data_std[order], kernel_size=kernel_size)
+    data_mean = utils.toarray(np.mean(data, axis=0)).flatten()
+    delta = np.std(data_std_med) * interpolate
+    lowess = statsmodels.nonparametric.smoothers_lowess.lowess(
+        data_std_med, data_mean,
+        delta=delta, frac=span, return_sorted=False)
+    result = data_std - lowess
+    if columns is not None:
+        result = pd.Series(result, index=columns, name='variability')
+        data_mean = pd.Series(data_mean, index=columns, name='mean')
+    if return_means:
+        result = result, data_mean
+    return result

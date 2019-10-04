@@ -407,6 +407,16 @@ class Test10X(unittest.TestCase):
             "Expected n (101) <= n_samples (100)",
             scprep.select.subsample, self.X, n=self.X.shape[0] + 1)
 
+    def test_select_variable_genes(self):
+        X_filtered = scprep.select.highly_variable_genes(self.X, percentile=70)
+        assert X_filtered.shape[0] == self.X.shape[0]
+        assert X_filtered.shape[1] <= 30
+        assert X_filtered.shape[1] >= 20
+        assert self.X.columns[np.argmax(self.X.values.std(axis=0))] in X_filtered.columns
+        matrix.test_all_matrix_types(
+            self.X, utils.assert_transform_equals,
+            Y=X_filtered, transform=scprep.select.highly_variable_genes, percentile=70)
+
 
 def test_string_subset_exact_word():
     np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
