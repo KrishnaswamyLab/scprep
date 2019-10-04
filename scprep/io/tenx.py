@@ -95,7 +95,7 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol',
     Returns
     -------
     data: array-like, shape=[n_samples, n_features]
-        If sparse, data will be a pd.SparseDataFrame. Otherwise, data will
+        If sparse, data will be a pd.DataFrame[pd.SparseArray]. Otherwise, data will
         be a pd.DataFrame.
     """
 
@@ -168,7 +168,7 @@ def load_10X_zip(filename, sparse=True, gene_labels='symbol',
     Returns
     -------
     data: array-like, shape=[n_samples, n_features]
-        If sparse, data will be a pd.SparseDataFrame. Otherwise, data will
+        If sparse, data will be a pd.DataFrame[pd.SparseArray]. Otherwise, data will
         be a pd.DataFrame.
     """
 
@@ -247,7 +247,7 @@ def load_10X_HDF5(filename, genome=None, sparse=True, gene_labels='symbol',
     Returns
     -------
     data: array-like, shape=[n_samples, n_features]
-        If sparse, data will be a pd.SparseDataFrame. Otherwise, data will
+        If sparse, data will be a pd.DataFrame[pd.SparseArray]. Otherwise, data will
         be a pd.DataFrame.
     """
 

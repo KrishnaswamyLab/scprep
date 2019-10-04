@@ -150,9 +150,9 @@ def toarray(x):
     if isinstance(x, pd.SparseDataFrame):
         x = x.to_coo().toarray()
     elif isinstance(x, pd.SparseSeries):
-        x = x.to_dense().values
+        x = x.to_dense().to_numpy()
     elif isinstance(x, (pd.DataFrame, pd.Series, pd.Index)):
-        x = x.values
+        x = x.to_numpy()
     elif isinstance(x, sparse.spmatrix):
         x = x.toarray()
     elif isinstance(x, np.matrix):
@@ -194,7 +194,10 @@ def to_array_or_spmatrix(x):
     """
     if isinstance(x, pd.SparseDataFrame):
         x = x.to_coo()
-    elif isinstance(x, sparse.spmatrix):
+    elif is_sparse_dataframe(x) or is_sparse_series(x):
+        x = x.sparse.to_coo()
+    elif isinstance(x, (sparse.spmatrix, np.ndarray, numbers.Number)) and \
+            not isinstance(x, np.matrix):
         pass
     elif isinstance(x, list):
         x_out = []
@@ -209,6 +212,44 @@ def to_array_or_spmatrix(x):
     else:
         x = toarray(x)
     return x
+
+
+def is_sparse_dataframe(x):
+    if isinstance(x, pd.DataFrame) and not isinstance(x, pd.SparseDataFrame):
+        try:
+            x.sparse
+            return True
+        except AttributeError:
+            pass
+    return False
+
+
+def is_sparse_series(x):
+    if isinstance(x, pd.Series) and not isinstance(x, pd.SparseSeries):
+        try:
+            x.sparse
+            return True
+        except AttributeError:
+            pass
+    return False
+
+
+def dataframe_to_sparse(x, fill_value=0.0):
+    return x.astype(pd.SparseDtype(float, fill_value=fill_value))
+
+
+def SparseDataFrame(X, columns=None, index=None, default_fill_value=0.0):
+    if sparse.issparse(X):
+        X = pd.DataFrame.sparse.from_spmatrix(X)
+        X.sparse.fill_value = default_fill_value
+    elif isinstance(X, pd.SparseDataFrame) or not isinstance(X, pd.DataFrame):
+        X = pd.DataFrame(X)
+    X = dataframe_to_sparse(X, fill_value=default_fill_value)
+    if columns is not None:
+        X.columns = columns
+    if index is not None:
+        X.index = index
+    return X
 
 
 def matrix_transform(data, fun, *args, **kwargs):
@@ -228,7 +269,7 @@ def matrix_transform(data, fun, *args, **kwargs):
     data : array-like, shape=[n_samples, n_features]
         Transformed output data
     """
-    if isinstance(data, pd.SparseDataFrame):
+    if is_sparse_dataframe(data) or isinstance(data, pd.SparseDataFrame):
         data = data.copy()
         for col in data.columns:
             data[col] = fun(data[col], *args, **kwargs)
@@ -270,8 +311,15 @@ def matrix_sum(data, axis=None):
                 index = data.index if axis == 1 else data.columns
                 sums = pd.Series(np.array(data.to_coo().sum(axis)).flatten(),
                                  index=index)
+        elif is_sparse_dataframe(data):
+            if axis is None:
+                sums = data.sparse.to_coo().sum()
+            else:
+                index = data.index if axis == 1 else data.columns
+                sums = pd.Series(np.array(data.sparse.to_coo().sum(axis)).flatten(),
+                                 index=index)
         elif axis is None:
-            sums = data.values.sum()
+            sums = data.to_numpy().sum()
         else:
             sums = data.sum(axis)
     else:
@@ -392,14 +440,18 @@ def matrix_vector_elementwise_multiply(data, multiplier, axis=None):
                     data.shape[1], multiplier.shape))
         multiplier = multiplier.reshape(1, -1)
 
-    if isinstance(data, pd.SparseDataFrame):
+    if isinstance(data, pd.SparseDataFrame) or is_sparse_dataframe(data):
         data = data.copy()
         multiplier = multiplier.flatten()
         if axis == 0:
-            data = data.T
-            for col, mult in zip(data.columns, multiplier):
-                data[col] = data[col] * mult
-            data = data.T
+            for col in data.columns:
+                try:
+                    mult_indices = data[col].values.sp_index.indices
+                except AttributeError:
+                    mult_indices = data[col].values.sp_index.to_int_index().indices
+                new_data = data[col].values.sp_values * multiplier[mult_indices]
+                data[col].values.sp_values.put(np.arange(data[col].sparse.npoints),
+                                              new_data)
         else:
             for col, mult in zip(data.columns, multiplier):
                 data[col] = data[col] * mult
@@ -551,6 +603,8 @@ def combine_batches(data, batch_labels, append_to_cell_names=None):
 
     # check consistent type
     matrix_type = type(data[0])
+    if matrix_type is pd.SparseDataFrame:
+        matrix_type = pd.DataFrame
     if not issubclass(matrix_type, (np.ndarray,
                                     pd.DataFrame,
                                     sparse.spmatrix)):
@@ -606,37 +660,25 @@ def combine_batches(data, batch_labels, append_to_cell_names=None):
 
 
 def select_cols(data, idx):
-    warnings.warn("`scprep.utils.select_cols` is deprecated. Use "
-                  "`scprep.select.select_cols` instead.",
-                  FutureWarning)
-    return select.select_cols(data, idx=idx)
+    raise RuntimeError("`scprep.utils.select_cols` is deprecated. Use "
+                       "`scprep.select.select_cols` instead.")
 
 
 def select_rows(data, idx):
-    warnings.warn("`scprep.utils.select_rows` is deprecated. Use "
-                  "`scprep.select.select_rows` instead.",
-                  FutureWarning)
-    return select.select_rows(data, idx=idx)
+    raise RuntimeError("`scprep.utils.select_rows` is deprecated. Use "
+                       "`scprep.select.select_rows` instead.")
 
 
 def get_gene_set(data, starts_with=None, ends_with=None, regex=None):
-    warnings.warn("`scprep.utils.get_gene_set` is deprecated. Use "
-                  "`scprep.select.get_gene_set` instead.",
-                  FutureWarning)
-    return select.get_gene_set(data, starts_with=starts_with,
-                               ends_with=ends_with, regex=regex)
+    raise RuntimeError("`scprep.utils.get_gene_set` is deprecated. Use "
+                       "`scprep.select.get_gene_set` instead.")
 
 
 def get_cell_set(data, starts_with=None, ends_with=None, regex=None):
-    warnings.warn("`scprep.utils.get_cell_set` is deprecated. Use "
-                  "`scprep.select.get_cell_set` instead.",
-                  FutureWarning)
-    return select.get_cell_set(data, starts_with=starts_with,
-                               ends_with=ends_with, regex=regex)
+    raise RuntimeError("`scprep.utils.get_cell_set` is deprecated. Use "
+                       "`scprep.select.get_cell_set` instead.")
 
 
 def subsample(*data, n=10000, seed=None):
-    warnings.warn("`scprep.utils.subsample` is deprecated. Use "
-                  "`scprep.select.subsample` instead.",
-                  FutureWarning)
-    return select.subsample(*data, n=n, seed=seed)
+    raise RuntimeError("`scprep.utils.subsample` is deprecated. Use "
+                       "`scprep.select.subsample` instead.")

@@ -1,14 +1,113 @@
-from tools import data
+from tools import data, utils
 import scprep
 import scprep.io.utils
-from sklearn.utils.testing import assert_warns_message, assert_raise_message
+from sklearn.utils.testing import assert_warns_message, assert_raise_message, assert_raises
 import pandas as pd
 import numpy as np
+from scipy import sparse
 import os
+import shutil
 import fcsparser
 import zipfile
 import urllib
-import shutil
+import unittest
+
+
+class TestMatrixToDataFrame(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        self.X_dense = data.load_10X(sparse=False)
+        self.X_sparse = data.load_10X(sparse=True)
+        self.X_numpy = self.X_dense.to_numpy()
+        self.X_coo = self.X_sparse.sparse.to_coo()
+        self.cell_names = self.X_dense.index
+        self.gene_names = self.X_dense.columns
+
+    def test_matrix_to_dataframe_no_names_sparse(self):
+        Y = scprep.io.utils._matrix_to_data_frame(self.X_numpy, sparse=True)
+        assert isinstance(Y, sparse.csr_matrix)
+        assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
+        Y = scprep.io.utils._matrix_to_data_frame(self.X_coo, sparse=True)
+        assert isinstance(Y, sparse.spmatrix)
+        assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
+
+    def test_matrix_to_dataframe_no_names_dataframe_sparse(self):
+        Y = scprep.io.utils._matrix_to_data_frame(self.X_dense, sparse=True)
+        assert scprep.utils.is_sparse_dataframe(Y)
+        assert not isinstance(Y, pd.SparseDataFrame)
+        assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
+        utils.assert_matrix_class_equivalent(Y, self.X_sparse)
+        Y = scprep.io.utils._matrix_to_data_frame(self.X_sparse, sparse=True)
+        assert scprep.utils.is_sparse_dataframe(Y)
+        assert not isinstance(Y, pd.SparseDataFrame)
+        assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
+        utils.assert_matrix_class_equivalent(Y, self.X_sparse)
+
+    def test_matrix_to_dataframe_no_names_dense(self):
+        Y = scprep.io.utils._matrix_to_data_frame(self.X_numpy, sparse=False)
+        assert isinstance(Y, np.ndarray)
+        assert np.all(Y == self.X_numpy)
+        Y = scprep.io.utils._matrix_to_data_frame(self.X_coo, sparse=False)
+        assert isinstance(Y, np.ndarray)
+        assert np.all(Y == self.X_numpy)
+
+    def test_matrix_to_dataframe_no_names_dataframe_dense(self):
+        Y = scprep.io.utils._matrix_to_data_frame(self.X_dense, sparse=False)
+        assert isinstance(Y, pd.DataFrame)
+        assert not scprep.utils.is_sparse_dataframe(Y)
+        assert not isinstance(Y, pd.SparseDataFrame)
+        assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
+        utils.assert_matrix_class_equivalent(Y, self.X_dense)
+        Y = scprep.io.utils._matrix_to_data_frame(self.X_sparse, sparse=False)
+        assert isinstance(Y, pd.DataFrame)
+        assert not scprep.utils.is_sparse_dataframe(Y)
+        assert not isinstance(Y, pd.SparseDataFrame)
+        assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
+        utils.assert_matrix_class_equivalent(Y, self.X_dense)
+
+    def test_matrix_to_dataframe_names_sparse(self):
+        Y = scprep.io.utils._matrix_to_data_frame(self.X_dense, cell_names=self.cell_names,
+                                                 gene_names=self.gene_names, sparse=True)
+        assert scprep.utils.is_sparse_dataframe(Y)
+        assert not isinstance(Y, pd.SparseDataFrame)
+        assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
+        utils.assert_matrix_class_equivalent(Y, self.X_sparse)
+        Y = scprep.io.utils._matrix_to_data_frame(self.X_sparse, cell_names=self.cell_names,
+                                                 gene_names=self.gene_names, sparse=True)
+        assert scprep.utils.is_sparse_dataframe(Y)
+        assert not isinstance(Y, pd.SparseDataFrame)
+        assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
+        utils.assert_matrix_class_equivalent(Y, self.X_sparse)
+        Y = scprep.io.utils._matrix_to_data_frame(self.X_numpy, cell_names=self.cell_names,
+                                                 gene_names=self.gene_names, sparse=True)
+        assert scprep.utils.is_sparse_dataframe(Y)
+        assert not isinstance(Y, pd.SparseDataFrame)
+        assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
+        utils.assert_matrix_class_equivalent(Y, self.X_sparse)
+
+    def test_matrix_to_dataframe_names_dense(self):
+        Y = scprep.io.utils._matrix_to_data_frame(self.X_dense, cell_names=self.cell_names,
+                                                 gene_names=self.gene_names, sparse=False)
+        assert isinstance(Y, pd.DataFrame)
+        assert not scprep.utils.is_sparse_dataframe(Y)
+        assert not isinstance(Y, pd.SparseDataFrame)
+        assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
+        utils.assert_matrix_class_equivalent(Y, self.X_dense)
+        Y = scprep.io.utils._matrix_to_data_frame(self.X_sparse, cell_names=self.cell_names,
+                                                 gene_names=self.gene_names, sparse=False)
+        assert isinstance(Y, pd.DataFrame)
+        assert not scprep.utils.is_sparse_dataframe(Y)
+        assert not isinstance(Y, pd.SparseDataFrame)
+        assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
+        utils.assert_matrix_class_equivalent(Y, self.X_dense)
+        Y = scprep.io.utils._matrix_to_data_frame(self.X_numpy, cell_names=self.cell_names,
+                                                 gene_names=self.gene_names, sparse=False)
+        assert isinstance(Y, pd.DataFrame)
+        assert not scprep.utils.is_sparse_dataframe(Y)
+        assert not isinstance(Y, pd.SparseDataFrame)
+        assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
+        utils.assert_matrix_class_equivalent(Y, self.X_dense)
 
 
 def test_10X_duplicate_gene_names():
@@ -33,16 +132,16 @@ def test_10X_duplicate_gene_names():
 def test_10X():
     X = data.load_10X()
     assert X.shape == (100, 100)
-    assert isinstance(X, pd.SparseDataFrame)
+    assert scprep.utils.is_sparse_dataframe(X)
     assert X.columns[0] == "Arl8b"
     X = data.load_10X(gene_labels='id', sparse=False)
     assert X.shape == (100, 100)
     assert isinstance(X, pd.DataFrame)
-    assert not isinstance(X, pd.SparseDataFrame)
+    assert not scprep.utils.is_sparse_dataframe(X)
     assert X.columns[0] == "ENSMUSG00000030105"
     X = data.load_10X(gene_labels='both')
     assert X.shape == (100, 100)
-    assert isinstance(X, pd.SparseDataFrame)
+    assert scprep.utils.is_sparse_dataframe(X)
     assert X.columns[0] == "Arl8b (ENSMUSG00000030105)"
     X_cellranger3 = scprep.io.load_10X(
         os.path.join(data.data_dir, "test_10X_cellranger3"),
@@ -75,7 +174,7 @@ def test_10X_zip():
     filename = os.path.join(data.data_dir, "test_10X.zip")
     X_zip = scprep.io.load_10X_zip(
         filename)
-    assert isinstance(X_zip, pd.SparseDataFrame)
+    assert scprep.utils.is_sparse_dataframe(X_zip)
     assert np.sum(np.sum(X != X_zip)) == 0
     np.testing.assert_array_equal(X.columns, X_zip.columns)
     np.testing.assert_array_equal(X.index, X_zip.index)
@@ -100,7 +199,7 @@ def test_10X_zip_url():
     filename = "https://github.com/KrishnaswamyLab/scprep/raw/master/data/test_data/test_10X.zip"
     X_zip = scprep.io.load_10X_zip(
         filename)
-    assert isinstance(X_zip, pd.SparseDataFrame)
+    assert scprep.utils.is_sparse_dataframe(X_zip)
     assert np.sum(np.sum(X != X_zip)) == 0
     np.testing.assert_array_equal(X.columns, X_zip.columns)
     np.testing.assert_array_equal(X.index, X_zip.index)
@@ -115,9 +214,8 @@ def test_10X_zip_url_not_a_zip():
 
 
 def test_10X_zip_url_not_a_real_website():
-    assert_raise_message(
+    assert_raises(
         urllib.error.URLError,
-        "<urlopen error [Errno -2] Name or service not known>",
         scprep.io.load_10X_zip,
         'http://invalid.not.a.url/scprep')
 
@@ -143,19 +241,19 @@ def test_10X_HDF5():
     h5_file = os.path.join(data.data_dir, "test_10X.h5")
     # automatic tables backend
     X_hdf5 = scprep.io.load_10X_HDF5(h5_file)
-    assert isinstance(X_hdf5, pd.SparseDataFrame)
+    assert scprep.utils.is_sparse_dataframe(X_hdf5)
     assert np.sum(np.sum(X != X_hdf5)) == 0
     np.testing.assert_array_equal(X.columns, X_hdf5.columns)
     np.testing.assert_array_equal(X.index, X_hdf5.index)
     # explicit tables backend
     X_hdf5 = scprep.io.load_10X_HDF5(h5_file, backend='tables')
-    assert isinstance(X_hdf5, pd.SparseDataFrame)
+    assert scprep.utils.is_sparse_dataframe(X_hdf5)
     assert np.sum(np.sum(X != X_hdf5)) == 0
     np.testing.assert_array_equal(X.columns, X_hdf5.columns)
     np.testing.assert_array_equal(X.index, X_hdf5.index)
     # explicit h5py backend
     X_hdf5 = scprep.io.load_10X_HDF5(h5_file, backend='h5py')
-    assert isinstance(X_hdf5, pd.SparseDataFrame)
+    assert scprep.utils.is_sparse_dataframe(X_hdf5)
     assert np.sum(np.sum(X != X_hdf5)) == 0
     np.testing.assert_array_equal(X.columns, X_hdf5.columns)
     np.testing.assert_array_equal(X.index, X_hdf5.index)
@@ -163,7 +261,7 @@ def test_10X_HDF5():
     tables = scprep.io.hdf5.tables
     del scprep.io.hdf5.tables
     X_hdf5 = scprep.io.load_10X_HDF5(h5_file)
-    assert isinstance(X_hdf5, pd.SparseDataFrame)
+    assert scprep.utils.is_sparse_dataframe(X_hdf5)
     assert np.sum(np.sum(X != X_hdf5)) == 0
     np.testing.assert_array_equal(X.columns, X_hdf5.columns)
     np.testing.assert_array_equal(X.index, X_hdf5.index)
@@ -175,19 +273,19 @@ def test_10X_HDF5_cellranger3():
     h5_file = os.path.join(data.data_dir, "test_10X_cellranger3.h5")
     # automatic tables backend
     X_hdf5 = scprep.io.load_10X_HDF5(h5_file)
-    assert isinstance(X_hdf5, pd.SparseDataFrame)
+    assert scprep.utils.is_sparse_dataframe(X_hdf5)
     assert np.sum(np.sum(X != X_hdf5)) == 0
     np.testing.assert_array_equal(X.columns, X_hdf5.columns)
     np.testing.assert_array_equal(X.index, X_hdf5.index)
     # explicit tables backend
     X_hdf5 = scprep.io.load_10X_HDF5(h5_file, backend='tables')
-    assert isinstance(X_hdf5, pd.SparseDataFrame)
+    assert scprep.utils.is_sparse_dataframe(X_hdf5)
     assert np.sum(np.sum(X != X_hdf5)) == 0
     np.testing.assert_array_equal(X.columns, X_hdf5.columns)
     np.testing.assert_array_equal(X.index, X_hdf5.index)
     # explicit h5py backend
     X_hdf5 = scprep.io.load_10X_HDF5(h5_file, backend='h5py')
-    assert isinstance(X_hdf5, pd.SparseDataFrame)
+    assert scprep.utils.is_sparse_dataframe(X_hdf5)
     assert np.sum(np.sum(X != X_hdf5)) == 0
     np.testing.assert_array_equal(X.columns, X_hdf5.columns)
     np.testing.assert_array_equal(X.index, X_hdf5.index)
@@ -195,7 +293,7 @@ def test_10X_HDF5_cellranger3():
     tables = scprep.io.hdf5.tables
     del scprep.io.hdf5.tables
     X_hdf5 = scprep.io.load_10X_HDF5(h5_file)
-    assert isinstance(X_hdf5, pd.SparseDataFrame)
+    assert scprep.utils.is_sparse_dataframe(X_hdf5)
     assert np.sum(np.sum(X != X_hdf5)) == 0
     np.testing.assert_array_equal(X.columns, X_hdf5.columns)
     np.testing.assert_array_equal(X.index, X_hdf5.index)
@@ -277,7 +375,7 @@ def test_csv_and_tsv():
     np.testing.assert_array_equal(X_csv.columns, X_csv4.index)
     np.testing.assert_array_equal(X_csv.index, X_csv4.columns)
     assert isinstance(X_csv, pd.DataFrame)
-    assert not isinstance(X_csv, pd.SparseDataFrame)
+    assert not scprep.utils.is_sparse_dataframe(X_csv)
     X_csv = scprep.io.load_csv(
         os.path.join(data.data_dir, "test_small.csv"),
         gene_names=os.path.join(
@@ -290,7 +388,7 @@ def test_csv_and_tsv():
     np.testing.assert_array_equal(X.columns, X_csv.columns)
     np.testing.assert_array_equal(X.index, X_csv.index)
     assert isinstance(X_csv, pd.DataFrame)
-    assert not isinstance(X_csv, pd.SparseDataFrame)
+    assert not scprep.utils.is_sparse_dataframe(X_csv)
     X_csv = scprep.io.load_csv(
         os.path.join(data.data_dir, "test_small.csv"),
         gene_names=X.columns,
@@ -301,7 +399,7 @@ def test_csv_and_tsv():
     np.testing.assert_array_equal(X.columns, X_csv.columns)
     np.testing.assert_array_equal(X.index, X_csv.index)
     assert isinstance(X_csv, pd.DataFrame)
-    assert not isinstance(X_csv, pd.SparseDataFrame)
+    assert not scprep.utils.is_sparse_dataframe(X_csv)
     X_csv = scprep.io.load_csv(
         os.path.join(data.data_dir, "test_small.csv"),
         gene_names=None,
@@ -309,8 +407,8 @@ def test_csv_and_tsv():
         sparse=True,
         skiprows=1,
         usecols=range(1, 101))
-    assert np.sum(np.sum(X.values != X_csv.values)) == 0
-    assert isinstance(X_csv, pd.SparseDataFrame)
+    assert np.sum(np.sum(X.to_numpy() != X_csv.to_numpy())) == 0
+    assert scprep.utils.is_sparse_dataframe(X_csv)
     X_csv = scprep.io.load_csv(
         os.path.join(data.data_dir,
                      "test_small_duplicate_gene_names.csv"))
@@ -334,26 +432,26 @@ def test_mtx():
         cell_names=os.path.join(
             data.data_dir, "barcodes.tsv"),
         cell_axis="column")
-    assert np.sum(np.sum(X.values != X_mtx.values)) == 0
+    assert np.sum(np.sum(X.to_numpy() != X_mtx.to_numpy())) == 0
     np.testing.assert_array_equal(X.columns, X_mtx.columns)
     np.testing.assert_array_equal(X.index, X_mtx.index)
-    assert isinstance(X_mtx, pd.SparseDataFrame)
+    assert scprep.utils.is_sparse_dataframe(X_mtx)
     X_mtx = scprep.io.load_mtx(
         filename,
         gene_names=X.columns,
         cell_names=X.index,
         cell_axis="column")
-    assert np.sum(np.sum(X.values != X_mtx.values)) == 0
+    assert np.sum(np.sum(X.to_numpy() != X_mtx.to_numpy())) == 0
     np.testing.assert_array_equal(X.columns, X_mtx.columns)
     np.testing.assert_array_equal(X.index, X_mtx.index)
-    assert isinstance(X_mtx, pd.SparseDataFrame)
+    assert scprep.utils.is_sparse_dataframe(X_mtx)
     X_mtx = scprep.io.load_mtx(
         filename,
         gene_names=None,
         cell_names=None,
         sparse=False,
         cell_axis="column")
-    assert np.sum(np.sum(X.values != X_mtx)) == 0
+    assert np.sum(np.sum(X.to_numpy() != X_mtx)) == 0
     assert isinstance(X_mtx, np.ndarray)
     assert_raise_message(
         ValueError,
@@ -361,14 +459,14 @@ def test_mtx():
         "Expected 'row' or 'column'",
         scprep.io.load_mtx, filename,
         cell_axis='neither')
-    X = scprep.io.load_mtx(
+    X_mtx = scprep.io.load_mtx(
         filename,
         gene_names=np.arange(X.shape[1]).astype('str'),
         cell_names=np.arange(X.shape[0]))
-    assert X.shape == (100, 100)
-    assert isinstance(X, pd.SparseDataFrame)
-    assert X.columns[0] == "0"
-    assert X.index[0] == 0
+    assert X_mtx.shape == (100, 100)
+    assert scprep.utils.is_sparse_dataframe(X_mtx)
+    assert X_mtx.columns[0] == "0"
+    assert X_mtx.index[0] == 0
 
 
 def test_fcs():
@@ -378,13 +476,13 @@ def test_fcs():
     assert 'Time' not in X.columns
     assert len(set(X.columns).difference(data.columns)) == 0
     np.testing.assert_array_equal(X.index, data.index)
-    np.testing.assert_array_equal(X.values, data[X.columns].values)
+    np.testing.assert_array_equal(X.to_numpy(), data[X.columns].to_numpy())
     _, _, X = scprep.io.load_fcs(path, sparse=True)
     assert 'Time' not in X.columns
     assert len(set(X.columns).difference(data.columns)) == 0
     np.testing.assert_array_equal(X.index, data.index)
     np.testing.assert_array_equal(
-        X.to_dense().values, data[X.columns].values)
+        X.sparse.to_dense().to_numpy(), data[X.columns].to_numpy())
 
     X_meta, _, X = scprep.io.load_fcs(path, reformat_meta=False, override=True)
     assert set(meta.keys()) == set(X_meta.keys())
@@ -498,7 +596,7 @@ def test_download_url():
     X = data.load_10X()
     scprep.io.download.download_url("https://github.com/KrishnaswamyLab/scprep/raw/master/data/test_data/test_10X/matrix.mtx.gz", "url_test.mtx.gz")
     Y = scprep.io.load_mtx("url_test.mtx.gz").T
-    assert (X.to_coo() - Y).nnz == 0
+    assert (X.sparse.to_coo() - Y).nnz == 0
     os.remove("url_test.mtx.gz")
 
 def test_download_zip():

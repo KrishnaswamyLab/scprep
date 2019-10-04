@@ -60,7 +60,9 @@ def log(data, pseudocount=1, base=10):
                          "Got pseudocount = {}".format(utils.matrix_min(data),
                                                        pseudocount))
     elif pseudocount != data_min + 1 and \
-            (sparse.issparse(data) or isinstance(data, pd.SparseDataFrame)):
+            (sparse.issparse(data) or
+             isinstance(data, pd.SparseDataFrame) or
+             utils.is_sparse_dataframe(data)):
         req = "min(data) + 1 ({})".format(data_min +
                                           1) if data_min != 0 else "1"
         warnings.warn("log transform on sparse data requires "

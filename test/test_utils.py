@@ -184,14 +184,14 @@ def test_combine_batches_errors():
         "append_to_cell_names only valid for pd.DataFrame input. "
         "Got coo_matrix",
         scprep.utils.combine_batches,
-        [X.to_coo(), X.iloc[:X.shape[0] // 2].to_coo()],
+        [X.sparse.to_coo(), X.iloc[:X.shape[0] // 2].sparse.to_coo()],
         batch_labels=[0, 1],
         append_to_cell_names=True)
     assert_raise_message(
         TypeError,
-        "Expected data all of the same class. Got SparseDataFrame, coo_matrix",
+        "Expected data all of the same class. Got DataFrame, coo_matrix",
         scprep.utils.combine_batches,
-        [X, X.iloc[:X.shape[0] // 2].to_coo()],
+        [X, X.iloc[:X.shape[0] // 2].sparse.to_coo()],
         batch_labels=[0, 1])
     assert_raise_message(
         ValueError,
@@ -240,10 +240,23 @@ def test_toarray():
     matrix.test_all_matrix_types(X,
                                  test_fun)
     test_fun([X, np.matrix(X)])
+
+
+def test_toarray_string_error():
     assert_raise_message(TypeError,
                          "Expected array-like. Got ",
                          scprep.utils.toarray,
                          "hello")
+
+
+def test_toarray_vector():
+    X = data.generate_positive_sparse_matrix(shape=(50,))
+
+    def test_fun(X):
+        assert isinstance(scprep.utils.toarray(X), np.ndarray)
+    matrix.test_matrix_types(X,
+                             test_fun,
+                             matrix._pandas_vector_types)
 
 
 def test_toarray_list_of_strings():
@@ -434,33 +447,89 @@ def test_matrix_elementwise_multiply_invalid_axis():
 
 def test_deprecated():
     X = data.load_10X()
-    assert_warns_message(FutureWarning,
+    assert_raise_message(RuntimeError,
                          "`scprep.utils.select_cols` is deprecated. Use "
                          "`scprep.select.select_cols` instead.",
                          scprep.utils.select_cols,
                          X,
                          [1, 2, 3])
-    assert_warns_message(FutureWarning,
+    assert_raise_message(RuntimeError,
                          "`scprep.utils.select_rows` is deprecated. Use "
                          "`scprep.select.select_rows` instead.",
                          scprep.utils.select_rows,
                          X,
                          [1, 2, 3])
-    assert_warns_message(FutureWarning,
+    assert_raise_message(RuntimeError,
                          "`scprep.utils.get_gene_set` is deprecated. Use "
                          "`scprep.select.get_gene_set` instead.",
                          scprep.utils.get_gene_set,
                          X,
                          starts_with="D")
-    assert_warns_message(FutureWarning,
+    assert_raise_message(RuntimeError,
                          "`scprep.utils.get_cell_set` is deprecated. Use "
                          "`scprep.select.get_cell_set` instead.",
                          scprep.utils.get_cell_set,
                          X,
                          starts_with="A")
-    assert_warns_message(FutureWarning,
+    assert_raise_message(RuntimeError,
                          "`scprep.utils.subsample` is deprecated. Use "
                          "`scprep.select.subsample` instead.",
                          scprep.utils.subsample,
                          X,
                          n=10)
+
+
+def test_is_sparse_dataframe():
+    X = data.load_10X(sparse=False)
+    Y = X.astype(pd.SparseDtype(float, fill_value=0.0))
+    assert scprep.utils.is_sparse_dataframe(Y)
+    def test_fun(X):
+        assert not scprep.utils.is_sparse_dataframe(X)
+    matrix.test_matrix_types(
+        X,
+        test_fun,
+        matrix._scipy_matrix_types +
+        matrix._numpy_matrix_types +
+        matrix._pandas_dense_matrix_types +
+        [matrix.SparseDataFrame_deprecated]
+    )
+
+
+def test_SparseDataFrame():
+    X = data.load_10X(sparse=False)
+    Y = X.astype(pd.SparseDtype(float, fill_value=0.0))
+    index = X.index
+    columns = X.columns
+    def test_fun(X):
+        X = scprep.utils.SparseDataFrame(X, index=index, columns=columns)
+        utils.assert_matrix_class_equivalent(X, Y)
+    matrix.test_all_matrix_types(
+        X,
+        test_fun
+    )
+    matrix.test_pandas_matrix_types(
+        X,
+        utils.assert_transform_equivalent,
+        Y=Y,
+        transform=scprep.utils.SparseDataFrame
+    )
+
+
+def test_is_sparse_series():
+    X = data.load_10X(sparse=True)
+    assert scprep.utils.is_sparse_series(X[X.columns[0]])
+    def test_fun(X):
+        if isinstance(X, pd.SparseDataFrame):
+            x = X[X.columns[0]]
+        else:
+            x = scprep.select.select_cols(X, idx=0)
+        assert not scprep.utils.is_sparse_series(x)
+    matrix.test_matrix_types(
+        X.to_numpy(),
+        test_fun,
+        matrix._scipy_matrix_types +
+        matrix._numpy_matrix_types +
+        matrix._pandas_dense_matrix_types +
+        [matrix.SparseDataFrame_deprecated]
+    )
+    

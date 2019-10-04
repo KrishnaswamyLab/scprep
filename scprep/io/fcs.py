@@ -242,7 +242,7 @@ def load_fcs(filename, gene_names=True, cell_names=True,
         If `True`, we assume cell names are contained in the file. Otherwise
         expects a filename or an array containing a list of cell barcodes.
     sparse : bool, optional (default: None)
-        If True, loads the data as a pd.SparseDataFrame. This uses less memory
+        If True, loads the data as a pd.DataFrame[SparseArray]. This uses less memory
         but more CPU.
     metadata_channels : list-like, optional, shape=[n_meta] (default: ['Time', 'Event_length', 'DNA1', 'DNA2', 'Cisplatin', 'beadDist', 'bead1'])
         Channels to be excluded from the data
@@ -273,7 +273,7 @@ def load_fcs(filename, gene_names=True, cell_names=True,
         Values from metadata channels
     data : array-like, shape=[n_samples, n_features]
         If either gene or cell names are given, data will be a pd.DataFrame or
-        pd.SparseDataFrame. If no names are given, data will be a np.ndarray
+        pd.DataFrame[SparseArray]. If no names are given, data will be a np.ndarray
         or scipy.sparse.spmatrix
     """
     if cell_names is True:

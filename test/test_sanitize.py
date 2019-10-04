@@ -20,15 +20,18 @@ def test_check_numeric_inplace():
         utils.assert_transform_unchanged,
         matrix._scipy_matrix_types +
         matrix._numpy_matrix_types +
-        matrix._pandas_dense_matrix_types,
+        matrix._pandas_dense_matrix_types +
+        [matrix.SparseDataFrame],
         transform=scprep.sanitize.check_numeric,
         copy=False)
+    matrix._ignore_pandas_sparse_warning()
     assert_raise_message(
         TypeError,
         "pd.SparseDataFrame does not support "
         "copy=False. Please use copy=True.",
         scprep.sanitize.check_numeric,
-        data=X, copy=False)
+        data=matrix.SparseDataFrame_deprecated(X), copy=False)
+    matrix._reset_warnings()
 
     class TypeErrorClass(object):
 
