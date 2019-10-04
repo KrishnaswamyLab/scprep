@@ -120,21 +120,6 @@ def filter_empty_cells(data, *extra_data, sample_labels=None):
     return data
 
 
-def _get_filter_idx(data, values,
-                    cutoff, percentile,
-                    keep_cells):
-    cutoff = measure._get_percentile_cutoff(
-        values, cutoff, percentile, required=True)
-    if keep_cells == 'above':
-        keep_cells_idx = values > cutoff
-    elif keep_cells == 'below':
-        keep_cells_idx = values < cutoff
-    else:
-        raise ValueError("Expected `keep_cells` in ['above', 'below']. "
-                         "Got {}".format(keep_cells))
-    return keep_cells_idx
-
-
 def filter_values(data, *extra_data, values=None,
                   cutoff=None, percentile=None,
                   keep_cells='above',
@@ -188,9 +173,9 @@ def filter_values(data, *extra_data, values=None,
                       "Filtering as a single sample.",
                       DeprecationWarning)
     assert values is not None
-    keep_cells_idx = _get_filter_idx(data, values,
-                                     cutoff, percentile,
-                                     keep_cells)
+    keep_cells_idx = utils._get_filter_idx(values,
+                                          cutoff, percentile,
+                                          keep_cells)
     if return_values:
         extra_data = [values] + list(extra_data)
     data = select.select_rows(data, *extra_data, idx=keep_cells_idx)

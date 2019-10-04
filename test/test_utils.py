@@ -122,6 +122,8 @@ def test_combine_batches():
     assert np.all(Y.index == Y2.index)
     assert np.all(sample_labels == np.concatenate(
         [np.repeat(0, X.shape[0]), np.repeat(1, X.shape[0] // 2)]))
+    assert np.all(sample_labels.index == Y2.index)
+    assert sample_labels.name == 'sample_labels'
     Y2, sample_labels = scprep.utils.combine_batches(
         [X, scprep.select.select_rows(
             X, idx=np.arange(X.shape[0] // 2))],
@@ -131,6 +133,8 @@ def test_combine_batches():
     assert np.all(np.core.defchararray.add(
         "_", sample_labels.astype(str)) == np.array(
         [i[-2:] for i in Y2.index], dtype=str))
+    assert np.all(sample_labels.index == Y2.index)
+    assert sample_labels.name == 'sample_labels'
     transform = lambda X: scprep.utils.combine_batches(
         [X, scprep.select.select_rows(X, idx=np.arange(X.shape[0] // 2))],
         batch_labels=[0, 1])[0]
@@ -141,6 +145,25 @@ def test_combine_batches():
         Y=Y,
         transform=transform,
         check=utils.assert_all_equal)
+    def test_fun(X):
+        Y, sample_labels = scprep.utils.combine_batches(
+            [X, scprep.select.select_rows(X, idx=np.arange(X.shape[0] // 2))],
+            batch_labels=[0, 1])
+        assert np.all(sample_labels.index == Y.index)
+        assert sample_labels.name == 'sample_labels'
+    matrix.test_pandas_matrix_types(
+        X,
+        test_fun)
+
+
+def test_combine_batches_rangeindex():
+    X = data.load_10X()
+    X = X.reset_index(drop=True)
+    Y = X.iloc[:X.shape[0] // 2]
+    data_combined, labels = scprep.utils.combine_batches(
+        [X, Y], ['x', 'y'])
+    assert isinstance(data_combined.index, pd.RangeIndex)
+    assert np.all(data_combined.columns == X.columns)
 
 
 def test_combine_batches_uncommon_genes():
@@ -280,6 +303,50 @@ def test_matrix_sum():
     assert_raise_message(ValueError,
                          "Expected axis in [0, 1, None]. Got 5",
                          scprep.utils.matrix_sum,
+                         data,
+                         5)
+
+
+def test_matrix_std():
+    X = data.generate_positive_sparse_matrix(shape=(50, 100))
+    stds = np.array(X.std(0)).flatten()
+    matrix.test_all_matrix_types(X, utils.assert_transform_equals, Y=stds,
+                                 transform=scprep.utils.matrix_std, axis=0,
+                                 check=utils.assert_all_close)
+    matrix.test_numpy_matrix(X, utils.assert_transform_equals, Y=stds,
+                             transform=scprep.utils.matrix_std, axis=0,
+                             check=utils.assert_all_close)
+
+    stds = np.array(X.std(1)).flatten()
+    matrix.test_all_matrix_types(X, utils.assert_transform_equals, Y=stds,
+                                 transform=scprep.utils.matrix_std, axis=1,
+                                 check=utils.assert_all_close)
+    matrix.test_numpy_matrix(X, utils.assert_transform_equals, Y=stds,
+                             transform=scprep.utils.matrix_std, axis=1,
+                             check=utils.assert_all_close)
+
+    stds = np.array(X.std(None)).flatten()
+    matrix.test_all_matrix_types(X, utils.assert_transform_equals, Y=stds,
+                                 transform=scprep.utils.matrix_std, axis=None,
+                                 check=utils.assert_all_close)
+    matrix.test_numpy_matrix(X, utils.assert_transform_equals, Y=stds,
+                             transform=scprep.utils.matrix_std, axis=None,
+                             check=utils.assert_all_close)
+
+    X_df = pd.DataFrame(X, index=np.arange(X.shape[0]).astype(str),
+                        columns=np.arange(X.shape[1]).astype(str))
+    def test_fun(X):
+        x = scprep.utils.matrix_std(X, axis=0)
+        assert x.name == 'std'
+        assert np.all(x.index == X_df.columns)
+        x = scprep.utils.matrix_std(X, axis=1)
+        assert x.name == 'std'
+        assert np.all(x.index == X_df.index)
+    matrix.test_pandas_matrix_types(
+        X_df, test_fun)
+    assert_raise_message(ValueError,
+                         "Expected axis in [0, 1, None]. Got 5",
+                         scprep.utils.matrix_std,
                          data,
                          5)
 

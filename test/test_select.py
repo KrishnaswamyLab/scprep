@@ -418,6 +418,16 @@ class Test10X(unittest.TestCase):
         matrix.test_matrix_types(
             self.X, test_fun, matrix._pandas_sparse_matrix_types)
 
+    def test_select_variable_genes(self):
+        X_filtered = scprep.select.highly_variable_genes(self.X, percentile=70)
+        assert X_filtered.shape[0] == self.X.shape[0]
+        assert X_filtered.shape[1] <= 30
+        assert X_filtered.shape[1] >= 20
+        assert self.X.columns[np.argmax(self.X.values.std(axis=0))] in X_filtered.columns
+        matrix.test_all_matrix_types(
+            self.X, utils.assert_transform_equals,
+            Y=X_filtered, transform=scprep.select.highly_variable_genes, percentile=70)
+
 
 def test_string_subset_exact_word():
     np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
@@ -438,6 +448,8 @@ def test_string_subset_exact_word():
         ['World, hello!', 'world'], exact_word='hello'), [True, False])
     np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
         ['helloooo!', 'world'], exact_word='hello'), [False, False])
+    np.testing.assert_array_equal(scprep.select._get_string_subset_mask(
+        ['(hello) world', 'world'], exact_word='(hello) world'), [True, False])
 
 
 def test_string_subset_list():
