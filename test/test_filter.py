@@ -85,6 +85,7 @@ class Test10X(unittest.TestCase):
             self.X_dense, utils.assert_transform_equals,
             Y=X_filtered, transform=scprep.filter.filter_rare_genes)
 
+
     def test_library_size_filter(self):
         X_filtered = scprep.filter.filter_library_size(
             self.X_sparse, cutoff=100)

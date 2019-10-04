@@ -78,6 +78,63 @@ def _with_pkg(fun, pkg=None, min_version=None, *args, **kwargs):
     return fun(*args, **kwargs)
 
 
+def _get_percentile_cutoff(data, cutoff=None, percentile=None, required=False):
+    """Get a cutoff for a dataset
+
+    Parameters
+    ----------
+    data : array-like
+    cutoff : float or None, optional (default: None)
+        Absolute cutoff value. Only one of cutoff and percentile may be given
+    percentile : float or None, optional (default: None)
+        Percentile cutoff value between 0 and 100.
+        Only one of cutoff and percentile may be given
+    required : bool, optional (default: False)
+        If True, one of cutoff and percentile must be given.
+
+    Returns
+    -------
+    cutoff : float or None
+        Absolute cutoff value. Can only be None if required is False and
+        cutoff and percentile are both None.
+    """
+    if percentile is not None:
+        if cutoff is not None:
+            raise ValueError(
+                "Only one of `cutoff` and `percentile` should be given."
+                "Got cutoff={}, percentile={}".format(cutoff, percentile))
+        if not isinstance(percentile, numbers.Number):
+            return [_get_percentile_cutoff(data, percentile=p)
+                    for p in percentile]
+        if percentile < 1:
+            warnings.warn(
+                "`percentile` expects values between 0 and 100."
+                "Got {}. Did you mean {}?".format(percentile,
+                                                  percentile * 100),
+                UserWarning)
+        cutoff = np.percentile(np.array(data).reshape(-1), percentile)
+    elif cutoff is None and required:
+        raise ValueError(
+            "One of either `cutoff` or `percentile` must be given.")
+    return cutoff
+
+
+
+def _get_filter_idx(values,
+                    cutoff, percentile,
+                    keep_cells):
+    cutoff = _get_percentile_cutoff(
+        values, cutoff, percentile, required=True)
+    if keep_cells == 'above':
+        keep_cells_idx = values > cutoff
+    elif keep_cells == 'below':
+        keep_cells_idx = values < cutoff
+    else:
+        raise ValueError("Expected `keep_cells` in ['above', 'below']. "
+                         "Got {}".format(keep_cells))
+    return keep_cells_idx
+
+
 def toarray(x):
     """Convert an array-like to a np.ndarray
 
@@ -99,7 +156,7 @@ def toarray(x):
     elif isinstance(x, sparse.spmatrix):
         x = x.toarray()
     elif isinstance(x, np.matrix):
-        x = np.array(x)
+        x = x.A
     elif isinstance(x, list):
         x_out = []
         for xi in x:
@@ -222,6 +279,65 @@ def matrix_sum(data, axis=None):
         if isinstance(sums, np.matrix):
             sums = np.array(sums).flatten()
     return sums
+
+
+def matrix_std(data, axis=None):
+    """Get the column-wise, row-wise, or total standard deviation of a matrix
+
+    Parameters
+    ----------
+    data : array-like, shape=[n_samples, n_features]
+        Input data
+    axis : int or None, optional (default: None)
+        Axis across which to calculate standard deviation.
+        axis=0 gives column standard deviation,
+        axis=1 gives row standard deviation.
+        None gives the total standard deviation.
+
+    Returns
+    -------
+    std : array-like or float
+        Standard deviation along desired axis.
+    """
+    if axis not in [0, 1, None]:
+        raise ValueError("Expected axis in [0, 1, None]. Got {}".format(axis))
+    index = None
+    if isinstance(data, pd.DataFrame) and axis is not None:
+        if axis == 1:
+            index = data.index
+        elif axis == 0:
+            index = data.columns
+    data = to_array_or_spmatrix(data)
+    if sparse.issparse(data):
+        if axis is None:
+            if isinstance(data, (sparse.lil_matrix, sparse.dok_matrix)):
+                data = data.tocoo()
+            data_sq = data.copy()
+            data_sq.data = data_sq.data ** 2
+            variance = data_sq.mean() - data.mean() ** 2
+            std = np.sqrt(variance)
+        else:
+            if axis == 0:
+                data = data.tocsc()
+                next_fn = data.getcol
+                N = data.shape[1]
+            elif axis == 1:
+                data = data.tocsr()
+                next_fn = data.getrow
+                N = data.shape[0]
+            std = []
+            for i in range(N):
+                col = next_fn(i)
+                col_sq = col.copy()
+                col_sq.data = col_sq.data ** 2
+                variance = col_sq.mean() - col.mean() ** 2
+                std.append(np.sqrt(variance))
+            std = np.array(std)
+    else:
+        std = np.std(data, axis=axis)
+    if index is not None:
+        std = pd.Series(std, index=index, name='std')
+    return std
 
 
 def matrix_vector_elementwise_multiply(data, multiplier, axis=None):

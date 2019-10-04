@@ -743,6 +743,7 @@ class Test10X(unittest.TestCase):
         try_remove("test_jitter.png")
         try_remove("test_histogram.png")
         try_remove("test_library_size.png")
+        try_remove("test_variable_genes.png")
         try_remove("test_gene_expression.png")
         try_remove("test_scree.png")
 
@@ -800,6 +801,16 @@ class Test10X(unittest.TestCase):
             genes="Arl8b",
             filename="test_gene_expression.png")
         assert os.path.exists("test_gene_expression.png")
+
+    def test_plot_variable_genes(self):
+        scprep.plot.plot_gene_variability(
+            self.X,
+            filename="test_variable_genes.png")
+        assert os.path.exists("test_variable_genes.png")
+
+    def test_variable_genes_list_of_lists(self):
+        scprep.plot.plot_gene_variability(
+            scprep.utils.toarray(self.X).tolist())
 
     def test_histogram_single_gene_dataframe(self):
         scprep.plot.histogram(

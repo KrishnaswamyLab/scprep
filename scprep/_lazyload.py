@@ -14,7 +14,8 @@ _importspec = {
              'rinterface',
              {'rinterface_lib': ['callbacks']}],
     'h5py': [],
-    'tables': []
+    'tables': [],
+    'statsmodels': [{'nonparametric': ['smoothers_lowess']}],
 }
 
 
