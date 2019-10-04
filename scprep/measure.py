@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import warnings
 import numbers
+import scipy.signal
 
 from . import utils, select
 from ._lazyload import statsmodels
@@ -69,10 +70,11 @@ def gene_set_expression(data, genes=None, library_size_normalize=False,
 
 
 @utils._with_pkg(pkg="statsmodels")
-def variable_genes(data, span=0.7, interpolate=0.2):
+def variable_genes(data, span=0.7, interpolate=0.2, kernel_size=0.05):
     """Measure the variability of each gene in a dataset
 
-    Variability is computed as the deviation from a loess fit of the mean-variance curve
+    Variability is computed as the deviation from a loess fit
+    to the rolling median of the mean-variance curve
 
     Parameters
     ----------
@@ -83,6 +85,9 @@ def variable_genes(data, span=0.7, interpolate=0.2):
     interpolate : float, optional (default: 0.2)
         Multiple of the standard deviation of variances at which to interpolate
         linearly in order to reduce computation time.
+    kernel_size : float or int, optional (default: 0.05)
+        Width of rolling median window. If a float, the width is given by
+        kernel_size * data.shape[1]
 
     Returns
     -------
@@ -92,10 +97,14 @@ def variable_genes(data, span=0.7, interpolate=0.2):
     columns = data.columns if isinstance(data, pd.DataFrame) else None
     data = utils.to_array_or_spmatrix(data)
     data_std = utils.matrix_std(data, axis=0) ** 2
+    kernel_size = 2*(int(kernel_size * len(data_std))//2)+1
+    order = np.argsort(data_std)
+    data_std_med = np.empty_like(data_std)
+    data_std_med[order] = scipy.signal.medfilt(data_std[order], kernel_size=kernel_size)
     data_mean = utils.toarray(np.mean(data, axis=0)).flatten()
-    delta = np.std(data_std) * interpolate
+    delta = np.std(data_std_med) * interpolate
     lowess = statsmodels.nonparametric.smoothers_lowess.lowess(
-        data_std, data_mean,
+        data_std_med, data_mean,
         delta=delta, frac=span, return_sorted=False)
     variability = data_std - lowess
     if columns is not None:

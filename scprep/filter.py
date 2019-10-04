@@ -371,7 +371,7 @@ def filter_duplicates(data, *extra_data, sample_labels=None):
     return data
 
 
-def filter_variable_genes(data, *extra_data, span=0.7, interpolate=0.2,
+def filter_variable_genes(data, *extra_data, span=0.7, interpolate=0.2, kernel_size=0.05,
                           cutoff=None, percentile=80):
     """Filter all genes with low variability
 
@@ -388,6 +388,9 @@ def filter_variable_genes(data, *extra_data, span=0.7, interpolate=0.2,
     interpolate : float, optional (default: 0.2)
         Multiple of the standard deviation of variances at which to interpolate
         linearly in order to reduce computation time.
+    kernel_size : float or int, optional (default: 0.05)
+        Width of rolling median window. If a float, the width is given by
+        kernel_size * data.shape[1]
     cutoff : float, optional (default: None)
         Variability above which expression is deemed significant
     percentile : int, optional (Default: 80)

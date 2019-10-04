@@ -291,7 +291,7 @@ def plot_gene_set_expression(data, genes=None,
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
-def plot_variable_genes(data, span=0.7, interpolate=0.2,
+def plot_variable_genes(data, span=0.7, interpolate=0.2, kernel_size=0.05,
                         bins=100, log=False,
                         cutoff=None, percentile=None,
                         ax=None, figsize=None,
@@ -314,6 +314,9 @@ def plot_variable_genes(data, span=0.7, interpolate=0.2,
     interpolate : float, optional (default: 0.2)
         Multiple of the standard deviation of variances at which to interpolate
         linearly in order to reduce computation time.
+    kernel_size : float or int, optional (default: 0.05)
+        Width of rolling median window. If a float, the width is given by
+        kernel_size * data.shape[1]
     bins : int, optional (default: 100)
         Number of bins to draw in the histogram
     log : bool, or {'x', 'y'}, optional (default: False)
