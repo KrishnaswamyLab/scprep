@@ -473,12 +473,6 @@ def select_rows(data, *extra_data, idx=None,
                 data = data.loc[np.array(data.index)[idx]]
             else:
                 raise
-        # temporary workaround for https://github.com/pandas-dev/pandas/issues/27781 
-        if utils.is_sparse_dataframe(data):
-            for col in np.where(data.isna().any())[0]:
-                colname = data.columns[col]
-                if utils.is_sparse_series(data[colname]) and data[colname].isna().all():
-                    data[colname] = data[colname].fillna(data[colname].sparse.fill_value)
     elif _is_1d(data):
         if isinstance(data, list):
             # can't numpy index a list
