@@ -17,6 +17,9 @@
         - gfortran
         - libblas-dev
         - liblapack-dev
+        - libglu1-mesa-dev
+        - freeglut3-dev
+        - mesa-common-dev
 
   cache: 
     - pip
