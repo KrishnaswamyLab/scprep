@@ -163,10 +163,14 @@ def Slingshot(
     >>> data, clusters = phate.tree.gen_dla(n_branch=4, n_dim=200, branch_length=200)
     >>> phate_op = phate.PHATE()
     >>> data_phate = phate_op.fit_transform(data)
-    >>> pseudotime, curves = scprep.run.Slingshot(data_phate, clusters)
+    >>> pseudotime, branch, curves = scprep.run.Slingshot(data_phate, clusters)
     >>> ax = scprep.plot.scatter2d(data_phate, c=pseudotime[:,0], cmap='magma', legend_title='Branch 1')
     >>> scprep.plot.scatter2d(data_phate, c=pseudotime[:,1], cmap='viridis', ax=ax,
     ...                       ticks=False, label_prefix='PHATE', legend_title='Branch 2')
+    >>> for curve in curves:
+    ...     ax.plot(curve[:,0], curve[:,1], c='black')
+    >>> ax = scprep.plot.scatter2d(data_phate, c=branch, legend_title='Branch',
+    ...                            ticks=False, label_prefix='PHATE')
     >>> for curve in curves:
     ...     ax.plot(curve[:,0], curve[:,1], c='black')
     """
@@ -208,7 +212,19 @@ def Slingshot(
 
     membership = (~np.isnan(slingshot['pseudotime'])).astype(int)
     branch = np.sum(membership * (2**np.arange(membership.shape[1])), axis=1)
-    branch, _ = pd.factorize(branch)
+    # reorder based on pseudotime
+    branch_ids = np.unique(branch)
+    branch_means = [np.nanmean(slingshot['pseudotime'][branch==id])
+                    if not np.all(np.isnan(slingshot['pseudotime'][branch==id])) else np.nan
+                    for id in branch_ids]
+    branch_order = np.argsort(branch_means)
+    branch_old = branch.copy()
+    for i in range(len(branch_order)):
+        j = branch_order[i]
+        if np.isnan(branch_means[j]):
+            branch[branch_old == branch_ids[j]] = -1
+        else:
+            branch[branch_old == branch_ids[j]] = i
 
     if index is not None:
         slingshot['pseudotime'] = pd.DataFrame(slingshot['pseudotime'], index=index)

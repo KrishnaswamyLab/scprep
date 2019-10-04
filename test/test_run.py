@@ -199,9 +199,13 @@ class TestSlingshot(unittest.TestCase):
         assert pseudotime.shape[0] == self.X_pca.shape[0]
         assert pseudotime.shape[1] == curves.shape[0]
         assert branch.shape[0] == self.X_pca.shape[0]
+        current_pseudotime = -1
         for i in np.unique(branch):
             branch_membership = np.isnan(pseudotime[branch==i])
             assert np.all(branch_membership == branch_membership[0])
+            new_pseudotime = np.nanmean(pseudotime[branch==i])
+            assert new_pseudotime > current_pseudotime
+            current_pseudotime = new_pseudotime
         assert curves.shape[1] == self.X_pca.shape[0]
         assert curves.shape[2] == 2
         assert np.all(np.any(~np.isnan(pseudotime), axis=1))
@@ -215,9 +219,13 @@ class TestSlingshot(unittest.TestCase):
         assert pseudotime.shape[0] == self.X_pca.shape[0]
         assert pseudotime.shape[1] == curves.shape[0]
         assert branch.shape[0] == self.X_pca.shape[0]
+        current_pseudotime = -1
         for i in np.unique(branch):
             branch_membership = np.isnan(pseudotime.loc[branch==i])
             assert np.all(branch_membership == branch_membership.iloc[0])
+            new_pseudotime = np.nanmean(np.nanmean(pseudotime.loc[branch==i]))
+            assert new_pseudotime > current_pseudotime
+            current_pseudotime = new_pseudotime
         assert curves.shape[1] == self.X_pca.shape[0]
         assert curves.shape[2] == 2
         assert np.all(np.any(~np.isnan(pseudotime), axis=1))
@@ -235,9 +243,16 @@ class TestSlingshot(unittest.TestCase):
         assert pseudotime.shape[0] == self.X_pca.shape[0]
         assert pseudotime.shape[1] == curves.shape[0]
         assert branch.shape[0] == self.X_pca.shape[0]
+        current_pseudotime = -1
         for i in np.unique(branch):
             branch_membership = np.isnan(pseudotime[branch==i])
             assert np.all(branch_membership == branch_membership[0])
+            if np.all(np.isnan(pseudotime[branch==i])):
+                assert i == -1
+            else:
+                new_pseudotime = np.nanmean(pseudotime[branch==i])
+                assert new_pseudotime > current_pseudotime
+                current_pseudotime = new_pseudotime
         assert curves.shape[1] == self.X_pca.shape[0]
         assert curves.shape[2] == 2
         pseudotime, branch, curves = scprep.run.Slingshot(self.X_pca[:,:2], self.clusters,
@@ -245,9 +260,13 @@ class TestSlingshot(unittest.TestCase):
         assert pseudotime.shape[0] == self.X_pca.shape[0]
         assert pseudotime.shape[1] == curves.shape[0]
         assert branch.shape[0] == self.X_pca.shape[0]
+        current_pseudotime = -1
         for i in np.unique(branch):
             branch_membership = np.isnan(pseudotime[branch==i])
             assert np.all(branch_membership == branch_membership[0])
+            new_pseudotime = np.nanmean(pseudotime[branch==i])
+            assert new_pseudotime > current_pseudotime
+            current_pseudotime = new_pseudotime
         assert curves.shape[1] == self.X_pca.shape[0]
         assert curves.shape[2] == 2
         assert np.all(np.any(~np.isnan(pseudotime), axis=1))
