@@ -1,6 +1,3 @@
 chooseCRANmirror(ind=1)
 if (!require("remotes")) install.packages("remotes", quietly=TRUE)
 remotes::update_packages(upgrade="always")
-if (!require("BiocManager")) install.packages("BiocManager", quietly=TRUE)
-BiocManager::install(update=TRUE, ask=FALSE)
-if (!require("splatter")) BiocManager::install("splatter", quietly=TRUE)

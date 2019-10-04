@@ -120,3 +120,23 @@ External Tools
     :inherited-members:
     :imported-members:
     :show-inheritance:
+
+Splatter
+~~~~~~~~
+
+.. automodule:: scprep.run.splatter
+    :autosummary:
+    :members:
+    :inherited-members:
+    :imported-members:
+    :show-inheritance:
+
+Slingshot
+~~~~~~~~~
+
+.. automodule:: scprep.run.slingshot
+    :autosummary:
+    :members:
+    :inherited-members:
+    :imported-members:
+    :show-inheritance:

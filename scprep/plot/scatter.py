@@ -246,7 +246,7 @@ class _ScatterParams(object):
             if self.constant_c() or self.array_c() or self.discrete:
                 return None
             else:
-                return np.min(self.c)
+                return np.nanmin(self.c)
 
     @property
     def vmax(self):
@@ -256,7 +256,7 @@ class _ScatterParams(object):
             if self.constant_c() or self.array_c() or self.discrete:
                 return None
             else:
-                return np.max(self.c)
+                return np.nanmax(self.c)
 
     def list_cmap(self):
         """Is the colormap a list?"""
