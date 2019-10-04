@@ -6,6 +6,7 @@ import scprep.run.r_function
 import unittest
 import sklearn.cluster
 import rpy2.rinterface_lib.callbacks
+import rpy2.rinterface_lib.embedded
 from sklearn.utils.testing import assert_raise_message, assert_warns_message
 
 builtin_warning = rpy2.rinterface_lib.callbacks.consolewrite_warnerror
@@ -16,6 +17,15 @@ def test_verbose():
         setup="message('This should not print')",
         body="message('Verbose test\n\n'); list(1,2,3)", verbose=True)
     assert np.all(fun() == np.array([[1], [2], [3]]))
+
+
+def test_install_bioc():
+    assert_raise_message(
+        rpy2.rinterface_lib.embedded.RRuntimeError,
+        "Error: Bioconductor version '3.7' requires R version '3.5'; see",
+        scprep.run.install_bioconductor,
+        version='3.7', site_repository='https://bioconductor.org/packages/3.7/bioc',
+        verbose=False)
 
 
 class TestSplatter(unittest.TestCase):
