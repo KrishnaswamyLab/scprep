@@ -145,8 +145,15 @@ _install_bioconductor = RFunction(
     body="""
         if (!require('BiocManager')) install.packages("BiocManager")
         ask <- !update
-        BiocManager::install(package, site_repository=site_repository,
-                             update=update, ask=ask, version=version)
+        if (length(package) == 0) {
+          BiocManager::install(site_repository=site_repository,
+                               update=update, ask=ask, version=version)
+        } else {
+          for (pkg in package) {
+            if (!require(pkg, character.only = TRUE)) BiocManager::install(pkg, site_repository=site_repository,
+                                                    update=update, ask=ask, version=version)
+          }
+        }
     """)
 
 def install_bioconductor(package = None, site_repository = None, update = False, version = None, verbose = True):

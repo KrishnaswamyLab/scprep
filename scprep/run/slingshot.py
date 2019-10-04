@@ -1,11 +1,12 @@
 import numpy as np
 import pandas as pd
+import warnings
 
 from .r_function import RFunction, install_bioconductor
 from .. import utils
 
 
-def install(site_repository = None, update = False, version = None):
+def install(site_repository = None, update = False, version = None, verbose = True):
     """Install the required R packages to run Slingshot
     
     Parameters
@@ -20,9 +21,11 @@ def install(site_repository = None, update = False, version = None):
         Bioconductor version to install, e.g., version = "3.8".
         The special symbol version = "devel" installs the current 'development' version.
         If None, installs from the current version.
+    verbose : boolean, optional (default: True)
+        Install script verbosity.
     """
     install_bioconductor('slingshot', site_repository=site_repository,
-                         update=update, version=version)
+                         update=update, version=version, verbose=verbose)
 
 
 _Slingshot = RFunction(
@@ -155,9 +158,9 @@ def Slingshot(
     --------
     >>> import scprep
     >>> import phate
+    >>> data, clusters = phate.tree.gen_dla(n_branch=4, n_dim=200, branch_length=200)
     >>> phate_op = phate.PHATE()
     >>> data_phate = phate_op.fit_transform(data)
-    >>> clusters = phate.cluster.kmeans(phate_op, 6)
     >>> pseudotime, curves = scprep.run.Slingshot(data_phate, clusters)
     >>> ax = scprep.plot.scatter2d(data_phate, c=pseudotime[:,0], cmap='magma', legend_title='Branch 1')
     >>> scprep.plot.scatter2d(data_phate, c=pseudotime[:,1], cmap='viridis', ax=ax,
@@ -176,11 +179,12 @@ def Slingshot(
     data = utils.toarray(data)
     if data.shape[1] > 3:
         warnings.warn("Expected data to be low-dimensional. "
-                      "Got data.shape[1] = {}".format(data.shape[1]))
+                      "Got data.shape[1] = {}".format(data.shape[1]),
+                      UserWarning)
     cluster_labels = utils.toarray(cluster_labels).flatten()
     if not cluster_labels.shape[0] == data.shape[0]:
         raise ValueError("Expected len(cluster_labels) ({}) to equal "
-                         "data.shape[0] ({})".format(data.shape[0], cluster_labels.shape[0]))
+                         "data.shape[0] ({})".format(cluster_labels.shape[0], data.shape[0]))
 
     kwargs = {}
     if start_cluster is not None:
