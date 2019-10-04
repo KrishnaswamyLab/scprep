@@ -196,7 +196,8 @@ def to_array_or_spmatrix(x):
         x = x.to_coo()
     elif is_sparse_dataframe(x) or is_sparse_series(x):
         x = x.sparse.to_coo()
-    elif isinstance(x, (sparse.spmatrix, np.ndarray, numbers.Number)):
+    elif isinstance(x, (sparse.spmatrix, np.ndarray, numbers.Number)) and \
+            not isinstance(x, np.matrix):
         pass
     elif isinstance(x, list):
         x_out = []
