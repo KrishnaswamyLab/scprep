@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 from scipy import sparse
 import os
+import shutil
 import fcsparser
 import zipfile
 import urllib
@@ -590,3 +591,19 @@ def test_download_google_drive():
         data = f.read()
         assert data == 'test\n', data
     os.remove(dest)
+
+def test_download_url():
+    X = data.load_10X()
+    scprep.io.download.download_url("https://github.com/KrishnaswamyLab/scprep/raw/master/data/test_data/test_10X/matrix.mtx.gz", "url_test.mtx.gz")
+    Y = scprep.io.load_mtx("url_test.mtx.gz").T
+    assert (X.to_coo() - Y).nnz == 0
+    os.remove("url_test.mtx.gz")
+
+def test_download_zip():
+    X = data.load_10X()
+    scprep.io.download.download_and_extract_zip("https://github.com/KrishnaswamyLab/scprep/raw/master/data/test_data/test_10X.zip", "zip_test")
+    Y = scprep.io.load_10X("zip_test/test_10X")
+    assert np.all(X == Y)
+    assert np.all(X.index == Y.index)
+    assert np.all(X.columns == Y.columns)
+    shutil.rmtree("zip_test")
