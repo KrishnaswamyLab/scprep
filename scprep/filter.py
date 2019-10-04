@@ -120,21 +120,6 @@ def filter_empty_cells(data, *extra_data, sample_labels=None):
     return data
 
 
-def _get_filter_idx(values,
-                    cutoff, percentile,
-                    keep_cells):
-    cutoff = measure._get_percentile_cutoff(
-        values, cutoff, percentile, required=True)
-    if keep_cells == 'above':
-        keep_cells_idx = values > cutoff
-    elif keep_cells == 'below':
-        keep_cells_idx = values < cutoff
-    else:
-        raise ValueError("Expected `keep_cells` in ['above', 'below']. "
-                         "Got {}".format(keep_cells))
-    return keep_cells_idx
-
-
 def filter_values(data, *extra_data, values=None,
                   cutoff=None, percentile=None,
                   keep_cells='above',
@@ -188,9 +173,9 @@ def filter_values(data, *extra_data, values=None,
                       "Filtering as a single sample.",
                       DeprecationWarning)
     assert values is not None
-    keep_cells_idx = _get_filter_idx(values,
-                                     cutoff, percentile,
-                                     keep_cells)
+    keep_cells_idx = utils._get_filter_idx(values,
+                                          cutoff, percentile,
+                                          keep_cells)
     if return_values:
         extra_data = [values] + list(extra_data)
     data = select.select_rows(data, *extra_data, idx=keep_cells_idx)
@@ -369,46 +354,3 @@ def filter_duplicates(data, *extra_data, sample_labels=None):
     unique_idx = _find_unique_cells(data)
     data = select.select_rows(data, *extra_data, idx=unique_idx)
     return data
-
-
-def filter_variable_genes(data, *extra_data, span=0.7, interpolate=0.2, kernel_size=0.05,
-                          cutoff=None, percentile=80):
-    """Filter all genes with low variability
-
-    Variability is computed as the deviation from a loess fit
-    to the rolling median of the mean-variance curve
-
-    Parameters
-    ----------
-    data : array-like, shape=[n_samples, n_features]
-        Input data
-    extra_data : array-like, shape=[any, n_features], optional
-        Optional additional data objects from which to select the same rows
-    span : float, optional (default: 0.7)
-        Fraction of genes to use when computing the loess estimate at each point
-    interpolate : float, optional (default: 0.2)
-        Multiple of the standard deviation of variances at which to interpolate
-        linearly in order to reduce computation time.
-    kernel_size : float or int, optional (default: 0.05)
-        Width of rolling median window. If a float, the width is given by
-        kernel_size * data.shape[1]
-    cutoff : float, optional (default: None)
-        Variability above which expression is deemed significant
-    percentile : int, optional (Default: 80)
-        Percentile above or below which to remove genes.
-        Must be an integer between 0 and 100. Only one of `cutoff`
-        and `percentile` should be specified.
-
-    Returns
-    -------
-    data : array-like, shape=[n_samples, m_features]
-        Filtered output data, where m_features <= n_features
-    extra_data : array-like, shape=[any, m_features]
-        Filtered extra data, if passed.
-    """
-    var_genes = measure.variable_genes(data, span=span, interpolate=interpolate,
-                                      kernel_size=kernel_size)
-    keep_cells_idx = _get_filter_idx(var_genes,
-                                     cutoff, percentile,
-                                     keep_cells='above')
-    return select.select_cols(data, *extra_data, idx=keep_cells_idx)

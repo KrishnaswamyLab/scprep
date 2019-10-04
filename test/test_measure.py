@@ -70,7 +70,7 @@ class TestGeneSetExpression(unittest.TestCase):
 
     def test_variable_genes(self):
         def test_fun(X):
-            x = scprep.measure.variable_genes(X)
+            x = scprep.measure.gene_variability(X)
             assert x.name == 'variability'
             assert np.all(x.index == self.X_dense.columns)
         matrix.test_pandas_matrix_types(

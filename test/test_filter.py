@@ -85,16 +85,6 @@ class Test10X(unittest.TestCase):
             self.X_dense, utils.assert_transform_equals,
             Y=X_filtered, transform=scprep.filter.filter_rare_genes)
 
-    def test_filter_variable_genes(self):
-        X_filtered = scprep.filter.filter_variable_genes(self.X_dense, percentile=70)
-        assert X_filtered.shape[0] == self.X_dense.shape[0]
-        assert X_filtered.shape[1] <= 30
-        assert X_filtered.shape[1] >= 20
-        assert self.X_dense.columns[np.argmax(self.X_dense.values.std(axis=0))] in X_filtered.columns
-        matrix.test_all_matrix_types(
-            self.X_dense, utils.assert_transform_equals,
-            Y=X_filtered, transform=scprep.filter.filter_variable_genes, percentile=70)
-
 
     def test_library_size_filter(self):
         X_filtered = scprep.filter.filter_library_size(

@@ -801,13 +801,13 @@ class Test10X(unittest.TestCase):
         assert os.path.exists("test_gene_expression.png")
 
     def test_plot_variable_genes(self):
-        scprep.plot.plot_variable_genes(
+        scprep.plot.plot_gene_variability(
             self.X,
             filename="test_variable_genes.png")
         assert os.path.exists("test_variable_genes.png")
 
     def test_variable_genes_list_of_lists(self):
-        scprep.plot.plot_variable_genes(
+        scprep.plot.plot_gene_variability(
             scprep.utils.toarray(self.X).tolist())
 
     def test_histogram_single_gene_dataframe(self):

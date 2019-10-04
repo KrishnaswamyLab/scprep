@@ -1,18 +1,17 @@
 from .scatter import scatter
 from .. import utils, measure
-from ..filter import _get_filter_idx
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
-def plot_variable_genes(data, span=0.7, interpolate=0.2, kernel_size=0.05,
-                        cutoff=None, percentile=90,
-                        ax=None, figsize=None,
-                        xlabel='Gene mean',
-                        ylabel='Standardized variance',
-                        title=None,
-                        fontsize=None,
-                        filename=None,
-                        dpi=None, **kwargs):
+def plot_gene_variability(data, span=0.7, interpolate=0.2, kernel_size=0.05,
+                          cutoff=None, percentile=90,
+                          ax=None, figsize=None,
+                          xlabel='Gene mean',
+                          ylabel='Standardized variance',
+                          title=None,
+                          fontsize=None,
+                          filename=None,
+                          dpi=None, **kwargs):
     """Plot the histogram of gene variability
 
     Variability is computed as the deviation from a loess fit
@@ -59,11 +58,11 @@ def plot_variable_genes(data, span=0.7, interpolate=0.2, kernel_size=0.05,
     ax : `matplotlib.Axes`
         axis on which plot was drawn
     """
-    variability, means = measure.variable_genes(data, span=span, interpolate=interpolate,
-                                                kernel_size=kernel_size, return_means=True)
-    keep_cells_idx = _get_filter_idx(variability,
-                                     cutoff, percentile,
-                                     keep_cells='above')
+    variability, means = measure.gene_variability(data, span=span, interpolate=interpolate,
+                                                  kernel_size=kernel_size, return_means=True)
+    keep_cells_idx = utils._get_filter_idx(variability,
+                                           cutoff, percentile,
+                                           keep_cells='above')
     return scatter(means, variability, c=keep_cells_idx,
                    cmap={True : 'red', False : 'black'}, 
                    xlabel=xlabel, ylabel=ylabel, title=title,
