@@ -86,8 +86,8 @@ def gene_variability(data, span=0.7, interpolate=0.2, kernel_size=0.05, return_m
         Multiple of the standard deviation of variances at which to interpolate
         linearly in order to reduce computation time.
     kernel_size : float or int, optional (default: 0.05)
-        Width of rolling median window. If a float, the width is given by
-        kernel_size * data.shape[1]
+        Width of rolling median window. If a float between 0 and 1, the width is given by
+        kernel_size * data.shape[1]. Otherwise should be an odd integer
     return_means : boolean, optional (default: False)
         If True, return the gene means
 
@@ -99,7 +99,8 @@ def gene_variability(data, span=0.7, interpolate=0.2, kernel_size=0.05, return_m
     columns = data.columns if isinstance(data, pd.DataFrame) else None
     data = utils.to_array_or_spmatrix(data)
     data_std = utils.matrix_std(data, axis=0) ** 2
-    kernel_size = 2*(int(kernel_size * len(data_std))//2)+1
+    if kernel_size < 1:
+        kernel_size = 2*(int(kernel_size * len(data_std))//2)+1
     order = np.argsort(data_std)
     data_std_med = np.empty_like(data_std)
     data_std_med[order] = scipy.signal.medfilt(data_std[order], kernel_size=kernel_size)
