@@ -482,3 +482,13 @@ def test_parse_header():
         ValueError,
         "Expected 50 entries in {}. Got 100".format(os.path.abspath(header2)),
         scprep.io.utils._parse_header, header2, 50)
+
+def test_download_google_drive():
+    id = "1_T5bRqbid5mtuDYnyusoGvujc6fW1UKv"
+    dest = "test.txt"
+    scprep.io.download.download_google_drive(id, dest)
+    assert os.path.isfile(dest)
+    with open(dest, 'r') as f:
+        data = f.read()
+        assert data == 'test\n', data
+    os.remove(dest)

@@ -156,6 +156,16 @@ def test_combine_batches():
         test_fun)
 
 
+def test_combine_batches_rangeindex():
+    X = data.load_10X()
+    X = X.reset_index(drop=True)
+    Y = X.iloc[:X.shape[0] // 2]
+    data_combined, labels = scprep.utils.combine_batches(
+        [X, Y], ['x', 'y'])
+    assert isinstance(data_combined.index, pd.RangeIndex)
+    assert np.all(data_combined.columns == X.columns)
+
+
 def test_combine_batches_uncommon_genes():
     X = data.load_10X()
     Y = X.iloc[:, :X.shape[1] // 2]

@@ -977,7 +977,7 @@ class Test10X(unittest.TestCase):
 
     def test_scatter_axis_labels(self):
         ax = scprep.plot.scatter3d(
-            self.X_pca, label_prefix="test")
+            self.X_pca.tolist(), label_prefix="test")
         assert ax.get_xlabel() == "test1"
         assert ax.get_ylabel() == "test2"
         assert ax.get_zlabel() == "test3"
@@ -992,6 +992,13 @@ class Test10X(unittest.TestCase):
         assert ax.get_xlabel() == ''
         assert ax.get_ylabel() == "override"
         assert ax.get_zlabel() == "z"
+        ax = scprep.plot.scatter(
+            x=self.X_pca[:,0], y=pd.Series(self.X_pca[:,1], name='y'),
+            z=pd.Series(self.X_pca[:,2], name='z'),
+            zlabel='override')
+        assert ax.get_xlabel() == ''
+        assert ax.get_ylabel() == "y"
+        assert ax.get_zlabel() == "override"
 
     def test_scatter_axis_savefig(self):
         scprep.plot.scatter2d(
