@@ -803,14 +803,7 @@ class Test10X(unittest.TestCase):
     def test_plot_variable_genes(self):
         scprep.plot.plot_variable_genes(
             self.X,
-            color='r')
-
-    def test_plot_variable_genes_multiple(self):
-        scprep.plot.plot_variable_genes([
-            self.X, scprep.select.select_rows(
-                self.X, idx=np.arange(self.X.shape[0] // 2))],
-            filename="test_variable_genes.png",
-            color=['r', 'b'])
+            filename="test_variable_genes.png")
         assert os.path.exists("test_variable_genes.png")
 
     def test_variable_genes_list_of_lists(self):

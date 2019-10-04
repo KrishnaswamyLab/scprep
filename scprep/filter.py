@@ -375,7 +375,8 @@ def filter_variable_genes(data, *extra_data, span=0.7, interpolate=0.2, kernel_s
                           cutoff=None, percentile=80):
     """Filter all genes with low variability
 
-    Variability is computed as the deviation from a loess fit of the mean-variance curve
+    Variability is computed as the deviation from a loess fit
+    to the rolling median of the mean-variance curve
 
     Parameters
     ----------
@@ -405,7 +406,8 @@ def filter_variable_genes(data, *extra_data, span=0.7, interpolate=0.2, kernel_s
     extra_data : array-like, shape=[any, m_features]
         Filtered extra data, if passed.
     """
-    var_genes = measure.variable_genes(data, span=span, interpolate=interpolate)
+    var_genes = measure.variable_genes(data, span=span, interpolate=interpolate,
+                                      kernel_size=kernel_size)
     keep_cells_idx = _get_filter_idx(var_genes,
                                      cutoff, percentile,
                                      keep_cells='above')

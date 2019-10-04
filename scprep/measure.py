@@ -70,7 +70,7 @@ def gene_set_expression(data, genes=None, library_size_normalize=False,
 
 
 @utils._with_pkg(pkg="statsmodels")
-def variable_genes(data, span=0.7, interpolate=0.2, kernel_size=0.05):
+def variable_genes(data, span=0.7, interpolate=0.2, kernel_size=0.05, return_means=False):
     """Measure the variability of each gene in a dataset
 
     Variability is computed as the deviation from a loess fit
@@ -88,6 +88,8 @@ def variable_genes(data, span=0.7, interpolate=0.2, kernel_size=0.05):
     kernel_size : float or int, optional (default: 0.05)
         Width of rolling median window. If a float, the width is given by
         kernel_size * data.shape[1]
+    return_means : boolean, optional (default: False)
+        If True, return the gene means
 
     Returns
     -------
@@ -106,10 +108,13 @@ def variable_genes(data, span=0.7, interpolate=0.2, kernel_size=0.05):
     lowess = statsmodels.nonparametric.smoothers_lowess.lowess(
         data_std_med, data_mean,
         delta=delta, frac=span, return_sorted=False)
-    variability = data_std - lowess
+    result = data_std - lowess
     if columns is not None:
-        variability = pd.Series(variability, index=columns, name='variability')
-    return variability
+        result = pd.Series(result, index=columns, name='variability')
+        data_mean = pd.Series(data_mean, index=columns, name='mean')
+    if return_means:
+        result = result, data_mean
+    return result
 
 
 def _get_percentile_cutoff(data, cutoff=None, percentile=None, required=False):
