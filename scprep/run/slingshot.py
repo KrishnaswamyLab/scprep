@@ -1,6 +1,8 @@
 import numpy as np
+import pandas as pd
 
 from .r_function import RFunction, install_bioconductor
+from .. import utils
 
 
 def install(site_repository = None, update = False, version = None):
@@ -26,10 +28,9 @@ def install(site_repository = None, update = False, version = None):
 _Slingshot = RFunction(
     setup="""
         library(slingshot)
-        library(SingleCellExperiment)
     """,
     args="""
-        data, cluster_labels, reduced_dim,
+        data, cluster_labels,
         start_cluster = NULL, end_cluster = NULL,
         distance = NULL, omega = NULL, lineages = list(), shrink = TRUE,
         extend = "y", reweight = TRUE, reassign = TRUE, thresh = 0.001,
@@ -39,23 +40,12 @@ _Slingshot = RFunction(
     """,
     body="""
         set.seed(seed)
-        data <- t(as.matrix(data))
-        reduced_dim <- as.matrix(reduced_dim)
+        data <- as.matrix(data)
         cluster_labels <- as.factor(cluster_labels)
-        print(str(data))
-        print(str(reduced_dim))
-        print(str(cluster_labels))
-
-        # Create SingleCellExperiment
-        sce <- SingleCellExperiment(assays = List(counts = data))
-
-        # Add dim red data and clusters to SCE
-        reducedDims(sce) <- SimpleList(reduced_dim = reduced_dim)
-        colData(sce)$cluster_labels <- cluster_labels
 
         # Run Slingshot
-        sce <- slingshot(sce, clusterLabels = 'cluster_labels',
-                         reducedDim = 'reduced_dim', start.clus = start_cluster, end.clus = end_cluster,
+        sce <- slingshot(data, clusterLabels = cluster_labels,
+                         start.clus = start_cluster, end.clus = end_cluster,
                          dist.fun = distance, omega = omega, lineages = lineages, shrink = shrink,
                          extend = extend, reweight = reweight, reassign = reassign, thresh = thresh,
                          maxit = max_iter, stretch = stretch,
@@ -67,7 +57,7 @@ _Slingshot = RFunction(
 
 
 def Slingshot(
-        data, cluster_labels, reduced_dim,
+        data, cluster_labels,
         start_cluster = None, end_cluster = None,
         distance = None, omega = None, shrink = True,
         extend = "y", reweight = True, reassign = True, thresh = 0.001,
@@ -87,12 +77,11 @@ def Slingshot(
 
     Parameters
     ----------
-    data : array-like, shape=[n_samples, n_features]
-        a data object containing the matrix of coordinates to be used for lineage inference.
+    data : array-like, shape=[n_samples, n_dimensions]
+        matrix of (reduced dimension) coordinates
+        to be used for lineage inference.
     cluster_labels : list-like, shape=[n_samples]
         a vector of cluster labels, optionally including -1's for "unclustered."
-    reduced_dim : array-like, shape=[n_samples, n_dimensions]
-        dimensionality reduction on which to display lineage
     start_cluster : string, optional (default: None)
         indicates the cluster(s) of origin.
         Lineages will be represented by paths coming out of this cluster.
@@ -161,29 +150,56 @@ def Slingshot(
         Value is `np.nan` if the cell does not lie on the curve
     curves : array_like, shape=[n_curves, n_samples, n_dimensions]
         Coordinates of each principle curve in the reduced dimension
+
+    Examples
+    --------
+    >>> import scprep
+    >>> import phate
+    >>> phate_op = phate.PHATE()
+    >>> data_phate = phate_op.fit_transform(data)
+    >>> clusters = phate.cluster.kmeans(phate_op, 6)
+    >>> pseudotime, curves = scprep.run.Slingshot(data_phate, clusters)
+    >>> ax = scprep.plot.scatter2d(data_phate, c=pseudotime[:,0], cmap='magma', legend_title='Branch 1')
+    >>> scprep.plot.scatter2d(data_phate, c=pseudotime[:,1], cmap='viridis', ax=ax,
+    ...                       ticks=False, label_prefix='PHATE', legend_title='Branch 2')
+    >>> for curve in curves:
+    ...     ax.plot(curve[:,0], curve[:,1], c='black')
     """
     if seed is None:
         seed = np.random.randint(2**16 - 1)
     if distance is not None:
         raise NotImplementedError("distance argument not currently implemented")
     np.random.seed(seed)
+
+    index = data.index if isinstance(data, pd.DataFrame) else None
     
+    data = utils.toarray(data)
+    if data.shape[1] > 3:
+        warnings.warn("Expected data to be low-dimensional. "
+                      "Got data.shape[1] = {}".format(data.shape[1]))
+    cluster_labels = utils.toarray(cluster_labels).flatten()
+    if not cluster_labels.shape[0] == data.shape[0]:
+        raise ValueError("Expected len(cluster_labels) ({}) to equal "
+                         "data.shape[0] ({})".format(data.shape[0], cluster_labels.shape[0]))
+
     kwargs = {}
     if start_cluster is not None:
         kwargs['start_cluster'] = start_cluster
     if end_cluster is not None:
         kwargs['end_cluster'] = end_cluster
-    if distance is not None:
-        kwargs['distance'] = distance
     if omega is not None:
         kwargs['omega'] = omega
 
     slingshot = _Slingshot(
-        data=data, cluster_labels=cluster_labels, reduced_dim=reduced_dim, shrink = shrink,
+        data=data, cluster_labels=cluster_labels,
+        shrink = shrink,
         extend = extend, reweight = reweight, reassign = reassign, thresh = thresh,
         max_iter = max_iter, stretch = stretch,
         smoother = smoother, shrink_method = shrink_method,
         allow_breaks = allow_breaks, **kwargs,
         seed=seed, rpy_verbose=verbose)
     slingshot['curves'] = np.array(list(slingshot['curves'].values()))
+
+    if index is not None:
+        slingshot['pseudotime'] = pd.DataFrame(slingshot['pseudotime'], index=index)
     return slingshot['pseudotime'], slingshot['curves']
