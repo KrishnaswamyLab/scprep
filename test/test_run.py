@@ -22,9 +22,9 @@ def test_verbose():
 def test_install_bioc():
     assert_raise_message(
         rpy2.rinterface_lib.embedded.RRuntimeError,
-        "Error: Bioconductor version '3.7' requires R version '3.5'; see",
+        "Error: Bioconductor version '3.1' requires R version '3.2'; see",
         scprep.run.install_bioconductor,
-        version='3.7', site_repository='https://bioconductor.org/packages/3.7/bioc',
+        version='3.1', site_repository='https://bioconductor.org/packages/3.1/bioc',
         verbose=False)
 
 
