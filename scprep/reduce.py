@@ -277,12 +277,11 @@ def pca(data, n_components=100, eps=0.3,
                              n_components, min(data.shape)))
 
     # handle dataframes
-    if isinstance(data, pd.SparseDataFrame):
-        data = data.to_coo()
-    elif utils.is_sparse_dataframe(data):
-        data = data.sparse.to_coo()
-    elif isinstance(data, pd.DataFrame):
-        data = data.to_numpy()
+    if isinstance(data, pd.DataFrame):
+        index = data.index
+    else:
+        index = None
+    data = utils.to_array_or_spmatrix(data)
 
     # handle sparsity
     if sparse.issparse(data):
@@ -300,6 +299,10 @@ def pca(data, n_components=100, eps=0.3,
     else:
         pca_op = decomposition.PCA(n_components, random_state=seed)
         data = pca_op.fit_transform(data)
+
+    if index is not None:
+        data = pd.DataFrame(data, index=index,
+                            columns=["PC{}".format(i+1) for i in range(n_components)])
 
     if return_singular_values:
         data = (data, pca_op.singular_values_)

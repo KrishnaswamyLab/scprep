@@ -1,6 +1,8 @@
 from tools import utils, matrix, data
 import scprep
 from scipy import sparse
+import numpy as np
+import pandas as pd
 from sklearn import decomposition
 from sklearn.utils.testing import assert_raise_message, assert_warns_message
 from functools import partial
@@ -33,11 +35,25 @@ class TestPCA(unittest.TestCase):
             check=partial(utils.assert_all_close, rtol=1e-3, atol=1e-5),
             n_components=50, eps=0.3, seed=42, method='svd')
 
+    def test_pandas(self):
+        X = pd.DataFrame(self.X, index=np.arange(self.X.shape[0]).astype(str),
+                         columns=np.arange(self.X.shape[1]).astype(float))
+        def test_fun(X_pd):
+            Y = scprep.reduce.pca(X_pd, n_components=100, seed=42)
+            assert isinstance(Y, pd.DataFrame)
+            assert np.all(Y.index == X.index)
+            assert np.all(Y.columns == np.array(['PC{}'.format(i+1)
+                                                 for i in range(Y.shape[1])]))
+        matrix.test_pandas_matrix_types(
+            X, test_fun)
+
     def test_sparse_orth_rproj(self):
+        def test_fn(*args, **kwargs):
+            return scprep.utils.toarray(scprep.reduce.pca(*args, **kwargs))
         matrix.test_sparse_matrix_types(
             self.X, utils.assert_transform_equals,
             check=utils.assert_matrix_class_equivalent,
-            Y=self.Y_full, transform=scprep.reduce.pca,
+            Y=self.Y_full, transform=test_fn,
             n_components=50, eps=0.3, seed=42, method='orth_rproj')
 
     def test_singular_values_dense(self):
@@ -53,10 +69,12 @@ class TestPCA(unittest.TestCase):
                 eps=0.3, seed=42, return_singular_values=True)[1], atol=1e-14)
 
     def test_sparse_rproj(self):
+        def test_fn(*args, **kwargs):
+            return scprep.utils.toarray(scprep.reduce.pca(*args, **kwargs))
         matrix.test_sparse_matrix_types(
             self.X, utils.assert_transform_equals,
             check=utils.assert_matrix_class_equivalent,
-            Y=self.Y_full, transform=scprep.reduce.pca,
+            Y=self.Y_full, transform=test_fn,
             n_components=50, eps=0.3, seed=42, method='rproj')
 
     def test_eps_too_low(self):
