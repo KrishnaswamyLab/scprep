@@ -149,6 +149,8 @@ def Slingshot(
 
     Returns
     -------
+    slingshot : dict
+        Contains the following keys:
     pseudotime : array-like, shape=[n_samples, n_curves]
         Pseudotime projection of each cell onto each principal curve.
         Value is `np.nan` if the cell does not lie on the curve
@@ -164,15 +166,15 @@ def Slingshot(
     >>> data, clusters = phate.tree.gen_dla(n_branch=4, n_dim=200, branch_length=200)
     >>> phate_op = phate.PHATE()
     >>> data_phate = phate_op.fit_transform(data)
-    >>> pseudotime, branch, curves = scprep.run.Slingshot(data_phate, clusters)
-    >>> ax = scprep.plot.scatter2d(data_phate, c=pseudotime[:,0], cmap='magma', legend_title='Branch 1')
-    >>> scprep.plot.scatter2d(data_phate, c=pseudotime[:,1], cmap='viridis', ax=ax,
+    >>> slingshot = scprep.run.Slingshot(data_phate, clusters)
+    >>> ax = scprep.plot.scatter2d(data_phate, c=slingshot['pseudotime'][:,0], cmap='magma', legend_title='Branch 1')
+    >>> scprep.plot.scatter2d(data_phate, c=slingshot['pseudotime'][:,1], cmap='viridis', ax=ax,
     ...                       ticks=False, label_prefix='PHATE', legend_title='Branch 2')
-    >>> for curve in curves:
+    >>> for curve in slingshot['curves']:
     ...     ax.plot(curve[:,0], curve[:,1], c='black')
-    >>> ax = scprep.plot.scatter2d(data_phate, c=branch, legend_title='Branch',
+    >>> ax = scprep.plot.scatter2d(data_phate, c=slingshot['branch'], legend_title='Branch',
     ...                            ticks=False, label_prefix='PHATE')
-    >>> for curve in curves:
+    >>> for curve in slingshot['curves']:
     ...     ax.plot(curve[:,0], curve[:,1], c='black')
     """
     if seed is None:
@@ -226,8 +228,9 @@ def Slingshot(
             branch[branch_old == branch_ids[j]] = -1
         else:
             branch[branch_old == branch_ids[j]] = i
+    slingshot['branch'] = branch
 
     if index is not None:
         slingshot['pseudotime'] = pd.DataFrame(slingshot['pseudotime'], index=index)
-        branch = pd.Series(branch, name='branch', index=index)
-    return slingshot['pseudotime'], branch, slingshot['curves']
+        slingshot['branch'] = pd.Series(slingshot['branch'], name='branch', index=index)
+    return slingshot

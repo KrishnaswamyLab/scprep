@@ -205,7 +205,8 @@ class TestSlingshot(unittest.TestCase):
         self.clusters = sklearn.cluster.KMeans(6).fit_predict(self.X_pca)
 
     def test_slingshot(self):
-        pseudotime, branch, curves = scprep.run.Slingshot(self.X_pca[:,:2], self.clusters, verbose=False)
+        slingshot = scprep.run.Slingshot(self.X_pca[:,:2], self.clusters, verbose=False)
+        pseudotime, branch, curves = slingshot['pseudotime'], slingshot['branch'], slingshot['curves']
         assert pseudotime.shape[0] == self.X_pca.shape[0]
         assert pseudotime.shape[1] == curves.shape[0]
         assert branch.shape[0] == self.X_pca.shape[0]
@@ -221,8 +222,9 @@ class TestSlingshot(unittest.TestCase):
         assert np.all(np.any(~np.isnan(pseudotime), axis=1))
 
     def test_slingshot_pandas(self):
-        pseudotime, branch, curves = scprep.run.Slingshot(pd.DataFrame(self.X_pca[:,:2], index=self.X.index),
-                                                  self.clusters, verbose=False)
+        slingshot = scprep.run.Slingshot(pd.DataFrame(self.X_pca[:,:2], index=self.X.index),
+                                         self.clusters, verbose=False)
+        pseudotime, branch, curves = slingshot['pseudotime'], slingshot['branch'], slingshot['curves']
         assert np.all(pseudotime.index == self.X.index)
         assert np.all(branch.index == self.X.index)
         assert branch.name == 'branch'
@@ -248,8 +250,9 @@ class TestSlingshot(unittest.TestCase):
             self.X_pca, self.clusters, distance=lambda X, Y : np.sum(X-Y))
 
     def test_slingshot_optional_args(self):
-        pseudotime, branch, curves = scprep.run.Slingshot(self.X_pca[:,:2], self.clusters,
-                                                  start_cluster=4, omega=0.1, verbose=False)
+        slingshot = scprep.run.Slingshot(self.X_pca[:,:2], self.clusters,
+                                         start_cluster=4, omega=0.1, verbose=False)
+        pseudotime, branch, curves = slingshot['pseudotime'], slingshot['branch'], slingshot['curves']
         assert pseudotime.shape[0] == self.X_pca.shape[0]
         assert pseudotime.shape[1] == curves.shape[0]
         assert branch.shape[0] == self.X_pca.shape[0]
@@ -265,8 +268,9 @@ class TestSlingshot(unittest.TestCase):
                 current_pseudotime = new_pseudotime
         assert curves.shape[1] == self.X_pca.shape[0]
         assert curves.shape[2] == 2
-        pseudotime, branch, curves = scprep.run.Slingshot(self.X_pca[:,:2], self.clusters,
-                                                  end_cluster=0, verbose=False)
+        slingshot = scprep.run.Slingshot(self.X_pca[:,:2], self.clusters,
+                                         end_cluster=0, verbose=False)
+        pseudotime, branch, curves = slingshot['pseudotime'], slingshot['branch'], slingshot['curves']
         assert pseudotime.shape[0] == self.X_pca.shape[0]
         assert pseudotime.shape[1] == curves.shape[0]
         assert branch.shape[0] == self.X_pca.shape[0]
