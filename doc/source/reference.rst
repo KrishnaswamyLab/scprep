@@ -128,7 +128,6 @@ Splatter
     :autosummary:
     :members:
     :inherited-members:
-    :imported-members:
     :show-inheritance:
 
 Slingshot
@@ -138,5 +137,4 @@ Slingshot
     :autosummary:
     :members:
     :inherited-members:
-    :imported-members:
     :show-inheritance:
