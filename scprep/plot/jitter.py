@@ -30,7 +30,7 @@ class _JitterParams(_ScatterParams):
 def jitter(labels, values, sigma=0.1,
            c=None, cmap=None, cmap_scale='linear',
            s=None,
-           plot_means=True, means_s=100, means_c='xkcd:light lavender',
+           plot_means=True, means_s=100, means_c='lightgrey',
            discrete=None,
            ax=None,
            legend=None, colorbar=None,
@@ -84,7 +84,7 @@ def jitter(labels, values, sigma=0.1,
         If True, plot the mean value for each label.
     means_s : float, optional (default: 100)
         Point size for mean values.
-    means_c : string, list-like or matplotlib color, optional (default: 'xkcd:light lavender')
+    means_c : string, list-like or matplotlib color, optional (default: 'lightgrey')
         Point color(s) for mean values.
     discrete : bool or None, optional (default: None)
         If True, the legend is categorical. If False, the legend is a colorbar.

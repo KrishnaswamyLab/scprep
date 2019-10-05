@@ -34,7 +34,7 @@ def _get_scaled_libsize(data, rescale='median', return_library_size=False):
     return rescale, libsize
 
 
-def library_size_normalize(data, rescale='median',
+def library_size_normalize(data, rescale=10000,
                            return_library_size=False):
     """Performs L1 normalization on input data
     Performs L1 normalization on input data such that the sum of expression
@@ -46,7 +46,7 @@ def library_size_normalize(data, rescale='median',
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
-    rescale : {'mean', 'median'}, float or `None`, optional (default: 'median')
+    rescale : {'mean', 'median'}, float or `None`, optional (default: 10000)
         Rescaling strategy. If 'mean' or 'median', normalized cells are scaled
         back up to the mean or median expression value. If a float,
         normalized cells are scaled up to the given value. If `None`, no
