@@ -21,14 +21,14 @@ def load_mtx(mtx_file, cell_axis='row',
     cell_names : `str`, array-like, or `None` (default: None)
         Expects a filename or an array containing a list of cell barcodes.
     sparse : bool, optional (default: None)
-        If True, loads the data as a pd.SparseDataFrame. This uses less memory
+        If True, loads the data as a pd.DataFrame[pd.SparseArray]. This uses less memory
         but more CPU.
 
     Returns
     -------
     data : array-like, shape=[n_samples, n_features]
         If either gene or cell names are given, data will be a pd.DataFrame or
-        pd.SparseDataFrame. If no names are given, data will be a np.ndarray
+        pd.DataFrame[pd.SparseArray]. If no names are given, data will be a np.ndarray
         or scipy.sparse.spmatrix
     """
     if cell_axis not in ['row', 'column', 'col']:

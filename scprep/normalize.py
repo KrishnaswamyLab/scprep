@@ -64,13 +64,15 @@ def library_size_normalize(data, rescale='median',
     """
     # pandas support
     columns, index = None, None
-    if isinstance(data, pd.SparseDataFrame) or \
-            pd.api.types.is_sparse(data):
+    if isinstance(data, pd.DataFrame):
         columns, index = data.columns, data.index
-        data = data.to_coo()
-    elif isinstance(data, pd.DataFrame):
-        columns, index = data.columns, data.index
-        data = data.values
+        if utils.is_sparse_dataframe(data):
+            data = data.sparse.to_coo()
+        elif isinstance(data, pd.SparseDataFrame):
+            data = data.to_coo()
+        else:
+            # dense data
+            data = data.to_numpy()
 
     calc_libsize = sparse.issparse(data) and (return_library_size or
                                               data.nnz > 2**31)
@@ -91,7 +93,7 @@ def library_size_normalize(data, rescale='median',
     if columns is not None:
         # pandas dataframe
         if sparse.issparse(data_norm):
-            data_norm = pd.SparseDataFrame(data_norm, default_fill_value=0.0)
+            data_norm = utils.SparseDataFrame(data_norm, default_fill_value=0.0)
         else:
             data_norm = pd.DataFrame(data_norm)
         data_norm.columns = columns
@@ -120,7 +122,7 @@ def batch_mean_center(data, sample_idx=None):
     data : array-like, shape=[n_samples, n_features]
         Batch mean-centered output data.
     """
-    if sparse.issparse(data) or isinstance(data, pd.SparseDataFrame):
+    if sparse.issparse(data) or isinstance(data, pd.SparseDataFrame) or utils.is_sparse_dataframe(data):
         raise ValueError("Cannot mean center sparse data. "
                          "Convert to dense matrix first.")
     if sample_idx is None:

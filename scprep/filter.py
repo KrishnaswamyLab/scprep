@@ -28,14 +28,14 @@ def remove_empty_cells(data, *extra_data, sample_labels=None):
     warnings.warn("`scprep.filter.remove_empty_cells` is deprecated. "
                   "Use `scprep.filter.filter_empty_cells` instead.",
                   DeprecationWarning)
-    return filter_empty_cells(data, *extra_data)
+    return filter_empty_cells(data, *extra_data, sample_labels=sample_labels)
 
 
 def remove_duplicates(data, *extra_data, sample_labels=None):
     warnings.warn("`scprep.filter.remove_duplicates` is deprecated. "
                   "Use `scprep.filter.filter_duplicates` instead.",
                   DeprecationWarning)
-    return filter_duplicates(data, *extra_data)
+    return filter_duplicates(data, *extra_data, sample_labels=sample_labels)
 
 
 def filter_empty_genes(data, *extra_data):
@@ -288,7 +288,7 @@ def filter_gene_set_expression(data, *extra_data, genes=None,
         Filtered extra data, if passed.
     """
     cell_sums = measure.gene_set_expression(
-        data, genes,
+        data, genes=genes,
         starts_with=starts_with, ends_with=ends_with,
         exact_word=exact_word, regex=regex,
         library_size_normalize=library_size_normalize)
@@ -315,6 +315,8 @@ def _find_unique_cells(data):
     """
     if isinstance(data, pd.SparseDataFrame):
         unique_idx = _find_unique_cells(data.to_coo())
+    elif utils.is_sparse_dataframe(data):
+        unique_idx = _find_unique_cells(data.sparse.to_coo())
     elif isinstance(data, pd.DataFrame):
         unique_idx = ~data.duplicated()
     elif isinstance(data, np.ndarray):

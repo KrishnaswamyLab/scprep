@@ -3,6 +3,7 @@ from scipy import sparse
 import pandas as pd
 from nose.tools import assert_raises
 from scprep.utils import toarray
+from . import matrix
 
 
 def assert_all_equal(X, Y):
@@ -40,15 +41,10 @@ def assert_transform_equals(X, Y, transform, check=assert_all_equal, **kwargs):
     -------
     Y2 : returned value of transform(X, **kwargs)
     """
-    try:
-        Y2 = transform(X, **kwargs)
-    except Exception as e:
-        raise RuntimeError("{} with {} input to {}\n{}".format(
-            type(e).__name__, type(X).__name__, transform,
-            str(e)))
+    Y2 = transform(X, **kwargs)
     check(Y, Y2), "{} failed on {}".format(
         transform,
-        type(X).__name__)
+        matrix._typename(X))
     return Y2
 
 
@@ -89,7 +85,7 @@ def assert_transform_equivalent(X, Y, transform, check=assert_all_equal,
     Y2 = assert_transform_equals(X, Y, transform, check=check, **kwargs)
     assert assert_matrix_class_equivalent(X, Y2), \
         "{} produced inconsistent matrix output".format(
-        type(X).__name__)
+        _typename(X))
 
 
 def assert_transform_raises(X, transform, exception=ValueError, **kwargs):
@@ -102,6 +98,18 @@ def assert_transform_raises(X, transform, exception=ValueError, **kwargs):
     exception : expected exception class
     """
     assert_raises(exception, transform, X, **kwargs)
+
+
+def _is_sparse_dataframe(X):
+    return isinstance(X, pd.SparseDataFrame) or \
+            (isinstance(X, pd.DataFrame) and hasattr(X, "sparse"))
+
+
+def _sparse_dataframe_density(X):
+    try:
+        return X.sparse.density
+    except AttributeError:
+        return X.density
 
 
 def assert_matrix_class_equivalent(X, Y):
@@ -117,11 +125,14 @@ def assert_matrix_class_equivalent(X, Y):
     if sparse.issparse(X):
         assert sparse.issparse(Y)
         assert X.tocoo().nnz == Y.tocoo().nnz
+    elif isinstance(X, pd.SparseDataFrame):
+        assert _is_sparse_dataframe(Y)
     else:
-        assert type(X) == type(Y)
+        assert type(X) == type(Y), (type(X), type(Y))
+    if _is_sparse_dataframe(X):
+        assert _sparse_dataframe_density(X) == _sparse_dataframe_density(Y)
+        assert _sparse_dataframe_density(X) == _sparse_dataframe_density(Y)
     if isinstance(X, pd.DataFrame):
         assert np.all(X.columns == Y.columns)
         assert np.all(X.index == Y.index)
-    if isinstance(X, pd.SparseDataFrame) or isinstance(Y, pd.SparseDataFrame):
-        assert X.density == Y.density
     return True

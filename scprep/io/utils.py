@@ -6,6 +6,8 @@ import scipy.sparse as sp
 import warnings
 import numpy as np
 
+from .. import utils
+
 
 def _parse_header(header, n_expected, header_type="gene_names"):
     """
@@ -93,7 +95,7 @@ def _matrix_to_data_frame(data, gene_names=None, cell_names=None, sparse=None):
         # dataframe with index and/or columns
         if sparse is None:
             # let the input data decide
-            sparse = isinstance(data, pd.SparseDataFrame) or sp.issparse(data)
+            sparse = utils.is_sparse_dataframe(data) or sp.issparse(data)
         if sparse and gene_names is not None and \
                 len(np.unique(gene_names)) < len(gene_names):
             warnings.warn(
@@ -101,18 +103,19 @@ def _matrix_to_data_frame(data, gene_names=None, cell_names=None, sparse=None):
                 RuntimeWarning)
             sparse = False
         if sparse:
-            # return pandas.SparseDataFrame
+            # return pandas.DataFrame[SparseArray]
             if isinstance(data, pd.DataFrame):
                 if gene_names is not None:
                     data.columns = gene_names
                 if cell_names is not None:
                     data.index = cell_names
-                if not isinstance(data, pd.SparseDataFrame):
-                    data = data.to_sparse(fill_value=0.0)
+                if not utils.is_sparse_dataframe(data):
+                    data = utils.dataframe_to_sparse(data, fill_value=0.0)
+            elif sp.issparse(data):
+                data = pd.DataFrame.sparse.from_spmatrix(data, index=cell_names, columns=gene_names)
             else:
-                data = pd.SparseDataFrame(data, default_fill_value=0.0)
-                data.index = cell_names
-                data.columns = gene_names
+                data = pd.DataFrame(data, index=cell_names, columns=gene_names)
+                data = utils.dataframe_to_sparse(data, fill_value=0.0)
         else:
             # return pandas.DataFrame
             if isinstance(data, pd.DataFrame):
@@ -120,10 +123,12 @@ def _matrix_to_data_frame(data, gene_names=None, cell_names=None, sparse=None):
                     data.columns = gene_names
                 if cell_names is not None:
                     data.index = cell_names
-                if isinstance(data, pd.SparseDataFrame):
-                    data = data.to_dense()
+                if utils.is_sparse_dataframe(data):
+                    data = data.sparse.to_dense()
             else:
                 if sp.issparse(data):
                     data = data.toarray()
                 data = pd.DataFrame(data, index=cell_names, columns=gene_names)
+        # convert data to float
+        data = data.astype(float)
         return data

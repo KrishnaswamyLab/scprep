@@ -4,13 +4,14 @@
 import pandas as pd
 
 from .utils import _matrix_to_data_frame
+from .. import utils
 
 
 def _read_csv_sparse(filename, chunksize=1000000, fill_value=0.0, **kwargs):
-    """Read a csv file into a pandas.SparseDataFrame
+    """Read a csv file into a pd.DataFrame[pd.SparseArray]
     """
     chunks = pd.read_csv(filename, chunksize=chunksize, **kwargs)
-    data = pd.concat(chunk.to_sparse(fill_value=fill_value)
+    data = pd.concat(utils.dataframe_to_sparse(chunk, fill_value=fill_value)
                      for chunk in chunks)
     return data
 
@@ -36,7 +37,7 @@ def load_csv(filename, cell_axis='row', delimiter=',',
         If `True`, we assume cell names are in the first row/column. Otherwise
         expects a filename or an array containing a list of cell barcodes.
     sparse : bool, optional (default: False)
-        If True, loads the data as a pd.SparseDataFrame. This uses less memory
+        If True, loads the data as a pd.DataFrame[pd.SparseArray]. This uses less memory
         but more CPU.
     **kwargs : optional arguments for `pd.read_csv`.
 
@@ -44,7 +45,7 @@ def load_csv(filename, cell_axis='row', delimiter=',',
     -------
     data : array-like, shape=[n_samples, n_features]
         If either gene or cell names are given, data will be a pd.DataFrame or
-        pd.SparseDataFrame. If no names are given, data will be a np.ndarray
+        pd.DataFrame[pd.SparseArray]. If no names are given, data will be a np.ndarray
         or scipy.sparse.spmatrix
     """
     if cell_axis not in ['row', 'column', 'col']:
@@ -113,7 +114,7 @@ def load_tsv(filename, cell_axis='row', delimiter='\t',
         If `True`, we assume cell names are in the first row/column. Otherwise
         expects a filename or an array containing a list of cell barcodes.
     sparse : bool, optional (default: False)
-        If True, loads the data as a pd.SparseDataFrame. This uses less memory
+        If True, loads the data as a pd.DataFrame[pd.SparseArray]. This uses less memory
         but more CPU.
     **kwargs : optional arguments for `pd.read_csv`.
 
@@ -121,7 +122,7 @@ def load_tsv(filename, cell_axis='row', delimiter='\t',
     -------
     data : array-like, shape=[n_samples, n_features]
         If either gene or cell names are given, data will be a pd.DataFrame or
-        pd.SparseDataFrame. If no names are given, data will be a np.ndarray
+        pd.DataFrame[pd.SparseArray]. If no names are given, data will be a np.ndarray
         or scipy.sparse.spmatrix
     """
     return load_csv(filename, cell_axis=cell_axis, delimiter=delimiter,

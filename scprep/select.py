@@ -5,6 +5,7 @@ from scipy import sparse
 import warnings
 import re
 import sys
+
 from . import utils
 
 if int(sys.version.split(".")[1]) < 7:
@@ -218,7 +219,7 @@ def get_gene_set(data, starts_with=None, ends_with=None,
     """
     if not _is_1d(data):
         try:
-            data = data.columns.values
+            data = data.columns.to_numpy()
         except AttributeError:
             raise TypeError("data must be a list of gene names or a pandas "
                             "DataFrame. Got {}".format(type(data).__name__))
@@ -255,7 +256,7 @@ def get_cell_set(data, starts_with=None, ends_with=None,
     """
     if not _is_1d(data):
         try:
-            data = data.index.values
+            data = data.index.to_numpy()
         except AttributeError:
             raise TypeError("data must be a list of cell names or a pandas "
                             "DataFrame. Got {}".format(type(data).__name__))
@@ -329,21 +330,37 @@ def select_cols(data, *extra_data, idx=None,
         _check_idx_1d(idx)
         idx = idx.flatten()
 
+    if isinstance(data, pd.SparseDataFrame):
+        # evil deprecated dataframe; get rid of it
+        data = utils.SparseDataFrame(data)
     if isinstance(data, pd.DataFrame):
         try:
-            data = data.loc[:, idx]
+            if isinstance(idx, (numbers.Integral, str)):
+                data = data.loc[:, idx]
+            else:
+                if np.issubdtype(idx.dtype, np.dtype(bool).type):
+                    # temporary workaround for pandas error
+                    raise TypeError
+                data = data.loc[:, idx]
         except (KeyError, TypeError):
+            if isinstance(idx, str):
+                raise
             if isinstance(idx, numbers.Integral) or \
-                    issubclass(np.array(idx).dtype.type, numbers.Integral):
+                    np.issubdtype(idx.dtype, np.dtype(int)) or \
+                    np.issubdtype(idx.dtype, np.dtype(bool)):
                 data = data.loc[:, np.array(data.columns)[idx]]
             else:
                 raise
     elif isinstance(data, pd.Series):
         try:
+            if np.issubdtype(idx.dtype, np.dtype(bool).type):
+                # temporary workaround for pandas error
+                raise TypeError
             data = data.loc[idx]
         except (KeyError, TypeError):
             if isinstance(idx, numbers.Integral) or \
-                    issubclass(np.array(idx).dtype.type, numbers.Integral):
+                    np.issubdtype(idx.dtype, np.dtype(int)) or \
+                    np.issubdtype(idx.dtype, np.dtype(bool)):
                 data = data.loc[np.array(data.index)[idx]]
             else:
                 raise
@@ -432,16 +449,28 @@ def select_rows(data, *extra_data, idx=None,
         _check_idx_1d(idx)
         idx = idx.flatten()
 
+    if isinstance(data, pd.SparseDataFrame):
+        # evil deprecated dataframe; get rid of it
+        data = utils.SparseDataFrame(data)
     if isinstance(data, (pd.DataFrame, pd.Series)):
         try:
-            with warnings.catch_warnings():
-                warnings.filterwarnings(
-                    "error", "Passing list-likes to .loc")
+            if isinstance(idx, (numbers.Integral, str)):
                 data = data.loc[idx]
+            else:
+                if np.issubdtype(idx.dtype, np.dtype(bool).type):
+                    # temporary workaround for pandas error
+                    raise TypeError
+                with warnings.catch_warnings():
+                    warnings.filterwarnings(
+                        "error", "Passing list-likes to .loc")
+                    data = data.loc[idx]
         except (KeyError, TypeError, FutureWarning):
+            if isinstance(idx, str):
+                raise
             if isinstance(idx, numbers.Integral) or \
-                    issubclass(np.array(idx).dtype.type, numbers.Integral):
-                data = data.iloc[idx]
+                    np.issubdtype(idx.dtype, np.dtype(int)) or \
+                    np.issubdtype(idx.dtype, np.dtype(bool)):
+                data = data.loc[np.array(data.index)[idx]]
             else:
                 raise
     elif _is_1d(data):

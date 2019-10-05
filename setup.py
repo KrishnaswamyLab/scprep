@@ -3,11 +3,11 @@ import sys
 from setuptools import setup, find_packages
 
 install_requires = [
-    'numpy>=1.10.0',
-    'scipy>=0.18.0',
+    'numpy>=1.12.0',
+    'scipy>=0.18.1',
     'scikit-learn>=0.19.1',
-    'pandas>=0.19.0,<0.24',
-    'decorator>=4.3.0'
+    'decorator>=4.3.0',
+    'pandas>=0.25',
 ]
 
 test_requires = [

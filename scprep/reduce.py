@@ -279,8 +279,10 @@ def pca(data, n_components=100, eps=0.3,
     # handle dataframes
     if isinstance(data, pd.SparseDataFrame):
         data = data.to_coo()
+    elif utils.is_sparse_dataframe(data):
+        data = data.sparse.to_coo()
     elif isinstance(data, pd.DataFrame):
-        data = data.values
+        data = data.to_numpy()
 
     # handle sparsity
     if sparse.issparse(data):
