@@ -501,7 +501,7 @@ def subsample(*data, n=10000, seed=None):
 
 def highly_variable_genes(data, *extra_data, span=0.7, interpolate=0.2, kernel_size=0.05,
                           cutoff=None, percentile=80):
-    """Filter all genes with low variability
+    """Select genes with high variability
 
     Variability is computed as the deviation from a loess fit
     to the rolling median of the mean-variance curve

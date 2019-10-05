@@ -1,6 +1,6 @@
 import numpy as np
 
-from .r_function import RFunction, install_bioconductor
+from . import r_function
 
 
 def install(site_repository = None, update = False, version = None, verbose = True):
@@ -21,11 +21,12 @@ def install(site_repository = None, update = False, version = None, verbose = Tr
     verbose : boolean, optional (default: True)
         Install script verbosity.
     """
-    install_bioconductor('splatter', site_repository=site_repository,
-                         update=update, version=version, verbose=verbose)
+    r_function.install_bioconductor(
+        'splatter', site_repository=site_repository,
+        update=update, version=version, verbose=verbose)
 
 
-_SplatSimulate = RFunction(
+_SplatSimulate = r_function.RFunction(
     setup="""
         library(splatter)
     """,

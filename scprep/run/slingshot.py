@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import warnings
 
-from .r_function import RFunction, install_bioconductor
+from . import r_function
 from .. import utils
 
 
@@ -24,11 +24,12 @@ def install(site_repository = None, update = False, version = None, verbose = Tr
     verbose : boolean, optional (default: True)
         Install script verbosity.
     """
-    install_bioconductor('slingshot', site_repository=site_repository,
-                         update=update, version=version, verbose=verbose)
+    r_function.install_bioconductor(
+        'slingshot', site_repository=site_repository,
+        update=update, version=version, verbose=verbose)
 
 
-_Slingshot = RFunction(
+_Slingshot = r_function.RFunction(
     setup="""
         library(slingshot)
     """,
