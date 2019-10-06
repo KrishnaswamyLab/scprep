@@ -49,7 +49,7 @@ def download_google_drive(id, destination):
 
         if token:
             params = { 'id' : id, 'confirm' : token }
-            response = session.get(URL, params = params, stream = True)
+            response = session.get(_GOOGLE_DRIVE_URL, params = params, stream = True)
 
         _save_response_content(response, destination)
 
