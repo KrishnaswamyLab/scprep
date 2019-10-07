@@ -489,8 +489,9 @@ class _ScatterParams(object):
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
-def scatter(x, y, z=None,
-            c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
+def scatter(x, y, z=None, mask=None,
+            c=None, cmap=None, cmap_scale='linear', s=None,
+            discrete=None,
             ax=None,
             legend=None, colorbar=None,
             shuffle=True,
@@ -531,6 +532,8 @@ def scatter(x, y, z=None,
         data for y axis
     z : list-like, optional (default: None)
         data for z axis
+    mask : list-like, optional (default: None)
+        boolean mask to hide data points
     c : list-like or None, optional (default: None)
         Color vector. Can be a single color value (RGB, RGBA, or named
         matplotlib colors), an array of these of length n_samples, or a list of
@@ -633,7 +636,7 @@ def scatter(x, y, z=None,
     """
     with temp_fontsize(fontsize):
         params = _ScatterParams(
-            x, y, z, c=c, discrete=discrete,
+            x, y, z, c=c, mask=mask, discrete=discrete,
             cmap=cmap, cmap_scale=cmap_scale,
             vmin=vmin, vmax=vmax, s=s,
             legend=legend, colorbar=colorbar,
@@ -687,7 +690,7 @@ def scatter(x, y, z=None,
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
-def scatter2d(data,
+def scatter2d(data, mask=None,
               c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
               ax=None, legend=None, colorbar=None,
               shuffle=True, figsize=None,
@@ -717,6 +720,8 @@ def scatter2d(data,
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data. Only the first two components will be used.
+    mask : list-like, optional (default: None)
+        boolean mask to hide data points
     c : list-like or None, optional (default: None)
         Color vector. Can be a single color value (RGB, RGBA, or named
         matplotlib colors), an array of these of length n_samples, or a list of
@@ -818,6 +823,7 @@ def scatter2d(data,
         data = utils.toarray(data)
     return scatter(x=select.select_cols(data, idx=0),
                    y=select.select_cols(data, idx=1),
+                   mask=mask,
                    c=c, cmap=cmap, cmap_scale=cmap_scale, s=s, discrete=discrete,
                    ax=ax, legend=legend, colorbar=colorbar,
                    shuffle=shuffle, figsize=figsize,
@@ -841,7 +847,7 @@ def scatter2d(data,
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
-def scatter3d(data,
+def scatter3d(data, mask=None,
               c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
               ax=None, legend=None, colorbar=None,
               shuffle=True,
@@ -876,6 +882,8 @@ def scatter3d(data,
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data. Only the first two components will be used.
+    mask : list-like, optional (default: None)
+        boolean mask to hide data points
     c : list-like or None, optional (default: None)
         Color vector. Can be a single color value (RGB, RGBA, or named
         matplotlib colors), an array of these of length n_samples, or a list of
@@ -985,7 +993,7 @@ def scatter3d(data,
         z = select.select_cols(data, idx=2)
     except IndexError:
         raise ValueError("Expected data.shape[1] >= 3. Got {}".format(data.shape[1]))
-    return scatter(x=x, y=y, z=z,
+    return scatter(x=x, y=y, z=z, mask=mask,
                    c=c, cmap=cmap, cmap_scale=cmap_scale, s=s, discrete=discrete,
                    ax=ax, legend=legend, colorbar=colorbar,
                    shuffle=shuffle, figsize=figsize,
@@ -1050,7 +1058,7 @@ def rotate_scatter3d(data,
         savefig.dpi in the matplotlibrc file. If 'figure' it will set the dpi
         to be the value of the figure. Only used if filename is not None.
     **kwargs : keyword arguments
-        See :~func:`phate.plot.scatter3d`.
+        See :~func:`scprep.plot.scatter3d`.
 
     Returns
     -------
