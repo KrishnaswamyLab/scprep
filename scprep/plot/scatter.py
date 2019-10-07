@@ -146,12 +146,19 @@ class _ScatterParams(object):
             return self._array_c
 
     @property
+    def _c_masked(self):
+        if self.constant_c() or self._mask is None:
+            return self._c
+        else:
+            return self._c[self._mask]
+
+    @property
     def c_unique(self):
         """Get unique values in c to avoid recomputing every time"""
         try:
             return self._c_unique
         except AttributeError:
-            self._c_unique = np.unique(self._c)
+            self._c_unique = np.unique(self._c_masked)
             return self._c_unique
 
     @property
@@ -180,7 +187,7 @@ class _ScatterParams(object):
             else:
                 if isinstance(self._cmap, dict) or not \
                     np.all([isinstance(x, numbers.Number)
-                            for x in self._c]):
+                            for x in self._c_masked]):
                     # cmap dictionary or non-numeric values force discrete
                     return True
                 else:
@@ -206,8 +213,9 @@ class _ScatterParams(object):
                 for i, label in enumerate(self._labels):
                     self._c_discrete[self._c == label] = i
             else:
-                self._c_discrete, self._labels = pd.factorize(
-                    self._c, sort=True)
+                self._c_discrete = np.zeros_like(self._c, dtype=int)
+                self._c_discrete[self._mask], self._labels = pd.factorize(
+                    self._c_masked, sort=True)
         return self._c_discrete
 
     @property
