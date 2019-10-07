@@ -26,7 +26,8 @@ def _squeeze_array(x):
 
 class _ScatterParams(object):
 
-    def __init__(self, x, y, z=None, c=None, discrete=None,
+    def __init__(self, x, y, z=None, c=None, mask=None,
+                 discrete=None,
                  cmap=None, cmap_scale=None, vmin=None,
                  vmax=None, s=None, legend=None, colorbar=None,
                  xlabel=None, ylabel=None, zlabel=None,
@@ -35,6 +36,7 @@ class _ScatterParams(object):
         self._y = y
         self._z = z if z is not None else None
         self._c = c
+        self._mask = mask
         self._discrete = discrete
         self._cmap = cmap
         self._cmap_scale = cmap_scale
@@ -52,6 +54,7 @@ class _ScatterParams(object):
         self.shuffle = shuffle
         self.check_size()
         self.check_c()
+        self.check_mask()
         self.check_s()
         self.check_discrete()
         self.check_legend()
@@ -84,10 +87,11 @@ class _ScatterParams(object):
         try:
             return self._plot_idx
         except AttributeError:
+            self._plot_idx = np.arange(self.size)
+            if self._mask is not None:
+                self._plot_idx = self._plot_idx[self._mask]
             if self.shuffle:
-                self._plot_idx = np.random.permutation(self.size)
-            else:
-                self._plot_idx = np.arange(self.size)
+                self._plot_idx = np.random.permutation(self._plot_idx)
             return self._plot_idx
 
     @property
@@ -381,14 +385,21 @@ class _ScatterParams(object):
 
     def check_c(self):
         if not self.constant_c():
-            self._c = utils.toarray(self._c).squeeze()
+            self._c = _squeeze_array(self._c)
             if not len(self._c) == self.size:
                 raise ValueError("Expected c of length {} or 1. Got {}".format(
                     self.size, len(self._c)))
 
+    def check_mask(self):
+        if self._mask is not None:
+            self._mask = _squeeze_array(self._mask)
+            if not len(self._mask) == self.size:
+                raise ValueError("Expected mask of length {}. Got {}".format(
+                    self.size, len(self._mask)))
+
     def check_s(self):
         if self._s is not None and not isinstance(self._s, numbers.Number):
-            self._s = utils.toarray(self._s).squeeze()
+            self._s = _squeeze_array(self._s)
             if not len(self._s) == self.size:
                 raise ValueError("Expected s of length {} or 1. Got {}".format(
                     self.size, len(self._s)))

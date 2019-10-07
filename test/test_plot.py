@@ -278,6 +278,22 @@ class TestScatterParams(unittest.TestCase):
         np.testing.assert_equal(params.c, self.c)
         np.testing.assert_equal(params.s, np.abs(self.x))
 
+    def test_plot_idx_mask(self):
+        params = _ScatterParams(x=self.x, y=self.y,
+                                z=self.z, c=self.c,
+                                mask=self.x > 0, shuffle=False)
+        np.testing.assert_equal(params.plot_idx, np.arange(params.size)[self.x > 0])
+        np.testing.assert_equal(params.x, self.x[self.x > 0])
+        np.testing.assert_equal(params.y, self.y[self.x > 0])
+        np.testing.assert_equal(params.z, self.z[self.x > 0])
+        np.testing.assert_equal(params.c, self.c[self.x > 0])
+
+    def test_plot_idx_mask_shuffle(self):
+        params = _ScatterParams(x=self.x, y=self.y,
+                                mask=self.x > 0, shuffle=True)
+        np.testing.assert_equal(np.sort(params.plot_idx), np.arange(params.size)[self.x > 0])
+        assert np.all(params.x > 0)
+
     def test_data_int(self):
         params = _ScatterParams(x=1, y=2)
         np.testing.assert_equal(params._data, [np.array([1]), np.array([2])])
@@ -732,7 +748,8 @@ class Test10X(unittest.TestCase):
     def setUpClass(self):
         self.X = data.load_10X(sparse=False)
         self.X_filt = scprep.filter.filter_empty_cells(self.X)
-        self.X_pca, self.S = scprep.reduce.pca(self.X, n_components=10,
+        self.X_pca, self.S = scprep.reduce.pca(scprep.utils.toarray(self.X),
+                                               n_components=10,
                                                return_singular_values=True)
 
     @classmethod
