@@ -469,6 +469,26 @@ def test_mtx():
     assert X_mtx.index[0] == 0
 
 
+def test_save_mtx():
+    filename = os.path.join(data.data_dir, "test_10X", "matrix.mtx.gz")
+    X = scprep.io.load_mtx(
+        filename,
+        gene_names=os.path.join(
+            data.data_dir, "gene_symbols.csv"),
+        cell_names=os.path.join(
+            data.data_dir, "barcodes.tsv"),
+        cell_axis="column")
+    scprep.io.save_mtx(X, "test_mtx")
+    Y = scprep.io.load_mtx(
+        "test_mtx/matrix.mtx",
+        gene_names="test_mtx/gene_names.tsv",
+        cell_names="test_mtx/cell_names.tsv")
+    np.testing.assert_array_equal(X, Y)
+    assert np.all(X.index == Y.index)
+    assert np.all(X.columns == Y.columns)
+    shutil.rmtree("test_mtx")
+
+
 def test_fcs():
     path = fcsparser.test_sample_path
     meta, data = fcsparser.parse(path)
