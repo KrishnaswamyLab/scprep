@@ -27,6 +27,11 @@ class TestPCA(unittest.TestCase):
             self.X, utils.assert_transform_equals,
             Y=self.Y_random, transform=scprep.reduce.pca,
             n_components=100, seed=42)
+        matrix.test_all_matrix_types(
+            self.X, utils.assert_transform_equals,
+            Y=self.Y_random, transform=scprep.reduce.pca,
+            n_components=100, seed=42, method='dense',
+            check=partial(utils.assert_all_close, atol=1e-10))
 
     def test_sparse_svd(self):
         matrix.test_sparse_matrix_types(

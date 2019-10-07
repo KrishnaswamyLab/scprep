@@ -238,11 +238,12 @@ def pca(data, n_components=100, eps=0.3,
         Parameter to control the quality of the embedding of sparse input.
         Smaller values lead to more accurate embeddings but higher
         computational and memory costs
-    method : {'svd', 'orth_rproj', 'rproj'}, optional (default: 'svd')
+    method : {'svd', 'orth_rproj', 'rproj', 'dense'}, optional (default: 'svd')
         Dimensionality reduction method applied prior to mean centering
         of sparse input. The method choice affects accuracy
-        (`svd` > `orth_rproj` > `rproj`) comes with increased 
-        computational cost (but not memory.)
+        (`svd` > `orth_rproj` > `rproj`) and comes with increased 
+        computational cost (but not memory.) On the other hand,
+        `method='dense'` adds a memory cost but is faster.
     seed : int, RandomState or None, optional (default: None)
         Random state.
     return_singular_values : bool, optional (default: False)
@@ -281,7 +282,10 @@ def pca(data, n_components=100, eps=0.3,
         index = data.index
     else:
         index = None
-    data = utils.to_array_or_spmatrix(data)
+    if method == 'dense':
+        data = utils.toarray(data)
+    else:
+        data = utils.to_array_or_spmatrix(data)
 
     # handle sparsity
     if sparse.issparse(data):
