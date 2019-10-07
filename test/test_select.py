@@ -416,7 +416,7 @@ class Test10X(unittest.TestCase):
             for col in Y.columns:
                 assert X[col].dtype == Y[col].dtype, (X[col].dtype, Y[col].dtype)
         matrix.test_matrix_types(
-            self.X, test_fun, matrix._pandas_sparse_matrix_types)
+            self.X.astype(float), test_fun, matrix._pandas_sparse_matrix_types)
 
     def test_select_variable_genes(self):
         X_filtered = scprep.select.highly_variable_genes(self.X, percentile=70)
