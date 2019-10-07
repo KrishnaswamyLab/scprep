@@ -75,6 +75,30 @@ def download_url(url, destination):
             destination.write(handle.read())
 
 
+def unzip(filename, destination=None, delete=True):
+    """Extract a .zip file and optionally remove the archived version
+
+    Parameters
+    ----------
+    filename : string
+        Path to the zip file
+    destination : string, optional (default: None)
+        Path to the folder in which to extract the zip.
+        If None, extracts to the same directory the archive is in.
+    delete : boolean, optional (default: True)
+        If True, deletes the zip file after extraction
+    """
+    filename = os.path.expanduser(filename)
+    if destination is None:
+        destination = os.path.dirname(filename)
+    elif not os.path.isdir(destination):
+        os.mkdir(destination)
+    with zipfile.ZipFile(filename, 'r') as handle:
+        handle.extractall(destination)
+    if delete:
+        os.unlink(filename)
+
+
 def download_and_extract_zip(url, destination):
     """Download a .zip file from a URL and extract it
 
@@ -90,6 +114,4 @@ def download_and_extract_zip(url, destination):
     zip_handle = tempfile.NamedTemporaryFile(suffix=".zip", delete=False)
     download_url(url, zip_handle)
     zip_handle.close()
-    with zipfile.ZipFile(zip_handle.name, 'r') as handle:
-        handle.extractall(destination)
-    os.unlink(zip_handle.name)
+    unzip(zip_handle.name, destination)

@@ -627,3 +627,30 @@ def test_download_zip():
     assert np.all(X.index == Y.index)
     assert np.all(X.columns == Y.columns)
     shutil.rmtree("zip_test")
+
+def test_unzip_no_destination():
+    X = data.load_10X()
+    filename = os.path.join(data.data_dir, "test_10X.zip")
+    tmp_filename = os.path.join("zip_test", "zip_extract_test.zip")
+    os.mkdir("zip_test")
+    shutil.copyfile(filename, tmp_filename)
+    scprep.io.download.unzip(tmp_filename, delete=False)
+    assert os.path.isfile(tmp_filename)
+    Y = scprep.io.load_10X("zip_test/test_10X")
+    assert np.all(X == Y)
+    assert np.all(X.index == Y.index)
+    assert np.all(X.columns == Y.columns)
+    shutil.rmtree("zip_test")
+
+def test_unzip_no_destination():
+    X = data.load_10X()
+    filename = os.path.join(data.data_dir, "test_10X.zip")
+    tmp_filename = "zip_extract_test.zip"
+    shutil.copyfile(filename, tmp_filename)
+    scprep.io.download.unzip(tmp_filename, destination="zip_test")
+    assert not os.path.isfile(tmp_filename)
+    Y = scprep.io.load_10X("zip_test/test_10X")
+    assert np.all(X == Y)
+    assert np.all(X.index == Y.index)
+    assert np.all(X.columns == Y.columns)
+    shutil.rmtree("zip_test")
