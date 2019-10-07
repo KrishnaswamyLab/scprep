@@ -37,7 +37,7 @@ def download_google_drive(id, destination):
     id : string
         Google Drive ID string. You can access this by clicking 'Get Shareable Link',
         which will give a URL of the form
-        https://drive.google.com/file/d/**your_file_id**/view?usp=sharing
+        <https://drive.google.com/file/d/**your_file_id**/view?usp=sharing>
     destination : string or file
         File to which to save the downloaded data
     """
