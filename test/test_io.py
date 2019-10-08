@@ -642,7 +642,7 @@ def test_unzip_no_destination():
     assert np.all(X.columns == Y.columns)
     shutil.rmtree("zip_test")
 
-def test_unzip_no_destination():
+def test_unzip_destination():
     X = data.load_10X()
     filename = os.path.join(data.data_dir, "test_10X.zip")
     tmp_filename = "zip_extract_test.zip"
