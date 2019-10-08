@@ -74,7 +74,7 @@ def _check_rows_compatible(*data):
                 raise ValueError(
                     "Expected `data` and `extra_data` pandas inputs to have "
                     "the same index. Fix with "
-                    "`scprep.select.select_rows(*extra_data, data.index)`")
+                    "`scprep.select.select_rows(*extra_data, idx=data.index)`")
 
 
 def _convert_dataframe_1d(idx):
@@ -523,7 +523,7 @@ def subsample(*data, n=10000, seed=None):
     if N < n:
         raise ValueError("Expected n ({}) <= n_samples ({})".format(n, N))
     np.random.seed(seed)
-    select_idx = np.random.choice(N, n, replace=False)
+    select_idx = np.isin(np.arange(N), np.random.choice(N, n, replace=False))
     data = [select_rows(d, idx=select_idx) for d in data]
     return tuple(data) if len(data) > 1 else data[0]
 
