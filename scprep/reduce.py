@@ -238,11 +238,12 @@ def pca(data, n_components=100, eps=0.3,
         Parameter to control the quality of the embedding of sparse input.
         Smaller values lead to more accurate embeddings but higher
         computational and memory costs
-    method : {'svd', 'orth_rproj', 'rproj'}, optional (default: 'svd')
+    method : {'svd', 'orth_rproj', 'rproj', 'dense'}, optional (default: 'svd')
         Dimensionality reduction method applied prior to mean centering
         of sparse input. The method choice affects accuracy
-        (`svd` > `orth_rproj` > `rproj`) comes with increased 
-        computational cost (but not memory.)
+        (`svd` > `orth_rproj` > `rproj`) and comes with increased 
+        computational cost (but not memory.) On the other hand,
+        `method='dense'` adds a memory cost but is faster.
     seed : int, RandomState or None, optional (default: None)
         Random state.
     return_singular_values : bool, optional (default: False)
@@ -277,10 +278,14 @@ def pca(data, n_components=100, eps=0.3,
                              n_components, min(data.shape)))
 
     # handle dataframes
-    if isinstance(data, pd.SparseDataFrame):
-        data = data.to_coo()
-    elif isinstance(data, pd.DataFrame):
-        data = data.values
+    if isinstance(data, pd.DataFrame):
+        index = data.index
+    else:
+        index = None
+    if method == 'dense':
+        data = utils.toarray(data)
+    else:
+        data = utils.to_array_or_spmatrix(data)
 
     # handle sparsity
     if sparse.issparse(data):
@@ -298,6 +303,10 @@ def pca(data, n_components=100, eps=0.3,
     else:
         pca_op = decomposition.PCA(n_components, random_state=seed)
         data = pca_op.fit_transform(data)
+
+    if index is not None:
+        data = pd.DataFrame(data, index=index,
+                            columns=["PC{}".format(i+1) for i in range(n_components)])
 
     if return_singular_values:
         data = (data, pca_op.singular_values_)

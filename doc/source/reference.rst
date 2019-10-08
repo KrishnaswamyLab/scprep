@@ -11,6 +11,24 @@ Data Input/Output
     :imported-members:
     :show-inheritance:
 
+HDF5
+~~~~
+
+.. automodule:: scprep.io.hdf5
+    :autosummary:
+    :members:
+    :inherited-members:
+    :show-inheritance:
+
+Download
+~~~~~~~~
+
+.. automodule:: scprep.io.download
+    :autosummary:
+    :members:
+    :inherited-members:
+    :show-inheritance:
+
 Filtering
 ---------
 
@@ -103,10 +121,19 @@ External Tools
     :imported-members:
     :show-inheritance:
 
-HDF5
-----
+Splatter
+~~~~~~~~
 
-.. automodule:: scprep.io.hdf5
+.. automodule:: scprep.run.splatter
+    :autosummary:
+    :members:
+    :inherited-members:
+    :show-inheritance:
+
+Slingshot
+~~~~~~~~~
+
+.. automodule:: scprep.run.slingshot
     :autosummary:
     :members:
     :inherited-members:

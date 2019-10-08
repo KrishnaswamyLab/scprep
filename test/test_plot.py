@@ -2,7 +2,9 @@ from tools import data
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import os
+import numbers
 from sklearn.utils.testing import assert_raise_message, assert_warns_message
 import unittest
 import scprep
@@ -89,10 +91,6 @@ def test_tab30():
                                                10, 12, 13, 14, 16, 17, 18]])
 
 
-def test_is_color_array_none():
-    assert not scprep.plot.utils._is_color_array(None)
-
-
 def test_tab40():
     cmap = scprep.plot.colors.tab40()
     np.testing.assert_array_equal(
@@ -142,6 +140,106 @@ def test_tab10_continuous_invalid_n_colors():
         n_step=1)
 
 
+def test_tab_exact():
+    assert scprep.plot.colors.tab(1) is plt.cm.tab10
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(10).colors, plt.cm.tab10.colors)
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(20).colors, plt.cm.tab20.colors)
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(30).colors, scprep.plot.colors.tab30().colors)
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(40).colors, scprep.plot.colors.tab40().colors)
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(50).colors,
+        scprep.plot.colors.tab10_continuous(n_colors=10, n_step=5).colors)
+
+
+def test_tab_first10():
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(19).colors[:10], plt.cm.tab10.colors)
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(29).colors[:10],
+        scprep.plot.colors.tab30().colors[::3])
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(39).colors[:10],
+        scprep.plot.colors.tab40().colors[::4])
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(49).colors[:10],
+        scprep.plot.colors.tab10_continuous(
+            n_colors=10, n_step=5).colors[::5])
+
+
+def test_tab_first20():
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(29).colors[10:20],
+        scprep.plot.colors.tab30().colors[1::3])
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(39).colors[10:20],
+        scprep.plot.colors.tab40().colors[1::4])
+
+
+def test_tab_first30():
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(39).colors[20:30],
+        scprep.plot.colors.tab40().colors[2::4])
+
+
+def test_tab_overhang():
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(9).colors, plt.cm.tab10.colors[:9])
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(19).colors[10:], plt.cm.tab20.colors[1:-1:2])
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(29).colors[20:],
+        scprep.plot.colors.tab30().colors[2:-1:3])
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(39).colors[30:],
+        scprep.plot.colors.tab40().colors[3:-1:4])
+    np.testing.assert_array_equal(
+        scprep.plot.colors.tab(49).colors[40:],
+        scprep.plot.colors.tab10_continuous(
+            n_colors=10, n_step=5).colors[4:-1:5])
+
+
+def test_tab_invalid():
+    assert_raise_message(
+        ValueError,
+        "Expected n >= 1. Got 0",
+        scprep.plot.colors.tab,
+        n=0)
+
+
+def test_is_color_array_none():
+    assert not scprep.plot.utils._is_color_array(None)
+
+
+def test_histogram_log_negative_min():
+    assert_warns_message(
+        UserWarning,
+        "Expected positive data for log = x. Got min(data) = -1.00",
+        scprep.plot.histogram,
+        [-1, 1, 1, 1], log='x')
+    assert_warns_message(
+        UserWarning,
+        "Expected positive data for log = True. Got min(data) = -1.00",
+        scprep.plot.histogram,
+        [-1, 1, 1, 1], log=True)
+
+
+def test_histogram_log_negative_max():
+    assert_raise_message(
+        ValueError,
+        "Expected positive data for log = x. Got max(data) = -1.00",
+        scprep.plot.histogram,
+        [-1, -1, -1, -2], log='x')
+    assert_raise_message(
+        ValueError,
+        "Expected positive data for log = True. Got max(data) = -1.00",
+        scprep.plot.histogram,
+        [-1, -1, -1, -2], log=True)
+
+
 class TestScatterParams(unittest.TestCase):
 
     @classmethod
@@ -179,6 +277,27 @@ class TestScatterParams(unittest.TestCase):
         np.testing.assert_equal(params.z, self.z)
         np.testing.assert_equal(params.c, self.c)
         np.testing.assert_equal(params.s, np.abs(self.x))
+
+    def test_plot_idx_mask(self):
+        params = _ScatterParams(x=self.x, y=self.y,
+                                z=self.z, c=self.c,
+                                mask=self.x > 0, shuffle=False)
+        np.testing.assert_equal(params.plot_idx, np.arange(params.size)[self.x > 0])
+        np.testing.assert_equal(params.x, self.x[self.x > 0])
+        np.testing.assert_equal(params.y, self.y[self.x > 0])
+        np.testing.assert_equal(params.z, self.z[self.x > 0])
+        np.testing.assert_equal(params.c, self.c[self.x > 0])
+
+    def test_plot_idx_mask_shuffle(self):
+        params = _ScatterParams(x=self.x, y=self.y,
+                                mask=self.x > 0, shuffle=True)
+        np.testing.assert_equal(np.sort(params.plot_idx), np.arange(params.size)[self.x > 0])
+        assert np.all(params.x > 0)
+
+    def test_data_int(self):
+        params = _ScatterParams(x=1, y=2)
+        np.testing.assert_equal(params._data, [np.array([1]), np.array([2])])
+        assert params.subplot_kw == {}
 
     def test_data_2d(self):
         params = _ScatterParams(x=self.x, y=self.y)
@@ -301,8 +420,11 @@ class TestScatterParams(unittest.TestCase):
         assert params.extend is None
         assert isinstance(params.cmap, matplotlib.colors.ListedColormap)
         np.testing.assert_equal(
-            params.cmap.colors,
-            plt.cm.tab20.colors[:len(np.unique(np.round(self.c % 1, 1)))])
+            params.cmap.colors[:10],
+            plt.cm.tab10.colors)
+        np.testing.assert_equal(
+            params.cmap.colors[10:],
+            plt.cm.tab20.colors[1:1 + (len(params.cmap.colors) - 10) * 2:2])
 
     def test_continuous_less_than_20(self):
         params = _ScatterParams(x=self.x, y=self.y,
@@ -581,6 +703,38 @@ class TestScatterParams(unittest.TestCase):
             c=np.where(self.c > 0, '+', '-'),
         )
 
+    def test_series_labels(self):
+        params = _ScatterParams(x=pd.Series(self.x, name='x'), y=self.y, c=self.c)
+        assert params.xlabel == 'x'
+        assert params.ylabel is None
+        assert params.zlabel is None
+        params = _ScatterParams(x=self.x, y=pd.Series(self.y, name='y'), c=self.c)
+        assert params.xlabel is None
+        assert params.ylabel == 'y'
+        assert params.zlabel is None
+        params = _ScatterParams(x=self.x, y=self.y, z=pd.Series(self.y, name='z'), c=self.c)
+        assert params.xlabel is None
+        assert params.ylabel is None
+        assert params.zlabel == 'z'
+        # xlabel overrides series
+        params = _ScatterParams(x=pd.Series(self.x, name='x'), y=self.y, c=self.c,
+                               xlabel='y')
+        assert params.xlabel == 'y'
+        assert params.ylabel is None
+        assert params.zlabel is None
+        # label_prefix overrides series
+        params = _ScatterParams(x=pd.Series(self.x, name='x'), y=self.y, c=self.c,
+                               label_prefix='y')
+        assert params.xlabel == 'y1'
+        assert params.ylabel == 'y2'
+        assert params.zlabel is None
+        # xlabel overrides label_prefix
+        params = _ScatterParams(x=pd.Series(self.x, name='x'), y=self.y, z=self.y, c=self.c,
+                               label_prefix='y', xlabel='test')
+        assert params.xlabel == 'test'
+        assert params.ylabel == 'y2'
+        assert params.zlabel == 'y3'
+
     def test_jitter_x(self):
         params = _JitterParams(x=np.where(self.x > 0, '+', '-'), y=self.y)
         np.testing.assert_array_equal(params.x_labels, ['+', '-'])
@@ -593,7 +747,9 @@ class Test10X(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.X = data.load_10X(sparse=False)
-        self.X_pca, self.S = scprep.reduce.pca(self.X, n_components=10,
+        self.X_filt = scprep.filter.filter_empty_cells(self.X)
+        self.X_pca, self.S = scprep.reduce.pca(scprep.utils.toarray(self.X),
+                                               n_components=10,
                                                return_singular_values=True)
 
     @classmethod
@@ -602,20 +758,25 @@ class Test10X(unittest.TestCase):
         try_remove("test.gif")
         try_remove("test.mp4")
         try_remove("test_jitter.png")
+        try_remove("test_histogram.png")
+        try_remove("test_library_size.png")
+        try_remove("test_variable_genes.png")
+        try_remove("test_gene_expression.png")
+        try_remove("test_scree.png")
 
     def tearDown(self):
         plt.close('all')
 
     def test_histogram(self):
-        scprep.plot.plot_library_size(self.X, cutoff=1000, log=True)
-        scprep.plot.plot_library_size(self.X, cutoff=1000, log=True,
+        scprep.plot.plot_library_size(self.X_filt, cutoff=1000, log=True)
+        scprep.plot.plot_library_size(self.X_filt, cutoff=1000, log=True,
                                       xlabel="x label", ylabel="y label")
 
     def test_histogram_list_of_lists(self):
-        scprep.plot.plot_library_size(scprep.utils.toarray(self.X).tolist())
+        scprep.plot.plot_library_size(scprep.utils.toarray(self.X_filt).tolist())
 
     def test_histogram_array(self):
-        scprep.plot.plot_library_size(scprep.utils.toarray(self.X))
+        scprep.plot.plot_library_size(scprep.utils.toarray(self.X_filt))
 
     def test_histogram_multiple(self):
         scprep.plot.histogram([scprep.select.select_rows(self.X, idx=0),
@@ -623,16 +784,18 @@ class Test10X(unittest.TestCase):
                               color=['r', 'b'])
 
     def test_histogram_multiple_cutoff(self):
-        scprep.plot.plot_library_size(self.X, cutoff=[500, 1000], log=True)
+        scprep.plot.plot_library_size(self.X_filt, cutoff=[500, 1000], log=True)
 
     def test_histogram_multiple_percentile(self):
-        scprep.plot.plot_library_size(self.X, percentile=[10, 90], log=True)
+        scprep.plot.plot_library_size(self.X_filt, percentile=[10, 90], log=True)
 
     def test_plot_library_size_multiple(self):
         scprep.plot.plot_library_size([
-            self.X, scprep.select.select_rows(
-                self.X, idx=np.arange(self.X.shape[0] // 2))],
-            color=['r', 'b'])
+            self.X_filt, scprep.select.select_rows(
+                self.X_filt, idx=np.arange(self.X_filt.shape[0] // 2))],
+            color=['r', 'b'],
+            filename="test_library_size.png")
+        assert os.path.exists("test_library_size.png")
 
     def test_plot_gene_set_expression_multiple(self):
         scprep.plot.plot_gene_set_expression([
@@ -652,7 +815,19 @@ class Test10X(unittest.TestCase):
     def test_plot_gene_set_expression_single_gene(self):
         scprep.plot.plot_gene_set_expression(
             self.X, color=["red"],
-            genes="Arl8b")
+            genes="Arl8b",
+            filename="test_gene_expression.png")
+        assert os.path.exists("test_gene_expression.png")
+
+    def test_plot_variable_genes(self):
+        scprep.plot.plot_gene_variability(
+            self.X,
+            filename="test_variable_genes.png")
+        assert os.path.exists("test_variable_genes.png")
+
+    def test_variable_genes_list_of_lists(self):
+        scprep.plot.plot_gene_variability(
+            scprep.utils.toarray(self.X).tolist())
 
     def test_histogram_single_gene_dataframe(self):
         scprep.plot.histogram(
@@ -668,7 +843,10 @@ class Test10X(unittest.TestCase):
         fig, ax = plt.subplots()
         scprep.plot.plot_gene_set_expression(
             self.X, genes=scprep.select.get_gene_set(self.X, starts_with="D"),
-            percentile=90, log='y', ax=ax, title="histogram")
+            percentile=90, log='y', ax=ax, title="histogram",
+            filename="test_histogram.png")
+        assert os.path.exists("test_histogram.png")
+        assert ax.get_title() == 'histogram'
 
     def test_histogram_invalid_axis(self):
         assert_raise_message(
@@ -678,13 +856,17 @@ class Test10X(unittest.TestCase):
             self.X, ax="invalid")
 
     def test_scree(self):
-        scprep.plot.scree_plot(self.S)
-        scprep.plot.scree_plot(self.S, cumulative=True,
-                               xlabel="x label", ylabel="y label")
+        ax = scprep.plot.scree_plot(self.S)
+        assert all([t == int(t) for t in ax.get_xticks()]), ax.get_xticks()
+        ax = scprep.plot.scree_plot(self.S, cumulative=True,
+                               xlabel="x label", ylabel="y label", filename="test_scree.png")
+        assert all([t == int(t) for t in ax.get_xticks()]), ax.get_xticks()
+        assert os.path.isfile("test_scree.png")
 
     def test_scree_custom_axis(self):
         fig, ax = plt.subplots()
         scprep.plot.scree_plot(self.S, ax=ax)
+        assert all([t == int(t) for t in ax.get_xticks()]), ax.get_xticks()
 
     def test_scree_invalid_axis(self):
         assert_raise_message(
@@ -723,6 +905,18 @@ class Test10X(unittest.TestCase):
         assert ax.get_title() == 'jitter'
         assert ax.get_xlim() == (-0.5, 1.5)
         assert [t.get_text() for t in ax.get_xticklabels()] == ['+', '-']
+
+    def test_jitter_axis_labels(self):
+        ax = scprep.plot.jitter(np.where(self.X_pca[:, 0] > 0, '+', '-'),
+                                self.X_pca[:, 1],
+                                xlabel="test")
+        assert ax.get_xlabel() == "test"
+        assert ax.get_ylabel() == ''
+        ax = scprep.plot.jitter(
+            pd.Series(np.where(self.X_pca[:, 0] > 0, '+', '-'), name='x'),
+            pd.Series(self.X_pca[:, 1], name='y'), ylabel="override")
+        assert ax.get_xlabel() == "x"
+        assert ax.get_ylabel() == "override"
 
     def test_scatter_dict(self):
         scprep.plot.scatter2d(self.X_pca, c=np.random.choice(
@@ -810,8 +1004,12 @@ class Test10X(unittest.TestCase):
         assert np.all(xticklabels == np.array(['a', 'b', 'c']))
 
     def test_scatter_axis_labels(self):
+        ax = scprep.plot.scatter2d(
+            self.X_pca.tolist(), label_prefix="test")
+        assert ax.get_xlabel() == "test1"
+        assert ax.get_ylabel() == "test2"
         ax = scprep.plot.scatter3d(
-            self.X_pca, label_prefix="test")
+            self.X_pca.tolist(), label_prefix="test")
         assert ax.get_xlabel() == "test1"
         assert ax.get_ylabel() == "test2"
         assert ax.get_zlabel() == "test3"
@@ -819,6 +1017,20 @@ class Test10X(unittest.TestCase):
             self.X_pca, label_prefix="test", xlabel="override")
         assert ax.get_xlabel() == "override"
         assert ax.get_ylabel() == "test2"
+        ax = scprep.plot.scatter(
+            x=self.X_pca[:,0], y=pd.Series(self.X_pca[:,1], name='y'),
+            z=pd.Series(self.X_pca[:,2], name='z'),
+            ylabel='override')
+        assert ax.get_xlabel() == ''
+        assert ax.get_ylabel() == "override"
+        assert ax.get_zlabel() == "z"
+        ax = scprep.plot.scatter(
+            x=self.X_pca[:,0], y=pd.Series(self.X_pca[:,1], name='y'),
+            z=pd.Series(self.X_pca[:,2], name='z'),
+            zlabel='override')
+        assert ax.get_xlabel() == ''
+        assert ax.get_ylabel() == "y"
+        assert ax.get_zlabel() == "override"
 
     def test_scatter_axis_savefig(self):
         scprep.plot.scatter2d(
@@ -830,6 +1042,20 @@ class Test10X(unittest.TestCase):
             self.X_pca, elev=80, azim=270)
         assert ax.elev == 80
         assert ax.azim == 270
+
+    def test_scatter3d_data_2d(self):
+        assert_raise_message(
+            ValueError,
+            "Expected data.shape[1] >= 3. Got 2",
+            scprep.plot.scatter3d,
+            self.X_pca[:,:2])
+
+    def test_scatter3d_data_2d_list(self):
+        assert_raise_message(
+            ValueError,
+            "Expected data.shape[1] >= 3. Got 2",
+            scprep.plot.scatter3d,
+            self.X_pca[:,:2].tolist())
 
     def test_scatter_rotate_gif(self):
         scprep.plot.rotate_scatter3d(self.X_pca, fps=3, dpi=20,
@@ -873,6 +1099,13 @@ class Test10X(unittest.TestCase):
                 self.X_pca.shape[0], self.X_pca.shape[1]),
             scprep.plot.scatter2d, self.X_pca,
             s=self.X_pca[0, :])
+
+    def test_scatter_invalid_mask(self):
+        assert_raise_message(
+            ValueError, "Expected mask of length {}. Got {}".format(
+                self.X_pca.shape[0], self.X_pca.shape[1]),
+            scprep.plot.scatter2d, self.X_pca,
+            mask=self.X_pca[0, :] > 0)
 
     def test_scatter_invalid_discrete(self):
         assert_raise_message(
@@ -1080,7 +1313,7 @@ class Test10X(unittest.TestCase):
             "be provided. "
             "Got gene_names=None, data as a <class 'numpy.ndarray'>",
             scprep.plot.marker_plot,
-            data=self.X.values,
+            data=self.X.to_numpy(),
             clusters=np.random.choice(
                 np.arange(10), replace=True, size=self.X.shape[0]),
             markers={'tissue': ['z']})

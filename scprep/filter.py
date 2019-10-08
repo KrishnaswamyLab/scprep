@@ -28,14 +28,14 @@ def remove_empty_cells(data, *extra_data, sample_labels=None):
     warnings.warn("`scprep.filter.remove_empty_cells` is deprecated. "
                   "Use `scprep.filter.filter_empty_cells` instead.",
                   DeprecationWarning)
-    return filter_empty_cells(data, *extra_data)
+    return filter_empty_cells(data, *extra_data, sample_labels=sample_labels)
 
 
 def remove_duplicates(data, *extra_data, sample_labels=None):
     warnings.warn("`scprep.filter.remove_duplicates` is deprecated. "
                   "Use `scprep.filter.filter_duplicates` instead.",
                   DeprecationWarning)
-    return filter_duplicates(data, *extra_data)
+    return filter_duplicates(data, *extra_data, sample_labels=sample_labels)
 
 
 def filter_empty_genes(data, *extra_data):
@@ -120,21 +120,6 @@ def filter_empty_cells(data, *extra_data, sample_labels=None):
     return data
 
 
-def _get_filter_idx(data, values,
-                    cutoff, percentile,
-                    keep_cells):
-    cutoff = measure._get_percentile_cutoff(
-        values, cutoff, percentile, required=True)
-    if keep_cells == 'above':
-        keep_cells_idx = values > cutoff
-    elif keep_cells == 'below':
-        keep_cells_idx = values < cutoff
-    else:
-        raise ValueError("Expected `keep_cells` in ['above', 'below']. "
-                         "Got {}".format(keep_cells))
-    return keep_cells_idx
-
-
 def filter_values(data, *extra_data, values=None,
                   cutoff=None, percentile=None,
                   keep_cells='above',
@@ -188,9 +173,9 @@ def filter_values(data, *extra_data, values=None,
                       "Filtering as a single sample.",
                       DeprecationWarning)
     assert values is not None
-    keep_cells_idx = _get_filter_idx(data, values,
-                                     cutoff, percentile,
-                                     keep_cells)
+    keep_cells_idx = utils._get_filter_idx(values,
+                                          cutoff, percentile,
+                                          keep_cells)
     if return_values:
         extra_data = [values] + list(extra_data)
     data = select.select_rows(data, *extra_data, idx=keep_cells_idx)
@@ -303,7 +288,7 @@ def filter_gene_set_expression(data, *extra_data, genes=None,
         Filtered extra data, if passed.
     """
     cell_sums = measure.gene_set_expression(
-        data, genes,
+        data, genes=genes,
         starts_with=starts_with, ends_with=ends_with,
         exact_word=exact_word, regex=regex,
         library_size_normalize=library_size_normalize)
@@ -330,6 +315,8 @@ def _find_unique_cells(data):
     """
     if isinstance(data, pd.SparseDataFrame):
         unique_idx = _find_unique_cells(data.to_coo())
+    elif utils.is_sparse_dataframe(data):
+        unique_idx = _find_unique_cells(data.sparse.to_coo())
     elif isinstance(data, pd.DataFrame):
         unique_idx = ~data.duplicated()
     elif isinstance(data, np.ndarray):

@@ -5,6 +5,7 @@ from scipy import sparse
 import warnings
 import re
 import sys
+
 from . import utils
 
 if int(sys.version.split(".")[1]) < 7:
@@ -57,7 +58,7 @@ def _check_columns_compatible(*data):
                 raise ValueError(
                     "Expected `data` and `extra_data` pandas inputs to have "
                     "the same column names. Fix with "
-                    "`scprep.select.select_cols(*extra_data, data.columns)`")
+                    "`scprep.select.select_cols(*extra_data, idx=data.columns)`")
 
 
 def _check_rows_compatible(*data):
@@ -73,7 +74,7 @@ def _check_rows_compatible(*data):
                 raise ValueError(
                     "Expected `data` and `extra_data` pandas inputs to have "
                     "the same index. Fix with "
-                    "`scprep.select.select_rows(*extra_data, data.index)`")
+                    "`scprep.select.select_rows(*extra_data, idx=data.index)`")
 
 
 def _convert_dataframe_1d(idx):
@@ -112,7 +113,7 @@ def _exact_word_regex(word):
     allowed_chars = ['\\(', '\\)', '\\[', '\\]', '\\.',
                      ',', '!', '\\?', ' ', '^', '$']
     wildcard = "(" + "|".join(allowed_chars) + ")+"
-    return "{wildcard}{word}{wildcard}".format(wildcard=wildcard, word=word)
+    return "{wildcard}{word}{wildcard}".format(wildcard=wildcard, word=re.escape(word))
 
 
 def _get_string_subset_mask(data, starts_with=None, ends_with=None,
@@ -218,7 +219,7 @@ def get_gene_set(data, starts_with=None, ends_with=None,
     """
     if not _is_1d(data):
         try:
-            data = data.columns.values
+            data = data.columns.to_numpy()
         except AttributeError:
             raise TypeError("data must be a list of gene names or a pandas "
                             "DataFrame. Got {}".format(type(data).__name__))
@@ -255,7 +256,7 @@ def get_cell_set(data, starts_with=None, ends_with=None,
     """
     if not _is_1d(data):
         try:
-            data = data.index.values
+            data = data.index.to_numpy()
         except AttributeError:
             raise TypeError("data must be a list of cell names or a pandas "
                             "DataFrame. Got {}".format(type(data).__name__))
@@ -329,21 +330,37 @@ def select_cols(data, *extra_data, idx=None,
         _check_idx_1d(idx)
         idx = idx.flatten()
 
+    if isinstance(data, pd.SparseDataFrame):
+        # evil deprecated dataframe; get rid of it
+        data = utils.SparseDataFrame(data)
     if isinstance(data, pd.DataFrame):
         try:
-            data = data.loc[:, idx]
+            if isinstance(idx, (numbers.Integral, str)):
+                data = data.loc[:, idx]
+            else:
+                if np.issubdtype(idx.dtype, np.dtype(bool).type):
+                    # temporary workaround for pandas error
+                    raise TypeError
+                data = data.loc[:, idx]
         except (KeyError, TypeError):
+            if isinstance(idx, str):
+                raise
             if isinstance(idx, numbers.Integral) or \
-                    issubclass(np.array(idx).dtype.type, numbers.Integral):
+                    np.issubdtype(idx.dtype, np.dtype(int)) or \
+                    np.issubdtype(idx.dtype, np.dtype(bool)):
                 data = data.loc[:, np.array(data.columns)[idx]]
             else:
                 raise
     elif isinstance(data, pd.Series):
         try:
+            if np.issubdtype(idx.dtype, np.dtype(bool).type):
+                # temporary workaround for pandas error
+                raise TypeError
             data = data.loc[idx]
         except (KeyError, TypeError):
             if isinstance(idx, numbers.Integral) or \
-                    issubclass(np.array(idx).dtype.type, numbers.Integral):
+                    np.issubdtype(idx.dtype, np.dtype(int)) or \
+                    np.issubdtype(idx.dtype, np.dtype(bool)):
                 data = data.loc[np.array(data.index)[idx]]
             else:
                 raise
@@ -432,16 +449,28 @@ def select_rows(data, *extra_data, idx=None,
         _check_idx_1d(idx)
         idx = idx.flatten()
 
+    if isinstance(data, pd.SparseDataFrame):
+        # evil deprecated dataframe; get rid of it
+        data = utils.SparseDataFrame(data)
     if isinstance(data, (pd.DataFrame, pd.Series)):
         try:
-            with warnings.catch_warnings():
-                warnings.filterwarnings(
-                    "error", "Passing list-likes to .loc")
+            if isinstance(idx, (numbers.Integral, str)):
                 data = data.loc[idx]
+            else:
+                if np.issubdtype(idx.dtype, np.dtype(bool).type):
+                    # temporary workaround for pandas error
+                    raise TypeError
+                with warnings.catch_warnings():
+                    warnings.filterwarnings(
+                        "error", "Passing list-likes to .loc")
+                    data = data.loc[idx]
         except (KeyError, TypeError, FutureWarning):
+            if isinstance(idx, str):
+                raise
             if isinstance(idx, numbers.Integral) or \
-                    issubclass(np.array(idx).dtype.type, numbers.Integral):
-                data = data.iloc[idx]
+                    np.issubdtype(idx.dtype, np.dtype(int)) or \
+                    np.issubdtype(idx.dtype, np.dtype(bool)):
+                data = data.loc[np.array(data.index)[idx]]
             else:
                 raise
     elif _is_1d(data):
@@ -494,6 +523,50 @@ def subsample(*data, n=10000, seed=None):
     if N < n:
         raise ValueError("Expected n ({}) <= n_samples ({})".format(n, N))
     np.random.seed(seed)
-    select_idx = np.random.choice(N, n, replace=False)
+    select_idx = np.isin(np.arange(N), np.random.choice(N, n, replace=False))
     data = [select_rows(d, idx=select_idx) for d in data]
     return tuple(data) if len(data) > 1 else data[0]
+
+
+def highly_variable_genes(data, *extra_data, span=0.7, interpolate=0.2, kernel_size=0.05,
+                          cutoff=None, percentile=80):
+    """Select genes with high variability
+
+    Variability is computed as the deviation from a loess fit
+    to the rolling median of the mean-variance curve
+
+    Parameters
+    ----------
+    data : array-like, shape=[n_samples, n_features]
+        Input data
+    extra_data : array-like, shape=[any, n_features], optional
+        Optional additional data objects from which to select the same rows
+    span : float, optional (default: 0.7)
+        Fraction of genes to use when computing the loess estimate at each point
+    interpolate : float, optional (default: 0.2)
+        Multiple of the standard deviation of variances at which to interpolate
+        linearly in order to reduce computation time.
+    kernel_size : float or int, optional (default: 0.05)
+        Width of rolling median window. If a float, the width is given by
+        kernel_size * data.shape[1]
+    cutoff : float, optional (default: None)
+        Variability above which expression is deemed significant
+    percentile : int, optional (Default: 80)
+        Percentile above or below which to remove genes.
+        Must be an integer between 0 and 100. Only one of `cutoff`
+        and `percentile` should be specified.
+
+    Returns
+    -------
+    data : array-like, shape=[n_samples, m_features]
+        Filtered output data, where m_features <= n_features
+    extra_data : array-like, shape=[any, m_features]
+        Filtered extra data, if passed.
+    """
+    from . import measure
+    var_genes = measure.gene_variability(data, span=span, interpolate=interpolate,
+                                         kernel_size=kernel_size)
+    keep_cells_idx = utils._get_filter_idx(var_genes,
+                                           cutoff, percentile,
+                                           keep_cells='above')
+    return select_cols(data, *extra_data, idx=keep_cells_idx)

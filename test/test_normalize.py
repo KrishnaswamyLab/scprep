@@ -23,12 +23,13 @@ class TestNormalize(unittest.TestCase):
         Y = self.X_norm * self.median
         utils.assert_all_close(Y.sum(1), np.median(np.sum(self.X, 1)))
         Y2, libsize2 = scprep.normalize.library_size_normalize(
-            self.X, return_library_size=True)
+            self.X, rescale='median', return_library_size=True)
         np.testing.assert_allclose(Y, Y2)
         np.testing.assert_allclose(self.libsize, libsize2)
         matrix.test_all_matrix_types(
             self.X, utils.assert_transform_equivalent, Y=Y,
             transform=scprep.normalize.library_size_normalize,
+            rescale='median',
             check=utils.assert_all_close)
 
     def test_libsize_norm_return_libsize(self):

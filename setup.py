@@ -3,11 +3,11 @@ import sys
 from setuptools import setup, find_packages
 
 install_requires = [
-    'numpy>=1.10.0',
-    'scipy>=0.18.0',
+    'numpy>=1.12.0',
+    'scipy>=0.18.1',
     'scikit-learn>=0.19.1',
-    'pandas>=0.19.0,<0.24',
-    'decorator>=4.3.0'
+    'decorator>=4.3.0',
+    'pandas>=0.25',
 ]
 
 test_requires = [
@@ -16,9 +16,10 @@ test_requires = [
     'fcsparser',
     'tables',
     'h5py',
-    'rpy2>=3.0',
     'coverage',
-    'coveralls'
+    'coveralls',
+    'parameterized',
+    'statsmodels',
 ]
 
 doc_requires = [
@@ -32,9 +33,9 @@ doc_requires = [
 if sys.version_info[:2] < (3, 5):
     raise RuntimeError("Python version >=3.5 required.")
 elif sys.version_info[:2] < (3, 6):
-    test_requires += ['matplotlib>=3.0,<3.1']
+    test_requires += ['matplotlib>=3.0,<3.1', 'rpy2>=3.0,<3.1']
 else:
-    test_requires += ['matplotlib>=3.0']
+    test_requires += ['matplotlib>=3.0', 'rpy2>=3.0']
 
 version_py = os.path.join(os.path.dirname(
     __file__), 'scprep', 'version.py')
@@ -46,7 +47,7 @@ readme = open('README.rst').read()
 setup(name='scprep',
       version=version,
       description='scprep',
-      author='Jay Stanley, Scott Gigante, and Daniel Burkhardt, Krishnaswamy Lab, Yale University',
+      author='Scott Gigante, Daniel Burkhardt and Jay Stanley, Yale University',
       author_email='krishnaswamylab@gmail.com',
       packages=find_packages(),
       license='GNU General Public License Version 2',

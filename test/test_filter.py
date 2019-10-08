@@ -85,6 +85,7 @@ class Test10X(unittest.TestCase):
             self.X_dense, utils.assert_transform_equals,
             Y=X_filtered, transform=scprep.filter.filter_rare_genes)
 
+
     def test_library_size_filter(self):
         X_filtered = scprep.filter.filter_library_size(
             self.X_sparse, cutoff=100)
@@ -209,7 +210,7 @@ class Test10X(unittest.TestCase):
             self.X_sparse, genes=genes, cutoff=None, percentile=None)
         assert_raise_message(
             KeyError,
-            "the label [not_a_gene] is not in the [columns]",
+            "not_a_gene",
             scprep.filter.filter_gene_set_expression,
             self.X_sparse, genes=no_genes, percentile=90.0, keep_cells='below')
 
@@ -266,7 +267,13 @@ class Test10X(unittest.TestCase):
 
 
 def test_large_sparse_dataframe_library_size():
+    matrix._ignore_pandas_sparse_warning()
     X = pd.SparseDataFrame(sparse.coo_matrix((10**7, 2 * 10**4)),
                            default_fill_value=0.0)
+    cell_sums = scprep.measure.library_size(X)
+    assert cell_sums.shape[0] == X.shape[0]
+    matrix._reset_warnings()
+    X = matrix.SparseDataFrame(sparse.coo_matrix((10**7, 2 * 10**4)),
+                               default_fill_value=0.0)
     cell_sums = scprep.measure.library_size(X)
     assert cell_sums.shape[0] == X.shape[0]

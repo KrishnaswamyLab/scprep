@@ -40,18 +40,18 @@ def _combine_gene_id(symbols, ids):
 def _parse_10x_genes(symbols, ids, gene_labels='symbol',
                      allow_duplicates=True):
     assert gene_labels in ['symbol', 'id', 'both']
-    if gene_labels == 'both':
-        columns = _combine_gene_id(symbols, ids)
     if gene_labels == 'symbol':
         columns = symbols
         if not allow_duplicates and len(np.unique(columns)) < len(columns):
             warnings.warn(
-                "Duplicate gene names detected! Forcing `gene_labels='id'`. "
-                "Alternatively, try `gene_labels='both'`, "
+                "Duplicate gene names detected! Forcing `gene_labels='both'`. "
+                "Alternatively, try `gene_labels='id'`, "
                 "`allow_duplicates=True`, or load the matrix"
                 " with `sparse=False`", RuntimeWarning)
-            gene_labels = 'id'
-    if gene_labels == 'id':
+            gene_labels = 'both'
+    if gene_labels == 'both':
+        columns = _combine_gene_id(symbols, ids)
+    elif gene_labels == 'id':
         columns = ids
     return columns
 
@@ -95,7 +95,7 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol',
     Returns
     -------
     data: array-like, shape=[n_samples, n_features]
-        If sparse, data will be a pd.SparseDataFrame. Otherwise, data will
+        If sparse, data will be a pd.DataFrame[pd.SparseArray]. Otherwise, data will
         be a pd.DataFrame.
     """
 
@@ -168,7 +168,7 @@ def load_10X_zip(filename, sparse=True, gene_labels='symbol',
     Returns
     -------
     data: array-like, shape=[n_samples, n_features]
-        If sparse, data will be a pd.SparseDataFrame. Otherwise, data will
+        If sparse, data will be a pd.DataFrame[pd.SparseArray]. Otherwise, data will
         be a pd.DataFrame.
     """
 
@@ -247,7 +247,7 @@ def load_10X_HDF5(filename, genome=None, sparse=True, gene_labels='symbol',
     Returns
     -------
     data: array-like, shape=[n_samples, n_features]
-        If sparse, data will be a pd.SparseDataFrame. Otherwise, data will
+        If sparse, data will be a pd.DataFrame[pd.SparseArray]. Otherwise, data will
         be a pd.DataFrame.
     """
 

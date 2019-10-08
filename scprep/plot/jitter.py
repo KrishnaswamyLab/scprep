@@ -30,7 +30,7 @@ class _JitterParams(_ScatterParams):
 def jitter(labels, values, sigma=0.1,
            c=None, cmap=None, cmap_scale='linear',
            s=None,
-           plot_means=True, means_s=100, means_c='xkcd:light lavender',
+           plot_means=True, means_s=100, means_c='lightgrey',
            discrete=None,
            ax=None,
            legend=None, colorbar=None,
@@ -84,7 +84,7 @@ def jitter(labels, values, sigma=0.1,
         If True, plot the mean value for each label.
     means_s : float, optional (default: 100)
         Point size for mean values.
-    means_c : string, list-like or matplotlib color, optional (default: 'xkcd:light lavender')
+    means_c : string, list-like or matplotlib color, optional (default: 'lightgrey')
         Point color(s) for mean values.
     discrete : bool or None, optional (default: None)
         If True, the legend is categorical. If False, the legend is a colorbar.
@@ -113,13 +113,8 @@ def jitter(labels, values, sigma=0.1,
         If a list, sets custom axis tick labels
     {x,y}ticklabels : True, False, or list-like (default: None)
         If set, overrides `ticklabels`
-    label_prefix : str or None (default: None)
-        Prefix for all axis labels. Axes will be labelled `label_prefix`1,
-        `label_prefix`2, etc. Can be overriden by setting `xlabel`,
-        `ylabel`, and `zlabel`.
     {x,y}label : str or None (default : None)
-        Axis labels. Overrides the automatic label given by
-        label_prefix. If None and label_prefix is None, no label is set.
+        Axis labels. If None, no label is set.
     title : str or None (default: None)
         axis title. If None, no title is set.
     fontsize : float or None (default: None)
@@ -157,7 +152,8 @@ def jitter(labels, values, sigma=0.1,
             labels, values, c=c, discrete=discrete,
             cmap=cmap, cmap_scale=cmap_scale,
             vmin=vmin, vmax=vmax, s=s,
-            legend=legend, colorbar=colorbar)
+            legend=legend, colorbar=colorbar,
+            xlabel=xlabel, ylabel=ylabel)
 
         fig, ax, show_fig = _get_figure(
             ax, figsize, subplot_kw=params.subplot_kw)
@@ -190,9 +186,9 @@ def jitter(labels, values, sigma=0.1,
                 xticklabels = params.x_labels
 
         # label axes
-        label_axis(ax.xaxis, xticks, xticklabels, xlabel)
+        label_axis(ax.xaxis, xticks, xticklabels, params.xlabel)
         label_axis(ax.yaxis, _with_default(yticks, ticks),
-                   _with_default(yticklabels, ticklabels), ylabel)
+                   _with_default(yticklabels, ticklabels), params.ylabel)
 
         # manually set x limits
         xmin = np.min(params.x_coords)
@@ -216,8 +212,8 @@ def jitter(labels, values, sigma=0.1,
                                   scale=sc.norm)
 
         # save and show
-        if filename is not None:
-            fig.savefig(filename, dpi=dpi)
         if show_fig:
             show(fig)
+        if filename is not None:
+            fig.savefig(filename, dpi=dpi)
     return ax

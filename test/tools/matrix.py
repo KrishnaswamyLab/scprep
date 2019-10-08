@@ -5,6 +5,37 @@ from scipy import sparse
 from functools import partial
 
 
+def _ignore_pandas_sparse_warning():
+    warnings.filterwarnings(
+        "ignore",
+        category=FutureWarning,
+        message="SparseSeries")
+    warnings.filterwarnings(
+        "ignore",
+        category=FutureWarning,
+        message="SparseDataFrame")
+    warnings.filterwarnings(
+        "error",
+        category=pd.errors.PerformanceWarning)
+
+
+def _reset_warnings():
+    warnings.filterwarnings(
+        "error",
+        category=FutureWarning,
+        message="SparseSeries")
+    warnings.filterwarnings(
+        "error",
+        category=FutureWarning,
+        message="SparseDataFrame")
+    warnings.filterwarnings(
+        "error",
+        category=pd.errors.PerformanceWarning)
+
+
+_reset_warnings()
+
+
 def _no_warning_dia_matrix(*args, **kwargs):
     """Helper function to silently create diagonal matrix"""
     with warnings.catch_warnings():
@@ -15,7 +46,24 @@ def _no_warning_dia_matrix(*args, **kwargs):
             " diagonals is inefficient")
         return sparse.dia_matrix(*args, **kwargs)
 
-SparseDataFrame = partial(pd.SparseDataFrame, default_fill_value=0.0)
+def SparseDataFrame_deprecated(X, default_fill_value=0.0):
+    return pd.SparseDataFrame(X, default_fill_value=default_fill_value)
+
+def SparseSeries(X, default_fill_value=0.0):
+    return pd.Series(X).astype(pd.SparseDtype(float, fill_value=default_fill_value))
+
+def SparseSeries_deprecated(X, default_fill_value=0.0):
+    return pd.SparseSeries(X, fill_value=default_fill_value)
+
+
+def SparseDataFrame(X, default_fill_value=0.0):
+    if sparse.issparse(X):
+        X = pd.DataFrame.sparse.from_spmatrix(X)
+        X.sparse.fill_value = default_fill_value
+    elif isinstance(X, pd.SparseDataFrame) or not isinstance(X, pd.DataFrame):
+        X = pd.DataFrame(X)
+    return X.astype(pd.SparseDtype(float, fill_value=default_fill_value))
+
 
 _scipy_matrix_types = [
     sparse.csr_matrix,
@@ -36,22 +84,30 @@ _pandas_dense_matrix_types = [
 
 _pandas_sparse_matrix_types = [
     SparseDataFrame,
+    SparseDataFrame_deprecated,
 ]
 
-_pandas_matrix_types = [
-    pd.DataFrame,
-    SparseDataFrame,
+_pandas_vector_types = [
+    pd.Series,
+    SparseSeries,
+    SparseSeries_deprecated
 ]
+
+_pandas_matrix_types = _pandas_dense_matrix_types + _pandas_sparse_matrix_types
 
 _indexable_matrix_types = [
     sparse.csr_matrix,
     sparse.csc_matrix,
     sparse.lil_matrix,
-    sparse.dok_matrix,
-    np.array,
-    pd.DataFrame,
-    SparseDataFrame
-]
+    sparse.dok_matrix
+] + _numpy_matrix_types + _pandas_matrix_types
+
+
+def _typename(X):
+    if isinstance(X, pd.DataFrame) and not isinstance(X, pd.SparseDataFrame) and hasattr(X, "sparse"):
+        return "DataFrame[SparseArray]"
+    else:
+        return type(X).__name__
 
 
 def test_matrix_types(X, test_fun, matrix_types, *args, **kwargs):
@@ -66,13 +122,17 @@ def test_matrix_types(X, test_fun, matrix_types, *args, **kwargs):
     **kwargs : keyword arguments for test_fun
     """
     for fun in matrix_types:
+        if fun is SparseDataFrame_deprecated or fun is SparseSeries_deprecated:
+            _ignore_pandas_sparse_warning()
         Y = fun(X.copy())
         try:
             test_fun(Y, *args, **kwargs)
         except Exception as e:
             raise RuntimeError("{} with {} input to {}\n{}".format(
-                type(e).__name__, type(Y).__name__, test_fun.__name__,
+                type(e).__name__, _typename(Y), test_fun.__name__,
                 str(e)))
+        finally:
+            _reset_warnings()
 
 
 def test_dense_matrix_types(X, test_fun, *args, **kwargs):

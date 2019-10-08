@@ -9,21 +9,34 @@ from .utils import (_get_figure, _is_color_array,
                     _with_default)
 from .tools import (create_colormap, create_normalize,
                     label_axis, generate_colorbar, generate_legend)
+from . import colors
 
 from .._lazyload import matplotlib as mpl
 plt = mpl.pyplot
 
 
+def _squeeze_array(x):
+    x = utils.toarray([x]).squeeze()
+    try:
+        len(x)
+    except TypeError:
+        x = x[None]
+    return x
+
+
 class _ScatterParams(object):
 
-    def __init__(self, x, y, z=None, c=None, discrete=None,
+    def __init__(self, x, y, z=None, c=None, mask=None,
+                 discrete=None,
                  cmap=None, cmap_scale=None, vmin=None,
                  vmax=None, s=None, legend=None, colorbar=None,
-                 shuffle=True):
-        self._x = utils.toarray(x).squeeze()
-        self._y = utils.toarray(y).squeeze()
-        self._z = utils.toarray(z).squeeze() if z is not None else None
+                 xlabel=None, ylabel=None, zlabel=None,
+                 label_prefix=None, shuffle=True):
+        self._x = x
+        self._y = y
+        self._z = z if z is not None else None
         self._c = c
+        self._mask = mask
         self._discrete = discrete
         self._cmap = cmap
         self._cmap_scale = cmap_scale
@@ -34,9 +47,14 @@ class _ScatterParams(object):
         self._colorbar = colorbar
         self._labels = None
         self._c_discrete = None
+        self._label_prefix = label_prefix
+        self._xlabel = xlabel
+        self._ylabel = ylabel
+        self._zlabel = zlabel
         self.shuffle = shuffle
         self.check_size()
         self.check_c()
+        self.check_mask()
         self.check_s()
         self.check_discrete()
         self.check_legend()
@@ -45,31 +63,48 @@ class _ScatterParams(object):
         self.check_vmin_vmax()
 
     @property
+    def x_array(self):
+        return _squeeze_array(self._x)
+
+    @property
+    def y_array(self):
+        return _squeeze_array(self._y)
+
+    @property
+    def z_array(self):
+        return _squeeze_array(self._z) if self._z is not None else None
+
+    @property
     def size(self):
-        return len(self._x)
+        try:
+            return self._size
+        except AttributeError:
+            self._size = len(self.x_array)
+            return self._size
 
     @property
     def plot_idx(self):
         try:
             return self._plot_idx
         except AttributeError:
+            self._plot_idx = np.arange(self.size)
+            if self._mask is not None:
+                self._plot_idx = self._plot_idx[self._mask]
             if self.shuffle:
-                self._plot_idx = np.random.permutation(self.size)
-            else:
-                self._plot_idx = np.arange(self.size)
+                self._plot_idx = np.random.permutation(self._plot_idx)
             return self._plot_idx
 
     @property
     def x(self):
-        return self._x[self.plot_idx]
+        return self.x_array[self.plot_idx]
 
     @property
     def y(self):
-        return self._y[self.plot_idx]
+        return self.y_array[self.plot_idx]
 
     @property
     def z(self):
-        return self._z[self.plot_idx] if self._z is not None else None
+        return self.z_array[self.plot_idx] if self._z is not None else None
 
     @property
     def data(self):
@@ -81,9 +116,9 @@ class _ScatterParams(object):
     @property
     def _data(self):
         if self._z is not None:
-            return [self._x, self._y, self._z]
+            return [self.x_array, self.y_array, self.z_array]
         else:
-            return [self._x, self._y]
+            return [self.x_array, self.y_array]
 
     @property
     def s(self):
@@ -111,12 +146,19 @@ class _ScatterParams(object):
             return self._array_c
 
     @property
+    def _c_masked(self):
+        if self.constant_c() or self._mask is None:
+            return self._c
+        else:
+            return self._c[self._mask]
+
+    @property
     def c_unique(self):
         """Get unique values in c to avoid recomputing every time"""
         try:
             return self._c_unique
         except AttributeError:
-            self._c_unique = np.unique(self._c)
+            self._c_unique = np.unique(self._c_masked)
             return self._c_unique
 
     @property
@@ -145,7 +187,7 @@ class _ScatterParams(object):
             else:
                 if isinstance(self._cmap, dict) or not \
                     np.all([isinstance(x, numbers.Number)
-                            for x in self._c]):
+                            for x in self._c_masked]):
                     # cmap dictionary or non-numeric values force discrete
                     return True
                 else:
@@ -171,8 +213,9 @@ class _ScatterParams(object):
                 for i, label in enumerate(self._labels):
                     self._c_discrete[self._c == label] = i
             else:
-                self._c_discrete, self._labels = pd.factorize(
-                    self._c, sort=True)
+                self._c_discrete = np.zeros_like(self._c, dtype=int)
+                self._c_discrete[self._mask], self._labels = pd.factorize(
+                    self._c_masked, sort=True)
         return self._c_discrete
 
     @property
@@ -215,7 +258,7 @@ class _ScatterParams(object):
             if self.constant_c() or self.array_c() or self.discrete:
                 return None
             else:
-                return np.min(self.c)
+                return np.nanmin(self.c)
 
     @property
     def vmax(self):
@@ -225,7 +268,7 @@ class _ScatterParams(object):
             if self.constant_c() or self.array_c() or self.discrete:
                 return None
             else:
-                return np.max(self.c)
+                return np.nanmax(self.c)
 
     def list_cmap(self):
         """Is the colormap a list?"""
@@ -257,11 +300,7 @@ class _ScatterParams(object):
             if self.constant_c() or self.array_c():
                 return None
             elif self.discrete:
-                n_unique_colors = self.n_c_unique
-                if n_unique_colors <= 10:
-                    return self.process_string_cmap('tab10')
-                else:
-                    return self.process_string_cmap('tab20')
+                return colors.tab(n=self.n_c_unique)
             else:
                 return self.process_string_cmap('inferno')
 
@@ -354,14 +393,21 @@ class _ScatterParams(object):
 
     def check_c(self):
         if not self.constant_c():
-            self._c = utils.toarray(self._c).squeeze()
+            self._c = _squeeze_array(self._c)
             if not len(self._c) == self.size:
                 raise ValueError("Expected c of length {} or 1. Got {}".format(
                     self.size, len(self._c)))
 
+    def check_mask(self):
+        if self._mask is not None:
+            self._mask = _squeeze_array(self._mask)
+            if not len(self._mask) == self.size:
+                raise ValueError("Expected mask of length {}. Got {}".format(
+                    self.size, len(self._mask)))
+
     def check_s(self):
         if self._s is not None and not isinstance(self._s, numbers.Number):
-            self._s = utils.toarray(self._s).squeeze()
+            self._s = _squeeze_array(self._s)
             if not len(self._s) == self.size:
                 raise ValueError("Expected s of length {} or 1. Got {}".format(
                     self.size, len(self._s)))
@@ -414,10 +460,46 @@ class _ScatterParams(object):
                     UserWarning)
                 self._cmap_scale = 'linear'
 
+    @property
+    def xlabel(self):
+        if self._xlabel is not None:
+            return self._xlabel
+        elif self._label_prefix is not None:
+            return self._label_prefix + "1"
+        elif isinstance(self._x, pd.Series):
+            return self._x.name
+        else:
+            return None
+
+    @property
+    def ylabel(self):
+        if self._ylabel is not None:
+            return self._ylabel
+        elif self._label_prefix is not None:
+            return self._label_prefix + "2"
+        elif isinstance(self._y, pd.Series):
+            return self._y.name
+        else:
+            return None
+
+    @property
+    def zlabel(self):
+        if self._z is None:
+            return None
+        elif self._zlabel is not None:
+            return self._zlabel
+        elif self._label_prefix is not None:
+            return self._label_prefix + "3"
+        elif isinstance(self._z, pd.Series):
+            return self._z.name
+        else:
+            return None
+
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
-def scatter(x, y, z=None,
-            c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
+def scatter(x, y, z=None, mask=None,
+            c=None, cmap=None, cmap_scale='linear', s=None,
+            discrete=None,
             ax=None,
             legend=None, colorbar=None,
             shuffle=True,
@@ -458,6 +540,8 @@ def scatter(x, y, z=None,
         data for y axis
     z : list-like, optional (default: None)
         data for z axis
+    mask : list-like, optional (default: None)
+        boolean mask to hide data points
     c : list-like or None, optional (default: None)
         Color vector. Can be a single color value (RGB, RGBA, or named
         matplotlib colors), an array of these of length n_samples, or a list of
@@ -560,11 +644,12 @@ def scatter(x, y, z=None,
     """
     with temp_fontsize(fontsize):
         params = _ScatterParams(
-            x, y, z, c=c, discrete=discrete,
+            x, y, z, c=c, mask=mask, discrete=discrete,
             cmap=cmap, cmap_scale=cmap_scale,
             vmin=vmin, vmax=vmax, s=s,
             legend=legend, colorbar=colorbar,
-            shuffle=shuffle)
+            xlabel=xlabel, ylabel=ylabel, zlabel=zlabel,
+            label_prefix=label_prefix, shuffle=shuffle)
 
         fig, ax, show_fig = _get_figure(
             ax, figsize, subplot_kw=params.subplot_kw)
@@ -575,23 +660,14 @@ def scatter(x, y, z=None,
             c=params.c, cmap=params.cmap, norm=params.norm, s=params.s,
             vmin=params.vmin, vmax=params.vmax, **plot_kwargs)
 
-        # automatic axis labels
-        if label_prefix is not None:
-            if xlabel is None:
-                xlabel = label_prefix + "1"
-            if ylabel is None:
-                ylabel = label_prefix + "2"
-            if zlabel is None:
-                zlabel = label_prefix + "3"
-
         # label axes
         label_axis(ax.xaxis, _with_default(xticks, ticks),
-                   _with_default(xticklabels, ticklabels), xlabel)
+                   _with_default(xticklabels, ticklabels), params.xlabel)
         label_axis(ax.yaxis, _with_default(yticks, ticks),
-                   _with_default(yticklabels, ticklabels), ylabel)
+                   _with_default(yticklabels, ticklabels), params.ylabel)
         if z is not None:
             label_axis(ax.zaxis, _with_default(zticks, ticks),
-                       _with_default(zticklabels, ticklabels), zlabel)
+                       _with_default(zticklabels, ticklabels), params.zlabel)
 
         if title is not None:
             ax.set_title(title, fontsize=parse_fontsize(None, 'xx-large'))
@@ -614,15 +690,15 @@ def scatter(x, y, z=None,
             ax.view_init(elev=elev, azim=azim)
 
         # save and show
-        if filename is not None:
-            fig.savefig(filename, dpi=dpi)
         if show_fig:
             show(fig)
+        if filename is not None:
+            fig.savefig(filename, dpi=dpi)
     return ax
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
-def scatter2d(data,
+def scatter2d(data, mask=None,
               c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
               ax=None, legend=None, colorbar=None,
               shuffle=True, figsize=None,
@@ -652,6 +728,8 @@ def scatter2d(data,
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data. Only the first two components will be used.
+    mask : list-like, optional (default: None)
+        boolean mask to hide data points
     c : list-like or None, optional (default: None)
         Color vector. Can be a single color value (RGB, RGBA, or named
         matplotlib colors), an array of these of length n_samples, or a list of
@@ -749,8 +827,11 @@ def scatter2d(data,
     >>> data[colors == 'a'] += 10
     >>> scprep.plot.scatter2d(data, c=colors, cmap={'a' : [1,0,0,1], 'b' : 'xkcd:sky blue'})
     """
+    if isinstance(data, list):
+        data = utils.toarray(data)
     return scatter(x=select.select_cols(data, idx=0),
                    y=select.select_cols(data, idx=1),
+                   mask=mask,
                    c=c, cmap=cmap, cmap_scale=cmap_scale, s=s, discrete=discrete,
                    ax=ax, legend=legend, colorbar=colorbar,
                    shuffle=shuffle, figsize=figsize,
@@ -774,7 +855,7 @@ def scatter2d(data,
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
-def scatter3d(data,
+def scatter3d(data, mask=None,
               c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
               ax=None, legend=None, colorbar=None,
               shuffle=True,
@@ -809,6 +890,8 @@ def scatter3d(data,
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data. Only the first two components will be used.
+    mask : list-like, optional (default: None)
+        boolean mask to hide data points
     c : list-like or None, optional (default: None)
         Color vector. Can be a single color value (RGB, RGBA, or named
         matplotlib colors), an array of these of length n_samples, or a list of
@@ -910,9 +993,15 @@ def scatter3d(data,
     >>> data[colors == 'a'] += 5
     >>> scprep.plot.scatter3d(data, c=colors, cmap={'a' : [1,0,0,1], 'b' : 'xkcd:sky blue'})
     """
-    return scatter(x=select.select_cols(data, idx=0),
-                   y=select.select_cols(data, idx=1),
-                   z=select.select_cols(data, idx=2),
+    if isinstance(data, list):
+        data = utils.toarray(data)
+    try:
+        x = select.select_cols(data, idx=0)
+        y = select.select_cols(data, idx=1)
+        z = select.select_cols(data, idx=2)
+    except IndexError:
+        raise ValueError("Expected data.shape[1] >= 3. Got {}".format(data.shape[1]))
+    return scatter(x=x, y=y, z=z, mask=mask,
                    c=c, cmap=cmap, cmap_scale=cmap_scale, s=s, discrete=discrete,
                    ax=ax, legend=legend, colorbar=colorbar,
                    shuffle=shuffle, figsize=figsize,
@@ -977,7 +1066,7 @@ def rotate_scatter3d(data,
         savefig.dpi in the matplotlibrc file. If 'figure' it will set the dpi
         to be the value of the figure. Only used if filename is not None.
     **kwargs : keyword arguments
-        See :~func:`phate.plot.scatter3d`.
+        See :~func:`scprep.plot.scatter3d`.
 
     Returns
     -------

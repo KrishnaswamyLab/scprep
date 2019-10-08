@@ -17,6 +17,10 @@
         - gfortran
         - libblas-dev
         - liblapack-dev
+        - libglu1-mesa-dev
+        - freeglut3-dev
+        - mesa-common-dev
+        - libgsl-dev
 
   cache: 
     - pip
@@ -25,7 +29,7 @@
       - $HOME/R/Library
 
   install:
-    - python setup.py install
+    - pip install -U .
 
   before_script:
     - sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
