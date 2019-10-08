@@ -612,6 +612,12 @@ def test_download_google_drive():
         assert data == 'test\n', data
     os.remove(dest)
 
+def test_download_google_drive_large():
+    id = "1FDDSWtSZcdQUVKpk-mPCZ8Ji1Fx8KSz9"
+    response = scprep.io.download._GET_google_drive(id)
+    assert response.status_code == 200
+    response.close()
+
 def test_download_url():
     X = data.load_10X()
     scprep.io.download.download_url("https://github.com/KrishnaswamyLab/scprep/raw/master/data/test_data/test_10X/matrix.mtx.gz", "url_test.mtx.gz")

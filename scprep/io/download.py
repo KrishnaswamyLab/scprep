@@ -27,6 +27,20 @@ def _google_drive_confirm_token(response):
     return None
 
 
+def _GET_google_drive(id):
+    """Post a GET request to Google Drive"""
+    global _GOOGLE_DRIVE_URL
+
+    with requests.Session() as session:
+        response = session.get(_GOOGLE_DRIVE_URL, params = { 'id' : id }, stream = True)
+        token = _google_drive_confirm_token(response)
+
+        if token:
+            params = { 'id' : id, 'confirm' : token }
+            response = session.get(_GOOGLE_DRIVE_URL, params = params, stream = True)
+    return response
+
+
 def download_google_drive(id, destination):
     """Download a file from Google Drive
     
@@ -41,17 +55,8 @@ def download_google_drive(id, destination):
     destination : string or file
         File to which to save the downloaded data
     """
-    global _GOOGLE_DRIVE_URL
-
-    with requests.Session() as session:
-        response = session.get(_GOOGLE_DRIVE_URL, params = { 'id' : id }, stream = True)
-        token = _google_drive_confirm_token(response)
-
-        if token:
-            params = { 'id' : id, 'confirm' : token }
-            response = session.get(_GOOGLE_DRIVE_URL, params = params, stream = True)
-
-        _save_response_content(response, destination)
+    response = _GET_google_drive(id)
+    _save_response_content(response, destination)
 
 
 def download_url(url, destination):
@@ -68,6 +73,7 @@ def download_url(url, destination):
         with open(destination, 'wb') as handle:
             download_url(url, handle)
     else:
+        # destination is File
         opener = urllib.request.build_opener()
         opener.addheaders = _FAKE_HEADERS
         urllib.request.install_opener(opener)
