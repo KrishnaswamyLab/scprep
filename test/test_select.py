@@ -334,20 +334,20 @@ class Test10X(unittest.TestCase):
             ValueError,
             "Expected `data` and `extra_data` pandas inputs to have the same "
             "column names. Fix with "
-            "`scprep.select.select_cols(*extra_data, data.columns)`",
+            "`scprep.select.select_cols(*extra_data, idx=data.columns)`",
             scprep.select.select_cols,
             self.X,
-            scprep.select.subsample(self.X.T, n=self.X.shape[0]).T)
+            self.X.iloc[:,::-1])
 
     def test_select_rows_conflicting_data(self):
         assert_raise_message(
             ValueError,
             "Expected `data` and `extra_data` pandas inputs to have the same "
             "index. Fix with "
-            "`scprep.select.select_rows(*extra_data, data.index)`",
+            "`scprep.select.select_rows(*extra_data, idx=data.index)`",
             scprep.select.select_rows,
             self.X,
-            scprep.select.subsample(self.X, n=self.X.shape[0]))
+            self.X.iloc[::-1])
 
     def test_select_cols_get_gene_set_ndarray_data(self):
         assert_raise_message(

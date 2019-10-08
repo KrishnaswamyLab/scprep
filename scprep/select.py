@@ -58,7 +58,7 @@ def _check_columns_compatible(*data):
                 raise ValueError(
                     "Expected `data` and `extra_data` pandas inputs to have "
                     "the same column names. Fix with "
-                    "`scprep.select.select_cols(*extra_data, data.columns)`")
+                    "`scprep.select.select_cols(*extra_data, idx=data.columns)`")
 
 
 def _check_rows_compatible(*data):
