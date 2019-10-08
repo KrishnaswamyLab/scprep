@@ -1,9 +1,9 @@
-numpy>=1.10.0
-scipy>=0.18.0
+numpy>=1.12.0
+scipy>=0.18.1
 scikit-learn>=0.19.1
 pandas>=0.25
-decorator
-matplotlib
+decorator>=4.3.0
+matplotlib>=3.0
 sphinx<=1.8.5
 sphinxcontrib-napoleon
 autodocsumm
