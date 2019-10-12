@@ -14,6 +14,7 @@ class Test10X(unittest.TestCase):
     def setUpClass(self):
         self.X_dense = data.load_10X(sparse=False)
         self.X_sparse = data.load_10X(sparse=True)
+        self.libsize = scprep.measure.library_size(self.X_dense.to_numpy())
 
     def test_filter_empty_cells(self):
         X_filtered = scprep.filter.filter_empty_cells(self.X_dense)
@@ -109,12 +110,39 @@ class Test10X(unittest.TestCase):
         assert X_filtered.shape[1] == self.X_sparse.shape[1]
         assert not np.any(X_filtered.sum(1) >= 100)
 
+    def test_library_size_filter_between(self):
+        X_filtered = scprep.filter.filter_library_size(
+            self.X_sparse, cutoff=(50, 100))
+        assert X_filtered.shape[1] == self.X_sparse.shape[1]
+        assert not np.any(X_filtered.sum(1) >= 100)
+        assert not np.any(X_filtered.sum(1) <= 50)
+        X_filtered = scprep.filter.filter_library_size(
+            self.X_sparse, percentile=(20, 80))
+        assert X_filtered.shape[1] == self.X_sparse.shape[1]
+        assert not np.any(X_filtered.sum(1) >= np.percentile(self.libsize, 80))
+        assert not np.any(X_filtered.sum(1) <= np.percentile(self.libsize, 20))
+
     def test_library_size_filter_error(self):
         assert_raise_message(
             ValueError,
-            "Expected `keep_cells` in ['above', 'below']. Got invalid",
+            "Expected `keep_cells` in ['above', 'below', 'between']. Got invalid",
             scprep.filter.filter_library_size,
             self.X_sparse, cutoff=100, keep_cells='invalid')
+        assert_raise_message(
+            ValueError,
+            "Expected cutoff of length 2 with keep_cells='between'. Got 100",
+            scprep.filter.filter_library_size,
+            self.X_sparse, cutoff=100, keep_cells='between')
+        assert_raise_message(
+            ValueError,
+            "Expected a single cutoff with keep_cells='above'. Got (50, 100)",
+            scprep.filter.filter_library_size,
+            self.X_sparse, cutoff=(50, 100), keep_cells='above')
+        assert_raise_message(
+            ValueError,
+            "Expected a single cutoff with keep_cells='below'. Got (50, 100)",
+            scprep.filter.filter_library_size,
+            self.X_sparse, cutoff=(50, 100), keep_cells='below')
 
     def test_library_size_filter_sample_label(self):
         sample_labels = pd.DataFrame(np.random.choice([0, 1], self.X_dense.shape[0]),
@@ -128,7 +156,7 @@ class Test10X(unittest.TestCase):
     def test_gene_expression_filter_below(self):
         genes = np.arange(10)
         X_filtered = scprep.filter.filter_gene_set_expression(
-            self.X_sparse, genes=genes, percentile=90, keep_cells='below',
+            self.X_sparse, genes=genes, percentile=90,
             library_size_normalize=False)
         gene_cols = np.array(self.X_sparse.columns)[genes]
         assert X_filtered.shape[1] == self.X_sparse.shape[1]
@@ -193,7 +221,7 @@ class Test10X(unittest.TestCase):
             self.X_sparse, genes=genes, percentile=0.90, cutoff=50)
         assert_raise_message(
             ValueError,
-            "Expected `keep_cells` in ['above', 'below']. "
+            "Expected `keep_cells` in ['above', 'below', 'between']. "
             "Got neither",
             scprep.filter.filter_gene_set_expression,
             self.X_sparse, genes=genes, percentile=90.0, keep_cells='neither')
