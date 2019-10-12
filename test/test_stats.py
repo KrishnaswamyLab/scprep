@@ -34,7 +34,7 @@ def test_u_statistic():
         shape=(500, 3), seed=42, poisson_mean=0.2)
     Y = data.generate_positive_sparse_matrix(
         shape=(500, 3), seed=42, poisson_mean=0.3)
-    u_stat = [stats.mannwhitneyu(X[:,i], Y[:,i])[0] for i in range(X.shape[1])]
+    u_stat = [stats.mannwhitneyu(X[:,i], Y[:,i], alternative='two-sided')[0] for i in range(X.shape[1])]
     def test_fun(X):
         return scprep.stats.rank_sum_statistic(scprep.select.select_rows(X, idx=np.arange(500)),
                                                scprep.select.select_rows(X, idx=np.arange(500,1000)))
