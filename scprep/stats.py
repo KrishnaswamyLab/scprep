@@ -365,6 +365,15 @@ def plot_knnDREMI(dremi, mutual_info, x, y, n_bins, n_mesh,
     plot.utils.show(fig)
 
 
+def _preprocess_test_matrices(X, Y):
+    X = utils.to_array_or_spmatrix(X)
+    Y = utils.to_array_or_spmatrix(Y)
+    if not X.shape[1] == Y.shape[1]:
+        raise ValueError("Expected X and Y to have the same number of columns. "
+                         "Got shapes {}, {}".format(X.shape, Y.shape))
+    return X, Y
+
+
 def mean_difference(X, Y):
     """Calculate the mean difference in genes between two datasets
 
@@ -380,15 +389,104 @@ def mean_difference(X, Y):
     -------
     difference : list-like, shape=[n_genes]
     """
-    if not X.shape[1] == Y.shape[1]:
-        raise ValueError("Expected X and Y to have the same number of columns. "
-                         "Got shapes {}, {}".format(X.shape, Y.shape))
-    X = utils.to_array_or_spmatrix(X)
-    Y = utils.to_array_or_spmatrix(Y)
+    X, Y = _preprocess_test_matrices(X, Y)
     X = utils.toarray(X.mean(axis=0)).flatten()
     Y = utils.toarray(Y.mean(axis=0)).flatten()
     return X - Y
 
+
+def t_statistic(X, Y):
+    """Calculate Welch's t statistic
+    
+    Assumes data of unequal number of samples and unequal variance
+
+    Parameters
+    ----------
+    X : array-like, shape=[n_cells, n_genes]
+    Y : array-like, shape=[m_cells, n_genes]
+
+    Returns
+    -------
+    t_statistic : list-like, shape=[n_genes]
+    """
+    X, Y = _preprocess_test_matrices(X, Y)
+    X_std = utils.matrix_std(X, axis=0)
+    Y_std = utils.matrix_std(Y, axis=0)
+    paired_std = np.sqrt(X_std**2 / X.shape[0] + Y_std**2 / Y.shape[0])
+    return mean_difference(X, Y) / paired_std
+
+
+def _rank(X, axis=0):
+    """Analogue of scipy.stats.rankdata
+    
+    TODO: handle sparse data
+    """
+    X = utils.toarray(X)
+    if axis == 0:
+        X = X.T
+    elif axis != 1:
+        raise ValueError("Expected axis in [0, 1]. Got {}".format(axis))
+    sorter = np.argsort(X, axis=1)
+    rank_ordinal = np.argsort(sorter, axis=1)
+
+    sort_indices = (np.repeat(np.arange(X.shape[0]), X.shape[1]), sorter.flatten())
+    X_sorted = X[sort_indices].reshape(X.shape)
+
+    # check if an item in the sorted list is the first instance
+    first_obs = np.hstack([np.repeat(True, X.shape[0])[:,np.newaxis],
+                           X_sorted[:,1:] != X_sorted[:,:-1]])
+
+    sort_indices = (np.repeat(np.arange(X.shape[0]), X.shape[1]), rank_ordinal.flatten())
+    rank_dense = first_obs.cumsum(axis=1)[sort_indices].reshape(X.shape)
+    offset = np.cumsum(first_obs.sum(axis=1))[:-1] + np.arange(1, first_obs.shape[0])
+    rank_dense = rank_dense + np.r_[0, offset][:,np.newaxis]
+
+    first_or_last_obs = np.hstack([first_obs, np.repeat(True, X.shape[0])[:,np.newaxis]])
+    rank_min_max = np.nonzero(first_or_last_obs)[1]
+
+    rank_ave = .5 * (rank_min_max[rank_dense] + rank_min_max[rank_dense - 1] + 1)
+    
+    if axis == 0:
+        rank_ave = rank_ave.T
+    return rank_ave
+
+
+def _ranksum(X, sum_idx, axis=0):
+    X = utils.to_array_or_spmatrix(X)
+    if sparse.issparse(X):
+        ranksums = []
+        if axis == 1:
+            next_fn = X.getrow
+        elif axis == 0:
+            next_fn = X.getcol
+        for i in range(X.shape[(axis+1) % 2]):
+            coldata = X.getcol(i)
+            colrank = _rank(coldata, axis=axis)
+            ranksums.append(np.sum(colrank[sum_idx]))
+        return np.array(ranksums)
+    else:
+        data_rank = _rank(X, axis=0)
+        return np.sum(data_rank[sum_idx], axis=0)
+
+
+def rank_sum_statistic(X, Y):
+    """Calculate the Wilcoxon rank-sum (aka Mann-Whitney U) statistic
+
+    Parameters
+    ----------
+    X : array-like, shape=[n_cells, n_genes]
+    Y : array-like, shape=[m_cells, n_genes]
+
+    Returns
+    -------
+    rank_sum_statistic : list-like, shape=[n_genes]
+    """
+    X, Y = _preprocess_test_matrices(X, Y)
+    data, labels = utils.combine_batches([X, Y], ['x', 'y'])
+    X_rank_sum = _ranksum(data, labels=='x', axis=0)
+    X_u_statistic = X_rank_sum - X.shape[0] * (X.shape[0] + 1) / 2
+    Y_u_statistic = X.shape[0] * Y.shape[0] - X_u_statistic
+    return np.minimum(X_u_statistic, Y_u_statistic)
 
 def differential_expression(X, Y,
                             measure='difference',
@@ -401,14 +499,20 @@ def differential_expression(X, Y,
     ----------
     X : array-like, shape=[n_cells, n_genes]
     Y : array-like, shape=[m_cells, n_genes]
-    measure : {'difference', 'emd'}, optional (default: 'difference')
-        The measurement to be used to rank genes
+    measure : {'difference', 'emd', 'ttest', 'ranksum'}, optional (default: 'difference')
+        The measurement to be used to rank genes.
+        'difference' is the mean difference between genes.
+        'emd' refers to Earth Mover's Distance.
+        'ttest' refers to Welch's t-statistic.
+        'ranksum' refers to the Wilcoxon rank sum statistic (or the Mann-Whitney U statistic).
     direction : {'up', 'down', 'both'}, optional (default: 'up')
-        The direction in which to consider genes significant. If 'up', rank genes where X > Y. If 'down', rank genes where X < Y. If 'both', rank genes by absolute value.
+        The direction in which to consider genes significant. If 'up', rank genes where X > Y.
+        If 'down', rank genes where X < Y. If 'both', rank genes by absolute value.
     gene_names : list-like or `None`, optional (default: `None`)
         List of gene names associated with the columns of X and Y
     n_jobs : int, optional (default: -2)
-        Number of threads to use if the measurement is parallelizable (currently used for EMD). If negative, -1 refers to all available cores.
+        Number of threads to use if the measurement is parallelizable (currently used for EMD).
+        If negative, -1 refers to all available cores.
 
     Returns
     -------
@@ -418,8 +522,8 @@ def differential_expression(X, Y,
     if not direction in ['up', 'down', 'both']:
         raise ValueError("Expected `direction` in ['up', 'down', 'both']. "
                          "Got {}".format(direction))
-    if not measure in ['difference', 'emd']:
-        raise ValueError("Expected `measure` in ['difference', 'emd']. "
+    if not measure in ['difference', 'emd', 'ttest', 'ranksum']:
+        raise ValueError("Expected `measure` in ['difference', 'emd', 'ttest', 'ranksum']. "
                          "Got {}".format(measure))
     if not (len(X.shape) == 2 and len(Y.shape) == 2):
         raise ValueError("Expected `X` and `Y` to be matrices. "
@@ -449,22 +553,26 @@ def differential_expression(X, Y,
         Y = Y.tocsr()
     if measure == 'difference':
         difference = mean_difference(X, Y)
+    if measure == 'ttest':
+        difference = t_statistic(X, Y)
+    if measure == 'ranksum':
+        difference = rank_sum_statistic(X, Y)
     elif measure == 'emd':
         difference = joblib.Parallel(n_jobs)(joblib.delayed(EMD)(
             select.select_cols(X, idx=i),
             select.select_cols(Y, idx=i))
                                              for i in range(X.shape[1]))
         difference = np.array(difference) * np.sign(mean_difference(X, Y))
-    result = pd.DataFrame({'gene' : gene_names, measure : difference})
+    result = pd.DataFrame({measure : difference}, index=gene_names)
     if direction == 'up':
-        result = result.sort_values([measure, 'gene'], ascending=False)
+        result = result.sort_index().sort_values([measure], ascending=False)
     elif direction == 'down':
-        result = result.sort_values([measure, 'gene'], ascending=True)
+        result = result.sort_index().sort_values([measure], ascending=True)
     elif direction == 'both':
         result['measure_abs'] = np.abs(difference)
-        result = result.sort_values(['measure_abs', 'gene'], ascending=False)
+        result = result.sort_index().sort_values(['measure_abs'], ascending=False)
         del result['measure_abs']
-    result.index = np.arange(result.shape[0])
+    result['rank'] = np.arange(result.shape[0])
     return result
 
 
@@ -481,8 +589,12 @@ def differential_expression_by_cluster(data, clusters,
     ----------
     data : array-like, shape=[n_cells, n_genes]
     clusters : list-like, shape=[n_cells]
-    measure : {'difference', 'emd'}, optional (default: 'difference')
-        The measurement to be used to rank genes
+    measure : {'difference', 'emd', 'ttest', 'ranksum'}, optional (default: 'difference')
+        The measurement to be used to rank genes.
+        'difference' is the mean difference between genes.
+        'emd' refers to Earth Mover's Distance.
+        'ttest' refers to Welch's t-statistic.
+        'ranksum' refers to the Wilcoxon rank sum statistic (or the Mann-Whitney U statistic).
     direction : {'up', 'down', 'both'}, optional (default: 'up')
         The direction in which to consider genes significant. If 'up', rank genes where X > Y. If 'down', rank genes where X < Y. If 'both', rank genes by absolute value.
     gene_names : list-like or `None`, optional (default: `None`)
