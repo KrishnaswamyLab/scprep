@@ -532,4 +532,21 @@ def test_is_sparse_series():
         matrix._pandas_dense_matrix_types +
         [matrix.SparseDataFrame_deprecated]
     )
-    
+
+
+def test_sort_clusters_by_values_accurate():
+    clusters = [0,0,1,1,2,2]
+    values =   [5,5,1,1,2,2]
+    new_clusters = scprep.utils.sort_clusters_by_values(clusters, values)
+    test_array = scprep.utils.toarray([2,2,0,0,1,1])
+    np.testing.assert_array_equal(new_clusters, test_array)
+
+def test_sort_clusters_by_values_wrong_len():
+    clusters = [0,0,1,1,2,2]
+    values =   [5,5,1,1,2]
+    assert_raise_message(ValueError,
+                         "Expected clusters ({}) and values ({}) to be the "
+                         "same length.".format(len(clusters), len(values)),
+                         scprep.utils.sort_clusters_by_values,
+                         clusters,
+                         values)
