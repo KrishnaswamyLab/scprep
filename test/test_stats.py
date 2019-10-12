@@ -241,7 +241,7 @@ def test_differential_expression_error():
         "Got invalid", scprep.stats.differential_expression,
         X, X, direction='invalid')
     assert_raise_message(
-        ValueError, "Expected `measure` in ['difference', 'emd']. "
+        ValueError, "Expected `measure` in ['difference', 'emd', 'ttest', 'ranksum']. "
         "Got invalid", scprep.stats.differential_expression,
         X, X, measure='invalid')
     assert_raise_message(
