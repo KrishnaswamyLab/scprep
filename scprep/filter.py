@@ -87,7 +87,7 @@ def filter_rare_genes(data, *extra_data, cutoff=0, min_cells=5):
     extra_data : array-like, shape=[any, m_features]
         Filtered extra data, if passed.
     """
-    gene_sums = np.array(utils.matrix_sum(data > cutoff, axis=0)).reshape(-1)
+    gene_sums = measure.gene_capture_count(data, cutoff=cutoff)
     keep_genes_idx = gene_sums >= min_cells
     data = select.select_cols(data, *extra_data, idx=keep_genes_idx)
     return data
