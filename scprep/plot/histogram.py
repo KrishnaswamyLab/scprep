@@ -21,17 +21,19 @@ def _log_bins(xmin, xmax, bins):
 
 
 def _symlog_bins(xmin, xmax, abs_min, bins):
-    if xmin > _EPS:
+    if xmin > 0:
         bins = _log_bins(xmin, xmax, bins)
-    elif xmax < -1 * _EPS:
+    elif xmax < 0:
         bins = -1 * _log_bins(-xmax, -xmin, bins)[::-1]
     else:
         # symlog
         bins = max(bins, 3)
         if xmax > 0 and xmin < 0:
             bins = max(bins, 3)
-            n_pos_bins = np.round((bins-1) * np.log(xmax) / (np.log(xmax) + np.log(-xmin))).astype(int)
-            n_neg_bins = bins - n_pos_bins - 1
+            neg_range = np.log(-xmin) - np.log(abs_min)
+            pos_range = np.log(xmax) - np.log(abs_min)
+            n_pos_bins = max(np.round((bins-1) * pos_range / (pos_range + neg_range)).astype(int), 1)
+            n_neg_bins = max(bins - n_pos_bins - 1, 1)
         elif xmax > 0:
             bins = max(bins, 2)
             n_pos_bins = bins - 1
@@ -128,7 +130,8 @@ def histogram(data,
             if alpha is None:
                 alpha = 1
         if log == 'x' or log is True:
-            abs_min = np.min(np.where(data != 0, np.abs(data), np.max(np.abs(data))))
+            d_flat = np.concatenate(data) if isinstance(data, list) else data
+            abs_min = np.min(np.where(d_flat != 0, np.abs(d_flat), np.max(np.abs(d_flat))))
             if abs_min == 0:
                 abs_min = 0.1
             bins = _symlog_bins(xmin, xmax, abs_min, bins=bins)

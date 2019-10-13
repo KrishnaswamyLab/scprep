@@ -216,29 +216,13 @@ def test_is_color_array_none():
 
 
 def test_histogram_log_negative_min():
-    assert_warns_message(
-        UserWarning,
-        "Expected positive data for log = x. Got min(data) = -1.00",
-        scprep.plot.histogram,
-        [-1, 1, 1, 1], log='x')
-    assert_warns_message(
-        UserWarning,
-        "Expected positive data for log = True. Got min(data) = -1.00",
-        scprep.plot.histogram,
-        [-1, 1, 1, 1], log=True)
+    scprep.plot.histogram([-1, 1, 1, 1], log='x')
+    scprep.plot.histogram([-1, 1, 1, 1], log=True)
 
 
 def test_histogram_log_negative_max():
-    assert_raise_message(
-        ValueError,
-        "Expected positive data for log = x. Got max(data) = -1.00",
-        scprep.plot.histogram,
-        [-1, -1, -1, -2], log='x')
-    assert_raise_message(
-        ValueError,
-        "Expected positive data for log = True. Got max(data) = -1.00",
-        scprep.plot.histogram,
-        [-1, -1, -1, -2], log=True)
+    scprep.plot.histogram([-1, -1, -1, -2], log='x')
+    scprep.plot.histogram([-1, -1, -1, -2], log=True)
 
 
 def test_symlog_bins():
