@@ -10,6 +10,7 @@ import unittest
 import scprep
 from scprep.plot.scatter import _ScatterParams
 from scprep.plot.jitter import _JitterParams
+from scprep.plot.histogram import _symlog_bins
 import sys
 
 
@@ -238,6 +239,21 @@ def test_histogram_log_negative_max():
         "Expected positive data for log = True. Got max(data) = -1.00",
         scprep.plot.histogram,
         [-1, -1, -1, -2], log=True)
+
+
+def test_symlog_bins():
+    # all negative
+    assert np.all(_symlog_bins(-10, -1, 1, 10) < 0)
+    # all positive
+    assert np.all(_symlog_bins(1, 10, 1, 10) > 0)
+    # ends at zero
+    assert np.all(_symlog_bins(-10, 0, 1, 10) <= 0)
+    assert _symlog_bins(-10, 0, 1, 10)[-1] == 0
+    # starts at zero
+    assert np.all(_symlog_bins(0, 10, 1, 10) >= 0)
+    assert _symlog_bins(0, 10, 1, 10)[0] == 0
+    # identically zero
+    assert np.all(_symlog_bins(0, 0, 0.1, 10) == [-1, -0.1, 0.1, 1])
 
 
 class TestScatterParams(unittest.TestCase):
