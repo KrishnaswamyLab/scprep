@@ -32,7 +32,11 @@ def _symlog_bins(xmin, xmax, abs_min, bins):
             bins = max(bins, 3)
             neg_range = np.log(-xmin) - np.log(abs_min)
             pos_range = np.log(xmax) - np.log(abs_min)
-            n_pos_bins = max(np.round((bins-1) * pos_range / (pos_range + neg_range)).astype(int), 1)
+            total_range = pos_range + neg_range
+            if total_range > 0:
+                n_pos_bins = np.round((bins-1) * pos_range / (pos_range + neg_range)).astype(int)
+            else:
+                n_pos_bins = 1
             n_neg_bins = max(bins - n_pos_bins - 1, 1)
         elif xmax > 0:
             bins = max(bins, 2)
