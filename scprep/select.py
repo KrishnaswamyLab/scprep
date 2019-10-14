@@ -528,7 +528,7 @@ def subsample(*data, n=10000, seed=None):
     return tuple(data) if len(data) > 1 else data[0]
 
 
-def highly_variable_genes(data, *extra_data, span=0.7, interpolate=0.2, kernel_size=0.05,
+def highly_variable_genes(data, *extra_data, kernel_size=0.05, smooth=5,
                           cutoff=None, percentile=80):
     """Select genes with high variability
 
@@ -541,14 +541,11 @@ def highly_variable_genes(data, *extra_data, span=0.7, interpolate=0.2, kernel_s
         Input data
     extra_data : array-like, shape=[any, n_features], optional
         Optional additional data objects from which to select the same rows
-    span : float, optional (default: 0.7)
-        Fraction of genes to use when computing the loess estimate at each point
-    interpolate : float, optional (default: 0.2)
-        Multiple of the standard deviation of variances at which to interpolate
-        linearly in order to reduce computation time.
-    kernel_size : float or int, optional (default: 0.05)
-        Width of rolling median window. If a float, the width is given by
-        kernel_size * data.shape[1]
+    kernel_size : float or int, optional (default: 0.005)
+        Width of rolling median window. If a float between 0 and 1, the width is given by
+        kernel_size * data.shape[1]. Otherwise should be an odd integer
+    smooth : int, optional (default: 5)
+        Amount of smoothing to apply to the median filter
     cutoff : float, optional (default: None)
         Variability above which expression is deemed significant
     percentile : int, optional (Default: 80)
@@ -564,8 +561,7 @@ def highly_variable_genes(data, *extra_data, span=0.7, interpolate=0.2, kernel_s
         Filtered extra data, if passed.
     """
     from . import measure
-    var_genes = measure.gene_variability(data, span=span, interpolate=interpolate,
-                                         kernel_size=kernel_size)
+    var_genes = measure.gene_variability(data, kernel_size=kernel_size, smooth=smooth)
     keep_cells_idx = utils._get_filter_idx(var_genes,
                                            cutoff, percentile,
                                            keep_cells='above')

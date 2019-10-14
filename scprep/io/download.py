@@ -1,8 +1,10 @@
-import requests
 import zipfile
 import tempfile
 import os
 import urllib.request
+
+from .._lazyload import requests
+from .. import utils
 
 _CHUNK_SIZE = 32768
 _GOOGLE_DRIVE_URL = "https://docs.google.com/uc?export=download"
@@ -27,6 +29,7 @@ def _google_drive_confirm_token(response):
     return None
 
 
+@utils._with_pkg(pkg="requests")
 def _GET_google_drive(id):
     """Post a GET request to Google Drive"""
     global _GOOGLE_DRIVE_URL

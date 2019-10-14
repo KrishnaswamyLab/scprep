@@ -3,7 +3,7 @@ from .. import utils, measure
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
-def plot_gene_variability(data, span=0.7, interpolate=0.2, kernel_size=0.05,
+def plot_gene_variability(data, kernel_size=0.005, smooth=5,
                           cutoff=None, percentile=90,
                           ax=None, figsize=None,
                           xlabel='Gene mean',
@@ -21,14 +21,11 @@ def plot_gene_variability(data, span=0.7, interpolate=0.2, kernel_size=0.05,
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data. Multiple datasets may be given as a list of array-likes.
-    span : float, optional (default: 0.7)
-        Fraction of genes to use when computing the loess estimate at each point
-    interpolate : float, optional (default: 0.2)
-        Multiple of the standard deviation of variances at which to interpolate
-        linearly in order to reduce computation time.
-    kernel_size : float or int, optional (default: 0.05)
-        Width of rolling median window. If a float, the width is given by
-        kernel_size * data.shape[1]
+    kernel_size : float or int, optional (default: 0.005)
+        Width of rolling median window. If a float between 0 and 1, the width is given by
+        kernel_size * data.shape[1]. Otherwise should be an odd integer
+    smooth : int, optional (default: 5)
+        Amount of smoothing to apply to the median filter
     cutoff : float or `None`, optional (default: `None`)
         Absolute cutoff at which to draw a vertical line.
         Only one of `cutoff` and `percentile` may be given.
@@ -58,8 +55,8 @@ def plot_gene_variability(data, span=0.7, interpolate=0.2, kernel_size=0.05,
     ax : `matplotlib.Axes`
         axis on which plot was drawn
     """
-    variability, means = measure.gene_variability(data, span=span, interpolate=interpolate,
-                                                  kernel_size=kernel_size, return_means=True)
+    variability, means = measure.gene_variability(data, kernel_size=kernel_size,
+                                                  smooth=smooth, return_means=True)
     keep_cells_idx = utils._get_filter_idx(variability,
                                            cutoff, percentile,
                                            keep_cells='above')

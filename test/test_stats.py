@@ -29,6 +29,34 @@ def test_EMD():
         "Got shapes x {}, y {}".format(X.shape, X[:, 1].shape),
         scprep.stats.EMD, X, X[:, 1])
 
+def test_u_statistic():
+    X = data.generate_positive_sparse_matrix(
+        shape=(500, 3), seed=42, poisson_mean=0.2)
+    Y = data.generate_positive_sparse_matrix(
+        shape=(500, 3), seed=42, poisson_mean=0.3)
+    u_stat = [stats.mannwhitneyu(X[:,i], Y[:,i], alternative='two-sided')[0] for i in range(X.shape[1])]
+    def test_fun(X):
+        return scprep.stats.rank_sum_statistic(scprep.select.select_rows(X, idx=np.arange(500)),
+                                               scprep.select.select_rows(X, idx=np.arange(500,1000)))
+    matrix.test_all_matrix_types(
+        np.vstack([X, Y]), utils.assert_transform_equals, Y=u_stat,
+        transform=test_fun,
+        check=utils.assert_all_close)
+
+def test_t_statistic():
+    X = data.generate_positive_sparse_matrix(
+        shape=(500, 3), seed=42, poisson_mean=0.2)
+    Y = data.generate_positive_sparse_matrix(
+        shape=(500, 3), seed=42, poisson_mean=0.3)
+    u_stat = [stats.ttest_ind(X[:,i], Y[:,i], equal_var=False)[0] for i in range(X.shape[1])]
+    def test_fun(X):
+        return scprep.stats.t_statistic(scprep.select.select_rows(X, idx=np.arange(500)),
+                                        scprep.select.select_rows(X, idx=np.arange(500,1000)))
+    matrix.test_all_matrix_types(
+        np.vstack([X, Y]), utils.assert_transform_equals, Y=u_stat,
+        transform=test_fun,
+        check=partial(utils.assert_all_close, rtol=2e-3))
+
 
 def test_pairwise_correlation():
     def test_fun(X, *args, **kwargs):
@@ -151,7 +179,9 @@ def test_mean_difference():
 
 
 @parameterized([('difference', 'up'), ('difference', 'down'), ('difference', 'both'),
-               ('emd', 'up'), ('emd', 'down'), ('emd', 'both')])
+               ('emd', 'up'), ('emd', 'down'), ('emd', 'both'),
+               ('ttest', 'up'), ('ttest', 'down'), ('ttest', 'both'),
+               ('ranksum', 'up'), ('ranksum', 'down'), ('ranksum', 'both')])
 def test_differential_expression(measure, direction):
     X = data.load_10X()
     X = scprep.filter.filter_empty_genes(X)
@@ -162,10 +192,16 @@ def test_differential_expression(measure, direction):
                         ('difference', 'both') : ('Gstm5', 16.8125),
                         ('emd', 'up') : ('Gstm5', 17.5625),
                         ('emd', 'down') : ('Slc2a3', -0.6875),
-                        ('emd', 'both') : ('Gstm5', 17.5625)}
-    assert result['gene'][0] == expected_results[(measure, direction)][0], result['gene'][0]
+                        ('emd', 'both') : ('Gstm5', 17.5625),
+                        ('ttest', 'up') : ('Trmt1', 2.6335),
+                        ('ttest', 'down') : ('Dhfr', -1.93347),
+                        ('ttest', 'both') : ('Trmt1', 2.6335),
+                        ('ranksum', 'up') : ('Adam30', 796),
+                        ('ranksum', 'down') : ('Gstm5', 339),
+                        ('ranksum', 'both') : ('Adam30', 796)}
+    assert result.index[0] == expected_results[(measure, direction)][0], result.index[0]
     assert np.allclose(result[measure][0],
-                       expected_results[(measure, direction)][1])
+                       expected_results[(measure, direction)][1]), result[measure][0]
     result_unnamed = scprep.stats.differential_expression(X.iloc[:20].sparse.to_coo(), X.iloc[20:100].sparse.to_coo(),
                                                          measure=measure, direction=direction)
     if direction != 'both':
@@ -174,7 +210,7 @@ def test_differential_expression(measure, direction):
         values = np.abs(result[measure])
 
     unique_values = ~np.isin(values, values[values.duplicated()])
-    assert np.all(X.columns[result_unnamed['gene']][unique_values] == result['gene'][unique_values])
+    assert np.all(X.columns[result_unnamed.index][unique_values] == result.index[unique_values])
     def test_fun(X, **kwargs):
         return scprep.stats.differential_expression(
             scprep.select.select_rows(X, idx=np.arange(20)),
@@ -186,8 +222,8 @@ def test_differential_expression(measure, direction):
             Y1[measure] = np.abs(Y1[measure])
             Y2[measure] = np.abs(Y2[measure])
         np.testing.assert_allclose(Y1[measure], Y2[measure], atol=5e-4)
-        Y1 = Y1.sort_values('gene')
-        Y2 = Y2.sort_values('gene')
+        Y1 = Y1.sort_index()
+        Y2 = Y2.sort_index()
         np.testing.assert_allclose(Y1[measure], Y2[measure], atol=5e-4)
 
     matrix.test_all_matrix_types(
@@ -205,7 +241,7 @@ def test_differential_expression_error():
         "Got invalid", scprep.stats.differential_expression,
         X, X, direction='invalid')
     assert_raise_message(
-        ValueError, "Expected `measure` in ['difference', 'emd']. "
+        ValueError, "Expected `measure` in ['difference', 'emd', 'ttest', 'ranksum']. "
         "Got invalid", scprep.stats.differential_expression,
         X, X, measure='invalid')
     assert_raise_message(

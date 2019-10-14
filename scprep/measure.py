@@ -3,9 +3,9 @@ import pandas as pd
 import warnings
 import numbers
 import scipy.signal
+from scipy import sparse
 
 from . import utils, select
-from ._lazyload import statsmodels
 
 
 def library_size(data):
@@ -69,25 +69,21 @@ def gene_set_expression(data, genes=None, library_size_normalize=False,
     return gene_set_expression
 
 
-@utils._with_pkg(pkg="statsmodels")
-def gene_variability(data, span=0.7, interpolate=0.2, kernel_size=0.05, return_means=False):
+def gene_variability(data, kernel_size=0.005, smooth=5, return_means=False):
     """Measure the variability of each gene in a dataset
 
-    Variability is computed as the deviation from a loess fit
-    to the rolling median of the mean-variance curve
+    Variability is computed as the deviation from
+    the rolling median of the mean-variance curve
 
     Parameters
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data
-    span : float, optional (default: 0.7)
-        Fraction of genes to use when computing the loess estimate at each point
-    interpolate : float, optional (default: 0.2)
-        Multiple of the standard deviation of variances at which to interpolate
-        linearly in order to reduce computation time.
-    kernel_size : float or int, optional (default: 0.05)
+    kernel_size : float or int, optional (default: 0.005)
         Width of rolling median window. If a float between 0 and 1, the width is given by
         kernel_size * data.shape[1]. Otherwise should be an odd integer
+    smooth : int, optional (default: 5)
+        Amount of smoothing to apply to the median filter
     return_means : boolean, optional (default: False)
         If True, return the gene means
 
@@ -98,21 +94,52 @@ def gene_variability(data, span=0.7, interpolate=0.2, kernel_size=0.05, return_m
     """
     columns = data.columns if isinstance(data, pd.DataFrame) else None
     data = utils.to_array_or_spmatrix(data)
+    if isinstance(data, sparse.dia_matrix):
+        data = data.tocsc()
     data_std = utils.matrix_std(data, axis=0) ** 2
+    data_mean = utils.toarray(np.mean(data, axis=0)).flatten()
+
     if kernel_size < 1:
         kernel_size = 2*(int(kernel_size * len(data_std))//2)+1
-    order = np.argsort(data_std)
+
+    order = np.argsort(data_mean)
     data_std_med = np.empty_like(data_std)
-    data_std_med[order] = scipy.signal.medfilt(data_std[order], kernel_size=kernel_size)
-    data_mean = utils.toarray(np.mean(data, axis=0)).flatten()
-    delta = np.std(data_std_med) * interpolate
-    lowess = statsmodels.nonparametric.smoothers_lowess.lowess(
-        data_std_med, data_mean,
-        delta=delta, frac=span, return_sorted=False)
-    result = data_std - lowess
+    data_std_order = data_std[order]
+    # handle overhang with reflection
+    data_std_order = np.r_[data_std_order[kernel_size::-1], data_std_order, data_std_order[:-kernel_size:-1]]
+    medfilt = scipy.signal.medfilt(data_std_order, kernel_size=kernel_size)[kernel_size:-kernel_size]
+
+    # apply a little smoothing
+    for i in range(smooth):
+        medfilt = np.r_[(medfilt[1:] + medfilt[:-1])/2, medfilt[-1]]
+
+    data_std_med[order] = medfilt
+    result = data_std - data_std_med
+
     if columns is not None:
         result = pd.Series(result, index=columns, name='variability')
         data_mean = pd.Series(data_mean, index=columns, name='mean')
     if return_means:
         result = result, data_mean
     return result
+
+
+def gene_capture_count(data, cutoff=0):
+    """Measure the number of cells in which each gene has non-negligible counts
+
+    Parameters
+    ----------
+    data : array-like, shape=[n_samples, n_features]
+        Input data
+    cutoff : float, optional (default: 0)
+        Number of counts above which expression is deemed non-negligible
+
+    Returns
+    -------
+    capture-count : list-like, shape=[m_features]
+        Capture count for each gene
+    """
+    gene_sums = np.array(utils.matrix_sum(data > cutoff, axis=0)).reshape(-1)
+    if isinstance(data, pd.DataFrame):
+        gene_sums = pd.Series(gene_sums, index=data.columns, name='capture_count')
+    return gene_sums

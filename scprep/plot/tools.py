@@ -124,7 +124,7 @@ def generate_legend(cmap, ax, title=None, marker='o', markersize=10,
                                 markersize=markersize)
                for label, color in cmap.items()]
     if ncol is None:
-        ncol = max(1, len(cmap) // max_rows)
+        ncol = max(1, np.ceil(len(cmap) / max_rows).astype(int))
     legend = ax.legend(handles=handles, title=title,
                        loc=loc, bbox_to_anchor=bbox_to_anchor,
                        fontsize=fontsize, ncol=ncol, **kwargs)

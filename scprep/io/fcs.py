@@ -249,10 +249,8 @@ def load_fcs(filename, gene_names=True, cell_names=True,
     channel_naming: '$PnS' | '$PnN'
         Determines which meta data field is used for naming the channels.
         The default should be $PnS (even though it is not guaranteed to be unique)
-        $PnN stands for the short name (guaranteed to be unique).
-            Will look like 'FL1-H'
-        $PnS stands for the actual name (not guaranteed to be unique).
-            Will look like 'FSC-H' (Forward scatter)
+        $PnN stands for the short name (guaranteed to be unique). Will look like 'FL1-H'
+        $PnS stands for the actual name (not guaranteed to be unique). Will look like 'FSC-H' (Forward scatter)
         The chosen field will be used to population self.channels
         Note: These names are not flipped in the implementation.
         It looks like they were swapped for some reason in the official FCS specification.

@@ -4,7 +4,9 @@
 import numpy as np
 import pandas as pd
 from scipy import sparse
+
 import warnings
+import numbers
 
 from . import utils, measure, select
 
@@ -85,7 +87,7 @@ def filter_rare_genes(data, *extra_data, cutoff=0, min_cells=5):
     extra_data : array-like, shape=[any, m_features]
         Filtered extra data, if passed.
     """
-    gene_sums = np.array(utils.matrix_sum(data > cutoff, axis=0)).reshape(-1)
+    gene_sums = measure.gene_capture_count(data, cutoff=cutoff)
     keep_genes_idx = gene_sums >= min_cells
     data = select.select_cols(data, *extra_data, idx=keep_genes_idx)
     return data
@@ -139,15 +141,17 @@ def filter_values(data, *extra_data, values=None,
         Optional additional data objects from which to select the same rows
     values : list-like, shape=[n_samples]
         Value upon which to filter
-    cutoff : float, optional (default: None)
-        Minimum library size required to retain a cell. Only one of `cutoff`
+    cutoff : float or tuple of floats, optional (default: None)
+        Value above or below which to retain cells. Only one of `cutoff`
         and `percentile` should be specified.
-    percentile : int, optional (Default: None)
-        Percentile above or below which to remove cells.
+    percentile : int or tuple of ints, optional (Default: None)
+        Percentile above or below which to retain cells.
         Must be an integer between 0 and 100. Only one of `cutoff`
         and `percentile` should be specified.
-    keep_cells : {'above', 'below'}, optional (default: 'above')
-        Keep cells above or below the cutoff
+    keep_cells : {'above', 'below', 'between'} or None, optional (default: None)
+        Keep cells above, below or between the cutoff.
+        If None, defaults to 'above' when a single cutoff is given and
+        'between' when two cutoffs are given.
     return_values : bool, optional (default: False)
         If True, also return the values corresponding to the retained cells
     sample_labels : Deprecated
@@ -183,7 +187,7 @@ def filter_values(data, *extra_data, values=None,
 
 
 def filter_library_size(data, *extra_data, cutoff=None, percentile=None,
-                        keep_cells='above',
+                        keep_cells=None,
                         return_library_size=False,
                         sample_labels=None,
                         filter_per_sample=None):
@@ -198,15 +202,17 @@ def filter_library_size(data, *extra_data, cutoff=None, percentile=None,
         Input data
     extra_data : array-like, shape=[n_samples, any], optional
         Optional additional data objects from which to select the same rows
-    cutoff : float, optional (default: None)
-        Minimum library size required to retain a cell. Only one of `cutoff`
+    cutoff : float or tuple of floats, optional (default: None)
+        Library size above or below which to retain a cell. Only one of `cutoff`
         and `percentile` should be specified.
-    percentile : int, optional (Default: None)
-        Percentile above or below which to remove cells.
+    percentile : int or tuple of ints, optional (Default: None)
+        Percentile above or below which to retain a cell.
         Must be an integer between 0 and 100. Only one of `cutoff`
         and `percentile` should be specified.
-    keep_cells : {'above', 'below'}, optional (default: 'above')
-        Keep cells above or below the cutoff
+    keep_cells : {'above', 'below', 'between'} or None, optional (default: None)
+        Keep cells above, below or between the cutoff.
+        If None, defaults to 'above' when a single cutoff is given and
+        'between' when two cutoffs are given.
     return_library_size : bool, optional (default: False)
         If True, also return the library sizes corresponding to the retained cells
     sample_labels : Deprecated
@@ -236,7 +242,7 @@ def filter_gene_set_expression(data, *extra_data, genes=None,
                                exact_word=None, regex=None,
                                cutoff=None, percentile=None,
                                library_size_normalize=False,
-                               keep_cells='below',
+                               keep_cells=None,
                                return_expression=False,
                                sample_labels=None,
                                filter_per_sample=None):
@@ -261,17 +267,18 @@ def filter_gene_set_expression(data, *extra_data, genes=None,
         If not None, select genes that contain this exact word.
     regex : str or None, optional (default: None)
         If not None, select genes that match this regular expression
-    cutoff : float, optional (default: 2000)
-        Value above or below which to remove cells. Only one of `cutoff`
+    cutoff : float or tuple of floats, optional (default: None)
+        Expression value above or below which to remove cells. Only one of `cutoff`
         and `percentile` should be specified.
-    percentile : int, optional (Default: None)
-        Percentile above or below which to remove cells.
+    percentile : int or tuple of ints, optional (Default: None)
+        Percentile above or below which to retain a cell.
         Must be an integer between 0 and 100. Only one of `cutoff`
         and `percentile` should be specified.
     library_size_normalize : bool, optional (default: False)
         Divide gene set expression by library size
-    keep_cells : {'above', 'below'}, optional (default: 'below')
-        Keep cells above or below the cutoff
+    keep_cells : {'above', 'below', 'between'} or None, optional (default: None)
+        Keep cells above or below the cutoff. If None, defaults to
+        'below' for one cutoff and 'between' for two.
     return_expression : bool, optional (default: False)
         If True, also return the values corresponding to the retained cells
     sample_labels : Deprecated
@@ -287,6 +294,10 @@ def filter_gene_set_expression(data, *extra_data, genes=None,
     extra_data : array-like, shape=[m_samples, any]
         Filtered extra data, if passed.
     """
+    if keep_cells is None:
+        if isinstance(cutoff, numbers.Number) or \
+            isinstance(percentile, numbers.Number):
+            keep_cells = 'below'
     cell_sums = measure.gene_set_expression(
         data, genes=genes,
         starts_with=starts_with, ends_with=ends_with,

@@ -10,7 +10,7 @@ import warnings
 from . import measure, utils
 
 
-def _get_scaled_libsize(data, rescale='median', return_library_size=False):
+def _get_scaled_libsize(data, rescale=10000, return_library_size=False):
     if return_library_size or rescale in ['median', 'mean']:
         libsize = measure.library_size(data)
     else:
@@ -98,6 +98,7 @@ def library_size_normalize(data, rescale=10000,
             data_norm = pd.DataFrame(data_norm)
         data_norm.columns = columns
         data_norm.index = index
+        libsize = pd.Series(libsize, index=index, name='library_size')
     if return_library_size:
         return data_norm, libsize
     else:

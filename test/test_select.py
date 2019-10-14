@@ -419,14 +419,13 @@ class Test10X(unittest.TestCase):
             self.X.astype(float), test_fun, matrix._pandas_sparse_matrix_types)
 
     def test_select_variable_genes(self):
-        X_filtered = scprep.select.highly_variable_genes(self.X, percentile=70)
+        X_filtered = scprep.select.highly_variable_genes(self.X, percentile=90)
         assert X_filtered.shape[0] == self.X.shape[0]
-        assert X_filtered.shape[1] <= 30
-        assert X_filtered.shape[1] >= 20
+        assert X_filtered.shape[1] == 10
         assert self.X.columns[np.argmax(self.X.values.std(axis=0))] in X_filtered.columns
         matrix.test_all_matrix_types(
             self.X, utils.assert_transform_equals,
-            Y=X_filtered, transform=scprep.select.highly_variable_genes, percentile=70)
+            Y=X_filtered, transform=scprep.select.highly_variable_genes, percentile=90)
 
 
 def test_string_subset_exact_word():

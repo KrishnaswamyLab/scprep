@@ -19,7 +19,7 @@ test_requires = [
     'coverage',
     'coveralls',
     'parameterized',
-    'statsmodels',
+    'requests',
 ]
 
 doc_requires = [
