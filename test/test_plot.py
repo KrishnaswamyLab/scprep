@@ -215,16 +215,6 @@ def test_is_color_array_none():
     assert not scprep.plot.utils._is_color_array(None)
 
 
-def test_histogram_log_negative_min():
-    scprep.plot.histogram([-1, 1, 1, 1], log='x')
-    scprep.plot.histogram([-1, 1, 1, 1], log=True)
-
-
-def test_histogram_log_negative_max():
-    scprep.plot.histogram([-1, -1, -1, -2], log='x')
-    scprep.plot.histogram([-1, -1, -1, -2], log=True)
-
-
 def test_symlog_bins():
     # all negative
     assert np.all(_symlog_bins(-10, -1, 1, 10) < 0)
@@ -788,6 +778,30 @@ class Test10X(unittest.TestCase):
 
     def test_histogram_multiple_percentile(self):
         scprep.plot.plot_library_size(self.X_filt, percentile=[10, 90], log=True)
+
+    def test_histogram_log_negative_min(self):
+        scprep.plot.histogram([-1, 1, 1, 1], log='x')
+        scprep.plot.histogram([-1, 1, 1, 1], log=True)
+        scprep.plot.histogram([-1, -0.1, -0.1, 1], log='x')
+        scprep.plot.histogram([-1, -0.1, -0.1, 1], log=True)
+
+    def test_histogram_log_negative_max(self):
+        scprep.plot.histogram([-1, -1, -1, -1], log='x')
+        scprep.plot.histogram([-1, -1, -1, -1], log=True)
+        scprep.plot.histogram([-1, -1, -1, -2], log='x')
+        scprep.plot.histogram([-1, -1, -1, -2], log=True)
+
+    def test_histogram_log_zero_min(self):
+        scprep.plot.histogram([0, 1, 1, 1], log='x')
+        scprep.plot.histogram([0, 1, 1, 1], log=True)
+        scprep.plot.histogram([0, 0, -0.1, 1], log='x')
+        scprep.plot.histogram([0, 0, -0.1, 1], log=True)
+
+    def test_histogram_log_zero_max(self):
+        scprep.plot.histogram([-1, -1, 0, -1], log='x')
+        scprep.plot.histogram([-1, -1, 0, -1], log=True)
+        scprep.plot.histogram([-1, -1, 0, -2], log='x')
+        scprep.plot.histogram([-1, -1, 0, -2], log=True)
 
     def test_plot_library_size_multiple(self):
         scprep.plot.plot_library_size([
