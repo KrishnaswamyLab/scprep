@@ -3,9 +3,9 @@ import pandas as pd
 import warnings
 import numbers
 import scipy.signal
+from scipy import sparse
 
 from . import utils, select
-from ._lazyload import statsmodels
 
 
 def library_size(data):
@@ -94,6 +94,8 @@ def gene_variability(data, kernel_size=0.005, smooth=5, return_means=False):
     """
     columns = data.columns if isinstance(data, pd.DataFrame) else None
     data = utils.to_array_or_spmatrix(data)
+    if isinstance(data, sparse.dia_matrix):
+        data = data.tocsc()
     data_std = utils.matrix_std(data, axis=0) ** 2
     data_mean = utils.toarray(np.mean(data, axis=0)).flatten()
 
