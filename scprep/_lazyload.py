@@ -15,6 +15,7 @@ _importspec = {
              {'rinterface_lib': ['callbacks']}],
     'h5py': [],
     'tables': [],
+    'requests': [],
 }
 
 
