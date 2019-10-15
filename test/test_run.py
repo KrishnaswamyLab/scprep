@@ -1,3 +1,8 @@
+import sys
+if int(sys.version.split('.')[1]) < 6:
+    # python 3.5
+    sys.exit(0)
+
 from tools import utils, matrix, data
 import numpy as np
 import pandas as pd
