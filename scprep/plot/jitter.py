@@ -16,7 +16,7 @@ class _JitterParams(_ScatterParams):
         try:
             return self._x_labels
         except AttributeError:
-            self._x_coords, self._x_labels = pd.factorize(self._x, sort=True)
+            self._x_coords, self._x_labels = pd.factorize(self.x_array, sort=True)
             return self._x_labels
 
     @property
