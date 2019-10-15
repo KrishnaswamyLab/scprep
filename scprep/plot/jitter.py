@@ -16,7 +16,7 @@ class _JitterParams(_ScatterParams):
         try:
             return self._x_labels
         except AttributeError:
-            self._x_coords, self._x_labels = pd.factorize(self._x, sort=True)
+            self._x_coords, self._x_labels = pd.factorize(self.x_array, sort=True)
             return self._x_labels
 
     @property
@@ -29,7 +29,7 @@ class _JitterParams(_ScatterParams):
 @utils._with_pkg(pkg="matplotlib", min_version=3)
 def jitter(labels, values, sigma=0.1,
            c=None, cmap=None, cmap_scale='linear',
-           s=None,
+           s=None, mask=None,
            plot_means=True, means_s=100, means_c='lightgrey',
            discrete=None,
            ax=None,
@@ -80,6 +80,8 @@ def jitter(labels, values, sigma=0.1,
         <https://matplotlib.org/users/colormapnorms.html>
     s : float, optional (default: None)
         Point size. If `None`, set to 200 / sqrt(n_samples)
+    mask : list-like, optional (default: None)
+        boolean mask to hide data points
     plot_means : bool, optional (default: True)
         If True, plot the mean value for each label.
     means_s : float, optional (default: 100)
@@ -151,7 +153,7 @@ def jitter(labels, values, sigma=0.1,
         params = _JitterParams(
             labels, values, c=c, discrete=discrete,
             cmap=cmap, cmap_scale=cmap_scale,
-            vmin=vmin, vmax=vmax, s=s,
+            vmin=vmin, vmax=vmax, s=s, mask=mask,
             legend=legend, colorbar=colorbar,
             xlabel=xlabel, ylabel=ylabel)
 
@@ -160,7 +162,7 @@ def jitter(labels, values, sigma=0.1,
 
         # Plotting cells
         sc = ax.scatter(
-            params.x_coords + np.random.normal(0, sigma, params.size),
+            params.x_coords + np.random.normal(0, sigma, params.size)[params.plot_idx],
             params.y, c=params.c,
             cmap=params.cmap, norm=params.norm, s=params.s,
             vmin=params.vmin, vmax=params.vmax, **plot_kwargs)

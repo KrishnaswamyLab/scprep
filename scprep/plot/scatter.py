@@ -497,8 +497,9 @@ class _ScatterParams(object):
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
-def scatter(x, y, z=None, mask=None,
+def scatter(x, y, z=None,
             c=None, cmap=None, cmap_scale='linear', s=None,
+            mask=None,
             discrete=None,
             ax=None,
             legend=None, colorbar=None,
@@ -540,8 +541,6 @@ def scatter(x, y, z=None, mask=None,
         data for y axis
     z : list-like, optional (default: None)
         data for z axis
-    mask : list-like, optional (default: None)
-        boolean mask to hide data points
     c : list-like or None, optional (default: None)
         Color vector. Can be a single color value (RGB, RGBA, or named
         matplotlib colors), an array of these of length n_samples, or a list of
@@ -558,6 +557,8 @@ def scatter(x, y, z=None, mask=None,
         <https://matplotlib.org/users/colormapnorms.html>
     s : float, optional (default: None)
         Point size. If `None`, set to 200 / sqrt(n_samples)
+    mask : list-like, optional (default: None)
+        boolean mask to hide data points
     discrete : bool or None, optional (default: None)
         If True, the legend is categorical. If False, the legend is a colorbar.
         If None, discreteness is detected automatically. Data containing
@@ -698,8 +699,10 @@ def scatter(x, y, z=None, mask=None,
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
-def scatter2d(data, mask=None,
-              c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
+def scatter2d(data,
+              c=None, cmap=None, cmap_scale='linear', s=None,
+              mask=None,
+              discrete=None,
               ax=None, legend=None, colorbar=None,
               shuffle=True, figsize=None,
               ticks=True,
@@ -728,8 +731,6 @@ def scatter2d(data, mask=None,
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data. Only the first two components will be used.
-    mask : list-like, optional (default: None)
-        boolean mask to hide data points
     c : list-like or None, optional (default: None)
         Color vector. Can be a single color value (RGB, RGBA, or named
         matplotlib colors), an array of these of length n_samples, or a list of
@@ -748,6 +749,8 @@ def scatter2d(data, mask=None,
         <https://matplotlib.org/users/colormapnorms.html>
     s : float, optional (default: None)
         Point size. If `None`, set to 200 / sqrt(n_samples)
+    mask : list-like, optional (default: None)
+        boolean mask to hide data points
     discrete : bool or None, optional (default: None)
         If True, the legend is categorical. If False, the legend is a colorbar.
         If None, discreteness is detected automatically. Data containing
@@ -831,8 +834,9 @@ def scatter2d(data, mask=None,
         data = utils.toarray(data)
     return scatter(x=select.select_cols(data, idx=0),
                    y=select.select_cols(data, idx=1),
+                   c=c, cmap=cmap, cmap_scale=cmap_scale, s=s,
                    mask=mask,
-                   c=c, cmap=cmap, cmap_scale=cmap_scale, s=s, discrete=discrete,
+                   discrete=discrete,
                    ax=ax, legend=legend, colorbar=colorbar,
                    shuffle=shuffle, figsize=figsize,
                    ticks=ticks,
@@ -855,8 +859,10 @@ def scatter2d(data, mask=None,
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
-def scatter3d(data, mask=None,
-              c=None, cmap=None, cmap_scale='linear', s=None, discrete=None,
+def scatter3d(data,
+              c=None, cmap=None, cmap_scale='linear', s=None,
+              mask=None,
+              discrete=None,
               ax=None, legend=None, colorbar=None,
               shuffle=True,
               figsize=None,
@@ -890,8 +896,6 @@ def scatter3d(data, mask=None,
     ----------
     data : array-like, shape=[n_samples, n_features]
         Input data. Only the first two components will be used.
-    mask : list-like, optional (default: None)
-        boolean mask to hide data points
     c : list-like or None, optional (default: None)
         Color vector. Can be a single color value (RGB, RGBA, or named
         matplotlib colors), an array of these of length n_samples, or a list of
@@ -910,6 +914,8 @@ def scatter3d(data, mask=None,
         <https://matplotlib.org/users/colormapnorms.html>
     s : float, optional (default: None)
         Point size. If `None`, set to 200 / sqrt(n_samples)
+    mask : list-like, optional (default: None)
+        boolean mask to hide data points
     discrete : bool or None, optional (default: None)
         If True, the legend is categorical. If False, the legend is a colorbar.
         If None, discreteness is detected automatically. Data containing
@@ -1001,8 +1007,9 @@ def scatter3d(data, mask=None,
         z = select.select_cols(data, idx=2)
     except IndexError:
         raise ValueError("Expected data.shape[1] >= 3. Got {}".format(data.shape[1]))
-    return scatter(x=x, y=y, z=z, mask=mask,
-                   c=c, cmap=cmap, cmap_scale=cmap_scale, s=s, discrete=discrete,
+    return scatter(x=x, y=y, z=z,
+                   c=c, cmap=cmap, cmap_scale=cmap_scale, s=s, mask=mask,
+                   discrete=discrete,
                    ax=ax, legend=legend, colorbar=colorbar,
                    shuffle=shuffle, figsize=figsize,
                    ticks=ticks,
