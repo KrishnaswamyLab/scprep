@@ -42,7 +42,7 @@
 
   script:
     - pip install -U .[test]
-    - black . --check --diff
+    - if [ "$TRAVIS_PYTHON_VERSION" != "3.5" ]; then black . --check --diff; fi
     - python setup.py test
     - pip install -U .[doc]
     - cd doc; make html

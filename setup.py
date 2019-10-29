@@ -20,7 +20,6 @@ test_requires = [
     "coveralls",
     "parameterized",
     "requests",
-    "black",
 ]
 
 doc_requires = [
@@ -36,7 +35,7 @@ if sys.version_info[:2] < (3, 5):
 elif sys.version_info[:2] < (3, 6):
     test_requires += ["matplotlib>=3.0,<3.1", "rpy2>=3.0,<3.1"]
 else:
-    test_requires += ["matplotlib>=3.0", "rpy2>=3.0"]
+    test_requires += ["matplotlib>=3.0", "rpy2>=3.0", "black"]
 
 version_py = os.path.join(os.path.dirname(__file__), "scprep", "version.py")
 version = open(version_py).read().strip().split("=")[-1].replace('"', "").strip()
