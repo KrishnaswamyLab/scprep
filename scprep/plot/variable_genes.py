@@ -3,15 +3,22 @@ from .. import utils, measure
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
-def plot_gene_variability(data, kernel_size=0.005, smooth=5,
-                          cutoff=None, percentile=90,
-                          ax=None, figsize=None,
-                          xlabel='Gene mean',
-                          ylabel='Standardized variance',
-                          title=None,
-                          fontsize=None,
-                          filename=None,
-                          dpi=None, **kwargs):
+def plot_gene_variability(
+    data,
+    kernel_size=0.005,
+    smooth=5,
+    cutoff=None,
+    percentile=90,
+    ax=None,
+    figsize=None,
+    xlabel="Gene mean",
+    ylabel="Standardized variance",
+    title=None,
+    fontsize=None,
+    filename=None,
+    dpi=None,
+    **kwargs
+):
     """Plot the histogram of gene variability
 
     Variability is computed as the deviation from a loess fit
@@ -55,13 +62,22 @@ def plot_gene_variability(data, kernel_size=0.005, smooth=5,
     ax : `matplotlib.Axes`
         axis on which plot was drawn
     """
-    variability, means = measure.gene_variability(data, kernel_size=kernel_size,
-                                                  smooth=smooth, return_means=True)
-    keep_cells_idx = utils._get_filter_idx(variability,
-                                           cutoff, percentile,
-                                           keep_cells='above')
-    return scatter(means, variability, c=keep_cells_idx,
-                   cmap={True : 'red', False : 'black'}, 
-                   xlabel=xlabel, ylabel=ylabel, title=title,
-                   fontsize=fontsize, filename=filename, dpi=dpi,
-                   **kwargs)
+    variability, means = measure.gene_variability(
+        data, kernel_size=kernel_size, smooth=smooth, return_means=True
+    )
+    keep_cells_idx = utils._get_filter_idx(
+        variability, cutoff, percentile, keep_cells="above"
+    )
+    return scatter(
+        means,
+        variability,
+        c=keep_cells_idx,
+        cmap={True: "red", False: "black"},
+        xlabel=xlabel,
+        ylabel=ylabel,
+        title=title,
+        fontsize=fontsize,
+        filename=filename,
+        dpi=dpi,
+        **kwargs
+    )

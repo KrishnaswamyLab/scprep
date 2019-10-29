@@ -5,7 +5,6 @@ from .._lazyload import rpy2
 
 
 class _ConsoleWarning(object):
-
     def __init__(self, verbose=1):
         if verbose is True:
             verbose = 1
@@ -16,17 +15,21 @@ class _ConsoleWarning(object):
     @staticmethod
     def warning(s: str) -> None:
         rpy2.rinterface_lib.callbacks.logger.warning(
-            rpy2.rinterface_lib.callbacks._WRITECONSOLE_EXCEPTION_LOG, s.strip())
+            rpy2.rinterface_lib.callbacks._WRITECONSOLE_EXCEPTION_LOG, s.strip()
+        )
 
     @staticmethod
     def debug(s: str) -> None:
         rpy2.rinterface_lib.callbacks.logger.debug(
-            rpy2.rinterface_lib.callbacks._WRITECONSOLE_EXCEPTION_LOG, s.strip())
+            rpy2.rinterface_lib.callbacks._WRITECONSOLE_EXCEPTION_LOG, s.strip()
+        )
 
     @staticmethod
     def set(fun):
         if not hasattr(_ConsoleWarning, "builtin_warning"):
-            _ConsoleWarning.builtin_warning = rpy2.rinterface_lib.callbacks.consolewrite_warnerror
+            _ConsoleWarning.builtin_warning = (
+                rpy2.rinterface_lib.callbacks.consolewrite_warnerror
+            )
         rpy2.rinterface_lib.callbacks.consolewrite_warnerror = fun
 
     @staticmethod
@@ -85,10 +88,10 @@ class RFunction(object):
         {name} <- function({args}) {{
           {body}
         }}
-        """.format(name=self.name,
-                   args=self.args, body=self.body)
-        fun = getattr(rpy2.robjects.packages.STAP(
-            function_text, self.name), self.name)
+        """.format(
+            name=self.name, args=self.args, body=self.body
+        )
+        fun = getattr(rpy2.robjects.packages.STAP(function_text, self.name), self.name)
         rpy2.robjects.numpy2ri.activate()
         return fun
 
@@ -108,14 +111,15 @@ class RFunction(object):
         if self.is_r_object(robject):
             if isinstance(robject, rpy2.robjects.vectors.ListVector):
                 names = self.convert(robject.names)
-                if names is None or \
-                        len(names) > len(np.unique(names)):
+                if names is None or len(names) > len(np.unique(names)):
                     # list
                     robject = np.array([self.convert(obj) for obj in robject])
                 else:
                     # dictionary
-                    robject = {name: self.convert(
-                        obj) for name, obj in zip(robject.names, robject)}
+                    robject = {
+                        name: self.convert(obj)
+                        for name, obj in zip(robject.names, robject)
+                    }
             else:
                 # try numpy first
                 robject = rpy2.robjects.numpy2ri.rpy2py(robject)
@@ -156,9 +160,13 @@ _install_bioconductor = RFunction(
             }
           }
         }
-    """)
+    """,
+)
 
-def install_bioconductor(package = None, site_repository = None, update = False, version = None, verbose = True):
+
+def install_bioconductor(
+    package=None, site_repository=None, update=False, version=None, verbose=True
+):
     """Install a Bioconductor package
     
     Parameters
@@ -176,11 +184,11 @@ def install_bioconductor(package = None, site_repository = None, update = False,
     verbose : boolean, optional (default: True)
         Install script verbosity.
     """
-    kwargs = {'update': update, 'rpy_verbose': verbose}
+    kwargs = {"update": update, "rpy_verbose": verbose}
     if package is not None:
-        kwargs['package'] = package
+        kwargs["package"] = package
     if site_repository is not None:
-        kwargs['site_repository'] = site_repository
+        kwargs["site_repository"] = site_repository
     if version is not None:
-        kwargs['version'] = version
+        kwargs["version"] = version
     _install_bioconductor(**kwargs)

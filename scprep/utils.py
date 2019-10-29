@@ -32,8 +32,8 @@ def _version_check(version, min_version=None):
         # no requirement
         return True
     min_version = str(min_version)
-    min_version_split = re.split(r'[^0-9]+', min_version)
-    version_split = re.split(r'[^0-9]+', version)
+    min_version_split = re.split(r"[^0-9]+", min_version)
+    version_split = re.split(r"[^0-9]+", version)
     version_major = int(version_split[0])
     min_major = int(min_version_split[0])
     if min_major > version_major:
@@ -62,13 +62,16 @@ def check_version(pkg, min_version=None):
     except ModuleNotFoundError:
         raise ModuleNotFoundError(
             "{0} not found. "
-            "Please install it with e.g. `pip install --user {0}`".format(pkg))
+            "Please install it with e.g. `pip install --user {0}`".format(pkg)
+        )
     if not _version_check(module.__version__, min_version):
         raise ImportError(
             "{0}>={1} is required (installed: {2}). "
             "Please upgrade it with e.g."
             " `pip install --user --upgrade {0}`".format(
-                pkg, min_version, module.__version__))
+                pkg, min_version, module.__version__
+            )
+        )
 
 
 @decorator
@@ -104,27 +107,23 @@ def _get_percentile_cutoff(data, cutoff=None, percentile=None, required=False):
         if cutoff is not None:
             raise ValueError(
                 "Only one of `cutoff` and `percentile` should be given."
-                "Got cutoff={}, percentile={}".format(cutoff, percentile))
+                "Got cutoff={}, percentile={}".format(cutoff, percentile)
+            )
         if not isinstance(percentile, numbers.Number):
-            return [_get_percentile_cutoff(data, percentile=p)
-                    for p in percentile]
+            return [_get_percentile_cutoff(data, percentile=p) for p in percentile]
         if percentile < 1:
             warnings.warn(
                 "`percentile` expects values between 0 and 100."
-                "Got {}. Did you mean {}?".format(percentile,
-                                                  percentile * 100),
-                UserWarning)
+                "Got {}. Did you mean {}?".format(percentile, percentile * 100),
+                UserWarning,
+            )
         cutoff = np.percentile(np.array(data).reshape(-1), percentile)
     elif cutoff is None and required:
-        raise ValueError(
-            "One of either `cutoff` or `percentile` must be given.")
+        raise ValueError("One of either `cutoff` or `percentile` must be given.")
     return cutoff
 
 
-
-def _get_filter_idx(values,
-                    cutoff, percentile,
-                    keep_cells):
+def _get_filter_idx(values, cutoff, percentile, keep_cells):
     """Return a boolean array to index cells based on a filter
 
     Parameters
@@ -148,31 +147,40 @@ def _get_filter_idx(values,
     keep_cells_idx : list-like
         Boolean retention array
     """
-    cutoff = _get_percentile_cutoff(
-        values, cutoff, percentile, required=True)
+    cutoff = _get_percentile_cutoff(values, cutoff, percentile, required=True)
     if keep_cells is None:
         if isinstance(cutoff, numbers.Number):
-            keep_cells = 'above'
+            keep_cells = "above"
         else:
-            keep_cells = 'between'
-    if keep_cells == 'above':
+            keep_cells = "between"
+    if keep_cells == "above":
         if not isinstance(cutoff, numbers.Number):
-            raise ValueError("Expected a single cutoff with keep_cells='above'."
-                             " Got {}".format(cutoff))
+            raise ValueError(
+                "Expected a single cutoff with keep_cells='above'."
+                " Got {}".format(cutoff)
+            )
         keep_cells_idx = values > cutoff
-    elif keep_cells == 'below':
+    elif keep_cells == "below":
         if not isinstance(cutoff, numbers.Number):
-            raise ValueError("Expected a single cutoff with keep_cells='below'."
-                             " Got {}".format(cutoff))
+            raise ValueError(
+                "Expected a single cutoff with keep_cells='below'."
+                " Got {}".format(cutoff)
+            )
         keep_cells_idx = values < cutoff
-    elif keep_cells == 'between':
+    elif keep_cells == "between":
         if isinstance(cutoff, numbers.Number) or len(cutoff) != 2:
-            raise ValueError("Expected cutoff of length 2 with keep_cells='between'."
-                             " Got {}".format(cutoff))
-        keep_cells_idx = np.logical_and(values > np.min(cutoff), values < np.max(cutoff))
+            raise ValueError(
+                "Expected cutoff of length 2 with keep_cells='between'."
+                " Got {}".format(cutoff)
+            )
+        keep_cells_idx = np.logical_and(
+            values > np.min(cutoff), values < np.max(cutoff)
+        )
     else:
-        raise ValueError("Expected `keep_cells` in ['above', 'below', 'between']. "
-                         "Got {}".format(keep_cells))
+        raise ValueError(
+            "Expected `keep_cells` in ['above', 'below', 'between']. "
+            "Got {}".format(keep_cells)
+        )
     return keep_cells_idx
 
 
@@ -237,8 +245,9 @@ def to_array_or_spmatrix(x):
         x = x.to_coo()
     elif is_sparse_dataframe(x) or is_sparse_series(x):
         x = x.sparse.to_coo()
-    elif isinstance(x, (sparse.spmatrix, np.ndarray, numbers.Number)) and \
-            not isinstance(x, np.matrix):
+    elif isinstance(
+        x, (sparse.spmatrix, np.ndarray, numbers.Number)
+    ) and not isinstance(x, np.matrix):
         pass
     elif isinstance(x, list):
         x_out = []
@@ -350,15 +359,17 @@ def matrix_sum(data, axis=None):
                 sums = data.to_coo().sum()
             else:
                 index = data.index if axis == 1 else data.columns
-                sums = pd.Series(np.array(data.to_coo().sum(axis)).flatten(),
-                                 index=index)
+                sums = pd.Series(
+                    np.array(data.to_coo().sum(axis)).flatten(), index=index
+                )
         elif is_sparse_dataframe(data):
             if axis is None:
                 sums = data.sparse.to_coo().sum()
             else:
                 index = data.index if axis == 1 else data.columns
-                sums = pd.Series(np.array(data.sparse.to_coo().sum(axis)).flatten(),
-                                 index=index)
+                sums = pd.Series(
+                    np.array(data.sparse.to_coo().sum(axis)).flatten(), index=index
+                )
         elif axis is None:
             sums = data.to_numpy().sum()
         else:
@@ -425,7 +436,7 @@ def matrix_std(data, axis=None):
     else:
         std = np.std(data, axis=axis)
     if index is not None:
-        std = pd.Series(std, index=index, name='std')
+        std = pd.Series(std, index=index, name="std")
     return std
 
 
@@ -455,7 +466,8 @@ def matrix_vector_elementwise_multiply(data, multiplier, axis=None):
             raise RuntimeError(
                 "`data` is square, cannot guess axis from input. "
                 "Please provide `axis=0` to multiply along rows or "
-                "`axis=1` to multiply along columns.")
+                "`axis=1` to multiply along columns."
+            )
         elif np.prod(multiplier.shape) == data.shape[0]:
             axis = 0
         elif np.prod(multiplier.shape) == data.shape[1]:
@@ -464,21 +476,23 @@ def matrix_vector_elementwise_multiply(data, multiplier, axis=None):
             raise ValueError(
                 "Expected `multiplier` to be a vector of length "
                 "`data.shape[0]` ({}) or `data.shape[1]` ({}). Got {}".format(
-                    data.shape[0], data.shape[1], multiplier.shape))
+                    data.shape[0], data.shape[1], multiplier.shape
+                )
+            )
     multiplier = toarray(multiplier)
     if axis == 0:
         if not np.prod(multiplier.shape) == data.shape[0]:
             raise ValueError(
                 "Expected `multiplier` to be a vector of length "
-                "`data.shape[0]` ({}). Got {}".format(
-                    data.shape[0], multiplier.shape))
+                "`data.shape[0]` ({}). Got {}".format(data.shape[0], multiplier.shape)
+            )
         multiplier = multiplier.reshape(-1, 1)
     else:
         if not np.prod(multiplier.shape) == data.shape[1]:
             raise ValueError(
                 "Expected `multiplier` to be a vector of length "
-                "`data.shape[1]` ({}). Got {}".format(
-                    data.shape[1], multiplier.shape))
+                "`data.shape[1]` ({}). Got {}".format(data.shape[1], multiplier.shape)
+            )
         multiplier = multiplier.reshape(1, -1)
 
     if isinstance(data, pd.SparseDataFrame) or is_sparse_dataframe(data):
@@ -491,17 +505,25 @@ def matrix_vector_elementwise_multiply(data, multiplier, axis=None):
                 except AttributeError:
                     mult_indices = data[col].values.sp_index.to_int_index().indices
                 new_data = data[col].values.sp_values * multiplier[mult_indices]
-                data[col].values.sp_values.put(np.arange(data[col].sparse.npoints),
-                                              new_data)
+                data[col].values.sp_values.put(
+                    np.arange(data[col].sparse.npoints), new_data
+                )
         else:
             for col, mult in zip(data.columns, multiplier):
                 data[col] = data[col] * mult
     elif isinstance(data, pd.DataFrame):
         data = data.mul(multiplier.flatten(), axis=axis)
     elif sparse.issparse(data):
-        if isinstance(data, (sparse.lil_matrix, sparse.dok_matrix,
-                             sparse.coo_matrix, sparse.bsr_matrix,
-                             sparse.dia_matrix)):
+        if isinstance(
+            data,
+            (
+                sparse.lil_matrix,
+                sparse.dok_matrix,
+                sparse.coo_matrix,
+                sparse.bsr_matrix,
+                sparse.dia_matrix,
+            ),
+        ):
             data = data.tocsr()
         data = data.multiply(multiplier)
     else:
@@ -595,23 +617,28 @@ def check_consistent_columns(data):
     matrix_type = type(data[0])
     matrix_shape = data[0].shape[1]
     if issubclass(matrix_type, pd.DataFrame):
-        if not (np.all([d.shape[1] == matrix_shape for d in data[1:]]) and
-                np.all([data[0].columns == d.columns for d in data])):
+        if not (
+            np.all([d.shape[1] == matrix_shape for d in data[1:]])
+            and np.all([data[0].columns == d.columns for d in data])
+        ):
             common_genes = data[0].columns.values
             for d in data[1:]:
-                common_genes = common_genes[np.isin(common_genes,
-                                                    d.columns.values)]
+                common_genes = common_genes[np.isin(common_genes, d.columns.values)]
             for i in range(len(data)):
                 data[i] = data[i][common_genes]
-            warnings.warn("Input data has inconsistent column names. "
-                          "Subsetting to {} common columns.".format(
-                              len(common_genes)), UserWarning)
+            warnings.warn(
+                "Input data has inconsistent column names. "
+                "Subsetting to {} common columns.".format(len(common_genes)),
+                UserWarning,
+            )
     else:
         for d in data[1:]:
             if not d.shape[1] == matrix_shape:
                 shapes = ", ".join([str(d.shape[1]) for d in data])
-                raise ValueError("Expected data all with the same number of "
-                                 "columns. Got {}".format(shapes))
+                raise ValueError(
+                    "Expected data all with the same number of "
+                    "columns. Got {}".format(shapes)
+                )
     return data
 
 
@@ -639,31 +666,37 @@ def combine_batches(data, batch_labels, append_to_cell_names=None):
         Batch labels corresponding to each sample
     """
     if not len(data) == len(batch_labels):
-        raise ValueError("Expected data ({}) and batch_labels ({}) to be the "
-                         "same length.".format(len(data), len(batch_labels)))
+        raise ValueError(
+            "Expected data ({}) and batch_labels ({}) to be the "
+            "same length.".format(len(data), len(batch_labels))
+        )
 
     # check consistent type
     matrix_type = type(data[0])
     if matrix_type is pd.SparseDataFrame:
         matrix_type = pd.DataFrame
-    if not issubclass(matrix_type, (np.ndarray,
-                                    pd.DataFrame,
-                                    sparse.spmatrix)):
-        raise ValueError("Expected data to contain pandas DataFrames, "
-                         "scipy sparse matrices or numpy arrays. "
-                         "Got {}".format(matrix_type.__name__))
+    if not issubclass(matrix_type, (np.ndarray, pd.DataFrame, sparse.spmatrix)):
+        raise ValueError(
+            "Expected data to contain pandas DataFrames, "
+            "scipy sparse matrices or numpy arrays. "
+            "Got {}".format(matrix_type.__name__)
+        )
     for d in data[1:]:
         if not isinstance(d, matrix_type):
             types = ", ".join([type(d).__name__ for d in data])
-            raise TypeError("Expected data all of the same class. "
-                            "Got {}".format(types))
+            raise TypeError(
+                "Expected data all of the same class. " "Got {}".format(types)
+            )
 
     data = check_consistent_columns(data)
 
     # check append_to_cell_names
     if append_to_cell_names and not issubclass(matrix_type, pd.DataFrame):
-        warnings.warn("append_to_cell_names only valid for pd.DataFrame input."
-                      " Got {}".format(matrix_type.__name__), UserWarning)
+        warnings.warn(
+            "append_to_cell_names only valid for pd.DataFrame input."
+            " Got {}".format(matrix_type.__name__),
+            UserWarning,
+        )
     elif append_to_cell_names is None:
         if issubclass(matrix_type, pd.DataFrame):
             if all([isinstance(d.index, pd.RangeIndex) for d in data]):
@@ -675,23 +708,29 @@ def combine_batches(data, batch_labels, append_to_cell_names=None):
             append_to_cell_names = False
 
     # concatenate labels
-    sample_labels = np.concatenate([np.repeat(batch_labels[i], d.shape[0])
-                                    for i, d in enumerate(data)])
+    sample_labels = np.concatenate(
+        [np.repeat(batch_labels[i], d.shape[0]) for i, d in enumerate(data)]
+    )
 
     # conatenate data
     if issubclass(matrix_type, pd.DataFrame):
         data_combined = pd.concat(data)
         if append_to_cell_names:
             index = np.concatenate(
-                [np.core.defchararray.add(np.array(d.index, dtype=str),
-                                          "_" + str(batch_labels[i]))
-                 for i, d in enumerate(data)])
+                [
+                    np.core.defchararray.add(
+                        np.array(d.index, dtype=str), "_" + str(batch_labels[i])
+                    )
+                    for i, d in enumerate(data)
+                ]
+            )
             data_combined.index = index
         elif all([isinstance(d.index, pd.RangeIndex) for d in data]):
             # rangeindex should still be a rangeindex
             data_combined = data_combined.reset_index(drop=True)
-        sample_labels = pd.Series(sample_labels, index=data_combined.index,
-                                  name='sample_labels')
+        sample_labels = pd.Series(
+            sample_labels, index=data_combined.index, name="sample_labels"
+        )
     elif issubclass(matrix_type, sparse.spmatrix):
         data_combined = sparse.vstack(data)
     elif issubclass(matrix_type, np.ndarray):
@@ -701,28 +740,39 @@ def combine_batches(data, batch_labels, append_to_cell_names=None):
 
 
 def select_cols(data, idx):
-    raise RuntimeError("`scprep.utils.select_cols` is deprecated. Use "
-                       "`scprep.select.select_cols` instead.")
+    raise RuntimeError(
+        "`scprep.utils.select_cols` is deprecated. Use "
+        "`scprep.select.select_cols` instead."
+    )
 
 
 def select_rows(data, idx):
-    raise RuntimeError("`scprep.utils.select_rows` is deprecated. Use "
-                       "`scprep.select.select_rows` instead.")
+    raise RuntimeError(
+        "`scprep.utils.select_rows` is deprecated. Use "
+        "`scprep.select.select_rows` instead."
+    )
 
 
 def get_gene_set(data, starts_with=None, ends_with=None, regex=None):
-    raise RuntimeError("`scprep.utils.get_gene_set` is deprecated. Use "
-                       "`scprep.select.get_gene_set` instead.")
+    raise RuntimeError(
+        "`scprep.utils.get_gene_set` is deprecated. Use "
+        "`scprep.select.get_gene_set` instead."
+    )
 
 
 def get_cell_set(data, starts_with=None, ends_with=None, regex=None):
-    raise RuntimeError("`scprep.utils.get_cell_set` is deprecated. Use "
-                       "`scprep.select.get_cell_set` instead.")
+    raise RuntimeError(
+        "`scprep.utils.get_cell_set` is deprecated. Use "
+        "`scprep.select.get_cell_set` instead."
+    )
 
 
 def subsample(*data, n=10000, seed=None):
-    raise RuntimeError("`scprep.utils.subsample` is deprecated. Use "
-                       "`scprep.select.subsample` instead.")
+    raise RuntimeError(
+        "`scprep.utils.subsample` is deprecated. Use "
+        "`scprep.select.subsample` instead."
+    )
+
 
 def sort_clusters_by_values(clusters, values):
     """Sorts `clusters` in increasing order of `values`.
@@ -748,12 +798,15 @@ def sort_clusters_by_values(clusters, values):
     clusters = toarray(clusters)
     values = toarray(values)
     if not len(clusters) == len(values):
-        raise ValueError("Expected clusters ({}) and values ({}) to be the "
-                         "same length.".format(len(clusters), len(values)))
+        raise ValueError(
+            "Expected clusters ({}) and values ({}) to be the "
+            "same length.".format(len(clusters), len(values))
+        )
 
     uniq_clusters = np.unique(clusters)
     means = np.array([np.mean(values[clusters == cl]) for cl in uniq_clusters])
-    new_clust_map = {curr_cl: i for i, curr_cl in enumerate(
-        uniq_clusters[np.argsort(means)])}
+    new_clust_map = {
+        curr_cl: i for i, curr_cl in enumerate(uniq_clusters[np.argsort(means)])
+    }
 
     return np.array([new_clust_map[cl] for cl in clusters])

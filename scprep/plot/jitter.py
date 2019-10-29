@@ -2,15 +2,13 @@ import numpy as np
 import pandas as pd
 
 from .. import utils
-from .utils import (_get_figure, show,
-                    temp_fontsize, parse_fontsize, _with_default)
+from .utils import _get_figure, show, temp_fontsize, parse_fontsize, _with_default
 from .tools import label_axis, generate_colorbar, generate_legend
 
 from .scatter import _ScatterParams
 
 
 class _JitterParams(_ScatterParams):
-
     @property
     def x_labels(self):
         try:
@@ -27,32 +25,43 @@ class _JitterParams(_ScatterParams):
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
-def jitter(labels, values, sigma=0.1,
-           c=None, cmap=None, cmap_scale='linear',
-           s=None, mask=None,
-           plot_means=True, means_s=100, means_c='lightgrey',
-           discrete=None,
-           ax=None,
-           legend=None, colorbar=None,
-           shuffle=True,
-           figsize=None,
-           ticks=True,
-           xticks=None,
-           yticks=None,
-           ticklabels=True,
-           xticklabels=None,
-           yticklabels=None,
-           xlabel=None,
-           ylabel=None,
-           title=None,
-           fontsize=None,
-           legend_title=None,
-           legend_loc='best',
-           legend_anchor=None,
-           vmin=None, vmax=None,
-           filename=None,
-           dpi=None,
-           **plot_kwargs):
+def jitter(
+    labels,
+    values,
+    sigma=0.1,
+    c=None,
+    cmap=None,
+    cmap_scale="linear",
+    s=None,
+    mask=None,
+    plot_means=True,
+    means_s=100,
+    means_c="lightgrey",
+    discrete=None,
+    ax=None,
+    legend=None,
+    colorbar=None,
+    shuffle=True,
+    figsize=None,
+    ticks=True,
+    xticks=None,
+    yticks=None,
+    ticklabels=True,
+    xticklabels=None,
+    yticklabels=None,
+    xlabel=None,
+    ylabel=None,
+    title=None,
+    fontsize=None,
+    legend_title=None,
+    legend_loc="best",
+    legend_anchor=None,
+    vmin=None,
+    vmax=None,
+    filename=None,
+    dpi=None,
+    **plot_kwargs
+):
     """Creates a 2D scatterplot showing the distribution of `values` for points
     that have associated `labels`.
 
@@ -151,33 +160,56 @@ def jitter(labels, values, sigma=0.1,
     """
     with temp_fontsize(fontsize):
         params = _JitterParams(
-            labels, values, c=c, discrete=discrete,
-            cmap=cmap, cmap_scale=cmap_scale,
-            vmin=vmin, vmax=vmax, s=s, mask=mask,
-            legend=legend, colorbar=colorbar,
-            xlabel=xlabel, ylabel=ylabel)
+            labels,
+            values,
+            c=c,
+            discrete=discrete,
+            cmap=cmap,
+            cmap_scale=cmap_scale,
+            vmin=vmin,
+            vmax=vmax,
+            s=s,
+            mask=mask,
+            legend=legend,
+            colorbar=colorbar,
+            xlabel=xlabel,
+            ylabel=ylabel,
+        )
 
-        fig, ax, show_fig = _get_figure(
-            ax, figsize, subplot_kw=params.subplot_kw)
+        fig, ax, show_fig = _get_figure(ax, figsize, subplot_kw=params.subplot_kw)
 
         # Plotting cells
         sc = ax.scatter(
             params.x_coords + np.random.normal(0, sigma, params.size)[params.plot_idx],
-            params.y, c=params.c,
-            cmap=params.cmap, norm=params.norm, s=params.s,
-            vmin=params.vmin, vmax=params.vmax, **plot_kwargs)
+            params.y,
+            c=params.c,
+            cmap=params.cmap,
+            norm=params.norm,
+            s=params.s,
+            vmin=params.vmin,
+            vmax=params.vmax,
+            **plot_kwargs
+        )
 
         # Plotting means
         if plot_means:
-            ax.scatter(np.arange(len(params.x_labels)),
-                       [np.nanmean(params.y[params.x_coords == i])
-                        for i in range(len(params.x_labels))],
-                       c=means_c, edgecolors='black', lw=1.5,
-                       marker='o', zorder=3, s=means_s)
+            ax.scatter(
+                np.arange(len(params.x_labels)),
+                [
+                    np.nanmean(params.y[params.x_coords == i])
+                    for i in range(len(params.x_labels))
+                ],
+                c=means_c,
+                edgecolors="black",
+                lw=1.5,
+                marker="o",
+                zorder=3,
+                s=means_s,
+            )
 
         # Plotting vetical lines
         for i in range(len(params.x_labels)):
-            ax.axvline(i, c='k', lw=.1, zorder=0)
+            ax.axvline(i, c="k", lw=0.1, zorder=0)
 
         # x axis labels
         xticks = _with_default(xticks, ticks)
@@ -189,8 +221,12 @@ def jitter(labels, values, sigma=0.1,
 
         # label axes
         label_axis(ax.xaxis, xticks, xticklabels, params.xlabel)
-        label_axis(ax.yaxis, _with_default(yticks, ticks),
-                   _with_default(yticklabels, ticklabels), params.ylabel)
+        label_axis(
+            ax.yaxis,
+            _with_default(yticks, ticks),
+            _with_default(yticklabels, ticklabels),
+            params.ylabel,
+        )
 
         # manually set x limits
         xmin = np.min(params.x_coords)
@@ -198,20 +234,31 @@ def jitter(labels, values, sigma=0.1,
         ax.set_xlim(xmin - 0.5, xmax + 0.5)
 
         if title is not None:
-            ax.set_title(title, fontsize=parse_fontsize(None, 'xx-large'))
+            ax.set_title(title, fontsize=parse_fontsize(None, "xx-large"))
 
         # generate legend
         if params.legend:
             if params.discrete:
-                generate_legend({params.labels[i]: sc.cmap(sc.norm(i))
-                                 for i in range(len(params.labels))}, ax=ax,
-                                loc=legend_loc, bbox_to_anchor=legend_anchor,
-                                title=legend_title)
+                generate_legend(
+                    {
+                        params.labels[i]: sc.cmap(sc.norm(i))
+                        for i in range(len(params.labels))
+                    },
+                    ax=ax,
+                    loc=legend_loc,
+                    bbox_to_anchor=legend_anchor,
+                    title=legend_title,
+                )
             else:
-                generate_colorbar(params.cmap, ax=ax,
-                                  vmin=params.vmin, vmax=params.vmax,
-                                  title=legend_title, extend=params.extend,
-                                  scale=sc.norm)
+                generate_colorbar(
+                    params.cmap,
+                    ax=ax,
+                    vmin=params.vmin,
+                    vmax=params.vmax,
+                    title=legend_title,
+                    extend=params.extend,
+                    scale=sc.norm,
+                )
 
         # save and show
         if show_fig:

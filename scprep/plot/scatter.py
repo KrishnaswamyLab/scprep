@@ -4,14 +4,26 @@ import pandas as pd
 import warnings
 
 from .. import utils, select
-from .utils import (_get_figure, _is_color_array,
-                    show, _in_ipynb, parse_fontsize, temp_fontsize,
-                    _with_default)
-from .tools import (create_colormap, create_normalize,
-                    label_axis, generate_colorbar, generate_legend)
+from .utils import (
+    _get_figure,
+    _is_color_array,
+    show,
+    _in_ipynb,
+    parse_fontsize,
+    temp_fontsize,
+    _with_default,
+)
+from .tools import (
+    create_colormap,
+    create_normalize,
+    label_axis,
+    generate_colorbar,
+    generate_legend,
+)
 from . import colors
 
 from .._lazyload import matplotlib as mpl
+
 plt = mpl.pyplot
 
 
@@ -25,13 +37,27 @@ def _squeeze_array(x):
 
 
 class _ScatterParams(object):
-
-    def __init__(self, x, y, z=None, c=None, mask=None,
-                 discrete=None,
-                 cmap=None, cmap_scale=None, vmin=None,
-                 vmax=None, s=None, legend=None, colorbar=None,
-                 xlabel=None, ylabel=None, zlabel=None,
-                 label_prefix=None, shuffle=True):
+    def __init__(
+        self,
+        x,
+        y,
+        z=None,
+        c=None,
+        mask=None,
+        discrete=None,
+        cmap=None,
+        cmap_scale=None,
+        vmin=None,
+        vmax=None,
+        s=None,
+        legend=None,
+        colorbar=None,
+        xlabel=None,
+        ylabel=None,
+        zlabel=None,
+        label_prefix=None,
+        shuffle=True,
+    ):
         self._x = x
         self._y = y
         self._z = z if z is not None else None
@@ -141,8 +167,7 @@ class _ScatterParams(object):
         try:
             return self._array_c
         except AttributeError:
-            self._array_c = (not self.constant_c()) and _is_color_array(
-                self._c)
+            self._array_c = (not self.constant_c()) and _is_color_array(self._c)
             return self._array_c
 
     @property
@@ -185,9 +210,9 @@ class _ScatterParams(object):
             if self.constant_c() or self.array_c():
                 return None
             else:
-                if isinstance(self._cmap, dict) or not \
-                    np.all([isinstance(x, numbers.Number)
-                            for x in self._c_masked]):
+                if isinstance(self._cmap, dict) or not np.all(
+                    [isinstance(x, numbers.Number) for x in self._c_masked]
+                ):
                     # cmap dictionary or non-numeric values force discrete
                     return True
                 else:
@@ -208,14 +233,16 @@ class _ScatterParams(object):
         if self._c_discrete is None:
             if isinstance(self._cmap, dict):
                 self._labels = np.array(
-                    [k for k in self._cmap.keys() if k in self.c_unique])
+                    [k for k in self._cmap.keys() if k in self.c_unique]
+                )
                 self._c_discrete = np.zeros_like(self._c, dtype=int)
                 for i, label in enumerate(self._labels):
                     self._c_discrete[self._c == label] = i
             else:
                 self._c_discrete = np.zeros_like(self._c, dtype=int)
                 self._c_discrete[self._mask], self._labels = pd.factorize(
-                    self._c_masked, sort=True)
+                    self._c_masked, sort=True
+                )
         return self._c_discrete
 
     @property
@@ -272,15 +299,15 @@ class _ScatterParams(object):
 
     def list_cmap(self):
         """Is the colormap a list?"""
-        return hasattr(self._cmap, '__len__') and \
-            not isinstance(self._cmap, (str, dict))
+        return hasattr(self._cmap, "__len__") and not isinstance(
+            self._cmap, (str, dict)
+        )
 
     def process_string_cmap(self, cmap):
         """If necessary, subset a discrete colormap based on the number of colors"""
         cmap = mpl.cm.get_cmap(cmap)
         if self.discrete and cmap.N <= 20 and self.n_c_unique <= cmap.N:
-            return mpl.colors.ListedColormap(
-                cmap.colors[:self.n_c_unique])
+            return mpl.colors.ListedColormap(cmap.colors[: self.n_c_unique])
         else:
             return cmap
 
@@ -289,7 +316,8 @@ class _ScatterParams(object):
         if self._cmap is not None:
             if isinstance(self._cmap, dict):
                 return mpl.colors.ListedColormap(
-                    [mpl.colors.to_rgba(self._cmap[l]) for l in self.labels])
+                    [mpl.colors.to_rgba(self._cmap[l]) for l in self.labels]
+                )
             elif self.list_cmap():
                 return create_colormap(self._cmap)
             elif isinstance(self._cmap, str):
@@ -302,7 +330,7 @@ class _ScatterParams(object):
             elif self.discrete:
                 return colors.tab(n=self.n_c_unique)
             else:
-                return self.process_string_cmap('inferno')
+                return self.process_string_cmap("inferno")
 
     @property
     def cmap_scale(self):
@@ -312,11 +340,11 @@ class _ScatterParams(object):
             if self.discrete or not self.legend:
                 return None
             else:
-                return 'linear'
+                return "linear"
 
     @property
     def norm(self):
-        if self.cmap_scale is not None and self.cmap_scale != 'linear':
+        if self.cmap_scale is not None and self.cmap_scale != "linear":
             return create_normalize(self.vmin, self.vmax, self.cmap_scale)
         else:
             return None
@@ -328,16 +356,16 @@ class _ScatterParams(object):
             extend_min = np.min(self.c) < self.vmin
             extend_max = np.max(self.c) > self.vmax
             if extend_min:
-                return 'both' if extend_max else 'min'
+                return "both" if extend_max else "min"
             else:
-                return 'max' if extend_max else 'neither'
+                return "max" if extend_max else "neither"
         else:
             return None
 
     @property
     def subplot_kw(self):
         if self.z is not None:
-            return {'projection': '3d'}
+            return {"projection": "3d"}
         else:
             return {}
 
@@ -347,7 +375,8 @@ class _ScatterParams(object):
                 warnings.warn(
                     "Cannot set `vmin` or `vmax` with constant `c={}`. "
                     "Setting `vmin = vmax = None`.".format(self.c),
-                    UserWarning)
+                    UserWarning,
+                )
             self._vmin = None
             self._vmax = None
         elif self.discrete:
@@ -355,7 +384,8 @@ class _ScatterParams(object):
                 warnings.warn(
                     "Cannot set `vmin` or `vmax` with discrete data. "
                     "Setting to `None`.",
-                    UserWarning)
+                    UserWarning,
+                )
             self._vmin = None
             self._vmax = None
 
@@ -365,8 +395,8 @@ class _ScatterParams(object):
             if self._legend is not None and self._legend != self._colorbar:
                 raise ValueError(
                     "Received conflicting values for synonyms "
-                    "`legend={}` and `colorbar={}`".format(
-                        self._legend, self._colorbar))
+                    "`legend={}` and `colorbar={}`".format(self._legend, self._colorbar)
+                )
             else:
                 self._legend = self._colorbar
         if self._legend:
@@ -375,12 +405,14 @@ class _ScatterParams(object):
                     "`c` is a color array and cannot be used to create a "
                     "legend. To interpret these values as labels instead, "
                     "provide a `cmap` dictionary with label-color pairs.",
-                    UserWarning)
+                    UserWarning,
+                )
                 self._legend = False
             elif self.constant_c():
                 warnings.warn(
-                    "Cannot create a legend with constant `c={}`".format(
-                        self.c), UserWarning)
+                    "Cannot create a legend with constant `c={}`".format(self.c),
+                    UserWarning,
+                )
                 self._legend = False
 
     def check_size(self):
@@ -389,76 +421,91 @@ class _ScatterParams(object):
             if len(d) != self.size:
                 raise ValueError(
                     "Expected all axes of data to have the same length"
-                    ". Got {}".format([len(d) for d in self._data]))
+                    ". Got {}".format([len(d) for d in self._data])
+                )
 
     def check_c(self):
         if not self.constant_c():
             self._c = _squeeze_array(self._c)
             if not len(self._c) == self.size:
-                raise ValueError("Expected c of length {} or 1. Got {}".format(
-                    self.size, len(self._c)))
+                raise ValueError(
+                    "Expected c of length {} or 1. Got {}".format(
+                        self.size, len(self._c)
+                    )
+                )
 
     def check_mask(self):
         if self._mask is not None:
             self._mask = _squeeze_array(self._mask)
             if not len(self._mask) == self.size:
-                raise ValueError("Expected mask of length {}. Got {}".format(
-                    self.size, len(self._mask)))
+                raise ValueError(
+                    "Expected mask of length {}. Got {}".format(
+                        self.size, len(self._mask)
+                    )
+                )
 
     def check_s(self):
         if self._s is not None and not isinstance(self._s, numbers.Number):
             self._s = _squeeze_array(self._s)
             if not len(self._s) == self.size:
-                raise ValueError("Expected s of length {} or 1. Got {}".format(
-                    self.size, len(self._s)))
+                raise ValueError(
+                    "Expected s of length {} or 1. Got {}".format(
+                        self.size, len(self._s)
+                    )
+                )
 
     def check_discrete(self):
         if self._discrete is False:
             if not np.all([isinstance(x, numbers.Number) for x in self._c]):
-                raise ValueError(
-                    "Cannot treat non-numeric data as continuous.")
+                raise ValueError("Cannot treat non-numeric data as continuous.")
 
     def check_cmap(self):
         if isinstance(self._cmap, dict):
             # dictionary cmap
             if self.constant_c() or self.array_c():
-                raise ValueError("Expected list-like `c` with dictionary cmap."
-                                 " Got {}".format(type(self._c)))
+                raise ValueError(
+                    "Expected list-like `c` with dictionary cmap."
+                    " Got {}".format(type(self._c))
+                )
             elif not self.discrete:
-                raise ValueError("Cannot use dictionary cmap with "
-                                 "continuous data.")
+                raise ValueError("Cannot use dictionary cmap with " "continuous data.")
             elif np.any([l not in self._cmap for l in np.unique(self._c)]):
-                missing = set(np.unique(self._c).tolist()
-                              ).difference(self._cmap.keys())
+                missing = set(np.unique(self._c).tolist()).difference(self._cmap.keys())
                 raise ValueError(
                     "Dictionary cmap requires a color "
                     "for every unique entry in `c`. "
                     "Missing colors for [{}]".format(
-                        ", ".join([str(l) for l in missing])))
+                        ", ".join([str(l) for l in missing])
+                    )
+                )
         elif self.list_cmap():
             if self.constant_c() or self.array_c():
-                raise ValueError("Expected list-like `c` with list cmap. "
-                                 "Got {}".format(type(self._c)))
+                raise ValueError(
+                    "Expected list-like `c` with list cmap. "
+                    "Got {}".format(type(self._c))
+                )
 
     def check_cmap_scale(self):
-        if self._cmap_scale is not None and self._cmap_scale != 'linear':
+        if self._cmap_scale is not None and self._cmap_scale != "linear":
             if self.array_c():
                 warnings.warn(
-                    "Cannot use non-linear `cmap_scale` with "
-                    "`c` as a color array.",
-                    UserWarning)
-                self._cmap_scale = 'linear'
+                    "Cannot use non-linear `cmap_scale` with " "`c` as a color array.",
+                    UserWarning,
+                )
+                self._cmap_scale = "linear"
             elif self.constant_c():
                 warnings.warn(
                     "Cannot use non-linear `cmap_scale` with constant "
                     "`c={}`.".format(self._c),
-                    UserWarning)
-                self._cmap_scale = 'linear'
+                    UserWarning,
+                )
+                self._cmap_scale = "linear"
             elif self.discrete:
                 warnings.warn(
                     "Cannot use non-linear `cmap_scale` with discrete data.",
-                    UserWarning)
-                self._cmap_scale = 'linear'
+                    UserWarning,
+                )
+                self._cmap_scale = "linear"
 
     @property
     def xlabel(self):
@@ -497,36 +544,46 @@ class _ScatterParams(object):
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
-def scatter(x, y, z=None,
-            c=None, cmap=None, cmap_scale='linear', s=None,
-            mask=None,
-            discrete=None,
-            ax=None,
-            legend=None, colorbar=None,
-            shuffle=True,
-            figsize=None,
-            ticks=True,
-            xticks=None,
-            yticks=None,
-            zticks=None,
-            ticklabels=True,
-            xticklabels=None,
-            yticklabels=None,
-            zticklabels=None,
-            label_prefix=None,
-            xlabel=None,
-            ylabel=None,
-            zlabel=None,
-            title=None,
-            fontsize=None,
-            legend_title=None,
-            legend_loc='best',
-            legend_anchor=None,
-            vmin=None, vmax=None,
-            elev=None, azim=None,
-            filename=None,
-            dpi=None,
-            **plot_kwargs):
+def scatter(
+    x,
+    y,
+    z=None,
+    c=None,
+    cmap=None,
+    cmap_scale="linear",
+    s=None,
+    mask=None,
+    discrete=None,
+    ax=None,
+    legend=None,
+    colorbar=None,
+    shuffle=True,
+    figsize=None,
+    ticks=True,
+    xticks=None,
+    yticks=None,
+    zticks=None,
+    ticklabels=True,
+    xticklabels=None,
+    yticklabels=None,
+    zticklabels=None,
+    label_prefix=None,
+    xlabel=None,
+    ylabel=None,
+    zlabel=None,
+    title=None,
+    fontsize=None,
+    legend_title=None,
+    legend_loc="best",
+    legend_anchor=None,
+    vmin=None,
+    vmax=None,
+    elev=None,
+    azim=None,
+    filename=None,
+    dpi=None,
+    **plot_kwargs
+):
     """Create a scatter plot
 
     Builds upon `matplotlib.pyplot.scatter` with nice defaults
@@ -645,46 +702,87 @@ def scatter(x, y, z=None,
     """
     with temp_fontsize(fontsize):
         params = _ScatterParams(
-            x, y, z, c=c, mask=mask, discrete=discrete,
-            cmap=cmap, cmap_scale=cmap_scale,
-            vmin=vmin, vmax=vmax, s=s,
-            legend=legend, colorbar=colorbar,
-            xlabel=xlabel, ylabel=ylabel, zlabel=zlabel,
-            label_prefix=label_prefix, shuffle=shuffle)
+            x,
+            y,
+            z,
+            c=c,
+            mask=mask,
+            discrete=discrete,
+            cmap=cmap,
+            cmap_scale=cmap_scale,
+            vmin=vmin,
+            vmax=vmax,
+            s=s,
+            legend=legend,
+            colorbar=colorbar,
+            xlabel=xlabel,
+            ylabel=ylabel,
+            zlabel=zlabel,
+            label_prefix=label_prefix,
+            shuffle=shuffle,
+        )
 
-        fig, ax, show_fig = _get_figure(
-            ax, figsize, subplot_kw=params.subplot_kw)
+        fig, ax, show_fig = _get_figure(ax, figsize, subplot_kw=params.subplot_kw)
 
         # plot!
         sc = ax.scatter(
             *(params.data),
-            c=params.c, cmap=params.cmap, norm=params.norm, s=params.s,
-            vmin=params.vmin, vmax=params.vmax, **plot_kwargs)
+            c=params.c,
+            cmap=params.cmap,
+            norm=params.norm,
+            s=params.s,
+            vmin=params.vmin,
+            vmax=params.vmax,
+            **plot_kwargs
+        )
 
         # label axes
-        label_axis(ax.xaxis, _with_default(xticks, ticks),
-                   _with_default(xticklabels, ticklabels), params.xlabel)
-        label_axis(ax.yaxis, _with_default(yticks, ticks),
-                   _with_default(yticklabels, ticklabels), params.ylabel)
+        label_axis(
+            ax.xaxis,
+            _with_default(xticks, ticks),
+            _with_default(xticklabels, ticklabels),
+            params.xlabel,
+        )
+        label_axis(
+            ax.yaxis,
+            _with_default(yticks, ticks),
+            _with_default(yticklabels, ticklabels),
+            params.ylabel,
+        )
         if z is not None:
-            label_axis(ax.zaxis, _with_default(zticks, ticks),
-                       _with_default(zticklabels, ticklabels), params.zlabel)
+            label_axis(
+                ax.zaxis,
+                _with_default(zticks, ticks),
+                _with_default(zticklabels, ticklabels),
+                params.zlabel,
+            )
 
         if title is not None:
-            ax.set_title(title, fontsize=parse_fontsize(None, 'xx-large'))
+            ax.set_title(title, fontsize=parse_fontsize(None, "xx-large"))
 
         # generate legend
         if params.legend:
             if params.discrete:
-                generate_legend({params.labels[i]: sc.cmap(sc.norm(i))
-                                 for i in range(len(params.labels))}, ax=ax,
-                                loc=legend_loc, bbox_to_anchor=legend_anchor,
-                                title=legend_title)
+                generate_legend(
+                    {
+                        params.labels[i]: sc.cmap(sc.norm(i))
+                        for i in range(len(params.labels))
+                    },
+                    ax=ax,
+                    loc=legend_loc,
+                    bbox_to_anchor=legend_anchor,
+                    title=legend_title,
+                )
             else:
-                generate_colorbar(params.cmap, ax=ax,
-                                  vmin=params.vmin, vmax=params.vmax,
-                                  title=legend_title, extend=params.extend,
-                                  scale=sc.norm)
+                generate_colorbar(
+                    params.cmap,
+                    ax=ax,
+                    vmin=params.vmin,
+                    vmax=params.vmax,
+                    title=legend_title,
+                    extend=params.extend,
+                    scale=sc.norm,
+                )
 
         # set viewpoint
         if z is not None:
@@ -699,29 +797,37 @@ def scatter(x, y, z=None,
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
-def scatter2d(data,
-              c=None, cmap=None, cmap_scale='linear', s=None,
-              mask=None,
-              discrete=None,
-              ax=None, legend=None, colorbar=None,
-              shuffle=True, figsize=None,
-              ticks=True,
-              xticks=None,
-              yticks=None,
-              ticklabels=True,
-              xticklabels=None,
-              yticklabels=None,
-              label_prefix=None,
-              xlabel=None,
-              ylabel=None,
-              title=None,
-              fontsize=None,
-              legend_title=None,
-              legend_loc='best',
-              legend_anchor=None,
-              filename=None,
-              dpi=None,
-              **plot_kwargs):
+def scatter2d(
+    data,
+    c=None,
+    cmap=None,
+    cmap_scale="linear",
+    s=None,
+    mask=None,
+    discrete=None,
+    ax=None,
+    legend=None,
+    colorbar=None,
+    shuffle=True,
+    figsize=None,
+    ticks=True,
+    xticks=None,
+    yticks=None,
+    ticklabels=True,
+    xticklabels=None,
+    yticklabels=None,
+    label_prefix=None,
+    xlabel=None,
+    ylabel=None,
+    title=None,
+    fontsize=None,
+    legend_title=None,
+    legend_loc="best",
+    legend_anchor=None,
+    filename=None,
+    dpi=None,
+    **plot_kwargs
+):
     """Create a 2D scatter plot
 
     Builds upon `matplotlib.pyplot.scatter` with nice defaults
@@ -832,61 +938,77 @@ def scatter2d(data,
     """
     if isinstance(data, list):
         data = utils.toarray(data)
-    return scatter(x=select.select_cols(data, idx=0),
-                   y=select.select_cols(data, idx=1),
-                   c=c, cmap=cmap, cmap_scale=cmap_scale, s=s,
-                   mask=mask,
-                   discrete=discrete,
-                   ax=ax, legend=legend, colorbar=colorbar,
-                   shuffle=shuffle, figsize=figsize,
-                   ticks=ticks,
-                   xticks=xticks,
-                   yticks=yticks,
-                   ticklabels=ticklabels,
-                   xticklabels=xticklabels,
-                   yticklabels=yticklabels,
-                   label_prefix=label_prefix,
-                   xlabel=xlabel,
-                   ylabel=ylabel,
-                   title=title,
-                   fontsize=fontsize,
-                   legend_title=legend_title,
-                   legend_loc=legend_loc,
-                   legend_anchor=legend_anchor,
-                   filename=filename,
-                   dpi=dpi,
-                   **plot_kwargs)
+    return scatter(
+        x=select.select_cols(data, idx=0),
+        y=select.select_cols(data, idx=1),
+        c=c,
+        cmap=cmap,
+        cmap_scale=cmap_scale,
+        s=s,
+        mask=mask,
+        discrete=discrete,
+        ax=ax,
+        legend=legend,
+        colorbar=colorbar,
+        shuffle=shuffle,
+        figsize=figsize,
+        ticks=ticks,
+        xticks=xticks,
+        yticks=yticks,
+        ticklabels=ticklabels,
+        xticklabels=xticklabels,
+        yticklabels=yticklabels,
+        label_prefix=label_prefix,
+        xlabel=xlabel,
+        ylabel=ylabel,
+        title=title,
+        fontsize=fontsize,
+        legend_title=legend_title,
+        legend_loc=legend_loc,
+        legend_anchor=legend_anchor,
+        filename=filename,
+        dpi=dpi,
+        **plot_kwargs
+    )
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
-def scatter3d(data,
-              c=None, cmap=None, cmap_scale='linear', s=None,
-              mask=None,
-              discrete=None,
-              ax=None, legend=None, colorbar=None,
-              shuffle=True,
-              figsize=None,
-              ticks=True,
-              xticks=None,
-              yticks=None,
-              zticks=None,
-              ticklabels=True,
-              xticklabels=None,
-              yticklabels=None,
-              zticklabels=None,
-              label_prefix=None,
-              xlabel=None,
-              ylabel=None,
-              zlabel=None,
-              title=None,
-              fontsize=None,
-              legend_title=None,
-              legend_loc='best',
-              legend_anchor=None,
-              elev=None, azim=None,
-              filename=None,
-              dpi=None,
-              **plot_kwargs):
+def scatter3d(
+    data,
+    c=None,
+    cmap=None,
+    cmap_scale="linear",
+    s=None,
+    mask=None,
+    discrete=None,
+    ax=None,
+    legend=None,
+    colorbar=None,
+    shuffle=True,
+    figsize=None,
+    ticks=True,
+    xticks=None,
+    yticks=None,
+    zticks=None,
+    ticklabels=True,
+    xticklabels=None,
+    yticklabels=None,
+    zticklabels=None,
+    label_prefix=None,
+    xlabel=None,
+    ylabel=None,
+    zlabel=None,
+    title=None,
+    fontsize=None,
+    legend_title=None,
+    legend_loc="best",
+    legend_anchor=None,
+    elev=None,
+    azim=None,
+    filename=None,
+    dpi=None,
+    **plot_kwargs
+):
     """Create a 3D scatter plot
 
     Builds upon `matplotlib.pyplot.scatter` with nice defaults
@@ -1007,45 +1129,58 @@ def scatter3d(data,
         z = select.select_cols(data, idx=2)
     except IndexError:
         raise ValueError("Expected data.shape[1] >= 3. Got {}".format(data.shape[1]))
-    return scatter(x=x, y=y, z=z,
-                   c=c, cmap=cmap, cmap_scale=cmap_scale, s=s, mask=mask,
-                   discrete=discrete,
-                   ax=ax, legend=legend, colorbar=colorbar,
-                   shuffle=shuffle, figsize=figsize,
-                   ticks=ticks,
-                   xticks=xticks,
-                   yticks=yticks,
-                   zticks=zticks,
-                   ticklabels=ticklabels,
-                   xticklabels=xticklabels,
-                   yticklabels=yticklabels,
-                   zticklabels=zticklabels,
-                   label_prefix=label_prefix,
-                   xlabel=xlabel,
-                   ylabel=ylabel,
-                   zlabel=zlabel,
-                   title=title,
-                   fontsize=fontsize,
-                   legend_title=legend_title,
-                   legend_loc=legend_loc,
-                   legend_anchor=legend_anchor,
-                   elev=elev,
-                   azim=azim,
-                   filename=filename,
-                   dpi=dpi,
-                   **plot_kwargs)
+    return scatter(
+        x=x,
+        y=y,
+        z=z,
+        c=c,
+        cmap=cmap,
+        cmap_scale=cmap_scale,
+        s=s,
+        mask=mask,
+        discrete=discrete,
+        ax=ax,
+        legend=legend,
+        colorbar=colorbar,
+        shuffle=shuffle,
+        figsize=figsize,
+        ticks=ticks,
+        xticks=xticks,
+        yticks=yticks,
+        zticks=zticks,
+        ticklabels=ticklabels,
+        xticklabels=xticklabels,
+        yticklabels=yticklabels,
+        zticklabels=zticklabels,
+        label_prefix=label_prefix,
+        xlabel=xlabel,
+        ylabel=ylabel,
+        zlabel=zlabel,
+        title=title,
+        fontsize=fontsize,
+        legend_title=legend_title,
+        legend_loc=legend_loc,
+        legend_anchor=legend_anchor,
+        elev=elev,
+        azim=azim,
+        filename=filename,
+        dpi=dpi,
+        **plot_kwargs
+    )
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
-def rotate_scatter3d(data,
-                     filename=None,
-                     rotation_speed=30,
-                     fps=10,
-                     ax=None,
-                     figsize=None,
-                     ipython_html="jshtml",
-                     dpi=None,
-                     **kwargs):
+def rotate_scatter3d(
+    data,
+    filename=None,
+    rotation_speed=30,
+    fps=10,
+    ax=None,
+    figsize=None,
+    ipython_html="jshtml",
+    dpi=None,
+    **kwargs
+):
     """Create a rotating 3D scatter plot
 
     Builds upon `matplotlib.pyplot.scatter` with nice defaults
@@ -1097,19 +1232,19 @@ def rotate_scatter3d(data,
     if _in_ipynb():
         # credit to
         # http://tiao.io/posts/notebooks/save-matplotlib-animations-as-gifs/
-        mpl.rc('animation', html=ipython_html)
+        mpl.rc("animation", html=ipython_html)
 
     if filename is not None:
         if filename.endswith(".gif"):
-            writer = 'imagemagick'
+            writer = "imagemagick"
         elif filename.endswith(".mp4"):
             writer = "ffmpeg"
         else:
             raise ValueError(
-                "filename must end in .gif or .mp4. Got {}".format(filename))
+                "filename must end in .gif or .mp4. Got {}".format(filename)
+            )
 
-    fig, ax, show_fig = _get_figure(
-        ax, figsize, subplot_kw={'projection': '3d'})
+    fig, ax, show_fig = _get_figure(ax, figsize, subplot_kw={"projection": "3d"})
 
     degrees_per_frame = rotation_speed / fps
     frames = int(round(360 / degrees_per_frame))
@@ -1129,8 +1264,13 @@ def rotate_scatter3d(data,
         return ax
 
     ani = mpl.animation.FuncAnimation(
-        fig, animate, init_func=init,
-        frames=range(frames), interval=interval, blit=False)
+        fig,
+        animate,
+        init_func=init,
+        frames=range(frames),
+        interval=interval,
+        blit=False,
+    )
 
     if filename is not None:
         ani.save(filename, writer=writer, dpi=dpi)

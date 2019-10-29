@@ -11,31 +11,33 @@ from . import measure, utils
 
 
 def _get_scaled_libsize(data, rescale=10000, return_library_size=False):
-    if return_library_size or rescale in ['median', 'mean']:
+    if return_library_size or rescale in ["median", "mean"]:
         libsize = measure.library_size(data)
     else:
         libsize = None
-    if rescale == 'median':
+    if rescale == "median":
         rescale = np.median(utils.toarray(libsize))
         if rescale == 0:
-            warnings.warn("Median library size is zero. "
-                          "Rescaling to mean instead.",
-                          UserWarning)
+            warnings.warn(
+                "Median library size is zero. " "Rescaling to mean instead.",
+                UserWarning,
+            )
             rescale = np.mean(utils.toarray(libsize))
-    elif rescale == 'mean':
+    elif rescale == "mean":
         rescale = np.mean(utils.toarray(libsize))
     elif isinstance(rescale, numbers.Number):
         pass
     elif rescale is None:
         rescale = 1
     else:
-        raise ValueError("Expected rescale in ['median', 'mean'], a number "
-                         "or `None`. Got {}".format(rescale))
+        raise ValueError(
+            "Expected rescale in ['median', 'mean'], a number "
+            "or `None`. Got {}".format(rescale)
+        )
     return rescale, libsize
 
 
-def library_size_normalize(data, rescale=10000,
-                           return_library_size=False):
+def library_size_normalize(data, rescale=10000, return_library_size=False):
     """Performs L1 normalization on input data
     Performs L1 normalization on input data such that the sum of expression
     values for each cell sums to 1
@@ -74,20 +76,19 @@ def library_size_normalize(data, rescale=10000,
             # dense data
             data = data.to_numpy()
 
-    calc_libsize = sparse.issparse(data) and (return_library_size or
-                                              data.nnz > 2**31)
+    calc_libsize = sparse.issparse(data) and (return_library_size or data.nnz > 2 ** 31)
     rescale, libsize = _get_scaled_libsize(data, rescale, calc_libsize)
 
     if libsize is not None:
         divisor = utils.toarray(libsize)
         data_norm = utils.matrix_vector_elementwise_multiply(
-            data, 1 / np.where(divisor == 0, 1, divisor), axis=0)
+            data, 1 / np.where(divisor == 0, 1, divisor), axis=0
+        )
     else:
         if return_library_size:
-            data_norm, libsize = normalize(
-                data, norm='l1', axis=1, return_norm=True)
+            data_norm, libsize = normalize(data, norm="l1", axis=1, return_norm=True)
         else:
-            data_norm = normalize(data, norm='l1', axis=1)
+            data_norm = normalize(data, norm="l1", axis=1)
     data_norm = data_norm * rescale
 
     if columns is not None:
@@ -98,7 +99,7 @@ def library_size_normalize(data, rescale=10000,
             data_norm = pd.DataFrame(data_norm)
         data_norm.columns = columns
         data_norm.index = index
-        libsize = pd.Series(libsize, index=index, name='library_size')
+        libsize = pd.Series(libsize, index=index, name="library_size")
     if return_library_size:
         return data_norm, libsize
     else:
@@ -123,9 +124,14 @@ def batch_mean_center(data, sample_idx=None):
     data : array-like, shape=[n_samples, n_features]
         Batch mean-centered output data.
     """
-    if sparse.issparse(data) or isinstance(data, pd.SparseDataFrame) or utils.is_sparse_dataframe(data):
-        raise ValueError("Cannot mean center sparse data. "
-                         "Convert to dense matrix first.")
+    if (
+        sparse.issparse(data)
+        or isinstance(data, pd.SparseDataFrame)
+        or utils.is_sparse_dataframe(data)
+    ):
+        raise ValueError(
+            "Cannot mean center sparse data. " "Convert to dense matrix first."
+        )
     if sample_idx is None:
         sample_idx = np.ones(len(data))
     for sample in np.unique(sample_idx):

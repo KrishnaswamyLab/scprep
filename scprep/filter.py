@@ -12,31 +12,38 @@ from . import utils, measure, select
 
 
 def remove_empty_genes(data, *extra_data):
-    warnings.warn("`scprep.filter.remove_empty_genes` is deprecated. "
-                  "Use `scprep.filter.filter_empty_genes` instead.",
-                  DeprecationWarning)
+    warnings.warn(
+        "`scprep.filter.remove_empty_genes` is deprecated. "
+        "Use `scprep.filter.filter_empty_genes` instead.",
+        DeprecationWarning,
+    )
     return filter_empty_genes(data, *extra_data)
 
 
 def remove_rare_genes(data, *extra_data, cutoff=0, min_cells=5):
-    warnings.warn("`scprep.filter.remove_rare_genes` is deprecated. "
-                  "Use `scprep.filter.filter_rare_genes` instead.",
-                  DeprecationWarning)
-    return filter_rare_genes(data, *extra_data,
-                             cutoff=cutoff, min_cells=min_cells)
+    warnings.warn(
+        "`scprep.filter.remove_rare_genes` is deprecated. "
+        "Use `scprep.filter.filter_rare_genes` instead.",
+        DeprecationWarning,
+    )
+    return filter_rare_genes(data, *extra_data, cutoff=cutoff, min_cells=min_cells)
 
 
 def remove_empty_cells(data, *extra_data, sample_labels=None):
-    warnings.warn("`scprep.filter.remove_empty_cells` is deprecated. "
-                  "Use `scprep.filter.filter_empty_cells` instead.",
-                  DeprecationWarning)
+    warnings.warn(
+        "`scprep.filter.remove_empty_cells` is deprecated. "
+        "Use `scprep.filter.filter_empty_cells` instead.",
+        DeprecationWarning,
+    )
     return filter_empty_cells(data, *extra_data, sample_labels=sample_labels)
 
 
 def remove_duplicates(data, *extra_data, sample_labels=None):
-    warnings.warn("`scprep.filter.remove_duplicates` is deprecated. "
-                  "Use `scprep.filter.filter_duplicates` instead.",
-                  DeprecationWarning)
+    warnings.warn(
+        "`scprep.filter.remove_duplicates` is deprecated. "
+        "Use `scprep.filter.filter_duplicates` instead.",
+        DeprecationWarning,
+    )
     return filter_duplicates(data, *extra_data, sample_labels=sample_labels)
 
 
@@ -112,9 +119,11 @@ def filter_empty_cells(data, *extra_data, sample_labels=None):
         Filtered extra data, if passed.
     """
     if sample_labels is not None:
-        warnings.warn("`sample_labels` is deprecated. "
-                      "Passing `sample_labels` as `extra_data`.",
-                      DeprecationWarning)
+        warnings.warn(
+            "`sample_labels` is deprecated. "
+            "Passing `sample_labels` as `extra_data`.",
+            DeprecationWarning,
+        )
         extra_data = list(extra_data) + [sample_labels]
     cell_sums = measure.library_size(data)
     keep_cells_idx = cell_sums > 0
@@ -122,12 +131,17 @@ def filter_empty_cells(data, *extra_data, sample_labels=None):
     return data
 
 
-def filter_values(data, *extra_data, values=None,
-                  cutoff=None, percentile=None,
-                  keep_cells='above',
-                  return_values=False,
-                  sample_labels=None,
-                  filter_per_sample=None):
+def filter_values(
+    data,
+    *extra_data,
+    values=None,
+    cutoff=None,
+    percentile=None,
+    keep_cells="above",
+    return_values=False,
+    sample_labels=None,
+    filter_per_sample=None
+):
     """Remove all cells with `values` above or below a certain threshold
 
     It is recommended to use :func:`~scprep.plot.histogram` to
@@ -168,29 +182,35 @@ def filter_values(data, *extra_data, values=None,
         Filtered extra data, if passed.
     """
     if sample_labels is not None:
-        warnings.warn("`sample_labels` is deprecated. "
-                      "Passing `sample_labels` as `extra_data`.",
-                      DeprecationWarning)
+        warnings.warn(
+            "`sample_labels` is deprecated. "
+            "Passing `sample_labels` as `extra_data`.",
+            DeprecationWarning,
+        )
         extra_data = list(extra_data) + [sample_labels]
     if filter_per_sample is not None:
-        warnings.warn("`filter_per_sample` is deprecated. "
-                      "Filtering as a single sample.",
-                      DeprecationWarning)
+        warnings.warn(
+            "`filter_per_sample` is deprecated. " "Filtering as a single sample.",
+            DeprecationWarning,
+        )
     assert values is not None
-    keep_cells_idx = utils._get_filter_idx(values,
-                                          cutoff, percentile,
-                                          keep_cells)
+    keep_cells_idx = utils._get_filter_idx(values, cutoff, percentile, keep_cells)
     if return_values:
         extra_data = [values] + list(extra_data)
     data = select.select_rows(data, *extra_data, idx=keep_cells_idx)
     return data
 
 
-def filter_library_size(data, *extra_data, cutoff=None, percentile=None,
-                        keep_cells=None,
-                        return_library_size=False,
-                        sample_labels=None,
-                        filter_per_sample=None):
+def filter_library_size(
+    data,
+    *extra_data,
+    cutoff=None,
+    percentile=None,
+    keep_cells=None,
+    return_library_size=False,
+    sample_labels=None,
+    filter_per_sample=None
+):
     """Remove all cells with library size above or below a certain threshold
 
     It is recommended to use :func:`~scprep.plot.plot_library_size` to
@@ -229,23 +249,35 @@ def filter_library_size(data, *extra_data, cutoff=None, percentile=None,
         Filtered extra data, if passed.
     """
     cell_sums = measure.library_size(data)
-    return filter_values(data, *extra_data, values=cell_sums,
-                         cutoff=cutoff, percentile=percentile,
-                         keep_cells=keep_cells,
-                         return_values=return_library_size,
-                         sample_labels=sample_labels,
-                         filter_per_sample=filter_per_sample)
+    return filter_values(
+        data,
+        *extra_data,
+        values=cell_sums,
+        cutoff=cutoff,
+        percentile=percentile,
+        keep_cells=keep_cells,
+        return_values=return_library_size,
+        sample_labels=sample_labels,
+        filter_per_sample=filter_per_sample
+    )
 
 
-def filter_gene_set_expression(data, *extra_data, genes=None,
-                               starts_with=None, ends_with=None,
-                               exact_word=None, regex=None,
-                               cutoff=None, percentile=None,
-                               library_size_normalize=False,
-                               keep_cells=None,
-                               return_expression=False,
-                               sample_labels=None,
-                               filter_per_sample=None):
+def filter_gene_set_expression(
+    data,
+    *extra_data,
+    genes=None,
+    starts_with=None,
+    ends_with=None,
+    exact_word=None,
+    regex=None,
+    cutoff=None,
+    percentile=None,
+    library_size_normalize=False,
+    keep_cells=None,
+    return_expression=False,
+    sample_labels=None,
+    filter_per_sample=None
+):
     """Remove cells with total expression of a gene set above or below a certain threshold
 
     It is recommended to use :func:`~scprep.plot.plot_gene_set_expression` to
@@ -295,20 +327,28 @@ def filter_gene_set_expression(data, *extra_data, genes=None,
         Filtered extra data, if passed.
     """
     if keep_cells is None:
-        if isinstance(cutoff, numbers.Number) or \
-            isinstance(percentile, numbers.Number):
-            keep_cells = 'below'
+        if isinstance(cutoff, numbers.Number) or isinstance(percentile, numbers.Number):
+            keep_cells = "below"
     cell_sums = measure.gene_set_expression(
-        data, genes=genes,
-        starts_with=starts_with, ends_with=ends_with,
-        exact_word=exact_word, regex=regex,
-        library_size_normalize=library_size_normalize)
-    return filter_values(data, *extra_data, values=cell_sums,
-                         cutoff=cutoff, percentile=percentile,
-                         keep_cells=keep_cells,
-                         return_values=return_expression,
-                         sample_labels=sample_labels,
-                         filter_per_sample=filter_per_sample)
+        data,
+        genes=genes,
+        starts_with=starts_with,
+        ends_with=ends_with,
+        exact_word=exact_word,
+        regex=regex,
+        library_size_normalize=library_size_normalize,
+    )
+    return filter_values(
+        data,
+        *extra_data,
+        values=cell_sums,
+        cutoff=cutoff,
+        percentile=percentile,
+        keep_cells=keep_cells,
+        return_values=return_expression,
+        sample_labels=sample_labels,
+        filter_per_sample=filter_per_sample
+    )
 
 
 def _find_unique_cells(data):
@@ -336,8 +376,7 @@ def _find_unique_cells(data):
     elif sparse.issparse(data):
         _, unique_data = np.unique(data.tolil().data, return_index=True)
         _, unique_index = np.unique(data.tolil().rows, return_index=True)
-        unique_idx = np.sort(
-            list(set(unique_index).union(set(unique_data))))
+        unique_idx = np.sort(list(set(unique_index).union(set(unique_data))))
     return unique_idx
 
 
@@ -360,9 +399,11 @@ def filter_duplicates(data, *extra_data, sample_labels=None):
         Filtered extra data, if passed.
     """
     if sample_labels is not None:
-        warnings.warn("`sample_labels` is deprecated. "
-                      "Passing `sample_labels` as `extra_data`.",
-                      DeprecationWarning)
+        warnings.warn(
+            "`sample_labels` is deprecated. "
+            "Passing `sample_labels` as `extra_data`.",
+            DeprecationWarning,
+        )
         extra_data = list(extra_data) + [sample_labels]
     unique_idx = _find_unique_cells(data)
     data = select.select_rows(data, *extra_data, idx=unique_idx)

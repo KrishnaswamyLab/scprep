@@ -5,6 +5,7 @@ from .. import utils
 
 from .._lazyload import matplotlib as mpl
 from .._lazyload import mpl_toolkits
+
 plt = mpl.pyplot
 
 
@@ -14,7 +15,7 @@ def _with_default(param, default):
 
 def _mpl_is_gui_backend():
     backend = mpl.get_backend()
-    if backend in ['module://ipykernel.pylab.backend_inline', 'agg']:
+    if backend in ["module://ipykernel.pylab.backend_inline", "agg"]:
         return False
     else:
         return True
@@ -24,7 +25,7 @@ def _get_figure(ax=None, figsize=None, subplot_kw=None):
     if subplot_kw is None:
         subplot_kw = {}
     if ax is None:
-        if 'projection' in subplot_kw and subplot_kw['projection'] == '3d':
+        if "projection" in subplot_kw and subplot_kw["projection"] == "3d":
             # ensure mplot3d is loaded
             mpl_toolkits.mplot3d.Axes3D
         fig, ax = plt.subplots(figsize=figsize, subplot_kw=subplot_kw)
@@ -34,15 +35,18 @@ def _get_figure(ax=None, figsize=None, subplot_kw=None):
             fig = ax.get_figure()
         except AttributeError as e:
             if not isinstance(ax, mpl.axes.Axes):
-                raise TypeError("Expected ax as a matplotlib.axes.Axes. "
-                                "Got {}".format(type(ax)))
+                raise TypeError(
+                    "Expected ax as a matplotlib.axes.Axes. " "Got {}".format(type(ax))
+                )
             else:
                 raise e
-        if 'projection' in subplot_kw:
-            if subplot_kw['projection'] == '3d' and \
-                    not isinstance(ax, mpl_toolkits.mplot3d.Axes3D):
-                raise TypeError("Expected ax with projection='3d'. "
-                                "Got 2D axis instead.")
+        if "projection" in subplot_kw:
+            if subplot_kw["projection"] == "3d" and not isinstance(
+                ax, mpl_toolkits.mplot3d.Axes3D
+            ):
+                raise TypeError(
+                    "Expected ax with projection='3d'. " "Got 2D axis instead."
+                )
         show_fig = False
     return fig, ax, show_fig
 
@@ -62,8 +66,10 @@ def _in_ipynb():
 
     Credit to https://stackoverflow.com/a/24937408/3996580
     """
-    __VALID_NOTEBOOKS = ["<class 'google.colab._shell.Shell'>",
-                         "<class 'ipykernel.zmqshell.ZMQInteractiveShell'>"]
+    __VALID_NOTEBOOKS = [
+        "<class 'google.colab._shell.Shell'>",
+        "<class 'ipykernel.zmqshell.ZMQInteractiveShell'>",
+    ]
     try:
         return str(type(get_ipython())) in __VALID_NOTEBOOKS
     except NameError:
@@ -92,13 +98,13 @@ def show(fig):
 
 def _is_default_matplotlibrc():
     __defaults = {
-        'axes.labelsize': 'medium',
-        'axes.titlesize': 'large',
-        'figure.titlesize': 'large',
-        'legend.fontsize': 'medium',
-        'legend.title_fontsize': None,
-        'xtick.labelsize': 'medium',
-        'ytick.labelsize': 'medium'
+        "axes.labelsize": "medium",
+        "axes.titlesize": "large",
+        "figure.titlesize": "large",
+        "legend.fontsize": "medium",
+        "legend.title_fontsize": None,
+        "xtick.labelsize": "medium",
+        "ytick.labelsize": "medium",
     }
     for k, v in __defaults.items():
         if plt.rcParams[k] != v:
@@ -131,18 +137,17 @@ def parse_fontsize(size=None, default=None):
 
 
 class temp_fontsize(object):
-
     def __init__(self, size=None):
         if size is None:
-            size = plt.rcParams['font.size']
+            size = plt.rcParams["font.size"]
         self.size = size
 
     def __enter__(self):
-        self.old_size = plt.rcParams['font.size']
-        plt.rcParams['font.size'] = self.size
+        self.old_size = plt.rcParams["font.size"]
+        plt.rcParams["font.size"] = self.size
 
     def __exit__(self, type, value, traceback):
-        plt.rcParams['font.size'] = self.old_size
+        plt.rcParams["font.size"] = self.old_size
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
@@ -158,8 +163,7 @@ def shift_ticklabels(axis, dx=0, dy=0):
     dy : float, optional (default: 0)
     """
     # Create offset transform by 5 points in x direction
-    offset = mpl.transforms.ScaledTranslation(
-        dx, dy, axis.get_figure().dpi_scale_trans)
+    offset = mpl.transforms.ScaledTranslation(dx, dy, axis.get_figure().dpi_scale_trans)
     # apply offset transform to all ticklabels.
     for label in axis.get_majorticklabels():
         label.set_transform(label.get_transform() + offset)

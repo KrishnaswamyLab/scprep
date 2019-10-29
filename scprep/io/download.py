@@ -8,23 +8,23 @@ from .. import utils
 
 _CHUNK_SIZE = 32768
 _GOOGLE_DRIVE_URL = "https://docs.google.com/uc?export=download"
-_FAKE_HEADERS = [('User-Agent', 'Mozilla/5.0')]
+_FAKE_HEADERS = [("User-Agent", "Mozilla/5.0")]
 
 
 def _save_response_content(response, destination):
     global _CHUNK_SIZE
     if isinstance(destination, str):
-        with open(destination, 'wb') as handle:
+        with open(destination, "wb") as handle:
             _save_response_content(response, handle)
     else:
         for chunk in response.iter_content(_CHUNK_SIZE):
-            if chunk: # filter out keep-alive new chunks
+            if chunk:  # filter out keep-alive new chunks
                 destination.write(chunk)
 
 
 def _google_drive_confirm_token(response):
     for key, value in response.cookies.items():
-        if key.startswith('download_warning'):
+        if key.startswith("download_warning"):
             return value
     return None
 
@@ -35,12 +35,12 @@ def _GET_google_drive(id):
     global _GOOGLE_DRIVE_URL
 
     with requests.Session() as session:
-        response = session.get(_GOOGLE_DRIVE_URL, params = { 'id' : id }, stream = True)
+        response = session.get(_GOOGLE_DRIVE_URL, params={"id": id}, stream=True)
         token = _google_drive_confirm_token(response)
 
         if token:
-            params = { 'id' : id, 'confirm' : token }
-            response = session.get(_GOOGLE_DRIVE_URL, params = params, stream = True)
+            params = {"id": id, "confirm": token}
+            response = session.get(_GOOGLE_DRIVE_URL, params=params, stream=True)
     return response
 
 
@@ -73,7 +73,7 @@ def download_url(url, destination):
         File to which to save the downloaded data
     """
     if isinstance(destination, str):
-        with open(destination, 'wb') as handle:
+        with open(destination, "wb") as handle:
             download_url(url, handle)
     else:
         # destination is File
@@ -102,7 +102,7 @@ def unzip(filename, destination=None, delete=True):
         destination = os.path.dirname(filename)
     elif not os.path.isdir(destination):
         os.mkdir(destination)
-    with zipfile.ZipFile(filename, 'r') as handle:
+    with zipfile.ZipFile(filename, "r") as handle:
         handle.extractall(destination)
     if delete:
         os.unlink(filename)

@@ -11,13 +11,17 @@ def test_pandas_series_rmatmul():
     ser = pd.Series(arr)
     np.testing.assert_array_equal(mat @ ser, (df @ ser).values)
 
+
 def test_pandas_sparse_iloc():
-    X = pd.DataFrame([[0,1,1], [0,0,1], [0,0,0]]).astype(pd.SparseDtype(float, fill_value=0.0))
-    assert np.all(~np.isnan(X.iloc[[0,1]].to_numpy()))
+    X = pd.DataFrame([[0, 1, 1], [0, 0, 1], [0, 0, 0]]).astype(
+        pd.SparseDtype(float, fill_value=0.0)
+    )
+    assert np.all(~np.isnan(X.iloc[[0, 1]].to_numpy()))
 
 
 class CustomBlock(ExtensionBlock):
     _holder = np.ndarray
+
 
 def test_fill_value():
     values = pd.Series(np.arange(3), dtype=pd.UInt16Dtype())

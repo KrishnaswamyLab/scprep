@@ -3,7 +3,7 @@ import numpy as np
 from . import r_function
 
 
-def install(site_repository = None, update = False, version = None, verbose = True):
+def install(site_repository=None, update=False, version=None, verbose=True):
     """Install the required R packages to run Splatter
     
     Parameters
@@ -22,8 +22,12 @@ def install(site_repository = None, update = False, version = None, verbose = Tr
         Install script verbosity.
     """
     r_function.install_bioconductor(
-        'splatter', site_repository=site_repository,
-        update=update, version=version, verbose=verbose)
+        "splatter",
+        site_repository=site_repository,
+        update=update,
+        version=version,
+        verbose=verbose,
+    )
 
 
 _SplatSimulate = r_function.RFunction(
@@ -110,26 +114,43 @@ _SplatSimulate = r_function.RFunction(
             result <- c(result, sigma_fac)
         }
         result
-    """)
+    """,
+)
 
 
 def SplatSimulate(
-        method="paths",
-        batch_cells=100, n_genes=10000,
-        batch_fac_loc=0.1, batch_fac_scale=0.1,
-        mean_rate=0.3, mean_shape=0.6,
-        lib_loc=11, lib_scale=0.2, lib_norm=False,
-        out_prob=0.05,
-        out_fac_loc=4, out_fac_scale=0.5,
-        de_prob=0.1, de_down_prob=0.1,
-        de_fac_loc=0.1, de_fac_scale=0.4,
-        bcv_common=0.1, bcv_df=60,
-        dropout_type='none', dropout_prob=0.5,
-        dropout_mid=0, dropout_shape=-1,
-        group_prob=1,
-        path_from=0, path_length=100, path_skew=0.5,
-        path_nonlinear_prob=0.1, path_sigma_fac=0.8,
-        seed=None, verbose=1):
+    method="paths",
+    batch_cells=100,
+    n_genes=10000,
+    batch_fac_loc=0.1,
+    batch_fac_scale=0.1,
+    mean_rate=0.3,
+    mean_shape=0.6,
+    lib_loc=11,
+    lib_scale=0.2,
+    lib_norm=False,
+    out_prob=0.05,
+    out_fac_loc=4,
+    out_fac_scale=0.5,
+    de_prob=0.1,
+    de_down_prob=0.1,
+    de_fac_loc=0.1,
+    de_fac_scale=0.4,
+    bcv_common=0.1,
+    bcv_df=60,
+    dropout_type="none",
+    dropout_prob=0.5,
+    dropout_mid=0,
+    dropout_shape=-1,
+    group_prob=1,
+    path_from=0,
+    path_length=100,
+    path_skew=0.5,
+    path_nonlinear_prob=0.1,
+    path_sigma_fac=0.8,
+    seed=None,
+    verbose=1,
+):
     """Simulate count data from a fictional single-cell RNA-seq experiment using the Splat method.
 
     SplatSimulate is a Python wrapper for the R package Splatter. For more
@@ -237,8 +258,8 @@ def SplatSimulate(
         dropout : Logical matrix showing which values have been dropped in which cells.
     """
     if seed is None:
-        seed = np.random.randint(2**16 - 1)
-    if dropout_type == 'binomial':
+        seed = np.random.randint(2 ** 16 - 1)
+    if dropout_type == "binomial":
         dropout_type = "none"
     else:
         dropout_prob = None
@@ -246,22 +267,38 @@ def SplatSimulate(
 
     sim = _SplatSimulate(
         method=method,
-        batch_cells=batch_cells, n_genes=n_genes,
-        batch_fac_loc=batch_fac_loc, batch_fac_scale=batch_fac_scale,
-        mean_rate=mean_rate, mean_shape=mean_shape,
-        lib_loc=lib_loc, lib_scale=lib_scale, lib_norm=lib_norm,
+        batch_cells=batch_cells,
+        n_genes=n_genes,
+        batch_fac_loc=batch_fac_loc,
+        batch_fac_scale=batch_fac_scale,
+        mean_rate=mean_rate,
+        mean_shape=mean_shape,
+        lib_loc=lib_loc,
+        lib_scale=lib_scale,
+        lib_norm=lib_norm,
         out_prob=out_prob,
-        out_fac_loc=out_fac_loc, out_fac_scale=out_fac_scale,
-        de_prob=de_prob, de_down_prob=de_down_prob,
-        de_fac_loc=de_fac_loc, de_fac_scale=de_fac_scale,
-        bcv_common=bcv_common, bcv_df=bcv_df,
-        dropout_type=dropout_type, dropout_mid=dropout_mid,
+        out_fac_loc=out_fac_loc,
+        out_fac_scale=out_fac_scale,
+        de_prob=de_prob,
+        de_down_prob=de_down_prob,
+        de_fac_loc=de_fac_loc,
+        de_fac_scale=de_fac_scale,
+        bcv_common=bcv_common,
+        bcv_df=bcv_df,
+        dropout_type=dropout_type,
+        dropout_mid=dropout_mid,
         dropout_shape=dropout_shape,
         group_prob=group_prob,
-        path_from=path_from, path_length=path_length, path_skew=path_skew,
-        path_nonlinear_prob=path_nonlinear_prob, path_sigma_fac=path_sigma_fac,
-        seed=seed, rpy_verbose=verbose)
+        path_from=path_from,
+        path_length=path_length,
+        path_skew=path_skew,
+        path_nonlinear_prob=path_nonlinear_prob,
+        path_sigma_fac=path_sigma_fac,
+        seed=seed,
+        rpy_verbose=verbose,
+    )
     if dropout_prob is not None:
-        sim['counts'] = np.random.binomial(n=sim['counts'], p=1 - dropout_prob,
-                                           size=sim['counts'].shape)
+        sim["counts"] = np.random.binomial(
+            n=sim["counts"], p=1 - dropout_prob, size=sim["counts"].shape
+        )
     return sim

@@ -56,12 +56,10 @@ def load_10X(**kwargs):
     -------
     data : array-like 10X data
     """
-    return scprep.io.load_10X(
-        os.path.join(data_dir, "test_10X"), **kwargs)
+    return scprep.io.load_10X(os.path.join(data_dir, "test_10X"), **kwargs)
 
 
-def generate_positive_sparse_matrix(shape=[200, 500], seed=42,
-                                    poisson_mean=0.1):
+def generate_positive_sparse_matrix(shape=[200, 500], seed=42, poisson_mean=0.1):
     """Returns an ndarray of shape=shape filled mostly with zeros
 
     Creates a matrix with np.random.normal and multiplies the result
@@ -78,7 +76,6 @@ def generate_positive_sparse_matrix(shape=[200, 500], seed=42,
     np.ndarray
     """
     np.random.seed(seed)
-    X = np.random.normal(0, 1, shape) * \
-        np.random.poisson(poisson_mean, shape)
+    X = np.random.normal(0, 1, shape) * np.random.poisson(poisson_mean, shape)
     X = np.abs(X)
     return X

@@ -5,6 +5,7 @@ from .. import utils
 from .utils import _get_figure, parse_fontsize, temp_fontsize
 
 from .._lazyload import matplotlib as mpl
+
 plt = mpl.pyplot
 
 
@@ -30,10 +31,10 @@ def create_colormap(colors, name="scprep_custom_cmap"):
     cdict = dict(red=[], green=[], blue=[], alpha=[])
     for val, color in zip(vals, colors):
         r, g, b, a = mpl.colors.to_rgba(color)
-        cdict['red'].append((val, r, r))
-        cdict['green'].append((val, g, g))
-        cdict['blue'].append((val, b, b))
-        cdict['alpha'].append((val, a, a))
+        cdict["red"].append((val, r, r))
+        cdict["green"].append((val, g, g))
+        cdict["blue"].append((val, b, b))
+        cdict["alpha"].append((val, a, a))
     cmap = mpl.colors.LinearSegmentedColormap(name, cdict)
     return cmap
 
@@ -54,32 +55,46 @@ def create_normalize(vmin, vmax, scale=None):
     """
     if scale is None:
         scale = "linear"
-    if scale == 'linear':
+    if scale == "linear":
         norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
-    elif scale == 'log':
+    elif scale == "log":
         if vmin <= 0:
             raise ValueError(
-                "`vmin` must be positive for `cmap_scale='log'`. Got {}".format(vmin))
+                "`vmin` must be positive for `cmap_scale='log'`. Got {}".format(vmin)
+            )
         norm = mpl.colors.LogNorm(vmin=vmin, vmax=vmin)
-    elif scale == 'symlog':
-        norm = mpl.colors.SymLogNorm(linthresh=0.03, linscale=0.03,
-                                     vmin=vmin, vmax=vmax)
-    elif scale == 'sqrt':
-        norm = mpl.colors.PowerNorm(gamma=1. / 2.)
+    elif scale == "symlog":
+        norm = mpl.colors.SymLogNorm(
+            linthresh=0.03, linscale=0.03, vmin=vmin, vmax=vmax
+        )
+    elif scale == "sqrt":
+        norm = mpl.colors.PowerNorm(gamma=1.0 / 2.0)
     elif isinstance(scale, mpl.colors.Normalize):
         norm = scale
     else:
-        raise ValueError("Expected norm in ['linear', 'log', 'symlog',"
-                         "'sqrt'] or a matplotlib.colors.Normalize object."
-                         " Got {}".format(scale))
+        raise ValueError(
+            "Expected norm in ['linear', 'log', 'symlog',"
+            "'sqrt'] or a matplotlib.colors.Normalize object."
+            " Got {}".format(scale)
+        )
     return norm
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
-def generate_legend(cmap, ax, title=None, marker='o', markersize=10,
-                    loc='best', bbox_to_anchor=None,
-                    fontsize=None, title_fontsize=None,
-                    max_rows=10, ncol=None, **kwargs):
+def generate_legend(
+    cmap,
+    ax,
+    title=None,
+    marker="o",
+    markersize=10,
+    loc="best",
+    bbox_to_anchor=None,
+    fontsize=None,
+    title_fontsize=None,
+    max_rows=10,
+    ncol=None,
+    **kwargs
+):
     """Generate a legend on an axis.
 
     Parameters
@@ -117,25 +132,50 @@ def generate_legend(cmap, ax, title=None, marker='o', markersize=10,
     -------
     legend : `matplotlib.legend.Legend`
     """
-    fontsize = parse_fontsize(fontsize, 'large')
-    title_fontsize = parse_fontsize(title_fontsize, 'x-large')
-    handles = [mpl.lines.Line2D([], [], marker=marker, color=color,
-                                linewidth=0, label=label,
-                                markersize=markersize)
-               for label, color in cmap.items()]
+    fontsize = parse_fontsize(fontsize, "large")
+    title_fontsize = parse_fontsize(title_fontsize, "x-large")
+    handles = [
+        mpl.lines.Line2D(
+            [],
+            [],
+            marker=marker,
+            color=color,
+            linewidth=0,
+            label=label,
+            markersize=markersize,
+        )
+        for label, color in cmap.items()
+    ]
     if ncol is None:
         ncol = max(1, np.ceil(len(cmap) / max_rows).astype(int))
-    legend = ax.legend(handles=handles, title=title,
-                       loc=loc, bbox_to_anchor=bbox_to_anchor,
-                       fontsize=fontsize, ncol=ncol, **kwargs)
+    legend = ax.legend(
+        handles=handles,
+        title=title,
+        loc=loc,
+        bbox_to_anchor=bbox_to_anchor,
+        fontsize=fontsize,
+        ncol=ncol,
+        **kwargs
+    )
     plt.setp(legend.get_title(), fontsize=title_fontsize)
     return legend
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
-def generate_colorbar(cmap=None, vmin=None, vmax=None, scale=None, ax=None,
-                      title=None, title_rotation=270, fontsize=None,
-                      n_ticks='auto', labelpad=10, mappable=None, **kwargs):
+def generate_colorbar(
+    cmap=None,
+    vmin=None,
+    vmax=None,
+    scale=None,
+    ax=None,
+    title=None,
+    title_rotation=270,
+    fontsize=None,
+    n_ticks="auto",
+    labelpad=10,
+    mappable=None,
+    **kwargs
+):
     """Generate a colorbar on an axis.
 
     Parameters
@@ -184,14 +224,16 @@ def generate_colorbar(cmap=None, vmin=None, vmax=None, scale=None, ax=None,
                 vmin = 0
                 remove_ticks = True
                 norm = None
-                if n_ticks != 'auto':
+                if n_ticks != "auto":
                     warnings.warn(
                         "Cannot set `n_ticks` without setting `vmin` and `vmax`.",
-                        UserWarning)
+                        UserWarning,
+                    )
             elif vmax is None or vmin is None:
                 raise ValueError(
                     "Either both or neither of `vmax` and `vmin` should "
-                    "be set. Got `vmax={}, vmin={}`".format(vmax, vmin))
+                    "be set. Got `vmax={}, vmin={}`".format(vmax, vmin)
+                )
             else:
                 remove_ticks = False
                 norm = create_normalize(vmin, vmax, scale=scale)
@@ -199,52 +241,67 @@ def generate_colorbar(cmap=None, vmin=None, vmax=None, scale=None, ax=None,
                 ax = plot_axis
             xmin, xmax = plot_axis.get_xlim()
             ymin, ymax = plot_axis.get_ylim()
-            if hasattr(cmap, '__len__') and \
-                    not isinstance(cmap, (str, dict)):
+            if hasattr(cmap, "__len__") and not isinstance(cmap, (str, dict)):
                 # list colormap
                 cmap = create_colormap(cmap)
             mappable = plot_axis.imshow(
                 np.linspace(vmin, vmax, 10).reshape(-1, 1),
-                vmin=vmin, vmax=vmax, cmap=cmap, norm=norm,
-                aspect='auto', origin='lower',
-                extent=[xmin, xmax, ymin, ymax])
+                vmin=vmin,
+                vmax=vmax,
+                cmap=cmap,
+                norm=norm,
+                aspect="auto",
+                origin="lower",
+                extent=[xmin, xmax, ymin, ymax],
+            )
             mappable.remove()
         else:
             if vmin is not None or vmax is not None:
                 warnings.warn(
-                    "Cannot set `vmin` or `vmax` when `mappable` is given.",
-                    UserWarning)
+                    "Cannot set `vmin` or `vmax` when `mappable` is given.", UserWarning
+                )
             if cmap is not None:
-                warnings.warn("Cannot set `cmap` when `mappable` is given.",
-                              UserWarning)
+                warnings.warn(
+                    "Cannot set `cmap` when `mappable` is given.", UserWarning
+                )
             if scale is not None:
-                warnings.warn("Cannot set `scale` when `mappable` is given.",
-                              UserWarning)
+                warnings.warn(
+                    "Cannot set `scale` when `mappable` is given.", UserWarning
+                )
             remove_ticks = False
 
         colorbar = fig.colorbar(mappable, ax=ax, **kwargs)
         if remove_ticks or n_ticks == 0:
             colorbar.set_ticks([])
-            labelpad += plt.rcParams['font.size']
+            labelpad += plt.rcParams["font.size"]
         else:
-            if n_ticks != 'auto':
-                tick_locator = mpl.ticker.MaxNLocator(
-                    nbins=n_ticks - 1)
+            if n_ticks != "auto":
+                tick_locator = mpl.ticker.MaxNLocator(nbins=n_ticks - 1)
                 colorbar.locator = tick_locator
                 colorbar.update_ticks()
-            colorbar.ax.tick_params(labelsize=parse_fontsize(None, 'large'))
+            colorbar.ax.tick_params(labelsize=parse_fontsize(None, "large"))
         if title is not None:
-            title_fontsize = parse_fontsize(None, 'x-large')
-            colorbar.set_label(title, rotation=title_rotation,
-                               fontsize=title_fontsize, labelpad=labelpad)
+            title_fontsize = parse_fontsize(None, "x-large")
+            colorbar.set_label(
+                title,
+                rotation=title_rotation,
+                fontsize=title_fontsize,
+                labelpad=labelpad,
+            )
     return colorbar
 
 
-def label_axis(axis, ticks=True, ticklabels=True, label=None,
-               label_fontsize=None, tick_fontsize=None,
-               ticklabel_rotation=None,
-               ticklabel_horizontal_alignment=None,
-               ticklabel_vertical_alignment=None):
+def label_axis(
+    axis,
+    ticks=True,
+    ticklabels=True,
+    label=None,
+    label_fontsize=None,
+    tick_fontsize=None,
+    ticklabel_rotation=None,
+    ticklabel_horizontal_alignment=None,
+    ticklabel_vertical_alignment=None,
+):
     """Set axis ticks and labels
 
     Parameters
@@ -281,7 +338,7 @@ def label_axis(axis, ticks=True, ticklabels=True, label=None,
     if ticklabels is False or ticklabels is None:
         axis.set_ticklabels([])
     else:
-        tick_fontsize = parse_fontsize(tick_fontsize, 'large')
+        tick_fontsize = parse_fontsize(tick_fontsize, "large")
         if ticklabels is not True:
             axis.set_ticklabels(ticklabels)
         for tick in axis.get_ticklabels():
@@ -293,5 +350,5 @@ def label_axis(axis, ticks=True, ticklabels=True, label=None,
                 tick.set_va(ticklabel_vertical_alignment)
             tick.set_fontsize(tick_fontsize)
     if label is not None:
-        label_fontsize = parse_fontsize(label_fontsize, 'x-large')
+        label_fontsize = parse_fontsize(label_fontsize, "x-large")
         axis.set_label_text(label, fontsize=label_fontsize)

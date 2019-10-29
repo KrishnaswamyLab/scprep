@@ -42,6 +42,7 @@
 
   script:
     - pip install -U .[test]
+    - black . --check --diff
     - python setup.py test
     - pip install -U .[doc]
     - cd doc; make html

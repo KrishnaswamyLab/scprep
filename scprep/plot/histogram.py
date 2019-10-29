@@ -3,11 +3,11 @@ import numbers
 import warnings
 
 from .. import measure, utils
-from .utils import (_get_figure, show,
-                    temp_fontsize, parse_fontsize)
+from .utils import _get_figure, show, temp_fontsize, parse_fontsize
 from .tools import label_axis
 
-_EPS = np.finfo('float').eps
+_EPS = np.finfo("float").eps
+
 
 def _log_bins(xmin, xmax, bins):
     if xmin > xmax:
@@ -34,7 +34,9 @@ def _symlog_bins(xmin, xmax, abs_min, bins):
             pos_range = np.log(xmax) - np.log(abs_min)
             total_range = pos_range + neg_range
             if total_range > 0:
-                n_pos_bins = np.round((bins-1) * pos_range / (pos_range + neg_range)).astype(int)
+                n_pos_bins = np.round(
+                    (bins - 1) * pos_range / (pos_range + neg_range)
+                ).astype(int)
             else:
                 n_pos_bins = 1
             n_neg_bins = max(bins - n_pos_bins - 1, 1)
@@ -56,19 +58,24 @@ def _symlog_bins(xmin, xmax, abs_min, bins):
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
-def histogram(data,
-              bins=100, log=False,
-              cutoff=None, percentile=None,
-              ax=None, figsize=None,
-              xlabel=None,
-              ylabel='Number of cells',
-              title=None,
-              fontsize=None,
-              histtype='stepfilled',
-              alpha=None,
-              filename=None,
-              dpi=None,
-              **kwargs):
+def histogram(
+    data,
+    bins=100,
+    log=False,
+    cutoff=None,
+    percentile=None,
+    ax=None,
+    figsize=None,
+    xlabel=None,
+    ylabel="Number of cells",
+    title=None,
+    fontsize=None,
+    histtype="stepfilled",
+    alpha=None,
+    filename=None,
+    dpi=None,
+    **kwargs
+):
     """Plot a histogram.
 
     Parameters
@@ -133,33 +140,34 @@ def histogram(data,
             xmax = np.max(data)
             if alpha is None:
                 alpha = 1
-        if log == 'x' or log is True:
+        if log == "x" or log is True:
             d_flat = np.concatenate(data) if isinstance(data, list) else data
-            abs_min = np.min(np.where(d_flat != 0, np.abs(d_flat), np.max(np.abs(d_flat))))
+            abs_min = np.min(
+                np.where(d_flat != 0, np.abs(d_flat), np.max(np.abs(d_flat)))
+            )
             if abs_min == 0:
                 abs_min = 0.1
             bins = _symlog_bins(xmin, xmax, abs_min, bins=bins)
         ax.hist(data, bins=bins, histtype=histtype, alpha=alpha, **kwargs)
 
-        if log == 'x' or log is True:
-            ax.set_xscale('symlog', linthreshx=abs_min)
-        if log == 'y' or log is True:
-            ax.set_yscale('log')
+        if log == "x" or log is True:
+            ax.set_xscale("symlog", linthreshx=abs_min)
+        if log == "y" or log is True:
+            ax.set_yscale("log")
 
         label_axis(ax.xaxis, label=xlabel)
         label_axis(ax.yaxis, label=ylabel)
 
         if title is not None:
-            ax.set_title(title, fontsize=parse_fontsize(None, 'xx-large'))
+            ax.set_title(title, fontsize=parse_fontsize(None, "xx-large"))
 
-        cutoff = utils._get_percentile_cutoff(
-            data, cutoff, percentile, required=False)
+        cutoff = utils._get_percentile_cutoff(data, cutoff, percentile, required=False)
         if cutoff is not None:
             if isinstance(cutoff, numbers.Number):
-                ax.axvline(cutoff, color='red')
+                ax.axvline(cutoff, color="red")
             else:
                 for c in cutoff:
-                    ax.axvline(c, color='red')
+                    ax.axvline(c, color="red")
         # save and show
         if show_fig:
             show(fig)
@@ -169,16 +177,21 @@ def histogram(data,
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
-def plot_library_size(data,
-                      bins=100, log=True,
-                      cutoff=None, percentile=None,
-                      ax=None, figsize=None,
-                      xlabel='Library size',
-                      title=None,
-                      fontsize=None,
-                      filename=None,
-                      dpi=None,
-                      **kwargs):
+def plot_library_size(
+    data,
+    bins=100,
+    log=True,
+    cutoff=None,
+    percentile=None,
+    ax=None,
+    figsize=None,
+    xlabel="Library size",
+    title=None,
+    fontsize=None,
+    filename=None,
+    dpi=None,
+    **kwargs
+):
     """Plot the library size histogram.
 
     Parameters
@@ -223,31 +236,48 @@ def plot_library_size(data,
     data = utils.to_array_or_spmatrix(data)
     if len(data.shape) > 2 or data.dtype.type is np.object_:
         # top level must be list
-        libsize = [measure.library_size(d)
-                   for d in data]
+        libsize = [measure.library_size(d) for d in data]
     else:
         libsize = measure.library_size(data)
-    return histogram(libsize,
-                     cutoff=cutoff, percentile=percentile,
-                     bins=bins, log=log, ax=ax, figsize=figsize,
-                     xlabel=xlabel, title=title, fontsize=fontsize,
-                     filename=filename, dpi=dpi, **kwargs)
+    return histogram(
+        libsize,
+        cutoff=cutoff,
+        percentile=percentile,
+        bins=bins,
+        log=log,
+        ax=ax,
+        figsize=figsize,
+        xlabel=xlabel,
+        title=title,
+        fontsize=fontsize,
+        filename=filename,
+        dpi=dpi,
+        **kwargs
+    )
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
-def plot_gene_set_expression(data, genes=None,
-                             starts_with=None, ends_with=None,
-                             exact_word=None, regex=None,
-                             bins=100, log=False,
-                             cutoff=None, percentile=None,
-                             library_size_normalize=False,
-                             ax=None, figsize=None,
-                             xlabel='Gene expression',
-                             title=None,
-                             fontsize=None,
-                             filename=None,
-                             dpi=None,
-                             **kwargs):
+def plot_gene_set_expression(
+    data,
+    genes=None,
+    starts_with=None,
+    ends_with=None,
+    exact_word=None,
+    regex=None,
+    bins=100,
+    log=False,
+    cutoff=None,
+    percentile=None,
+    library_size_normalize=False,
+    ax=None,
+    figsize=None,
+    xlabel="Gene expression",
+    title=None,
+    fontsize=None,
+    filename=None,
+    dpi=None,
+    **kwargs
+):
     """Plot the histogram of the expression of a gene set.
 
     Parameters
@@ -301,27 +331,51 @@ def plot_gene_set_expression(data, genes=None,
     ax : `matplotlib.Axes`
         axis on which plot was drawn
     """
-    if hasattr(data, 'shape') and len(data.shape) == 2:
+    if hasattr(data, "shape") and len(data.shape) == 2:
         expression = measure.gene_set_expression(
-            data, genes=genes,
-            starts_with=starts_with, ends_with=ends_with,
-            exact_word=exact_word, regex=regex,
-            library_size_normalize=library_size_normalize)
+            data,
+            genes=genes,
+            starts_with=starts_with,
+            ends_with=ends_with,
+            exact_word=exact_word,
+            regex=regex,
+            library_size_normalize=library_size_normalize,
+        )
     else:
         data_array = utils.to_array_or_spmatrix(data)
         if len(data_array.shape) == 2 and data_array.dtype.type is not np.object_:
             expression = measure.gene_set_expression(
-                data, genes=genes,
-                starts_with=starts_with, ends_with=ends_with, regex=regex,
-                library_size_normalize=library_size_normalize)
+                data,
+                genes=genes,
+                starts_with=starts_with,
+                ends_with=ends_with,
+                regex=regex,
+                library_size_normalize=library_size_normalize,
+            )
         else:
-            expression = [measure.gene_set_expression(
-                d, genes=genes,
-                starts_with=starts_with, ends_with=ends_with, regex=regex,
-                library_size_normalize=library_size_normalize)
-                for d in data]
-    return histogram(expression,
-                     cutoff=cutoff, percentile=percentile,
-                     bins=bins, log=log, ax=ax, figsize=figsize,
-                     xlabel=xlabel, title=title, fontsize=fontsize,
-                     filename=filename, dpi=dpi, **kwargs)
+            expression = [
+                measure.gene_set_expression(
+                    d,
+                    genes=genes,
+                    starts_with=starts_with,
+                    ends_with=ends_with,
+                    regex=regex,
+                    library_size_normalize=library_size_normalize,
+                )
+                for d in data
+            ]
+    return histogram(
+        expression,
+        cutoff=cutoff,
+        percentile=percentile,
+        bins=bins,
+        log=log,
+        ax=ax,
+        figsize=figsize,
+        xlabel=xlabel,
+        title=title,
+        fontsize=fontsize,
+        filename=filename,
+        dpi=dpi,
+        **kwargs
+    )

@@ -42,9 +42,7 @@ def assert_transform_equals(X, Y, transform, check=assert_all_equal, **kwargs):
     Y2 : returned value of transform(X, **kwargs)
     """
     Y2 = transform(X, **kwargs)
-    check(Y, Y2), "{} failed on {}".format(
-        transform,
-        matrix._typename(X))
+    check(Y, Y2), "{} failed on {}".format(transform, matrix._typename(X))
     return Y2
 
 
@@ -65,8 +63,7 @@ def assert_transform_unchanged(X, transform, check=assert_all_equal, **kwargs):
     assert_transform_equals(X, X, transform, check=check, **kwargs)
 
 
-def assert_transform_equivalent(X, Y, transform, check=assert_all_equal,
-                                **kwargs):
+def assert_transform_equivalent(X, Y, transform, check=assert_all_equal, **kwargs):
     """Check the output of transform(X, **kwargs) == Y and transform(X, **kwargs) gives the same kind of matrix as X
 
     Parameters
@@ -83,9 +80,9 @@ def assert_transform_equivalent(X, Y, transform, check=assert_all_equal,
     Y2 : returned value of transform(X, **kwargs)
     """
     Y2 = assert_transform_equals(X, Y, transform, check=check, **kwargs)
-    assert assert_matrix_class_equivalent(X, Y2), \
-        "{} produced inconsistent matrix output".format(
-        _typename(X))
+    assert assert_matrix_class_equivalent(
+        X, Y2
+    ), "{} produced inconsistent matrix output".format(_typename(X))
 
 
 def assert_transform_raises(X, transform, exception=ValueError, **kwargs):
@@ -101,8 +98,9 @@ def assert_transform_raises(X, transform, exception=ValueError, **kwargs):
 
 
 def _is_sparse_dataframe(X):
-    return isinstance(X, pd.SparseDataFrame) or \
-            (isinstance(X, pd.DataFrame) and hasattr(X, "sparse"))
+    return isinstance(X, pd.SparseDataFrame) or (
+        isinstance(X, pd.DataFrame) and hasattr(X, "sparse")
+    )
 
 
 def _sparse_dataframe_density(X):

@@ -9,7 +9,7 @@ import sys
 from . import utils
 
 if int(sys.version.split(".")[1]) < 7:
-    _re_pattern = type(re.compile(''))
+    _re_pattern = type(re.compile(""))
 else:
     _re_pattern = re.Pattern
 
@@ -23,8 +23,7 @@ def _is_1d(data):
 
 def _check_idx_1d(idx):
     if (not _is_1d(idx)) and np.prod(idx.shape) != np.max(idx.shape):
-        raise ValueError(
-            "Expected idx to be 1D. Got shape {}".format(idx.shape))
+        raise ValueError("Expected idx to be 1D. Got shape {}".format(idx.shape))
 
 
 def _get_columns(data):
@@ -50,15 +49,17 @@ def _check_columns_compatible(*data):
         if not _get_column_length(d) == _get_column_length(data[0]):
             raise ValueError(
                 "Expected `data` and `extra_data` to have the same number of "
-                "columns. Got {}".format(
-                    [_get_column_length(d) for d in data]))
-        if isinstance(d, (pd.DataFrame, pd.Series)) and \
-                isinstance(data[0], (pd.DataFrame, pd.Series)):
+                "columns. Got {}".format([_get_column_length(d) for d in data])
+            )
+        if isinstance(d, (pd.DataFrame, pd.Series)) and isinstance(
+            data[0], (pd.DataFrame, pd.Series)
+        ):
             if not np.all(_get_columns(data[0]) == _get_columns(d)):
                 raise ValueError(
                     "Expected `data` and `extra_data` pandas inputs to have "
                     "the same column names. Fix with "
-                    "`scprep.select.select_cols(*extra_data, idx=data.columns)`")
+                    "`scprep.select.select_cols(*extra_data, idx=data.columns)`"
+                )
 
 
 def _check_rows_compatible(*data):
@@ -66,15 +67,17 @@ def _check_rows_compatible(*data):
         if not _get_row_length(d) == _get_row_length(data[0]):
             raise ValueError(
                 "Expected `data` and `extra_data` to have the same number of "
-                "rows. Got {}".format(
-                    [d.shape[0] for d in data]))
-        if isinstance(d, (pd.DataFrame, pd.Series)) and \
-                isinstance(data[0], (pd.DataFrame, pd.Series)):
+                "rows. Got {}".format([d.shape[0] for d in data])
+            )
+        if isinstance(d, (pd.DataFrame, pd.Series)) and isinstance(
+            data[0], (pd.DataFrame, pd.Series)
+        ):
             if not np.all(data[0].index == d.index):
                 raise ValueError(
                     "Expected `data` and `extra_data` pandas inputs to have "
                     "the same index. Fix with "
-                    "`scprep.select.select_rows(*extra_data, idx=data.index)`")
+                    "`scprep.select.select_rows(*extra_data, idx=data.index)`"
+                )
 
 
 def _convert_dataframe_1d(idx):
@@ -105,19 +108,20 @@ def _string_vector_match(data, match, fun, dtype=str):
         fun = np.vectorize(fun)
         return fun(data, match)
     else:
-        return np.any([_string_vector_match(data, m, fun, dtype=dtype)
-                       for m in match], axis=0)
+        return np.any(
+            [_string_vector_match(data, m, fun, dtype=dtype) for m in match], axis=0
+        )
 
 
 def _exact_word_regex(word):
-    allowed_chars = ['\\(', '\\)', '\\[', '\\]', '\\.',
-                     ',', '!', '\\?', ' ', '^', '$']
+    allowed_chars = ["\\(", "\\)", "\\[", "\\]", "\\.", ",", "!", "\\?", " ", "^", "$"]
     wildcard = "(" + "|".join(allowed_chars) + ")+"
     return "{wildcard}{word}{wildcard}".format(wildcard=wildcard, word=re.escape(word))
 
 
-def _get_string_subset_mask(data, starts_with=None, ends_with=None,
-                            exact_word=None, regex=None):
+def _get_string_subset_mask(
+    data, starts_with=None, ends_with=None, exact_word=None, regex=None
+):
     """Get a subset from a string array
 
     Parameters
@@ -141,11 +145,13 @@ def _get_string_subset_mask(data, starts_with=None, ends_with=None,
     mask = np.full_like(data, True, dtype=bool)
     if starts_with is not None:
         start_match = _string_vector_match(
-            data, starts_with, lambda x, match: x.startswith(match))
+            data, starts_with, lambda x, match: x.startswith(match)
+        )
         mask = np.logical_and(mask, start_match)
     if ends_with is not None:
         end_match = _string_vector_match(
-            data, ends_with, lambda x, match: x.endswith(match))
+            data, ends_with, lambda x, match: x.endswith(match)
+        )
         mask = np.logical_and(mask, end_match)
     if exact_word is not None:
         if not isinstance(exact_word, str):
@@ -160,14 +166,15 @@ def _get_string_subset_mask(data, starts_with=None, ends_with=None,
         else:
             regex = re.compile(regex)
         regex_match = _string_vector_match(
-            data, regex, lambda x, match: bool(match.search(x)),
-            dtype=_re_pattern)
+            data, regex, lambda x, match: bool(match.search(x)), dtype=_re_pattern
+        )
         mask = np.logical_and(mask, regex_match)
     return mask
 
 
-def _get_string_subset(data, starts_with=None, ends_with=None,
-                       exact_word=None, regex=None):
+def _get_string_subset(
+    data, starts_with=None, ends_with=None, exact_word=None, regex=None
+):
     """Get a subset from a string array
 
     Parameters
@@ -190,13 +197,16 @@ def _get_string_subset(data, starts_with=None, ends_with=None,
     """
     data = utils.toarray(data)
     mask = _get_string_subset_mask(
-        data, starts_with=starts_with, ends_with=ends_with,
-        exact_word=exact_word, regex=regex)
+        data,
+        starts_with=starts_with,
+        ends_with=ends_with,
+        exact_word=exact_word,
+        regex=regex,
+    )
     return data[mask]
 
 
-def get_gene_set(data, starts_with=None, ends_with=None,
-                 exact_word=None, regex=None):
+def get_gene_set(data, starts_with=None, ends_with=None, exact_word=None, regex=None):
     """Get a list of genes from data
 
     Parameters
@@ -221,19 +231,29 @@ def get_gene_set(data, starts_with=None, ends_with=None,
         try:
             data = data.columns.to_numpy()
         except AttributeError:
-            raise TypeError("data must be a list of gene names or a pandas "
-                            "DataFrame. Got {}".format(type(data).__name__))
-    if starts_with is None and ends_with is None and \
-            regex is None and exact_word is None:
-        warnings.warn("No selection conditions provided. "
-                      "Returning all genes.", UserWarning)
-    return _get_string_subset(data, starts_with=starts_with,
-                              ends_with=ends_with,
-                              exact_word=exact_word, regex=regex)
+            raise TypeError(
+                "data must be a list of gene names or a pandas "
+                "DataFrame. Got {}".format(type(data).__name__)
+            )
+    if (
+        starts_with is None
+        and ends_with is None
+        and regex is None
+        and exact_word is None
+    ):
+        warnings.warn(
+            "No selection conditions provided. " "Returning all genes.", UserWarning
+        )
+    return _get_string_subset(
+        data,
+        starts_with=starts_with,
+        ends_with=ends_with,
+        exact_word=exact_word,
+        regex=regex,
+    )
 
 
-def get_cell_set(data, starts_with=None, ends_with=None,
-                 exact_word=None, regex=None):
+def get_cell_set(data, starts_with=None, ends_with=None, exact_word=None, regex=None):
     """Get a list of cells from data
 
     Parameters
@@ -258,20 +278,37 @@ def get_cell_set(data, starts_with=None, ends_with=None,
         try:
             data = data.index.to_numpy()
         except AttributeError:
-            raise TypeError("data must be a list of cell names or a pandas "
-                            "DataFrame. Got {}".format(type(data).__name__))
-    if starts_with is None and ends_with is None and \
-            regex is None and exact_word is None:
-        warnings.warn("No selection conditions provided. "
-                      "Returning all cells.", UserWarning)
-    return _get_string_subset(data, starts_with=starts_with,
-                              ends_with=ends_with,
-                              exact_word=exact_word, regex=regex)
+            raise TypeError(
+                "data must be a list of cell names or a pandas "
+                "DataFrame. Got {}".format(type(data).__name__)
+            )
+    if (
+        starts_with is None
+        and ends_with is None
+        and regex is None
+        and exact_word is None
+    ):
+        warnings.warn(
+            "No selection conditions provided. " "Returning all cells.", UserWarning
+        )
+    return _get_string_subset(
+        data,
+        starts_with=starts_with,
+        ends_with=ends_with,
+        exact_word=exact_word,
+        regex=regex,
+    )
 
 
-def select_cols(data, *extra_data, idx=None,
-                starts_with=None, ends_with=None,
-                exact_word=None, regex=None):
+def select_cols(
+    data,
+    *extra_data,
+    idx=None,
+    starts_with=None,
+    ends_with=None,
+    exact_word=None,
+    regex=None
+):
     """Select columns from a data matrix
 
     Parameters
@@ -309,19 +346,30 @@ def select_cols(data, *extra_data, idx=None,
     """
     if len(extra_data) > 0:
         _check_columns_compatible(data, *extra_data)
-    if idx is None and starts_with is None and ends_with is None and \
-            exact_word is None and regex is None:
-        warnings.warn("No selection conditions provided. "
-                      "Returning all columns.", UserWarning)
+    if (
+        idx is None
+        and starts_with is None
+        and ends_with is None
+        and exact_word is None
+        and regex is None
+    ):
+        warnings.warn(
+            "No selection conditions provided. " "Returning all columns.", UserWarning
+        )
         return tuple([data] + list(extra_data)) if len(extra_data) > 0 else data
     if idx is None:
         if not isinstance(data, pd.DataFrame):
             raise ValueError(
                 "Can only select based on column names with DataFrame input. "
-                "Please set `idx` to select specific columns.")
-        idx = get_gene_set(data, starts_with=starts_with,
-                           ends_with=ends_with,
-                           exact_word=exact_word, regex=regex)
+                "Please set `idx` to select specific columns."
+            )
+        idx = get_gene_set(
+            data,
+            starts_with=starts_with,
+            ends_with=ends_with,
+            exact_word=exact_word,
+            regex=regex,
+        )
 
     if isinstance(idx, pd.DataFrame):
         idx = _convert_dataframe_1d(idx)
@@ -345,9 +393,11 @@ def select_cols(data, *extra_data, idx=None,
         except (KeyError, TypeError):
             if isinstance(idx, str):
                 raise
-            if isinstance(idx, numbers.Integral) or \
-                    np.issubdtype(idx.dtype, np.dtype(int)) or \
-                    np.issubdtype(idx.dtype, np.dtype(bool)):
+            if (
+                isinstance(idx, numbers.Integral)
+                or np.issubdtype(idx.dtype, np.dtype(int))
+                or np.issubdtype(idx.dtype, np.dtype(bool))
+            ):
                 data = data.loc[:, np.array(data.columns)[idx]]
             else:
                 raise
@@ -358,9 +408,11 @@ def select_cols(data, *extra_data, idx=None,
                 raise TypeError
             data = data.loc[idx]
         except (KeyError, TypeError):
-            if isinstance(idx, numbers.Integral) or \
-                    np.issubdtype(idx.dtype, np.dtype(int)) or \
-                    np.issubdtype(idx.dtype, np.dtype(bool)):
+            if (
+                isinstance(idx, numbers.Integral)
+                or np.issubdtype(idx.dtype, np.dtype(int))
+                or np.issubdtype(idx.dtype, np.dtype(bool))
+            ):
                 data = data.loc[np.array(data.index)[idx]]
             else:
                 raise
@@ -370,10 +422,15 @@ def select_cols(data, *extra_data, idx=None,
             data = np.array(data)
         data = data[idx]
     else:
-        if isinstance(data, (sparse.coo_matrix,
-                             sparse.bsr_matrix,
-                             sparse.lil_matrix,
-                             sparse.dia_matrix)):
+        if isinstance(
+            data,
+            (
+                sparse.coo_matrix,
+                sparse.bsr_matrix,
+                sparse.lil_matrix,
+                sparse.dia_matrix,
+            ),
+        ):
             data = data.tocsr()
         if isinstance(idx, pd.Series):
             idx = utils.toarray(idx)
@@ -388,9 +445,15 @@ def select_cols(data, *extra_data, idx=None,
     return data
 
 
-def select_rows(data, *extra_data, idx=None,
-                starts_with=None, ends_with=None,
-                exact_word=None, regex=None):
+def select_rows(
+    data,
+    *extra_data,
+    idx=None,
+    starts_with=None,
+    ends_with=None,
+    exact_word=None,
+    regex=None
+):
     """Select rows from a data matrix
 
     Parameters
@@ -428,19 +491,30 @@ def select_rows(data, *extra_data, idx=None,
     """
     if len(extra_data) > 0:
         _check_rows_compatible(data, *extra_data)
-    if idx is None and starts_with is None and ends_with is None and \
-            exact_word is None and regex is None:
-        warnings.warn("No selection conditions provided. "
-                      "Returning all rows.", UserWarning)
+    if (
+        idx is None
+        and starts_with is None
+        and ends_with is None
+        and exact_word is None
+        and regex is None
+    ):
+        warnings.warn(
+            "No selection conditions provided. " "Returning all rows.", UserWarning
+        )
         return tuple([data] + list(extra_data)) if len(extra_data) > 0 else data
     if idx is None:
         if not isinstance(data, pd.DataFrame):
             raise ValueError(
                 "Can only select based on row names with DataFrame input. "
-                "Please set `idx` to select specific rows.")
-        idx = get_cell_set(data, starts_with=starts_with,
-                           ends_with=ends_with,
-                           exact_word=exact_word, regex=regex)
+                "Please set `idx` to select specific rows."
+            )
+        idx = get_cell_set(
+            data,
+            starts_with=starts_with,
+            ends_with=ends_with,
+            exact_word=exact_word,
+            regex=regex,
+        )
 
     if isinstance(idx, pd.DataFrame):
         idx = _convert_dataframe_1d(idx)
@@ -461,15 +535,16 @@ def select_rows(data, *extra_data, idx=None,
                     # temporary workaround for pandas error
                     raise TypeError
                 with warnings.catch_warnings():
-                    warnings.filterwarnings(
-                        "error", "Passing list-likes to .loc")
+                    warnings.filterwarnings("error", "Passing list-likes to .loc")
                     data = data.loc[idx]
         except (KeyError, TypeError, FutureWarning):
             if isinstance(idx, str):
                 raise
-            if isinstance(idx, numbers.Integral) or \
-                    np.issubdtype(idx.dtype, np.dtype(int)) or \
-                    np.issubdtype(idx.dtype, np.dtype(bool)):
+            if (
+                isinstance(idx, numbers.Integral)
+                or np.issubdtype(idx.dtype, np.dtype(int))
+                or np.issubdtype(idx.dtype, np.dtype(bool))
+            ):
                 data = data.loc[np.array(data.index)[idx]]
             else:
                 raise
@@ -479,9 +554,7 @@ def select_rows(data, *extra_data, idx=None,
             data = np.array(data)
         data = data[idx]
     else:
-        if isinstance(data, (sparse.coo_matrix,
-                             sparse.bsr_matrix,
-                             sparse.dia_matrix)):
+        if isinstance(data, (sparse.coo_matrix, sparse.bsr_matrix, sparse.dia_matrix)):
             data = data.tocsr()
         if isinstance(idx, pd.Series):
             idx = utils.toarray(idx)
@@ -528,8 +601,9 @@ def subsample(*data, n=10000, seed=None):
     return tuple(data) if len(data) > 1 else data[0]
 
 
-def highly_variable_genes(data, *extra_data, kernel_size=0.05, smooth=5,
-                          cutoff=None, percentile=80):
+def highly_variable_genes(
+    data, *extra_data, kernel_size=0.05, smooth=5, cutoff=None, percentile=80
+):
     """Select genes with high variability
 
     Variability is computed as the deviation from a loess fit
@@ -561,8 +635,9 @@ def highly_variable_genes(data, *extra_data, kernel_size=0.05, smooth=5,
         Filtered extra data, if passed.
     """
     from . import measure
+
     var_genes = measure.gene_variability(data, kernel_size=kernel_size, smooth=smooth)
-    keep_cells_idx = utils._get_filter_idx(var_genes,
-                                           cutoff, percentile,
-                                           keep_cells='above')
+    keep_cells_idx = utils._get_filter_idx(
+        var_genes, cutoff, percentile, keep_cells="above"
+    )
     return select_cols(data, *extra_data, idx=keep_cells_idx)

@@ -10,7 +10,8 @@ def test_check_numeric_copy():
         X,
         utils.assert_transform_unchanged,
         transform=scprep.sanitize.check_numeric,
-        copy=True)
+        copy=True,
+    )
 
 
 def test_check_numeric_inplace():
@@ -18,31 +19,35 @@ def test_check_numeric_inplace():
     matrix.test_matrix_types(
         X,
         utils.assert_transform_unchanged,
-        matrix._scipy_matrix_types +
-        matrix._numpy_matrix_types +
-        matrix._pandas_dense_matrix_types +
-        [matrix.SparseDataFrame],
+        matrix._scipy_matrix_types
+        + matrix._numpy_matrix_types
+        + matrix._pandas_dense_matrix_types
+        + [matrix.SparseDataFrame],
         transform=scprep.sanitize.check_numeric,
-        copy=False)
+        copy=False,
+    )
     matrix._ignore_pandas_sparse_warning()
     assert_raise_message(
         TypeError,
-        "pd.SparseDataFrame does not support "
-        "copy=False. Please use copy=True.",
+        "pd.SparseDataFrame does not support " "copy=False. Please use copy=True.",
         scprep.sanitize.check_numeric,
-        data=matrix.SparseDataFrame_deprecated(X), copy=False)
+        data=matrix.SparseDataFrame_deprecated(X),
+        copy=False,
+    )
     matrix._reset_warnings()
 
     class TypeErrorClass(object):
-
         def astype(self, dtype):
             return
+
     X = TypeErrorClass()
     assert_raise_message(
         TypeError,
         "astype() got an unexpected keyword argument 'copy'",
         scprep.sanitize.check_numeric,
-        data=X, copy=None)
+        data=X,
+        copy=None,
+    )
 
 
 def test_check_numeric_bad_dtype():
@@ -50,4 +55,5 @@ def test_check_numeric_bad_dtype():
         ValueError,
         "could not convert string to float: ",
         scprep.sanitize.check_numeric,
-        np.array(['hello', 'world']))
+        np.array(["hello", "world"]),
+    )

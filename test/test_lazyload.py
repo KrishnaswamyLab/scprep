@@ -7,13 +7,15 @@ from tools import data
 
 def test_lazyload():
     proc = subprocess.Popen(
-        ['nose2', '--quiet', '_test_lazyload'],
-        cwd=os.path.join(data._get_root_dir(), "test"), stderr=subprocess.PIPE)
+        ["nose2", "--quiet", "_test_lazyload"],
+        cwd=os.path.join(data._get_root_dir(), "test"),
+        stderr=subprocess.PIPE,
+    )
     return_code = proc.wait()
     try:
         assert return_code == 0
     except AssertionError:
-        lines = proc.stderr.read().decode().split('\n')
+        lines = proc.stderr.read().decode().split("\n")
         lines = lines[4:-6]
         raise AssertionError("\n".join(lines))
     finally:
@@ -26,12 +28,11 @@ def test_builtins():
             del sys.modules[module]
         except KeyError:
             pass
-        assert getattr(
-            scprep._lazyload, module).__class__ is scprep._lazyload.AliasModule
+        assert (
+            getattr(scprep._lazyload, module).__class__ is scprep._lazyload.AliasModule
+        )
         try:
-            getattr(
-                scprep._lazyload, module).__version__
+            getattr(scprep._lazyload, module).__version__
         except AttributeError:
             pass
-        assert getattr(
-            scprep._lazyload, module).__class__ is type(scprep)
+        assert getattr(scprep._lazyload, module).__class__ is type(scprep)
