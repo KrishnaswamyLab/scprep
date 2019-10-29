@@ -3,11 +3,11 @@ cat <<EOF >> .git/hooks/pre-commit
 
 set -e
 
-files=`git diff --staged --name-only --diff-filter=d -- "*.py"`
+files=\$(git diff --staged --name-only --diff-filter=d -- "*.py")
 
-for file in $files; do
-  black $file
-    git add $file
+for file in \$files; do
+  black \$file
+    git add \$file
 done
 EOF
 chmod +x .git/hooks/pre-commit

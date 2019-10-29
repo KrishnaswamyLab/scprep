@@ -529,16 +529,24 @@ def test_save_mtx():
 
 
 def _assert_fcs_meta_equal(fcsparser_meta, scprep_meta, reformat_meta=True):
-    assert set(scprep_meta.keys()).difference(set(fcsparser_meta.keys())) == {'$DATAEND', '$DATASTART', '$ENDIAN'}
+    assert set(scprep_meta.keys()).difference(set(fcsparser_meta.keys())) == {
+        "$DATAEND",
+        "$DATASTART",
+        "$ENDIAN",
+    }
     for key in fcsparser_meta.keys():
         try:
             np.testing.assert_array_equal(fcsparser_meta[key], scprep_meta[key], key)
         except AssertionError:
             if key == "$NEXTDATA" or (key.startswith("$P") and key.endswith("B")):
-                np.testing.assert_array_equal(fcsparser_meta[key], int(scprep_meta[key]), key)
+                np.testing.assert_array_equal(
+                    fcsparser_meta[key], int(scprep_meta[key]), key
+                )
             elif key == "_channels_":
                 for column in fcsparser_meta[key].columns:
-                    scprep_column = scprep_meta[key][column].astype(fcsparser_meta[key][column].dtype)
+                    scprep_column = scprep_meta[key][column].astype(
+                        fcsparser_meta[key][column].dtype
+                    )
                     np.testing.assert_array_equal(
                         fcsparser_meta[key][column], scprep_column, key + column
                     )
@@ -620,34 +628,41 @@ def test_fcs_naming_error():
 
 def test_fcs_header_error():
     path = fcsparser.test_sample_path
-    meta, data = fcsparser.parse(path, reformat_meta=True,
-                                 channel_naming='$PnN')
+    meta, data = fcsparser.parse(path, reformat_meta=True, channel_naming="$PnN")
     meta_bad = copy.deepcopy(meta)
-    meta_bad['$DATASTART'] = meta_bad['__header__']['data start']
-    meta_bad['$DATAEND'] = meta_bad['__header__']['data end']
-    meta_bad['__header__']['data start'] = 0
-    meta_bad['__header__']['data end'] = 0
-    assert scprep.io.fcs._parse_fcs_header(meta_bad)['$DATASTART'] == scprep.io.fcs._parse_fcs_header(meta)['$DATASTART']
-    assert scprep.io.fcs._parse_fcs_header(meta_bad)['$DATAEND'] == scprep.io.fcs._parse_fcs_header(meta)['$DATAEND']
-    
+    meta_bad["$DATASTART"] = meta_bad["__header__"]["data start"]
+    meta_bad["$DATAEND"] = meta_bad["__header__"]["data end"]
+    meta_bad["__header__"]["data start"] = 0
+    meta_bad["__header__"]["data end"] = 0
+    assert (
+        scprep.io.fcs._parse_fcs_header(meta_bad)["$DATASTART"]
+        == scprep.io.fcs._parse_fcs_header(meta)["$DATASTART"]
+    )
+    assert (
+        scprep.io.fcs._parse_fcs_header(meta_bad)["$DATAEND"]
+        == scprep.io.fcs._parse_fcs_header(meta)["$DATAEND"]
+    )
+
     meta_bad = copy.deepcopy(meta)
-    meta_bad['$DATATYPE'] = 'invalid'
+    meta_bad["$DATATYPE"] = "invalid"
     assert_raise_message(
         ValueError,
-        "Expected $DATATYPE in ['F', 'D']. "
-            "Got 'invalid'",
-        scprep.io.fcs._parse_fcs_header, meta_bad)
+        "Expected $DATATYPE in ['F', 'D']. " "Got 'invalid'",
+        scprep.io.fcs._parse_fcs_header,
+        meta_bad,
+    )
 
     meta_bad = copy.deepcopy(meta)
     for byteord, endian in zip(["4,3,2,1", "1,2,3,4"], [">", "<"]):
-        meta_bad['$BYTEORD'] = byteord
-        assert scprep.io.fcs._parse_fcs_header(meta_bad)['$ENDIAN'] == endian
-    meta_bad['$BYTEORD'] = "invalid"
+        meta_bad["$BYTEORD"] = byteord
+        assert scprep.io.fcs._parse_fcs_header(meta_bad)["$ENDIAN"] == endian
+    meta_bad["$BYTEORD"] = "invalid"
     assert_raise_message(
         ValueError,
-        "Expected $BYTEORD in ['1,2,3,4', '4,3,2,1']. "
-            "Got 'invalid'",
-        scprep.io.fcs._parse_fcs_header, meta_bad)
+        "Expected $BYTEORD in ['1,2,3,4', '4,3,2,1']. " "Got 'invalid'",
+        scprep.io.fcs._parse_fcs_header,
+        meta_bad,
+    )
 
 
 def test_parse_header():

@@ -135,10 +135,7 @@ def _read_fcs_header(filename):
 
 
 def _parse_fcs_header(meta):
-    if (
-        meta["__header__"]["data start"] == 0
-        and meta["__header__"]["data end"] == 0
-    ):
+    if meta["__header__"]["data start"] == 0 and meta["__header__"]["data end"] == 0:
         meta["$DATASTART"] = int(meta["$DATASTART"])
         meta["$DATAEND"] = int(meta["$DATAEND"])
     else:
@@ -152,22 +149,20 @@ def _parse_fcs_header(meta):
     meta["$DATATYPE"] = meta["$DATATYPE"].lower()
     if meta["$DATATYPE"] not in ["f", "d"]:
         raise ValueError(
-            "Expected $DATATYPE in ['F', 'D']. "
-            "Got '{}'".format(meta["$DATATYPE"])
+            "Expected $DATATYPE in ['F', 'D']. " "Got '{}'".format(meta["$DATATYPE"])
         )
 
     # Determine endianess
     endian = meta["$BYTEORD"]
     if endian == "4,3,2,1":
         # Big endian data format
-        meta['$ENDIAN'] = ">"
+        meta["$ENDIAN"] = ">"
     elif endian == "1,2,3,4":
         # Little endian data format
-        meta['$ENDIAN'] = "<"
+        meta["$ENDIAN"] = "<"
     else:
         raise ValueError(
-            "Expected $BYTEORD in ['1,2,3,4', '4,3,2,1']. "
-            "Got '{}'".format(endian)
+            "Expected $BYTEORD in ['1,2,3,4', '4,3,2,1']. " "Got '{}'".format(endian)
         )
     return meta
 
@@ -208,7 +203,7 @@ def _fcsextract(filename, channel_naming="$PnS", reformat_meta=True):
 
         # Parsing DATA segment
         # Create format string based on endianeness and the specified data type
-        fmt = meta['$ENDIAN'] + str(meta["$PAR"]) + meta["$DATATYPE"]
+        fmt = meta["$ENDIAN"] + str(meta["$PAR"]) + meta["$DATATYPE"]
         datasize = struct.calcsize(fmt)
         events = []
         # Read and unpack all the events from the data
