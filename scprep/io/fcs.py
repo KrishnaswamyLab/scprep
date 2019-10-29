@@ -103,6 +103,75 @@ def _reformat_meta(meta, channel_numbers):
     return df
 
 
+def _read_fcs_header(filename):
+    meta = dict()
+    with open(filename, "rb") as handle:
+        # Parse HEADER
+        header = handle.read(58)
+        meta["__header__"] = dict()
+        meta["__header__"]["FCS format"] = header[0:6].strip()
+        meta["__header__"]["text start"] = int(header[10:18].strip())
+        meta["__header__"]["text end"] = int(header[18:26].strip())
+        meta["__header__"]["data start"] = int(header[26:34].strip())
+        meta["__header__"]["data end"] = int(header[34:42].strip())
+        meta["__header__"]["analysis start"] = int(header[42:50].strip())
+        meta["__header__"]["analysis end"] = int(header[50:58].strip())
+
+        # Parsing TEXT segment
+        # read TEXT portion
+        handle.seek(meta["__header__"]["text start"])
+        # First byte of the text portion defines the delimeter
+        delimeter = handle.read(1)
+        text = handle.read(
+            meta["__header__"]["text end"] - meta["__header__"]["text start"] + 1
+        )
+
+        # Variables in TEXT poriton are stored "key/value/key/value/key/value"
+        keyvalarray = text.split(delimeter)
+        # Iterate over every 2 consecutive elements of the array
+        for k, v in zip(keyvalarray[::2], keyvalarray[1::2]):
+            meta[k.decode()] = v.decode()
+    return meta
+
+
+def _parse_fcs_header(meta):
+    if (
+        meta["__header__"]["data start"] == 0
+        and meta["__header__"]["data end"] == 0
+    ):
+        meta["$DATASTART"] = int(meta["$DATASTART"])
+        meta["$DATAEND"] = int(meta["$DATAEND"])
+    else:
+        meta["$DATASTART"] = meta["__header__"]["data start"]
+        meta["$DATAEND"] = meta["__header__"]["data end"]
+
+    meta["$PAR"] = int(meta["$PAR"])
+    meta["$TOT"] = int(meta["$TOT"])
+
+    # Determine data format
+    meta["$DATATYPE"] = meta["$DATATYPE"].lower()
+    if meta["$DATATYPE"] not in ["f", "d"]:
+        raise ValueError(
+            "Expected $DATATYPE in ['F', 'D']. "
+            "Got '{}'".format(meta["$DATATYPE"])
+        )
+
+    # Determine endianess
+    endian = meta["$BYTEORD"]
+    if endian == "4,3,2,1":
+        # Big endian data format
+        meta['$ENDIAN'] = ">"
+    elif endian == "1,2,3,4":
+        # Little endian data format
+        meta['$ENDIAN'] = "<"
+    else:
+        raise ValueError(
+            "Expected $BYTEORD in ['1,2,3,4', '4,3,2,1']. "
+            "Got '{}'".format(endian)
+        )
+    return meta
+
+
 def _fcsextract(filename, channel_naming="$PnS", reformat_meta=True):
     """Experimental FCS parser
 
@@ -127,80 +196,23 @@ def _fcsextract(filename, channel_naming="$PnS", reformat_meta=True):
         If true, the meta data is reformatted with the channel information organized
         into a DataFrame and moved into the '_channels_' key
     """
-    meta = dict()
+    meta = _read_fcs_header(filename)
+    meta = _parse_fcs_header(meta)
     with open(filename, "rb") as handle:
-        # Parse HEADER
-        header = handle.read(58)
-        meta["__header__"] = dict()
-        meta["__header__"]["FCS format"] = header[0:6].strip()
-        meta["__header__"]["text start"] = int(header[10:18].strip())
-        meta["__header__"]["text end"] = int(header[18:26].strip())
-        meta["__header__"]["data start"] = data_start = int(header[26:34].strip())
-        meta["__header__"]["data end"] = data_end = int(header[34:42].strip())
-        meta["__header__"]["analysis start"] = int(header[42:50].strip())
-        meta["__header__"]["analysis end"] = int(header[50:58].strip())
-
-        # Parsing TEXT segment
-        # read TEXT portion
-        handle.seek(meta["__header__"]["text start"])
-        # First byte of the text portion defines the delimeter
-        delimeter = handle.read(1)
-        text = handle.read(
-            meta["__header__"]["text end"] - meta["__header__"]["text start"] + 1
-        )
-
-        # Variables in TEXT poriton are stored "key/value/key/value/key/value"
-        keyvalarray = text.split(delimeter)
-        # Iterate over every 2 consecutive elements of the array
-        for k, v in zip(keyvalarray[::2], keyvalarray[1::2]):
-            meta[k.decode()] = v.decode()
-
-        if (
-            meta["__header__"]["data start"] == 0
-            and meta["__header__"]["data end"] == 0
-        ):
-            data_start = int(meta["$DATASTART"])
-            data_end = int(meta["$DATAEND"])
-
-        num_dims = meta["$PAR"] = int(meta["$PAR"])
-        num_events = meta["$TOT"] = int(meta["$TOT"])
-
         # Read DATA portion
-        handle.seek(data_start)
-        data = handle.read(data_end - data_start + 1)
+        handle.seek(meta["$DATASTART"])
 
-        # Determine data format
-        datatype = meta["$DATATYPE"].lower()
-        if datatype not in ["f", "d"]:
-            raise ValueError(
-                "Expected $DATATYPE in ['F', 'D']. "
-                "Got '{}'".format(meta["$DATATYPE"])
-            )
-
-        # Determine endianess
-        endian = meta["$BYTEORD"]
-        if endian == "4,3,2,1":
-            # Big endian data format
-            endian = ">"
-        elif endian == "1,2,3,4":
-            # Little endian data format
-            endian = "<"
-        else:
-            raise ValueError(
-                "Expected $BYTEORD in ['1,2,3,4', '4,3,2,1']. "
-                "Got '{}'".format(endian)
-            )
-
+        data = handle.read(meta["$DATAEND"] - meta["$DATASTART"] + 1)
         # Put data in StringIO so we can read bytes like a file
         data = BytesIO(data)
 
         # Parsing DATA segment
         # Create format string based on endianeness and the specified data type
-        fmt = endian + str(num_dims) + datatype
+        fmt = meta['$ENDIAN'] + str(meta["$PAR"]) + meta["$DATATYPE"]
         datasize = struct.calcsize(fmt)
         events = []
         # Read and unpack all the events from the data
-        for e in range(num_events):
+        for e in range(meta["$TOT"]):
             event = struct.unpack(fmt, data.read(datasize))
             events.append(event)
 
