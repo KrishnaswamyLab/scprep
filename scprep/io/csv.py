@@ -11,14 +11,21 @@ def _read_csv_sparse(filename, chunksize=1000000, fill_value=0.0, **kwargs):
     """Read a csv file into a pd.DataFrame[pd.SparseArray]
     """
     chunks = pd.read_csv(filename, chunksize=chunksize, **kwargs)
-    data = pd.concat(utils.dataframe_to_sparse(chunk, fill_value=fill_value)
-                     for chunk in chunks)
+    data = pd.concat(
+        utils.dataframe_to_sparse(chunk, fill_value=fill_value) for chunk in chunks
+    )
     return data
 
 
-def load_csv(filename, cell_axis='row', delimiter=',',
-             gene_names=True, cell_names=True,
-             sparse=False, **kwargs):
+def load_csv(
+    filename,
+    cell_axis="row",
+    delimiter=",",
+    gene_names=True,
+    cell_names=True,
+    sparse=False,
+    **kwargs
+):
     """Load a csv file
 
     Parameters
@@ -48,26 +55,26 @@ def load_csv(filename, cell_axis='row', delimiter=',',
         pd.DataFrame[pd.SparseArray]. If no names are given, data will be a np.ndarray
         or scipy.sparse.spmatrix
     """
-    if cell_axis not in ['row', 'column', 'col']:
+    if cell_axis not in ["row", "column", "col"]:
         raise ValueError(
-            "cell_axis {} not recognized. Expected 'row' or 'column'".format(
-                cell_axis))
+            "cell_axis {} not recognized. Expected 'row' or 'column'".format(cell_axis)
+        )
 
-    if 'index_col' in kwargs:
+    if "index_col" in kwargs:
         # override
-        index_col = kwargs['index_col']
+        index_col = kwargs["index_col"]
         cell_names = None
-        del kwargs['index_col']
+        del kwargs["index_col"]
     elif cell_names is True:
         index_col = 0
         cell_names = None
     else:
         index_col = None
 
-    if 'header' in kwargs:
+    if "header" in kwargs:
         # override
-        header = kwargs['header']
-        del kwargs['header']
+        header = kwargs["header"]
+        del kwargs["header"]
         gene_names = None
     elif gene_names is True:
         header = 0
@@ -80,22 +87,28 @@ def load_csv(filename, cell_axis='row', delimiter=',',
         read_fun = _read_csv_sparse
     else:
         read_fun = pd.read_csv
-    data = read_fun(filename, delimiter=delimiter,
-                    header=header, index_col=index_col,
-                    **kwargs)
+    data = read_fun(
+        filename, delimiter=delimiter, header=header, index_col=index_col, **kwargs
+    )
 
-    if cell_axis in ['column', 'col']:
+    if cell_axis in ["column", "col"]:
         data = data.T
 
     data = _matrix_to_data_frame(
-        data, gene_names=gene_names,
-        cell_names=cell_names, sparse=sparse)
+        data, gene_names=gene_names, cell_names=cell_names, sparse=sparse
+    )
     return data
 
 
-def load_tsv(filename, cell_axis='row', delimiter='\t',
-             gene_names=True, cell_names=True,
-             sparse=False, **kwargs):
+def load_tsv(
+    filename,
+    cell_axis="row",
+    delimiter="\t",
+    gene_names=True,
+    cell_names=True,
+    sparse=False,
+    **kwargs
+):
     """Load a tsv file
 
     Parameters
@@ -125,6 +138,12 @@ def load_tsv(filename, cell_axis='row', delimiter='\t',
         pd.DataFrame[pd.SparseArray]. If no names are given, data will be a np.ndarray
         or scipy.sparse.spmatrix
     """
-    return load_csv(filename, cell_axis=cell_axis, delimiter=delimiter,
-                    gene_names=gene_names, cell_names=cell_names,
-                    sparse=sparse, **kwargs)
+    return load_csv(
+        filename,
+        cell_axis=cell_axis,
+        delimiter=delimiter,
+        gene_names=gene_names,
+        cell_names=cell_names,
+        sparse=sparse,
+        **kwargs
+    )

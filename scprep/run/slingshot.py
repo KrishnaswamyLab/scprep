@@ -6,7 +6,7 @@ from . import r_function
 from .. import utils
 
 
-def install(site_repository = None, update = False, version = None, verbose = True):
+def install(site_repository=None, update=False, version=None, verbose=True):
     """Install the required R packages to run Slingshot
     
     Parameters
@@ -25,8 +25,12 @@ def install(site_repository = None, update = False, version = None, verbose = Tr
         Install script verbosity.
     """
     r_function.install_bioconductor(
-        'slingshot', site_repository=site_repository,
-        update=update, version=version, verbose=verbose)
+        "slingshot",
+        site_repository=site_repository,
+        update=update,
+        version=version,
+        verbose=verbose,
+    )
 
 
 _Slingshot = r_function.RFunction(
@@ -57,18 +61,30 @@ _Slingshot = r_function.RFunction(
                          allow.breaks = allow_breaks)
         list(pseudotime = slingPseudotime(sling),
              curves = lapply(sling@curves, function(curve) curve$s[curve$ord,]))
-    """)
+    """,
+)
 
 
 def Slingshot(
-        data, cluster_labels,
-        start_cluster = None, end_cluster = None,
-        distance = None, omega = None, shrink = True,
-        extend = "y", reweight = True, reassign = True, thresh = 0.001,
-        max_iter = 15, stretch = 2,
-        smoother = "smooth.spline", shrink_method = "cosine",
-        allow_breaks = True,
-        seed=None, verbose=1):
+    data,
+    cluster_labels,
+    start_cluster=None,
+    end_cluster=None,
+    distance=None,
+    omega=None,
+    shrink=True,
+    extend="y",
+    reweight=True,
+    reassign=True,
+    thresh=0.001,
+    max_iter=15,
+    stretch=2,
+    smoother="smooth.spline",
+    shrink_method="cosine",
+    allow_breaks=True,
+    seed=None,
+    verbose=1,
+):
     """Perform lineage inference with Slingshot
 
     Given a reduced-dimensional data matrix n by p and a vector of cluster labels
@@ -178,48 +194,64 @@ def Slingshot(
     ...     ax.plot(curve[:,0], curve[:,1], c='black')
     """
     if seed is None:
-        seed = np.random.randint(2**16 - 1)
+        seed = np.random.randint(2 ** 16 - 1)
     if distance is not None:
         raise NotImplementedError("distance argument not currently implemented")
     np.random.seed(seed)
 
     index = data.index if isinstance(data, pd.DataFrame) else None
-    
+
     data = utils.toarray(data)
     if data.shape[1] > 3:
-        warnings.warn("Expected data to be low-dimensional. "
-                      "Got data.shape[1] = {}".format(data.shape[1]),
-                      UserWarning)
+        warnings.warn(
+            "Expected data to be low-dimensional. "
+            "Got data.shape[1] = {}".format(data.shape[1]),
+            UserWarning,
+        )
     cluster_labels = utils.toarray(cluster_labels).flatten()
     if not cluster_labels.shape[0] == data.shape[0]:
-        raise ValueError("Expected len(cluster_labels) ({}) to equal "
-                         "data.shape[0] ({})".format(cluster_labels.shape[0], data.shape[0]))
+        raise ValueError(
+            "Expected len(cluster_labels) ({}) to equal "
+            "data.shape[0] ({})".format(cluster_labels.shape[0], data.shape[0])
+        )
 
     kwargs = {}
     if start_cluster is not None:
-        kwargs['start_cluster'] = start_cluster
+        kwargs["start_cluster"] = start_cluster
     if end_cluster is not None:
-        kwargs['end_cluster'] = end_cluster
+        kwargs["end_cluster"] = end_cluster
     if omega is not None:
-        kwargs['omega'] = omega
+        kwargs["omega"] = omega
 
     slingshot = _Slingshot(
-        data=data, cluster_labels=cluster_labels,
-        shrink = shrink,
-        extend = extend, reweight = reweight, reassign = reassign, thresh = thresh,
-        max_iter = max_iter, stretch = stretch,
-        smoother = smoother, shrink_method = shrink_method,
-        allow_breaks = allow_breaks, **kwargs,
-        seed=seed, rpy_verbose=verbose)
-    slingshot['curves'] = np.array(list(slingshot['curves'].values()))
+        data=data,
+        cluster_labels=cluster_labels,
+        shrink=shrink,
+        extend=extend,
+        reweight=reweight,
+        reassign=reassign,
+        thresh=thresh,
+        max_iter=max_iter,
+        stretch=stretch,
+        smoother=smoother,
+        shrink_method=shrink_method,
+        allow_breaks=allow_breaks,
+        **kwargs,
+        seed=seed,
+        rpy_verbose=verbose
+    )
+    slingshot["curves"] = np.array(list(slingshot["curves"].values()))
 
-    membership = (~np.isnan(slingshot['pseudotime'])).astype(int)
-    branch = np.sum(membership * (2**np.arange(membership.shape[1])), axis=1)
+    membership = (~np.isnan(slingshot["pseudotime"])).astype(int)
+    branch = np.sum(membership * (2 ** np.arange(membership.shape[1])), axis=1)
     # reorder based on pseudotime
     branch_ids = np.unique(branch)
-    branch_means = [np.nanmean(slingshot['pseudotime'][branch==id])
-                    if not np.all(np.isnan(slingshot['pseudotime'][branch==id])) else np.nan
-                    for id in branch_ids]
+    branch_means = [
+        np.nanmean(slingshot["pseudotime"][branch == id])
+        if not np.all(np.isnan(slingshot["pseudotime"][branch == id]))
+        else np.nan
+        for id in branch_ids
+    ]
     branch_order = np.argsort(branch_means)
     branch_old = branch.copy()
     for i in range(len(branch_order)):
@@ -228,9 +260,9 @@ def Slingshot(
             branch[branch_old == branch_ids[j]] = -1
         else:
             branch[branch_old == branch_ids[j]] = i
-    slingshot['branch'] = branch
+    slingshot["branch"] = branch
 
     if index is not None:
-        slingshot['pseudotime'] = pd.DataFrame(slingshot['pseudotime'], index=index)
-        slingshot['branch'] = pd.Series(slingshot['branch'], name='branch', index=index)
+        slingshot["pseudotime"] = pd.DataFrame(slingshot["pseudotime"], index=index)
+        slingshot["branch"] = pd.Series(slingshot["branch"], name="branch", index=index)
     return slingshot

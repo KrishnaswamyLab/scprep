@@ -20,6 +20,13 @@ up" on issues that others reported and that are relevant to you. It also helps
 us if you spread the word: reference the project from your blog and articles,
 link to it from your website, or simply star it in GitHub to say "I use it".
 
+Code Style and Testing
+----------------------
+
+`scprep` is maintained at close to 100% code coverage. Contributors are encouraged to write tests for their code, but if you do not know how to do so, please do not feel discouraged from contributing code! Others can always help you test your contribution.
+
+Code style is dictated by [`black`](https://pypi.org/project/black/#installation-and-usage). To automatically reformat your code when you run `git commit`, you can run `./autoblack.sh` in the root directory of this project to add a hook to your `git` repository.
+
 Code of Conduct
 ---------------
 

@@ -6,39 +6,49 @@ import sys
 # each module loads submodules on initialization but is only imported
 # and loads methods/classes when these are accessed
 _importspec = {
-    'matplotlib': ['colors', 'pyplot', 'animation', 'cm',
-                   'axes', 'lines', 'ticker', 'transforms'],
-    'mpl_toolkits': ['mplot3d'],
-    'fcsparser': ['api'],
-    'rpy2': [{'robjects': ['numpy2ri', 'packages', 'vectors', 'conversion']},
-             'rinterface',
-             {'rinterface_lib': ['callbacks']}],
-    'h5py': [],
-    'tables': [],
-    'requests': [],
+    "matplotlib": [
+        "colors",
+        "pyplot",
+        "animation",
+        "cm",
+        "axes",
+        "lines",
+        "ticker",
+        "transforms",
+    ],
+    "mpl_toolkits": ["mplot3d"],
+    "fcsparser": ["api"],
+    "rpy2": [
+        {"robjects": ["numpy2ri", "packages", "vectors", "conversion"]},
+        "rinterface",
+        {"rinterface_lib": ["callbacks"]},
+    ],
+    "h5py": [],
+    "tables": [],
+    "requests": [],
 }
 
 
 class AliasModule(object):
-
     def __init__(self, name, members=None):
         # easy access to AliasModule members to avoid recursionerror
         super_setattr = super().__setattr__
         if members is None:
             members = []
-        builtin_members = ['__class__', '__doc__']
-        super_setattr('__module_name__', name)
+        builtin_members = ["__class__", "__doc__"]
+        super_setattr("__module_name__", name)
         # create submodules
         submodules = []
         for member in members:
             if isinstance(member, dict):
                 for submodule, submembers in member.items():
-                    super_setattr(submodule, AliasModule(
-                        "{}.{}".format(name, submodule), submembers))
+                    super_setattr(
+                        submodule,
+                        AliasModule("{}.{}".format(name, submodule), submembers),
+                    )
                     submodules.append(submodule)
             else:
-                super_setattr(member, AliasModule(
-                    "{}.{}".format(name, member)))
+                super_setattr(member, AliasModule("{}.{}".format(name, member)))
                 submodules.append(member)
         super_setattr("__submodules__", submodules)
         super_setattr("__builtin_members__", builtin_members)

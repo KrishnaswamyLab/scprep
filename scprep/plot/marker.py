@@ -3,15 +3,19 @@ import pandas as pd
 from scipy.cluster import hierarchy
 
 from .. import utils, stats, select
-from .utils import (_get_figure, show,
-                    temp_fontsize, parse_fontsize, shift_ticklabels)
+from .utils import _get_figure, show, temp_fontsize, parse_fontsize, shift_ticklabels
 from .tools import label_axis
 
 
-def _make_scatter_arrays(data_clust, cluster_names,
-                         tissues, markers,
-                         gene_names,
-                         normalize_emd, normalize_expression):
+def _make_scatter_arrays(
+    data_clust,
+    cluster_names,
+    tissues,
+    markers,
+    gene_names,
+    normalize_emd,
+    normalize_expression,
+):
     cluster_labels = []
     marker_labels = []
     tissue_labels = []
@@ -33,8 +37,7 @@ def _make_scatter_arrays(data_clust, cluster_names,
                 tissue_labels.append(tissues[j])
             gidx = np.where(gene_names == marker)
             marker_expr = in_cluster_expr[:, gidx]
-            s_row.append(stats.EMD(marker_expr,
-                                   out_cluster_expr[:, gidx]))
+            s_row.append(stats.EMD(marker_expr, out_cluster_expr[:, gidx]))
             c_row.append(np.mean(marker_expr))
         # row normalize
         s_row = np.array(s_row)
@@ -54,34 +57,30 @@ def _make_scatter_arrays(data_clust, cluster_names,
     return x, y, c, s, cluster_labels, tissue_labels, marker_labels
 
 
-def _cluster_tissues(tissue_names, cluster_names,
-                     tissue_labels, cluster_labels,
-                     s, c):
+def _cluster_tissues(tissue_names, cluster_names, tissue_labels, cluster_labels, s, c):
     # cluster tissues hierarchically using mean size and color
     tissue_features = []
     for tissue in tissue_names:
         tissue_data = []
         for cluster in cluster_names:
             tissue_cluster_idx = np.where(
-                (np.array(tissue_labels) == tissue) & (
-                    np.array(cluster_labels) == cluster))
-            tissue_data.append(np.vstack(
-                [s[tissue_cluster_idx],
-                 c[tissue_cluster_idx]]).mean(axis=1))
+                (np.array(tissue_labels) == tissue)
+                & (np.array(cluster_labels) == cluster)
+            )
+            tissue_data.append(
+                np.vstack([s[tissue_cluster_idx], c[tissue_cluster_idx]]).mean(axis=1)
+            )
         tissue_features.append(np.concatenate(tissue_data))
     tissue_features = np.array(tissue_features)
     # normalize
-    tissue_features = tissue_features / \
-        np.sqrt(np.sum(tissue_features ** 2))
-    tissues_order = hierarchy.leaves_list(
-        hierarchy.linkage(tissue_features))
+    tissue_features = tissue_features / np.sqrt(np.sum(tissue_features ** 2))
+    tissues_order = hierarchy.leaves_list(hierarchy.linkage(tissue_features))
     return tissues_order
 
 
-def _cluster_markers(markers, tissues,
-                     marker_labels, tissue_labels,
-                     marker_groups_order,
-                     s, c):
+def _cluster_markers(
+    markers, tissues, marker_labels, tissue_labels, marker_groups_order, s, c
+):
     # cluster markers hierarchically using mean size and color
     markers_order = []
     for marker_group in marker_groups_order:
@@ -93,15 +92,15 @@ def _cluster_markers(markers, tissues,
                 if tissues is not None:
                     # check for markers that appear in multiple tissues
                     marker_idx = marker_idx & (
-                        tissue_labels == tissues[marker_group[0]])
-                marker_features.append(np.concatenate(
-                    [s[marker_idx], c[marker_idx]]))
+                        tissue_labels == tissues[marker_group[0]]
+                    )
+                marker_features.append(np.concatenate([s[marker_idx], c[marker_idx]]))
             marker_features = np.array(marker_features)
             # normalize
-            marker_features = marker_features / \
-                np.sqrt(np.sum(marker_features ** 2))
+            marker_features = marker_features / np.sqrt(np.sum(marker_features ** 2))
             marker_group_order = hierarchy.leaves_list(
-                hierarchy.linkage(marker_features))
+                hierarchy.linkage(marker_features)
+            )
             markers_order.append(marker_group[marker_group_order])
         else:
             markers_order.append(marker_group)
@@ -110,13 +109,21 @@ def _cluster_markers(markers, tissues,
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
-def marker_plot(data, clusters, markers, gene_names=None,
-                normalize_expression=True, normalize_emd=True,
-                reorder_tissues=True,
-                reorder_markers=True,
-                cmap='magma',
-                title=None, figsize=None,
-                ax=None, fontsize=None):
+def marker_plot(
+    data,
+    clusters,
+    markers,
+    gene_names=None,
+    normalize_expression=True,
+    normalize_emd=True,
+    reorder_tissues=True,
+    reorder_markers=True,
+    cmap="magma",
+    title=None,
+    figsize=None,
+    ax=None,
+    fontsize=None,
+):
     """Marker gene enrichment plot
 
     Generate a plot indicating the expression level and enrichment of
@@ -175,12 +182,14 @@ def marker_plot(data, clusters, markers, gene_names=None,
                 raise ValueError(
                     "Either `data` must be a pd.DataFrame, or gene_names must "
                     "be provided. "
-                    "Got gene_names=None, data as a {}".format(type(data)))
+                    "Got gene_names=None, data as a {}".format(type(data))
+                )
             gene_names = data.columns
 
         if isinstance(markers, dict):
             tissues, markers = tuple(
-                zip(*[([k] * len(v), v) for k, v in markers.items()]))
+                zip(*[([k] * len(v), v) for k, v in markers.items()])
+            )
             tissues, markers = np.concatenate(tissues), np.concatenate(markers)
         else:
             markers = utils.toarray(markers)
@@ -188,8 +197,10 @@ def marker_plot(data, clusters, markers, gene_names=None,
 
         for gene in markers:
             if gene not in gene_names:
-                raise ValueError('All genes in `markers` must appear '
-                                 'in gene_names. Did not find: {}'.format(gene))
+                raise ValueError(
+                    "All genes in `markers` must appear "
+                    "in gene_names. Did not find: {}".format(gene)
+                )
 
         data = utils.to_array_or_spmatrix(data)
 
@@ -208,35 +219,52 @@ def marker_plot(data, clusters, markers, gene_names=None,
             out_cluster_expr = data[~in_cluster]
             data_clust[cluster] = (in_cluster_expr, out_cluster_expr)
 
-        (x, y, c, s, cluster_labels,
-            tissue_labels, marker_labels) = _make_scatter_arrays(
-            data_clust, cluster_names,
-            tissues, markers,
+        (
+            x,
+            y,
+            c,
+            s,
+            cluster_labels,
+            tissue_labels,
+            marker_labels,
+        ) = _make_scatter_arrays(
+            data_clust,
+            cluster_names,
+            tissues,
+            markers,
             gene_names,
-            normalize_emd, normalize_expression)
+            normalize_emd,
+            normalize_expression,
+        )
 
         # reorder y axis
         if tissues is not None and len(tissues) > 1:
             tissue_names = np.unique(tissues)
             if reorder_tissues:
-                tissues_order = _cluster_tissues(tissue_names, cluster_names,
-                                                 tissue_labels, cluster_labels,
-                                                 s, c)
+                tissues_order = _cluster_tissues(
+                    tissue_names, cluster_names, tissue_labels, cluster_labels, s, c
+                )
             else:
                 # keep tissues in order
                 tissues_order = np.arange(len(tissue_names))
             marker_groups_order = [
                 np.arange(len(markers))[tissues == tissue_names[i]]
-                for i in tissues_order]
+                for i in tissues_order
+            ]
         else:
             # only one tissue
             marker_groups_order = [np.arange(len(markers))]
 
         if reorder_markers and len(markers) > 1:
-            markers_order = _cluster_markers(markers, tissues,
-                                             marker_labels, tissue_labels,
-                                             marker_groups_order,
-                                             s, c)
+            markers_order = _cluster_markers(
+                markers,
+                tissues,
+                marker_labels,
+                tissue_labels,
+                marker_groups_order,
+                s,
+                c,
+            )
         else:
             # keep markers in order
             markers_order = np.concatenate(marker_groups_order)
@@ -252,34 +280,42 @@ def marker_plot(data, clusters, markers, gene_names=None,
 
         # Vertical and Horizontal Grid Lines
         for h in np.unique(y):
-            ax.axhline(h, c='k', linewidth=0.1, zorder=0)
+            ax.axhline(h, c="k", linewidth=0.1, zorder=0)
         for v in np.unique(x):
-            ax.axvline(v, c='k', linewidth=0.1, zorder=0)
+            ax.axvline(v, c="k", linewidth=0.1, zorder=0)
 
         ax.set_ylim(-0.5, len(markers) - 0.5)
 
         # Title
-        title_fontsize = parse_fontsize(None, 'xx-large')
-        ax.set_title(title, fontsize=title_fontsize, fontweight='bold')
+        title_fontsize = parse_fontsize(None, "xx-large")
+        ax.set_title(title, fontsize=title_fontsize, fontweight="bold")
 
         # X axis decorators
         x_unique, x_unique_idx = np.unique(x, return_index=True)
-        label_axis(ax.xaxis, label='Cluster', ticks=x_unique,
-                   ticklabels=np.array(cluster_labels)[x_unique_idx],
-                   ticklabel_rotation=45,
-                   ticklabel_horizontal_alignment='right')
+        label_axis(
+            ax.xaxis,
+            label="Cluster",
+            ticks=x_unique,
+            ticklabels=np.array(cluster_labels)[x_unique_idx],
+            ticklabel_rotation=45,
+            ticklabel_horizontal_alignment="right",
+        )
         shift_ticklabels(ax.xaxis, dx=0.1)
 
         # Y axis decorators
-        label_axis(ax.yaxis, ticks=np.arange(len(markers)),
-                   ticklabels=markers[markers_order])
+        label_axis(
+            ax.yaxis, ticks=np.arange(len(markers)), ticklabels=markers[markers_order]
+        )
 
         if tissues is not None:
             # Right Y axis decorators
             ax2 = ax.twinx()
             ax2.set_ylim(ax.get_ylim())
-            label_axis(ax2.yaxis, ticks=np.arange(len(tissues)),
-                       ticklabels=tissues[markers_order])
+            label_axis(
+                ax2.yaxis,
+                ticks=np.arange(len(tissues)),
+                ticklabels=tissues[markers_order],
+            )
 
         if show_fig:
             show(fig)

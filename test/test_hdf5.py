@@ -14,7 +14,7 @@ def test_failed_import_tables():
     tables = scprep.io.hdf5.tables
     del scprep.io.hdf5.tables
     assert hdf5_available() is True
-    with tables.File(h5_file, 'r') as f:
+    with tables.File(h5_file, "r") as f:
         assert scprep.io.hdf5._is_tables(f) is False
     with scprep.io.hdf5.open_file(h5_file) as f:
         assert scprep.io.hdf5._is_h5py(f)
@@ -26,7 +26,7 @@ def test_failed_import_h5py():
     h5py = scprep.io.hdf5.h5py
     del scprep.io.hdf5.h5py
     assert hdf5_available() is True
-    with h5py.File(h5_file, 'r') as f:
+    with h5py.File(h5_file, "r") as f:
         assert scprep.io.hdf5._is_h5py(f) is False
     scprep.io.hdf5.h5py = h5py
 
@@ -36,32 +36,43 @@ def test_failed_import_both():
     del scprep.io.hdf5.tables
     h5py = scprep.io.hdf5.h5py
     del scprep.io.hdf5.h5py
-    assert_raise_message(ImportError,
-                         "Found neither tables nor h5py. "
-                         "Please install one of them with e.g. "
-                         "`pip install --user tables` or "
-                         "`pip install --user h5py`",
-                         hdf5_available)
+    assert_raise_message(
+        ImportError,
+        "Found neither tables nor h5py. "
+        "Please install one of them with e.g. "
+        "`pip install --user tables` or "
+        "`pip install --user h5py`",
+        hdf5_available,
+    )
     scprep.io.hdf5.tables = tables
     scprep.io.hdf5.h5py = h5py
 
 
 def test_list_nodes_invalid():
-    assert_raise_message(TypeError,
-                         "Expected h5py.File, tables.File, h5py.Group or "
-                         "tables.Group. Got <class 'str'>",
-                         scprep.io.hdf5.list_nodes, 'invalid')
+    assert_raise_message(
+        TypeError,
+        "Expected h5py.File, tables.File, h5py.Group or "
+        "tables.Group. Got <class 'str'>",
+        scprep.io.hdf5.list_nodes,
+        "invalid",
+    )
 
 
 def test_get_node_invalid():
-    assert_raise_message(TypeError,
-                         "Expected h5py.File, tables.File, h5py.Group or "
-                         "tables.Group. Got <class 'str'>",
-                         scprep.io.hdf5.get_node, 'invalid', 'node')
+    assert_raise_message(
+        TypeError,
+        "Expected h5py.File, tables.File, h5py.Group or "
+        "tables.Group. Got <class 'str'>",
+        scprep.io.hdf5.get_node,
+        "invalid",
+        "node",
+    )
 
 
 def test_get_values_invalid():
-    assert_raise_message(TypeError,
-                         "Expected h5py.Dataset or tables.CArray. "
-                         "Got <class 'str'>",
-                         scprep.io.hdf5.get_values, 'invalid')
+    assert_raise_message(
+        TypeError,
+        "Expected h5py.Dataset or tables.CArray. " "Got <class 'str'>",
+        scprep.io.hdf5.get_values,
+        "invalid",
+    )

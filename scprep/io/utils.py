@@ -33,28 +33,35 @@ def _parse_header(header, n_expected, header_type="gene_names"):
             delimiter = "\t"
         else:
             delimiter = ","
-        columns = pd.read_csv(header, delimiter=delimiter,
-                              header=None).values.flatten().astype(str)
+        columns = (
+            pd.read_csv(header, delimiter=delimiter, header=None)
+            .values.flatten()
+            .astype(str)
+        )
         if not len(columns) == n_expected:
-            raise ValueError("Expected {} entries in {}. Got {}".format(
-                n_expected, header, len(columns)))
+            raise ValueError(
+                "Expected {} entries in {}. Got {}".format(
+                    n_expected, header, len(columns)
+                )
+            )
     else:
         # treat as list
         columns = header
         if not len(columns) == n_expected:
-            raise ValueError("Expected {} entries in {}. Got {}".format(
-                n_expected, header_type, len(columns)))
+            raise ValueError(
+                "Expected {} entries in {}. Got {}".format(
+                    n_expected, header_type, len(columns)
+                )
+            )
     return columns
 
 
 def _parse_gene_names(header, data):
-    return _parse_header(header, data.shape[1],
-                         header_type="gene_names")
+    return _parse_header(header, data.shape[1], header_type="gene_names")
 
 
 def _parse_cell_names(header, data):
-    return _parse_header(header, data.shape[0],
-                         header_type="cell_names")
+    return _parse_header(header, data.shape[0], header_type="cell_names")
 
 
 def _matrix_to_data_frame(data, gene_names=None, cell_names=None, sparse=None):
@@ -74,8 +81,7 @@ def _matrix_to_data_frame(data, gene_names=None, cell_names=None, sparse=None):
     sparse : `bool` or `None` (default: None)
         If not `None`, overrides default sparsity of the data.
     """
-    if gene_names is None and cell_names is None and \
-            not isinstance(data, pd.DataFrame):
+    if gene_names is None and cell_names is None and not isinstance(data, pd.DataFrame):
         # just a matrix
         if sparse is not None:
             if sparse:
@@ -96,11 +102,14 @@ def _matrix_to_data_frame(data, gene_names=None, cell_names=None, sparse=None):
         if sparse is None:
             # let the input data decide
             sparse = utils.is_sparse_dataframe(data) or sp.issparse(data)
-        if sparse and gene_names is not None and \
-                len(np.unique(gene_names)) < len(gene_names):
+        if (
+            sparse
+            and gene_names is not None
+            and len(np.unique(gene_names)) < len(gene_names)
+        ):
             warnings.warn(
-                "Duplicate gene names detected! Forcing dense matrix",
-                RuntimeWarning)
+                "Duplicate gene names detected! Forcing dense matrix", RuntimeWarning
+            )
             sparse = False
         if sparse:
             # return pandas.DataFrame[SparseArray]
@@ -112,7 +121,9 @@ def _matrix_to_data_frame(data, gene_names=None, cell_names=None, sparse=None):
                 if not utils.is_sparse_dataframe(data):
                     data = utils.dataframe_to_sparse(data, fill_value=0.0)
             elif sp.issparse(data):
-                data = pd.DataFrame.sparse.from_spmatrix(data, index=cell_names, columns=gene_names)
+                data = pd.DataFrame.sparse.from_spmatrix(
+                    data, index=cell_names, columns=gene_names
+                )
             else:
                 data = pd.DataFrame(data, index=cell_names, columns=gene_names)
                 data = utils.dataframe_to_sparse(data, fill_value=0.0)

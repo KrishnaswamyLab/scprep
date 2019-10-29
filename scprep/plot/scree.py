@@ -3,16 +3,23 @@ import numpy as np
 from .. import utils
 from .._lazyload import matplotlib as mpl
 
-from .utils import (_get_figure, show,
-                    temp_fontsize)
+from .utils import _get_figure, show, temp_fontsize
 from .tools import label_axis
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
-def scree_plot(singular_values, cumulative=False, ax=None, figsize=None,
-               xlabel='Principal Component', ylabel='Explained Variance (%)',
-               fontsize=None, filename=None, dpi=None,
-               **kwargs):
+def scree_plot(
+    singular_values,
+    cumulative=False,
+    ax=None,
+    figsize=None,
+    xlabel="Principal Component",
+    ylabel="Explained Variance (%)",
+    fontsize=None,
+    filename=None,
+    dpi=None,
+    **kwargs
+):
     """Plot the explained variance of each principal component
 
     Parameters
@@ -57,8 +64,7 @@ def scree_plot(singular_values, cumulative=False, ax=None, figsize=None,
         if cumulative:
             explained_variance = np.cumsum(explained_variance)
         fig, ax, show_fig = _get_figure(ax, figsize)
-        ax.bar(np.arange(len(explained_variance)) + 1,
-               explained_variance, **kwargs)
+        ax.bar(np.arange(len(explained_variance)) + 1, explained_variance, **kwargs)
         label_axis(ax.xaxis, label=xlabel)
         label_axis(ax.yaxis, label=ylabel)
         ax.xaxis.set_major_locator(mpl.ticker.MaxNLocator(integer=True))

@@ -10,8 +10,7 @@ from .utils import _matrix_to_data_frame
 from .. import utils
 
 
-def load_mtx(mtx_file, cell_axis='row',
-             gene_names=None, cell_names=None, sparse=None):
+def load_mtx(mtx_file, cell_axis="row", gene_names=None, cell_names=None, sparse=None):
     """Load a mtx file
 
     Parameters
@@ -36,18 +35,19 @@ def load_mtx(mtx_file, cell_axis='row',
         pd.DataFrame[pd.SparseArray]. If no names are given, data will be a np.ndarray
         or scipy.sparse.spmatrix
     """
-    if cell_axis not in ['row', 'column', 'col']:
+    if cell_axis not in ["row", "column", "col"]:
         raise ValueError(
-            "cell_axis {} not recognized. Expected 'row' or 'column'".format(
-                cell_axis))
+            "cell_axis {} not recognized. Expected 'row' or 'column'".format(cell_axis)
+        )
     # Read in mtx file
     data = sio.mmread(mtx_file)
-    if cell_axis in ['column', 'col']:
+    if cell_axis in ["column", "col"]:
         data = data.T
     data = _matrix_to_data_frame(
-        data, gene_names=gene_names,
-        cell_names=cell_names, sparse=sparse)
+        data, gene_names=gene_names, cell_names=cell_names, sparse=sparse
+    )
     return data
+
 
 def save_mtx(data, destination, cell_names=None, gene_names=None):
     """Save a mtx file
@@ -87,11 +87,11 @@ def save_mtx(data, destination, cell_names=None, gene_names=None):
     if not os.path.isdir(destination):
         os.mkdir(destination)
     if cell_names is not None:
-        with open(os.path.join(destination, "cell_names.tsv"), 'w') as handle:
+        with open(os.path.join(destination, "cell_names.tsv"), "w") as handle:
             for name in cell_names:
                 handle.write("{}\n".format(name))
     if gene_names is not None:
-        with open(os.path.join(destination, "gene_names.tsv"), 'w') as handle:
+        with open(os.path.join(destination, "gene_names.tsv"), "w") as handle:
             for name in gene_names:
                 handle.write("{}\n".format(name))
     sio.mmwrite(os.path.join(destination, "matrix.mtx"), data)

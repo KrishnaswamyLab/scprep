@@ -4,7 +4,7 @@
 import pandas as pd
 
 
-def check_numeric(data, dtype='float', copy=None):
+def check_numeric(data, dtype="float", copy=None):
     """Check a matrix contains only numeric data
 
     Parameters
@@ -33,8 +33,10 @@ def check_numeric(data, dtype='float', copy=None):
     except TypeError as e:
         if isinstance(data, pd.SparseDataFrame):
             if not copy:
-                raise TypeError("pd.SparseDataFrame does not support "
-                                "copy=False. Please use copy=True.")
+                raise TypeError(
+                    "pd.SparseDataFrame does not support "
+                    "copy=False. Please use copy=True."
+                )
             else:
                 return data.astype(dtype)
         else:

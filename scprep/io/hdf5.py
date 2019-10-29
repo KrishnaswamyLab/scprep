@@ -23,12 +23,13 @@ def with_HDF5(fun, *args, **kwargs):
             raise ModuleNotFoundError(
                 "Found neither tables nor h5py. "
                 "Please install one of them with e.g. "
-                "`pip install --user tables` or `pip install --user h5py`")
+                "`pip install --user tables` or `pip install --user h5py`"
+            )
     return fun(*args, **kwargs)
 
 
 @with_HDF5
-def open_file(filename, mode='r', backend=None):
+def open_file(filename, mode="r", backend=None):
     """Open an HDF5 file with either tables or h5py
 
     Gives a simple, unified interface for both tables and h5py
@@ -52,16 +53,17 @@ def open_file(filename, mode='r', backend=None):
     if backend is None:
         try:
             tables
-            backend = 'tables'
+            backend = "tables"
         except NameError:
-            backend = 'h5py'
-    if backend == 'tables':
+            backend = "h5py"
+    if backend == "tables":
         return tables.open_file(filename, mode)
-    elif backend == 'h5py':
+    elif backend == "h5py":
         return h5py.File(filename, mode)
     else:
         raise ValueError(
-            "Expected backend in ['tables', 'h5py']. Got {}".format(backend))
+            "Expected backend in ['tables', 'h5py']. Got {}".format(backend)
+        )
 
 
 def _is_tables(obj, allow_file=True, allow_group=True, allow_dataset=True):
@@ -113,7 +115,10 @@ def list_nodes(f):
         return [node._v_name for node in f.list_nodes(f.root)]
     else:
         raise TypeError(
-            "Expected h5py.File, tables.File, h5py.Group or tables.Group. Got {}".format(type(f)))
+            "Expected h5py.File, tables.File, h5py.Group or tables.Group. Got {}".format(
+                type(f)
+            )
+        )
 
 
 @with_HDF5
@@ -141,7 +146,10 @@ def get_node(f, node):
             return f[node]
     else:
         raise TypeError(
-            "Expected h5py.File, tables.File, h5py.Group or tables.Group. Got {}".format(type(f)))
+            "Expected h5py.File, tables.File, h5py.Group or tables.Group. Got {}".format(
+                type(f)
+            )
+        )
 
 
 @with_HDF5
@@ -163,4 +171,5 @@ def get_values(dataset):
         return dataset.read()
     else:
         raise TypeError(
-            "Expected h5py.Dataset or tables.CArray. Got {}".format(type(dataset)))
+            "Expected h5py.Dataset or tables.CArray. Got {}".format(type(dataset))
+        )

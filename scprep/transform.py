@@ -56,23 +56,25 @@ def log(data, pseudocount=1, base=10):
     """
     data_min = utils.matrix_min(data)
     if pseudocount + data_min <= 0:
-        raise ValueError("Required pseudocount + min(data) ({}) > 0. "
-                         "Got pseudocount = {}".format(utils.matrix_min(data),
-                                                       pseudocount))
-    elif pseudocount != data_min + 1 and \
-            (sparse.issparse(data) or
-             isinstance(data, pd.SparseDataFrame) or
-             utils.is_sparse_dataframe(data)):
-        req = "min(data) + 1 ({})".format(data_min +
-                                          1) if data_min != 0 else "1"
-        warnings.warn("log transform on sparse data requires "
-                      "pseudocount = {}. Got {}".format(
-                          req, data_min + 1, pseudocount),
-                      RuntimeWarning)
+        raise ValueError(
+            "Required pseudocount + min(data) ({}) > 0. "
+            "Got pseudocount = {}".format(utils.matrix_min(data), pseudocount)
+        )
+    elif pseudocount != data_min + 1 and (
+        sparse.issparse(data)
+        or isinstance(data, pd.SparseDataFrame)
+        or utils.is_sparse_dataframe(data)
+    ):
+        req = "min(data) + 1 ({})".format(data_min + 1) if data_min != 0 else "1"
+        warnings.warn(
+            "log transform on sparse data requires "
+            "pseudocount = {}. Got {}".format(req, data_min + 1, pseudocount),
+            RuntimeWarning,
+        )
         pseudocount = data_min + 1
     if base == 2:
         log = np.log2
-    elif base == 'e':
+    elif base == "e":
         log = np.log
     elif base == 10:
         log = np.log10
@@ -101,26 +103,34 @@ def arcsinh(data, cofactor=5):
     ValueError : if cofactor <= 0
     """
     if cofactor <= 0:
-        raise ValueError("Expected cofactor > 0 or None. "
-                         "Got {}".format(cofactor))
+        raise ValueError("Expected cofactor > 0 or None. " "Got {}".format(cofactor))
     if cofactor is not None:
         data = data / cofactor
     return utils.matrix_transform(data, np.arcsinh)
 
 
 def sqrt_transform(*args, **kwargs):
-    warnings.warn("scprep.transform.sqrt_transform is deprecated. Please use "
-                  "scprep.transform.sqrt in future.", FutureWarning)
+    warnings.warn(
+        "scprep.transform.sqrt_transform is deprecated. Please use "
+        "scprep.transform.sqrt in future.",
+        FutureWarning,
+    )
     return sqrt(*args, **kwargs)
 
 
 def log_transform(*args, **kwargs):
-    warnings.warn("scprep.transform.log_transform is deprecated. Please use "
-                  "scprep.transform.log in future.", FutureWarning)
+    warnings.warn(
+        "scprep.transform.log_transform is deprecated. Please use "
+        "scprep.transform.log in future.",
+        FutureWarning,
+    )
     return log(*args, **kwargs)
 
 
 def arcsinh_transform(*args, **kwargs):
-    warnings.warn("scprep.transform.arcsinh_transform is deprecated. Please "
-                  "use scprep.transform.arcsinh in future.", FutureWarning)
+    warnings.warn(
+        "scprep.transform.arcsinh_transform is deprecated. Please "
+        "use scprep.transform.arcsinh in future.",
+        FutureWarning,
+    )
     return arcsinh(*args, **kwargs)

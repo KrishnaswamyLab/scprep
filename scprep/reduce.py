@@ -11,11 +11,11 @@ from . import utils
 class InvertibleRandomProjection(random_projection.GaussianRandomProjection):
     """Gaussian random projection with an inverse transform using the pseudoinverse."""
 
-    def __init__(self, n_components='auto', eps=0.3,
-                 orthogonalize=False, random_state=None):
+    def __init__(
+        self, n_components="auto", eps=0.3, orthogonalize=False, random_state=None
+    ):
         self.orthogonalize = orthogonalize
-        super().__init__(n_components=n_components, eps=eps,
-                         random_state=random_state)
+        super().__init__(n_components=n_components, eps=eps, random_state=random_state)
 
     @property
     def pseudoinverse(self):
@@ -32,8 +32,7 @@ class InvertibleRandomProjection(random_projection.GaussianRandomProjection):
                 # orthogonal matrix: inverse is just its transpose
                 self._pseudoinverse = self.components_
             else:
-                self._pseudoinverse = np.linalg.pinv(
-                    self.components_.T)
+                self._pseudoinverse = np.linalg.pinv(self.components_.T)
             return self._pseudoinverse
 
     def fit(self, X):
@@ -50,20 +49,34 @@ class InvertibleRandomProjection(random_projection.GaussianRandomProjection):
 class AutomaticDimensionSVD(decomposition.TruncatedSVD):
     """Truncated SVD with automatic dimensionality selected by the Johnson-Lindenstrauss lemma."""
 
-    def __init__(self, n_components='auto', eps=0.3, algorithm='randomized',
-                 n_iter=5, random_state=None, tol=0.0):
+    def __init__(
+        self,
+        n_components="auto",
+        eps=0.3,
+        algorithm="randomized",
+        n_iter=5,
+        random_state=None,
+        tol=0.0,
+    ):
         self.eps = eps
-        if n_components == 'auto':
+        if n_components == "auto":
             # just pass through -1 - we will change it later
             n_components = -1
-        super().__init__(n_components=n_components, algorithm=algorithm,
-                         n_iter=n_iter, random_state=random_state, tol=tol)
+        super().__init__(
+            n_components=n_components,
+            algorithm=algorithm,
+            n_iter=n_iter,
+            random_state=random_state,
+            tol=tol,
+        )
 
     def fit(self, X):
         if self.n_components == -1:
             super().set_params(
                 n_components=random_projection.johnson_lindenstrauss_min_dim(
-                    n_samples=X.shape[0], eps=self.eps))
+                    n_samples=X.shape[0], eps=self.eps
+                )
+            )
         try:
             return super().fit(X)
         except ValueError as e:
@@ -72,7 +85,9 @@ class AutomaticDimensionSVD(decomposition.TruncatedSVD):
                     "eps={} and n_samples={} lead to a target "
                     "dimension of {} which is larger than the "
                     "original space with n_features={}".format(
-                        self.eps, X.shape[0], self.n_components, X.shape[1]))
+                        self.eps, X.shape[0], self.n_components, X.shape[1]
+                    )
+                )
             else:
                 raise
 
@@ -105,26 +120,27 @@ class SparseInputPCA(sklearn.base.BaseEstimator):
         Additional keyword arguments for `sklearn.decomposition.PCA`
     """
 
-    def __init__(self, n_components=2, eps=0.3,
-                 random_state=None,
-                 method='svd',
-                 **kwargs):
-        self.pca_op = decomposition.PCA(n_components=n_components,
-                                        random_state=random_state)
-        if method == 'svd':
-            self.proj_op = AutomaticDimensionSVD(
-                eps=eps,
-                random_state=random_state)
-        elif method == 'orth_rproj':
+    def __init__(
+        self, n_components=2, eps=0.3, random_state=None, method="svd", **kwargs
+    ):
+        self.pca_op = decomposition.PCA(
+            n_components=n_components, random_state=random_state
+        )
+        if method == "svd":
+            self.proj_op = AutomaticDimensionSVD(eps=eps, random_state=random_state)
+        elif method == "orth_rproj":
             self.proj_op = InvertibleRandomProjection(
-                eps=eps, random_state=random_state, orthogonalize=True)
-        elif method == 'rproj':
+                eps=eps, random_state=random_state, orthogonalize=True
+            )
+        elif method == "rproj":
             self.proj_op = InvertibleRandomProjection(
-                eps=eps, random_state=random_state, orthogonalize=False)
+                eps=eps, random_state=random_state, orthogonalize=False
+            )
         else:
             raise ValueError(
                 "Expected `method` in ['svd', 'orth_rproj', 'rproj']. "
-                "Got '{}'".format(method))
+                "Got '{}'".format(method)
+            )
 
     @property
     def singular_values_(self):
@@ -219,9 +235,17 @@ class SparseInputPCA(sklearn.base.BaseEstimator):
         return X_ambient
 
 
-def pca(data, n_components=100, eps=0.3,
-        method='svd', seed=None, return_singular_values=False,
-        n_pca=None, svd_offset=None, svd_multiples=None):
+def pca(
+    data,
+    n_components=100,
+    eps=0.3,
+    method="svd",
+    seed=None,
+    return_singular_values=False,
+    n_pca=None,
+    svd_offset=None,
+    svd_multiples=None,
+):
     """Calculate PCA using random projections to handle sparse matrices
 
     Uses the Johnson-Lindenstrauss Lemma to determine the number of
@@ -262,27 +286,30 @@ def pca(data, n_components=100, eps=0.3,
     """
     if n_pca is not None:
         warnings.warn(
-            "n_pca is deprecated. Setting n_components={}.".format(n_pca),
-            FutureWarning)
+            "n_pca is deprecated. Setting n_components={}.".format(n_pca), FutureWarning
+        )
         n_components = n_pca
     if svd_offset is not None:
-        warnings.warn("svd_offset is deprecated. Please use `eps` instead.",
-                      FutureWarning)
+        warnings.warn(
+            "svd_offset is deprecated. Please use `eps` instead.", FutureWarning
+        )
     if svd_multiples is not None:
-        warnings.warn("svd_multiples is deprecated. Please use `eps` instead.",
-                      FutureWarning)
+        warnings.warn(
+            "svd_multiples is deprecated. Please use `eps` instead.", FutureWarning
+        )
 
     if not 0 < n_components <= min(data.shape):
-        raise ValueError("n_components={} must be between 0 and "
-                         "min(n_samples, n_features)={}".format(
-                             n_components, min(data.shape)))
+        raise ValueError(
+            "n_components={} must be between 0 and "
+            "min(n_samples, n_features)={}".format(n_components, min(data.shape))
+        )
 
     # handle dataframes
     if isinstance(data, pd.DataFrame):
         index = data.index
     else:
         index = None
-    if method == 'dense':
+    if method == "dense":
         data = utils.toarray(data)
     else:
         data = utils.to_array_or_spmatrix(data)
@@ -291,22 +318,28 @@ def pca(data, n_components=100, eps=0.3,
     if sparse.issparse(data):
         try:
             pca_op = SparseInputPCA(
-                n_components=n_components, eps=eps, method=method,
-                random_state=seed)
+                n_components=n_components, eps=eps, method=method, random_state=seed
+            )
             data = pca_op.fit_transform(data)
         except RuntimeError as e:
             if "which is larger than the original space" in str(e):
                 # eps too small - the best we can do is make the data dense
                 return pca(
-                    utils.toarray(data), n_components=n_components,
-                    seed=seed, return_singular_values=return_singular_values)
+                    utils.toarray(data),
+                    n_components=n_components,
+                    seed=seed,
+                    return_singular_values=return_singular_values,
+                )
     else:
         pca_op = decomposition.PCA(n_components, random_state=seed)
         data = pca_op.fit_transform(data)
 
     if index is not None:
-        data = pd.DataFrame(data, index=index,
-                            columns=["PC{}".format(i+1) for i in range(n_components)])
+        data = pd.DataFrame(
+            data,
+            index=index,
+            columns=["PC{}".format(i + 1) for i in range(n_components)],
+        )
 
     if return_singular_values:
         data = (data, pca_op.singular_values_)

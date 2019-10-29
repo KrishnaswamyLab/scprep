@@ -11,6 +11,7 @@ from . import plot, utils, select
 import warnings
 
 from ._lazyload import matplotlib
+
 plt = matplotlib.pyplot
 
 
@@ -79,13 +80,14 @@ def pairwise_correlation(X, Y):
     # one-by-one
     N_times_sum_xy = utils.toarray(N * Y.T.dot(X))
     sum_x_times_sum_y = X_colsums * Y_colsums[:, None]
-    var_x = N * utils.matrix_sum(utils.matrix_transform(X, np.power, 2),
-                                 axis=0) - (X_colsums**2)
-    var_y = N * utils.matrix_sum(utils.matrix_transform(Y, np.power, 2),
-                                 axis=0) - (Y_colsums**2)
+    var_x = N * utils.matrix_sum(utils.matrix_transform(X, np.power, 2), axis=0) - (
+        X_colsums ** 2
+    )
+    var_y = N * utils.matrix_sum(utils.matrix_transform(Y, np.power, 2), axis=0) - (
+        Y_colsums ** 2
+    )
     # Finally compute Pearson Correlation Coefficient as 2D array
-    cor = ((N_times_sum_xy - sum_x_times_sum_y) /
-           np.sqrt(var_x * var_y[:, None]))
+    cor = (N_times_sum_xy - sum_x_times_sum_y) / np.sqrt(var_x * var_y[:, None])
     return cor.T
 
 
@@ -123,8 +125,9 @@ def mutual_information(x, y, bins=8):
     return mi
 
 
-def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
-             plot=False, return_drevi=False, **kwargs):
+def knnDREMI(
+    x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1, plot=False, return_drevi=False, **kwargs
+):
     """kNN conditional Density Resampled Estimate of Mutual Information
 
     Calculates k-Nearest Neighbor conditional Density Resampled Estimate of
@@ -198,7 +201,8 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
     if np.count_nonzero(x - x[0]) == 0 or np.count_nonzero(y - y[0]) == 0:
         warnings.warn(
             "Attempting to calculate kNN-DREMI on a constant array. Returning `0`",
-            UserWarning)
+            UserWarning,
+        )
         # constant input: mutual information is numerically zero
         if return_drevi:
             return 0, None
@@ -206,14 +210,11 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
             return 0
 
     if not isinstance(k, numbers.Integral):
-        raise ValueError(
-            "Expected k as an integer. Got {}".format(type(k)))
+        raise ValueError("Expected k as an integer. Got {}".format(type(k)))
     if not isinstance(n_bins, numbers.Integral):
-        raise ValueError(
-            "Expected n_bins as an integer. Got {}".format(type(n_bins)))
+        raise ValueError("Expected n_bins as an integer. Got {}".format(type(n_bins)))
     if not isinstance(n_mesh, numbers.Integral):
-        raise ValueError(
-            "Expected n_mesh as an integer. Got {}".format(type(n_mesh)))
+        raise ValueError("Expected n_mesh as an integer. Got {}".format(type(n_mesh)))
 
     # 0. Z-score X and Y
     x = stats.zscore(x)
@@ -226,12 +227,14 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
     y_mesh = np.linspace(min(y), max(y), ((n_mesh + 1) * n_bins) + 1)
 
     # calculate the kNN density around the mesh points
-    mesh_points = np.vstack([np.tile(x_mesh, len(y_mesh)),
-                             np.repeat(y_mesh, len(x_mesh))]).T
+    mesh_points = np.vstack(
+        [np.tile(x_mesh, len(y_mesh)), np.repeat(y_mesh, len(x_mesh))]
+    ).T
 
     # Next, we find the nearest points in the data from the mesh
     knn = neighbors.NearestNeighbors(n_neighbors=k, n_jobs=n_jobs).fit(
-        np.vstack([x, y]).T)  # this is the data
+        np.vstack([x, y]).T
+    )  # this is the data
     # get dists of closests points in data to mesh
     dists, _ = knn.kneighbors(mesh_points)
 
@@ -240,27 +243,30 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
     density = k / area
 
     # get list of all mesh points that are not bin intersections
-    mesh_mask = np.logical_or(np.isin(mesh_points[:, 0], x_bins),
-                              np.isin(mesh_points[:, 1], y_bins))
+    mesh_mask = np.logical_or(
+        np.isin(mesh_points[:, 0], x_bins), np.isin(mesh_points[:, 1], y_bins)
+    )
     # Sum the densities of each point over the bins
-    bin_density, _, _ = np.histogram2d(mesh_points[~mesh_mask, 0],
-                                       mesh_points[~mesh_mask, 1],
-                                       bins=[x_bins, y_bins],
-                                       weights=density[~mesh_mask])
+    bin_density, _, _ = np.histogram2d(
+        mesh_points[~mesh_mask, 0],
+        mesh_points[~mesh_mask, 1],
+        bins=[x_bins, y_bins],
+        weights=density[~mesh_mask],
+    )
     bin_density = bin_density.T
     # sum the whole grid should be 1
     bin_density = bin_density / np.sum(bin_density)
 
     # Calculate conditional entropy
     # NB: not using thresholding here; entr(M) calcs -x*log(x) elementwise
-    drevi = bin_density / \
-        np.sum(bin_density, axis=0)  # columns sum to 1
+    drevi = bin_density / np.sum(bin_density, axis=0)  # columns sum to 1
     # calc entropy of each column
     cond_entropies = stats.entropy(drevi, base=2)
 
     # Mutual information (not normalized)
     marginal_entropy = stats.entropy(
-        np.sum(bin_density, axis=1), base=2)  # entropy of Y
+        np.sum(bin_density, axis=1), base=2
+    )  # entropy of Y
 
     # Multiply the entropy of each column by the density of each column
     # Conditional entropy is the entropy in Y that isn't exmplained by X
@@ -269,17 +275,25 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
     mutual_info = marginal_entropy - conditional_entropy
 
     # DREMI
-    marginal_entropy_norm = stats.entropy(np.sum(drevi, axis=1),
-                                          base=2)
+    marginal_entropy_norm = stats.entropy(np.sum(drevi, axis=1), base=2)
     cond_sums_norm = np.mean(drevi)
     conditional_entropy_norm = np.sum(cond_entropies * cond_sums_norm)
 
     dremi = marginal_entropy_norm - conditional_entropy_norm
 
     if plot:
-        plot_knnDREMI(dremi, mutual_info,
-                      x, y, n_bins, n_mesh,
-                      density, bin_density, drevi, **kwargs)
+        plot_knnDREMI(
+            dremi,
+            mutual_info,
+            x,
+            y,
+            n_bins,
+            n_mesh,
+            density,
+            bin_density,
+            drevi,
+            **kwargs
+        )
     if return_drevi:
         return dremi, drevi
     else:
@@ -287,12 +301,24 @@ def knnDREMI(x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1,
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
-def plot_knnDREMI(dremi, mutual_info, x, y, n_bins, n_mesh,
-                  density, bin_density, drevi,
-                  figsize=(12, 3.5), filename=None,
-                  xlabel="Feature 1", ylabel="Feature 2",
-                  title_fontsize=18, label_fontsize=16,
-                  dpi=150):
+def plot_knnDREMI(
+    dremi,
+    mutual_info,
+    x,
+    y,
+    n_bins,
+    n_mesh,
+    density,
+    bin_density,
+    drevi,
+    figsize=(12, 3.5),
+    filename=None,
+    xlabel="Feature 1",
+    ylabel="Feature 2",
+    title_fontsize=18,
+    label_fontsize=16,
+    dpi=150,
+):
     """Plot results of DREMI
 
     Create plots of the data like those seen in
@@ -328,8 +354,9 @@ def plot_knnDREMI(dremi, mutual_info, x, y, n_bins, n_mesh,
 
     # Plot kNN density
     n = ((n_mesh + 1) * n_bins) + 1
-    axes[1].imshow(np.log(density.reshape(n, n)),
-                   cmap='inferno', origin="lower", aspect="auto")
+    axes[1].imshow(
+        np.log(density.reshape(n, n)), cmap="inferno", origin="lower", aspect="auto"
+    )
     for b in np.linspace(0, n, n_bins + 1):
         axes[1].axhline(b - 0.5, c="grey", linewidth=1)
 
@@ -342,21 +369,21 @@ def plot_knnDREMI(dremi, mutual_info, x, y, n_bins, n_mesh,
     axes[1].set_xlabel(xlabel, fontsize=label_fontsize)
 
     # Plot joint probability
-    axes[2].imshow(bin_density,
-                   cmap="inferno", origin="lower", aspect="auto")
+    axes[2].imshow(bin_density, cmap="inferno", origin="lower", aspect="auto")
     axes[2].set_xticks([])
     axes[2].set_yticks([])
-    axes[2].set_title("Joint Prob.\nMI={:.2f}".format(mutual_info),
-                      fontsize=title_fontsize)
+    axes[2].set_title(
+        "Joint Prob.\nMI={:.2f}".format(mutual_info), fontsize=title_fontsize
+    )
     axes[2].set_xlabel(xlabel, fontsize=label_fontsize)
 
     # Plot conditional probability
-    axes[3].imshow(drevi,
-                   cmap="inferno", origin="lower", aspect="auto")
+    axes[3].imshow(drevi, cmap="inferno", origin="lower", aspect="auto")
     axes[3].set_xticks([])
     axes[3].set_yticks([])
-    axes[3].set_title("Conditional Prob.\nDREMI={:.2f}".format(dremi),
-                      fontsize=title_fontsize)
+    axes[3].set_title(
+        "Conditional Prob.\nDREMI={:.2f}".format(dremi), fontsize=title_fontsize
+    )
     axes[3].set_xlabel(xlabel, fontsize=label_fontsize)
 
     fig.tight_layout()
@@ -369,8 +396,10 @@ def _preprocess_test_matrices(X, Y):
     X = utils.to_array_or_spmatrix(X)
     Y = utils.to_array_or_spmatrix(Y)
     if not X.shape[1] == Y.shape[1]:
-        raise ValueError("Expected X and Y to have the same number of columns. "
-                         "Got shapes {}, {}".format(X.shape, Y.shape))
+        raise ValueError(
+            "Expected X and Y to have the same number of columns. "
+            "Got shapes {}, {}".format(X.shape, Y.shape)
+        )
     return X, Y
 
 
@@ -412,7 +441,7 @@ def t_statistic(X, Y):
     X, Y = _preprocess_test_matrices(X, Y)
     X_std = utils.matrix_std(X, axis=0)
     Y_std = utils.matrix_std(Y, axis=0)
-    paired_std = np.sqrt(X_std**2 / X.shape[0] + Y_std**2 / Y.shape[0])
+    paired_std = np.sqrt(X_std ** 2 / X.shape[0] + Y_std ** 2 / Y.shape[0])
     return mean_difference(X, Y) / paired_std
 
 
@@ -433,19 +462,28 @@ def _rank(X, axis=0):
     X_sorted = X[sort_indices].reshape(X.shape)
 
     # check if an item in the sorted list is the first instance
-    first_obs = np.hstack([np.repeat(True, X.shape[0])[:,np.newaxis],
-                           X_sorted[:,1:] != X_sorted[:,:-1]])
+    first_obs = np.hstack(
+        [
+            np.repeat(True, X.shape[0])[:, np.newaxis],
+            X_sorted[:, 1:] != X_sorted[:, :-1],
+        ]
+    )
 
-    sort_indices = (np.repeat(np.arange(X.shape[0]), X.shape[1]), rank_ordinal.flatten())
+    sort_indices = (
+        np.repeat(np.arange(X.shape[0]), X.shape[1]),
+        rank_ordinal.flatten(),
+    )
     rank_dense = first_obs.cumsum(axis=1)[sort_indices].reshape(X.shape)
     offset = np.cumsum(first_obs.sum(axis=1))[:-1] + np.arange(1, first_obs.shape[0])
-    rank_dense = rank_dense + np.r_[0, offset][:,np.newaxis]
+    rank_dense = rank_dense + np.r_[0, offset][:, np.newaxis]
 
-    first_or_last_obs = np.hstack([first_obs, np.repeat(True, X.shape[0])[:,np.newaxis]])
+    first_or_last_obs = np.hstack(
+        [first_obs, np.repeat(True, X.shape[0])[:, np.newaxis]]
+    )
     rank_min_max = np.nonzero(first_or_last_obs)[1]
 
-    rank_ave = .5 * (rank_min_max[rank_dense] + rank_min_max[rank_dense - 1] + 1)
-    
+    rank_ave = 0.5 * (rank_min_max[rank_dense] + rank_min_max[rank_dense - 1] + 1)
+
     if axis == 0:
         rank_ave = rank_ave.T
     return rank_ave
@@ -459,7 +497,7 @@ def _ranksum(X, sum_idx, axis=0):
             next_fn = X.getrow
         elif axis == 0:
             next_fn = X.getcol
-        for i in range(X.shape[(axis+1) % 2]):
+        for i in range(X.shape[(axis + 1) % 2]):
             coldata = X.getcol(i)
             colrank = _rank(coldata, axis=axis)
             ranksums.append(np.sum(colrank[sum_idx]))
@@ -482,17 +520,16 @@ def rank_sum_statistic(X, Y):
     rank_sum_statistic : list-like, shape=[n_genes]
     """
     X, Y = _preprocess_test_matrices(X, Y)
-    data, labels = utils.combine_batches([X, Y], ['x', 'y'])
-    X_rank_sum = _ranksum(data, labels=='x', axis=0)
+    data, labels = utils.combine_batches([X, Y], ["x", "y"])
+    X_rank_sum = _ranksum(data, labels == "x", axis=0)
     X_u_statistic = X_rank_sum - X.shape[0] * (X.shape[0] + 1) / 2
     Y_u_statistic = X.shape[0] * Y.shape[0] - X_u_statistic
     return np.minimum(X_u_statistic, Y_u_statistic)
 
-def differential_expression(X, Y,
-                            measure='difference',
-                            direction='up',
-                            gene_names=None,
-                            n_jobs=-2):
+
+def differential_expression(
+    X, Y, measure="difference", direction="up", gene_names=None, n_jobs=-2
+):
     """Calculate the most significant genes between two datasets
 
     Parameters
@@ -519,15 +556,21 @@ def differential_expression(X, Y,
     result : pd.DataFrame
         Ordered DataFrame with a column "gene" and a column named `measure`.
     """
-    if not direction in ['up', 'down', 'both']:
-        raise ValueError("Expected `direction` in ['up', 'down', 'both']. "
-                         "Got {}".format(direction))
-    if not measure in ['difference', 'emd', 'ttest', 'ranksum']:
-        raise ValueError("Expected `measure` in ['difference', 'emd', 'ttest', 'ranksum']. "
-                         "Got {}".format(measure))
+    if not direction in ["up", "down", "both"]:
+        raise ValueError(
+            "Expected `direction` in ['up', 'down', 'both']. "
+            "Got {}".format(direction)
+        )
+    if not measure in ["difference", "emd", "ttest", "ranksum"]:
+        raise ValueError(
+            "Expected `measure` in ['difference', 'emd', 'ttest', 'ranksum']. "
+            "Got {}".format(measure)
+        )
     if not (len(X.shape) == 2 and len(Y.shape) == 2):
-        raise ValueError("Expected `X` and `Y` to be matrices. "
-                         "Got shapes {}, {}".format(X.shape, Y.shape))
+        raise ValueError(
+            "Expected `X` and `Y` to be matrices. "
+            "Got shapes {}, {}".format(X.shape, Y.shape)
+        )
     [X, Y] = utils.check_consistent_columns([X, Y])
     if gene_names is not None:
         if isinstance(X, pd.DataFrame):
@@ -537,8 +580,10 @@ def differential_expression(X, Y,
             Y = select.select_cols(Y, idx=gene_names)
             gene_names = Y.columns
         if not len(gene_names) == X.shape[1]:
-            raise ValueError("Expected gene_names to have length {}. "
-                             "Got {}".format(X.shape[1], len(gene_names)))
+            raise ValueError(
+                "Expected gene_names to have length {}. "
+                "Got {}".format(X.shape[1], len(gene_names))
+            )
     else:
         if isinstance(X, pd.DataFrame) and isinstance(Y, pd.DataFrame):
             gene_names = X.columns
@@ -551,36 +596,36 @@ def differential_expression(X, Y,
         X = X.tocsr()
     if sparse.issparse(Y):
         Y = Y.tocsr()
-    if measure == 'difference':
+    if measure == "difference":
         difference = mean_difference(X, Y)
-    if measure == 'ttest':
+    if measure == "ttest":
         difference = t_statistic(X, Y)
-    if measure == 'ranksum':
+    if measure == "ranksum":
         difference = rank_sum_statistic(X, Y)
-    elif measure == 'emd':
-        difference = joblib.Parallel(n_jobs)(joblib.delayed(EMD)(
-            select.select_cols(X, idx=i),
-            select.select_cols(Y, idx=i))
-                                             for i in range(X.shape[1]))
+    elif measure == "emd":
+        difference = joblib.Parallel(n_jobs)(
+            joblib.delayed(EMD)(
+                select.select_cols(X, idx=i), select.select_cols(Y, idx=i)
+            )
+            for i in range(X.shape[1])
+        )
         difference = np.array(difference) * np.sign(mean_difference(X, Y))
-    result = pd.DataFrame({measure : difference}, index=gene_names)
-    if direction == 'up':
+    result = pd.DataFrame({measure: difference}, index=gene_names)
+    if direction == "up":
         result = result.sort_index().sort_values([measure], ascending=False)
-    elif direction == 'down':
+    elif direction == "down":
         result = result.sort_index().sort_values([measure], ascending=True)
-    elif direction == 'both':
-        result['measure_abs'] = np.abs(difference)
-        result = result.sort_index().sort_values(['measure_abs'], ascending=False)
-        del result['measure_abs']
-    result['rank'] = np.arange(result.shape[0])
+    elif direction == "both":
+        result["measure_abs"] = np.abs(difference)
+        result = result.sort_index().sort_values(["measure_abs"], ascending=False)
+        del result["measure_abs"]
+    result["rank"] = np.arange(result.shape[0])
     return result
 
 
-def differential_expression_by_cluster(data, clusters,
-                                       measure='difference',
-                                       direction='up',
-                                       gene_names=None,
-                                       n_jobs=-2):
+def differential_expression_by_cluster(
+    data, clusters, measure="difference", direction="up", gene_names=None, n_jobs=-2
+):
     """Calculate the most significant genes for each cluster in a dataset
 
     Measurements are run for each cluster against the rest of the dataset.
@@ -614,23 +659,30 @@ def differential_expression_by_cluster(data, clusters,
         if isinstance(data, pd.DataFrame):
             gene_names = data.columns
     elif not len(gene_names) == data.shape[1]:
-        raise ValueError("Expected gene_names to have length {}. "
-                         "Got {}".format(data.shape[1], len(gene_names)))
+        raise ValueError(
+            "Expected gene_names to have length {}. "
+            "Got {}".format(data.shape[1], len(gene_names))
+        )
     data = utils.to_array_or_spmatrix(data)
-    result = {cluster : differential_expression(
-        select.select_rows(data, idx=clusters==cluster),
-        select.select_rows(data, idx=clusters!=cluster),
-        measure = measure, direction = direction,
-        gene_names = gene_names, n_jobs = n_jobs)
-              for cluster in np.unique(clusters)}
+    result = {
+        cluster: differential_expression(
+            select.select_rows(data, idx=clusters == cluster),
+            select.select_rows(data, idx=clusters != cluster),
+            measure=measure,
+            direction=direction,
+            gene_names=gene_names,
+            n_jobs=n_jobs,
+        )
+        for cluster in np.unique(clusters)
+    }
     return result
+
 
 def _vector_coerce_dense(x):
     x = utils.toarray(x)
     x_1d = x.flatten()
     if not len(x_1d) == x.shape[0]:
-        raise ValueError(
-            "x must be a 1D array. Got shape {}".format(x.shape))
+        raise ValueError("x must be a 1D array. Got shape {}".format(x.shape))
     return x_1d
 
 
@@ -640,8 +692,10 @@ def _vector_coerce_two_dense(x, y):
         y = _vector_coerce_dense(y)
     except ValueError as e:
         if "x must be a 1D array. Got shape " in str(e):
-            raise ValueError("Expected x and y to be 1D arrays. "
-                             "Got shapes x {}, y {}".format(x.shape, y.shape))
+            raise ValueError(
+                "Expected x and y to be 1D arrays. "
+                "Got shapes x {}, y {}".format(x.shape, y.shape)
+            )
         else:
             raise e
     return x, y
