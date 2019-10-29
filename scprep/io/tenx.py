@@ -81,8 +81,8 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol',
     ----------
     data_dir: string
         path to input data directory
-        expects 'matrix.mtx', 'genes.tsv', 'barcodes.tsv' to be present and
-        will raise an error otherwise
+        expects 'matrix.mtx(.gz)', '[genes/features].tsv(.gz)', 'barcodes.tsv(.gz)'
+        to be present and will raise an error otherwise
     sparse: boolean
         If True, a sparse Pandas DataFrame is returned.
     gene_labels: string, {'id', 'symbol', 'both'} optional, default: 'symbol'
@@ -127,7 +127,7 @@ def load_10X(data_dir, sparse=True, gene_labels='symbol',
 
     except (FileNotFoundError, IOError):
         raise FileNotFoundError(
-            "'matrix.mtx', 'genes.tsv', and 'barcodes.tsv' must be present "
+            "'matrix.mtx(.gz)', '[genes/features].tsv(.gz)', and 'barcodes.tsv(.gz)' must be present "
             "in {}".format(data_dir))
 
     cell_names = barcodes[0]
@@ -205,12 +205,13 @@ def load_10X_zip(filename, sparse=True, gene_labels='symbol',
             dirname = files[0].strip("/")
             subdir_files = [f.split("/")[-1] for f in files]
             valid = (("barcodes.tsv" in subdir_files or "barcodes.tsv.gz" in subdir_files) and
-                     ("genes.tsv" in subdir_files or "genes.tsv.gz" in subdir_files) and
+                     (("genes.tsv" in subdir_files or "genes.tsv.gz" in subdir_files) or
+                     ("features.tsv" in subdir_files or "features.tsv.gz" in subdir_files)) and
                      ("matrix.mtx" in subdir_files or "matrix.mtx.gz" in subdir_files))
         if not valid:
             raise ValueError(
-                "Expected a single zipped folder containing 'matrix.mtx', "
-                "'genes.tsv', and 'barcodes.tsv'. Got {}".format(files))
+                "Expected a single zipped folder containing 'matrix.mtx(.gz)', "
+                "'[genes/features].tsv(.gz)', and 'barcodes.tsv(.gz)'. Got {}".format(files))
         handle.extractall(path=tmpdir)
     data = load_10X(os.path.join(tmpdir, dirname))
     shutil.rmtree(tmpdir)

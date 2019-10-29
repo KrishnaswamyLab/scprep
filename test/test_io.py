@@ -163,7 +163,7 @@ def test_10X():
         os.path.join(data.data_dir, "test_10X.zip"))
     assert_raise_message(
         FileNotFoundError,
-        "'matrix.mtx', 'genes.tsv', and 'barcodes.tsv' must be present "
+        "'matrix.mtx(.gz)', '[genes/features].tsv(.gz)', and 'barcodes.tsv(.gz)' must be present "
         "in {}".format(data.data_dir),
         scprep.io.load_10X,
         data.data_dir)
@@ -187,8 +187,8 @@ def test_10X_zip():
         gene_labels='invalid')
     assert_raise_message(
         ValueError,
-        "Expected a single zipped folder containing 'matrix.mtx', "
-        "'genes.tsv', and 'barcodes.tsv'. Got ",
+        "Expected a single zipped folder containing 'matrix.mtx(.gz)', "
+        "'[genes/features].tsv(.gz)', and 'barcodes.tsv(.gz)'. Got ",
         scprep.io.load_10X_zip,
         os.path.join(data.data_dir, "test_10X_invalid.zip")
     )
