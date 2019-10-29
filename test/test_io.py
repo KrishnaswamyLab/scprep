@@ -623,6 +623,8 @@ def test_fcs_header_error():
     meta, data = fcsparser.parse(path, reformat_meta=True,
                                  channel_naming='$PnN')
     meta_bad = copy.deepcopy(meta)
+    meta_bad['$DATASTART'] = meta_bad['__header__']['data start']
+    meta_bad['$DATAEND'] = meta_bad['__header__']['data end']
     meta_bad['__header__']['data start'] = 0
     meta_bad['__header__']['data end'] = 0
     assert scprep.io.fcs._parse_fcs_header(meta_bad)['$DATASTART'] == scprep.io.fcs._parse_fcs_header(meta)['$DATASTART']
