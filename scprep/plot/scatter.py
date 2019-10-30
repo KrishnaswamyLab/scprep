@@ -1177,6 +1177,7 @@ def rotate_scatter3d(
     fps=10,
     ax=None,
     figsize=None,
+    elev=None,
     ipython_html="jshtml",
     dpi=None,
     **kwargs
@@ -1201,6 +1202,8 @@ def rotate_scatter3d(
     figsize : tuple, optional (default: None)
         Tuple of floats for creation of new `matplotlib` figure. Only used if
         `ax` is None.
+    elev : int, optional (default: None)
+        Elevation angle of viewpoint from horizontal, in degrees
     ipython_html : {'html5', 'jshtml'}
         which html writer to use if using a Jupyter Notebook
     dpi : int or None, optional (default: None)
@@ -1252,7 +1255,7 @@ def rotate_scatter3d(
     degrees_per_frame = 360 / frames
     interval = 1000 * degrees_per_frame / rotation_speed
 
-    scatter3d(data, ax=ax, **kwargs)
+    scatter3d(data, ax=ax, elev=elev, **kwargs)
 
     azim = ax.azim
 
@@ -1260,7 +1263,7 @@ def rotate_scatter3d(
         return ax
 
     def animate(i):
-        ax.view_init(azim=azim + i * degrees_per_frame)
+        ax.view_init(azim=azim + i * degrees_per_frame, elev=elev)
         return ax
 
     ani = mpl.animation.FuncAnimation(
