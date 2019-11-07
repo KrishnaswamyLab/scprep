@@ -640,21 +640,23 @@ def check_consistent_columns(data, common_columns_only=True):
                 )
             else:
                 columns = [d.columns.values for d in data]
+                all_columns = np.unique(np.concatenate(columns))
                 for i in range(len(data)):
-                    for j in range(len(data)):
-                        uncommon_genes = np.setdiff1d(columns[j], columns[i])
-                        new_data = sparse.coo_matrix(
-                            (data[i].shape[0], len(uncommon_genes))
+                    uncommon_genes = np.setdiff1d(all_columns, columns[i])
+                    new_data = sparse.coo_matrix(
+                        (data[i].shape[0], len(uncommon_genes))
+                    )
+                    if is_sparse_dataframe(data[i]):
+                        new_data = SparseDataFrame(
+                            new_data, index=data[i].index, columns=uncommon_genes
                         )
-                        if is_sparse_dataframe(data[i]):
-                            new_data = SparseDataFrame(
-                                new_data, index=data[i].index, columns=uncommon_genes
-                            )
-                        else:
-                            new_data = pd.DataFrame(
-                                new_data, index=data[i].index, columns=uncommon_genes
-                            )
-                        data[i] = pd.concat((data[i], new_data), axis=1)
+                    else:
+                        new_data = pd.DataFrame(
+                            toarray(new_data),
+                            index=data[i].index,
+                            columns=uncommon_genes,
+                        )
+                    data[i] = pd.concat((data[i], new_data), axis=1)
                 warnings.warn(
                     "Input data has inconsistent column names. "
                     "Padding with zeros to {} total columns.".format(data[i].shape[1]),
@@ -748,7 +750,7 @@ def combine_batches(
 
     # conatenate data
     if issubclass(matrix_type, pd.DataFrame):
-        data_combined = pd.concat(data)
+        data_combined = pd.concat(data, axis=0, sort=True)
         if append_to_cell_names:
             index = np.concatenate(
                 [

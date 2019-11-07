@@ -4,6 +4,7 @@ from scipy import sparse
 from sklearn.utils.testing import assert_raise_message, assert_warns_message
 import numpy as np
 import pandas as pd
+from parameterized import parameterized
 
 
 def test_with_pkg():
@@ -123,7 +124,11 @@ def test_try_import():
 
 def test_combine_batches():
     X = data.load_10X()
-    Y = pd.concat([X, scprep.select.select_rows(X, idx=np.arange(X.shape[0] // 2))])
+    Y = pd.concat(
+        [X, scprep.select.select_rows(X, idx=np.arange(X.shape[0] // 2))],
+        axis=0,
+        sort=True,
+    )
     Y2, sample_labels = scprep.utils.combine_batches(
         [X, scprep.select.select_rows(X, idx=np.arange(X.shape[0] // 2))],
         batch_labels=[0, 1],
@@ -157,7 +162,21 @@ def test_combine_batches():
     matrix.test_matrix_types(
         X,
         utils.assert_transform_equals,
-        matrix._indexable_matrix_types,
+        matrix._pandas_matrix_types,
+        Y=Y,
+        transform=transform,
+        check=utils.assert_all_equal,
+    )
+    # don't sort for non pandas
+    Y = pd.concat(
+        [X, scprep.select.select_rows(X, idx=np.arange(X.shape[0] // 2))],
+        axis=0,
+        sort=False,
+    )
+    matrix.test_matrix_types(
+        X,
+        utils.assert_transform_equals,
+        matrix._scipy_indexable_matrix_types + matrix._numpy_matrix_types,
         Y=Y,
         transform=transform,
         check=utils.assert_all_equal,
@@ -180,11 +199,20 @@ def test_combine_batches_rangeindex():
     Y = X.iloc[: X.shape[0] // 2]
     data_combined, labels = scprep.utils.combine_batches([X, Y], ["x", "y"])
     assert isinstance(data_combined.index, pd.RangeIndex)
-    assert np.all(data_combined.columns == X.columns)
+    assert np.all(np.sort(data_combined.columns) == np.sort(X.columns))
+    assert np.all(
+        data_combined.iloc[:100][np.sort(X.columns)].to_numpy()
+        == X[np.sort(X.columns)].to_numpy()
+    )
+    assert np.all(
+        data_combined.iloc[100:][np.sort(X.columns)].to_numpy()
+        == Y[np.sort(X.columns)].to_numpy()
+    )
 
 
-def test_combine_batches_uncommon_genes():
-    X = data.load_10X()
+@parameterized([(True,), (False,)])
+def test_combine_batches_uncommon_genes(sparse):
+    X = data.load_10X(sparse=sparse)
     Y = X.iloc[:, : X.shape[1] // 2]
     assert_warns_message(
         UserWarning,

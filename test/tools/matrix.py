@@ -78,10 +78,15 @@ _pandas_vector_types = [pd.Series, SparseSeries, SparseSeries_deprecated]
 
 _pandas_matrix_types = _pandas_dense_matrix_types + _pandas_sparse_matrix_types
 
+_scipy_indexable_matrix_types = [
+    sparse.csr_matrix,
+    sparse.csc_matrix,
+    sparse.lil_matrix,
+    sparse.dok_matrix,
+]
+
 _indexable_matrix_types = (
-    [sparse.csr_matrix, sparse.csc_matrix, sparse.lil_matrix, sparse.dok_matrix]
-    + _numpy_matrix_types
-    + _pandas_matrix_types
+    _scipy_indexable_matrix_types + _numpy_matrix_types + _pandas_matrix_types
 )
 
 
