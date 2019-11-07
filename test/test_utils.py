@@ -194,6 +194,15 @@ def test_combine_batches_uncommon_genes():
         [X, Y],
         ["x", "y"],
     )
+    assert_warns_message(
+        UserWarning,
+        "Input data has inconsistent column names. "
+        "Padding with zeros to {} total columns.".format(X.shape[1]),
+        scprep.utils.combine_batches,
+        [X, Y],
+        ["x", "y"],
+        common_columns_only=False,
+    )
 
 
 def test_combine_batches_errors():
