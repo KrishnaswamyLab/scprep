@@ -643,7 +643,7 @@ def check_consistent_columns(data, common_columns_only=True):
                 all_columns = np.unique(np.concatenate(columns))
                 warnings.warn(
                     "Input data has inconsistent column names. "
-                    "Padding with zeros to {} total columns.".format(all_columns),
+                    "Padding with zeros to {} total columns.".format(len(all_columns)),
                     UserWarning,
                 )
                 for i in range(len(data)):

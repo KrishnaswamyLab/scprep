@@ -134,6 +134,8 @@ def batch_mean_center(data, sample_idx=None):
         )
     if sample_idx is None:
         sample_idx = np.ones(len(data))
+    else:
+        sample_idx = utils.toarray(sample_idx).flatten()
     for sample in np.unique(sample_idx):
         idx = sample_idx == sample
         if isinstance(data, pd.DataFrame):
