@@ -160,7 +160,7 @@ class _ScatterParams(object):
         """Is c constant?
 
         Either None or a single matplotlib color"""
-        if self._c is None:
+        if self._c is None or isinstance(self._c, str):
             return True
         elif hasattr(self._c, "__len__") and len(self._c) == self.size:
             # technically if self.size == 3 or 4 then this could be
