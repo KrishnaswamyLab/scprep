@@ -160,7 +160,14 @@ class _ScatterParams(object):
         """Is c constant?
 
         Either None or a single matplotlib color"""
-        return self._c is None or mpl.colors.is_color_like(self._c)
+        if self._c is None:
+            return True
+        elif hasattr(self._c, "__len__") and len(self._c) == self.size:
+            # technically if self.size == 3 or 4 then this could be
+            # interpreted as a single color-like
+            return False
+        else:
+            return mpl.colors.is_color_like(self._c)
 
     def array_c(self):
         """Is c an array of matplotkib colors?"""
