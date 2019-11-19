@@ -444,6 +444,7 @@ def select_cols(
         data = tuple(data)
     return data
 
+
 def columns(
     data,
     *extra_data,
@@ -488,8 +489,16 @@ def columns(
     ------
     UserWarning : if no columns are selected
     """
-    return select_cols(data, *extra_data, idx=None, starts_with=None, ends_with=None,
-                       exact_word=None, regex=None)
+    return select_cols(
+        data,
+        *extra_data,
+        idx=None,
+        starts_with=None,
+        ends_with=None,
+        exact_word=None,
+        regex=None
+    )
+
 
 def select_rows(
     data,
@@ -614,6 +623,7 @@ def select_rows(
         data = tuple(data)
     return data
 
+
 def rows(
     data,
     *extra_data,
@@ -658,8 +668,16 @@ def rows(
     ------
     UserWarning : if no rows are selected
     """
-    return select_rows(data, *extra_data, idx=None, starts_with=None, ends_with=None, exact_word=None,
-                       regex=None)
+    return select_rows(
+        data,
+        *extra_data,
+        idx=None,
+        starts_with=None,
+        ends_with=None,
+        exact_word=None,
+        regex=None
+    )
+
 
 def subsample(*data, n=10000, seed=None):
     """Subsample the number of points in a dataset
