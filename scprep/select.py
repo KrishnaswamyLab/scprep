@@ -444,52 +444,6 @@ def select_cols(
         data = tuple(data)
     return data
 
-def columns(
-    data,
-    *extra_data,
-    idx=None,
-    starts_with=None,
-    ends_with=None,
-    exact_word=None,
-    regex=None
-):
-    """Select columns from a data matrix
-
-    Parameters
-    ----------
-    data : array-like, shape=[n_samples, n_features]
-        Input data
-    extra_data : array-like, shape=[any, n_features], optional
-        Optional additional data objects from which to select the same rows
-    idx : list-like, shape=[m_features]
-        Integer indices or string column names to be selected
-    starts_with : str, list-like or None, optional (default: None)
-        If not None, select columns that start with this prefix.
-    ends_with : str, list-like or None, optional (default: None)
-        If not None, select columns that end with this suffix.
-    exact_word : str, list-like or None, optional (default: None)
-        If not None, select columns that contain this exact word.
-    regex : str, list-like or None, optional (default: None)
-        If not None, select columns that match this regular expression.
-
-    Returns
-    -------
-    data : array-like, shape=[n_samples, m_features]
-        Subsetted output data.
-    extra_data : array-like, shape=[any, m_features]
-        Subsetted extra data, if passed.
-
-    Examples
-    --------
-    data_subset = scprep.select.select_cols(data, idx=np.random.choice([True, False], data.shape[1]))
-    data_subset, metadata_subset = scprep.select.select_cols(data, metadata, starts_with="MT")
-
-    Raises
-    ------
-    UserWarning : if no columns are selected
-    """
-    return select_cols(data, *extra_data, idx=None, starts_with=None, ends_with=None,
-                       exact_word=None, regex=None)
 
 def select_rows(
     data,
@@ -614,52 +568,6 @@ def select_rows(
         data = tuple(data)
     return data
 
-def rows(
-    data,
-    *extra_data,
-    idx=None,
-    starts_with=None,
-    ends_with=None,
-    exact_word=None,
-    regex=None
-):
-    """Select rows from a data matrix
-
-    Parameters
-    ----------
-    data : array-like, shape=[n_samples, n_features]
-        Input data
-    extra_data : array-like, shape=[n_samples, any], optional
-        Optional additional data objects from which to select the same rows
-    idx : list-like, shape=[m_samples], optional (default: None)
-        Integer indices or string index names to be selected
-    starts_with : str, list-like or None, optional (default: None)
-        If not None, select rows that start with this prefix.
-    ends_with : str, list-like or None, optional (default: None)
-        If not None, select rows that end with this suffix.
-    exact_word : str, list-like or None, optional (default: None)
-        If not None, select rows that contain this exact word.
-    regex : str, list-like or None, optional (default: None)
-        If not None, select rows that match this regular expression.
-
-    Returns
-    -------
-    data : array-like, shape=[m_samples, n_features]
-        Subsetted output data
-    extra_data : array-like, shape=[m_samples, any]
-        Subsetted extra data, if passed.
-
-    Examples
-    --------
-    data_subset = scprep.select.select_rows(data, idx=np.random.choice([True, False], data.shape[0]))
-    data_subset, labels_subset = scprep.select.select_rows(data, labels, end_with="batch1")
-
-    Raises
-    ------
-    UserWarning : if no rows are selected
-    """
-    return select_rows(data, *extra_data, idx=None, starts_with=None, ends_with=None, exact_word=None,
-                       regex=None)
 
 def subsample(*data, n=10000, seed=None):
     """Subsample the number of points in a dataset
