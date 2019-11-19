@@ -8,6 +8,10 @@
 
 .. raw:: html
 
+    <a href="https://anaconda.org/bioconda/scprep/"><img src="https://anaconda.org/bioconda/scprep/badges/version.svg" alt="Latest Conda version"></a>
+
+.. raw:: html
+
     <a href="https://travis-ci.com/KrishnaswamyLab/scprep"><img src="https://api.travis-ci.com/KrishnaswamyLab/scprep.svg?branch=master" alt="Travis CI Build"></a>
 
 .. raw:: html
