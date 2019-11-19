@@ -3,6 +3,7 @@ scipy>=0.18.1
 scikit-learn>=0.19.1
 pandas>=0.25
 decorator>=4.3.0
+Deprecated
 matplotlib>=3.0
 sphinx<=1.8.5
 sphinxcontrib-napoleon
