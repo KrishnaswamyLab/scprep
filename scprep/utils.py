@@ -796,21 +796,33 @@ def get_gene_set(data, starts_with=None, ends_with=None, regex=None):
     )
 
 
-def get_cell_set(data, starts_with=None, ends_with=None, regex=None):
+def get_cell_set(
+    data,
+    starts_with=None,
+    ends_with=None,
+    regex=None
+    ):
     raise RuntimeError(
         "`scprep.utils.get_cell_set` is deprecated. Use "
         "`scprep.select.get_cell_set` instead."
     )
 
 
-def subsample(*data, n=10000, seed=None):
+def subsample(
+    *data,
+    n=10000,
+    seed=None
+    ):
     raise RuntimeError(
         "`scprep.utils.subsample` is deprecated. Use "
         "`scprep.select.subsample` instead."
     )
 
 
-def sort_clusters_by_values(clusters, values):
+def sort_clusters_by_values(
+    clusters,
+    values
+    ):
     """Sorts `clusters` in increasing order of `values`.
 
     Parameters
