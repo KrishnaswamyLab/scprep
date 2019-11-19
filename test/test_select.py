@@ -85,6 +85,13 @@ class Test10X(unittest.TestCase):
             idx=np.random.choice([True, False], [self.X.shape[0]]),
         )
 
+    def test_select_rows_helper_boolean_index(self):
+        matrix.test_all_matrix_types(
+            self.X,
+            scprep.select.rows,
+            idx=np.random.choice([True, False], [self.X.shape[0]]),
+        )
+
     def test_select_rows_integer_array_index(self):
         matrix.test_all_matrix_types(
             self.X,
@@ -200,7 +207,12 @@ class Test10X(unittest.TestCase):
             scprep.select.select_rows,
             self.X,
         )
-
+    def test_select_columns_helper_boolean_index(self):
+        matrix.test_all_matrix_types(
+            self.X,
+            scprep.select.columns,
+            idx=np.random.choice([True, False], [self.X.shape[1]]),
+        )
     def test_select_cols_boolean_index(self):
         matrix.test_all_matrix_types(
             self.X,
