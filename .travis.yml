@@ -46,8 +46,7 @@
     - if [ "$TRAVIS_PYTHON_VERSION" != "3.5" ]; then black . --check --diff; fi
     - python setup.py test
     - pip install -U .[doc]
-    - cd doc; make html
-    - cd ..
+    - python setup.py build_sphinx
 
   after_success:
     - coveralls
