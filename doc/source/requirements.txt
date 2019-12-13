@@ -4,3 +4,4 @@ sphinxcontrib-napoleon
 autodocsumm
 ipykernel
 nbsphinx
+matplotlib>=3.0
