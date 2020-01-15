@@ -442,7 +442,7 @@ def select_cols(
         data = data[:, idx]
     if _get_column_length(data) == 0:
         warnings.warn("Selecting 0 columns.", UserWarning)
-    else:
+    elif isinstance(data, pd.DataFrame):
         # convert to series if possible
         data = _convert_dataframe_1d(data, silent=True)
     if len(extra_data) > 0:
@@ -569,7 +569,7 @@ def select_rows(
         data = data[idx, :]
     if _get_row_length(data) == 0:
         warnings.warn("Selecting 0 rows.", UserWarning)
-    else:
+    elif isinstance(data, pd.DataFrame):
         # convert to series if possible
         data = _convert_dataframe_1d(data, silent=True)
     if len(extra_data) > 0:

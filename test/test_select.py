@@ -421,6 +421,12 @@ class Test10X(unittest.TestCase):
             self.X.to_numpy()[:, :50],
         )
 
+    def test_select_cols_return_series(self):
+        assert isinstance(scprep.select.select_cols(self.X, idx=0), pd.Series)
+
+    def test_select_cols_return_dataframe(self):
+        assert isinstance(scprep.select.select_cols(self.X, idx=[0, 1]), pd.DataFrame)
+
     def test_select_rows_unequal_rows(self):
         assert_raise_message(
             ValueError,
@@ -472,6 +478,12 @@ class Test10X(unittest.TestCase):
             self.X.to_numpy(),
             starts_with="A",
         )
+
+    def test_select_rows_return_series(self):
+        assert isinstance(scprep.select.select_rows(self.X, idx=0), pd.Series)
+
+    def test_select_rows_return_dataframe(self):
+        assert isinstance(scprep.select.select_rows(self.X, idx=[0, 1]), pd.DataFrame)
 
     def test_subsample(self):
         self.X = data.generate_positive_sparse_matrix(shape=(50, 100))
