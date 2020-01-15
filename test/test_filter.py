@@ -179,7 +179,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_library_size_filter_sample_label(self):
-        sample_labels = pd.DataFrame(
+        sample_labels = pd.Series(
             np.random.choice([0, 1], self.X_dense.shape[0]), index=self.X_dense.index
         )
         sample_labels_filt = sample_labels.loc[self.X_dense.sum(1) > 100]
