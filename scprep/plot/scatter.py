@@ -514,40 +514,32 @@ class _ScatterParams(object):
                 )
                 self._cmap_scale = "linear"
 
-    @property
-    def xlabel(self):
-        if self._xlabel is not None:
-            return self._xlabel
+    def _label(self, label, values, idx):
+        if label is False:
+            return None
+        elif label is not None:
+            return label
         elif self._label_prefix is not None:
-            return self._label_prefix + "1"
-        elif isinstance(self._x, pd.Series):
-            return self._x.name
+            return self._label_prefix + str(idx)
+        elif label is not False and isinstance(values, pd.Series):
+            return values.name
         else:
             return None
 
     @property
+    def xlabel(self):
+        return self._label(self._xlabel, self._x, "1")
+
+    @property
     def ylabel(self):
-        if self._ylabel is not None:
-            return self._ylabel
-        elif self._label_prefix is not None:
-            return self._label_prefix + "2"
-        elif isinstance(self._y, pd.Series):
-            return self._y.name
-        else:
-            return None
+        return self._label(self._ylabel, self._y, "2")
 
     @property
     def zlabel(self):
         if self._z is None:
             return None
-        elif self._zlabel is not None:
-            return self._zlabel
-        elif self._label_prefix is not None:
-            return self._label_prefix + "3"
-        elif isinstance(self._z, pd.Series):
-            return self._z.name
         else:
-            return None
+            return self._label(self._zlabel, self._z, "3")
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
@@ -654,9 +646,11 @@ def scatter(
         Prefix for all axis labels. Axes will be labelled `label_prefix`1,
         `label_prefix`2, etc. Can be overriden by setting `xlabel`,
         `ylabel`, and `zlabel`.
-    {x,y,z}label : str or None (default : None)
+    {x,y,z}label : str, None or False (default : None)
         Axis labels. Overrides the automatic label given by
-        label_prefix. If None and label_prefix is None, no label is set.
+        label_prefix. If None and label_prefix is None, no label is set
+        unless the data is a pandas Series, in which case the series name is used.
+        Override this behavior with `{x,y,z}label=False`
     title : str or None (default: None)
         axis title. If None, no title is set.
     fontsize : float or None (default: None)
@@ -897,7 +891,9 @@ def scatter2d(
         `ylabel`, and `zlabel`.
     {x,y}label : str or None (default : None)
         Axis labels. Overrides the automatic label given by
-        label_prefix. If None and label_prefix is None, no label is set.
+        label_prefix. If None and label_prefix is None, no label is set
+        unless the data is a pandas Series, in which case the series name is used.
+        Override this behavior with `{x,y,z}label=False`
     title : str or None (default: None)
         axis title. If None, no title is set.
     fontsize : float or None (default: None)
@@ -1078,7 +1074,9 @@ def scatter3d(
         `ylabel`, and `zlabel`.
     {x,y,z}label : str or None (default : None)
         Axis labels. Overrides the automatic label given by
-        label_prefix. If None and label_prefix is None, no label is set.
+        label_prefix. If None and label_prefix is None, no label is set
+        unless the data is a pandas Series, in which case the series name is used.
+        Override this behavior with `{x,y,z}label=False`
     title : str or None (default: None)
         axis title. If None, no title is set.
     fontsize : float or None (default: None)
