@@ -99,7 +99,7 @@ def library_size_normalize(data, rescale=10000, return_library_size=False):
             data_norm = pd.DataFrame(data_norm)
         data_norm.columns = columns
         data_norm.index = index
-        libsize = pd.Series(libsize, index=index, name="library_size")
+        libsize = pd.Series(libsize, index=index, name="library_size", dtype="float64")
     if return_library_size:
         return data_norm, libsize
     else:
