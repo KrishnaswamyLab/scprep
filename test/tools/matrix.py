@@ -77,7 +77,9 @@ _pandas_sparse_matrix_types = [
 
 _pandas_vector_types = [pd.Series, SparseSeries]
 
-if version.parse(pd.__version__) < version.parse("1.0.0"):
+_pandas_0 = version.parse(pd.__version__) < version.parse("1.0.0")
+
+if _pandas_0:
     _pandas_sparse_matrix_types.append(SparseDataFrame_deprecated)
     _pandas_vector_types.append(SparseSeries_deprecated)
 

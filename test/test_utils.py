@@ -644,7 +644,6 @@ def test_deprecated():
         "`scprep.select.subsample` instead.",
         scprep.utils.subsample,
         X,
-        n=10,
     )
 
 
@@ -656,13 +655,15 @@ def test_is_sparse_dataframe():
     def test_fun(X):
         assert not scprep.utils.is_sparse_dataframe(X)
 
-    matrix.test_matrix_types(
-        X,
-        test_fun,
+    types = (
         matrix._scipy_matrix_types
         + matrix._numpy_matrix_types
         + matrix._pandas_dense_matrix_types
-        + [matrix.SparseDataFrame_deprecated],
+    )
+    if matrix._pandas_0:
+        types.append(matrix.SparseDataFrame_deprecated)
+    matrix.test_matrix_types(
+        X, test_fun, types,
     )
 
 
@@ -696,14 +697,14 @@ def test_is_sparse_series():
             x = scprep.select.select_cols(X, idx=0)
         assert not scprep.utils.is_sparse_series(x)
 
-    matrix.test_matrix_types(
-        X.to_numpy(),
-        test_fun,
+    types = (
         matrix._scipy_matrix_types
         + matrix._numpy_matrix_types
         + matrix._pandas_dense_matrix_types
-        + [matrix.SparseDataFrame_deprecated],
     )
+    if matrix._pandas_0:
+        types.append(matrix.SparseDataFrame_deprecated)
+    matrix.test_matrix_types(X.to_numpy(), test_fun, types)
 
 
 def test_sort_clusters_by_values_accurate():
