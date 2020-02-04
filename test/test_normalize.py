@@ -1,7 +1,7 @@
 from tools import utils, matrix, data
 import numpy as np
 from sklearn.preprocessing import normalize
-from sklearn.utils.testing import assert_warns_message, assert_raise_message
+
 import scprep
 from functools import partial
 import unittest
@@ -97,7 +97,7 @@ class TestNormalize(unittest.TestCase):
         )
 
     def test_libsize_norm_rescale_invalid(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected rescale in ['median', 'mean'], a number or `None`. "
             "Got invalid",
@@ -109,7 +109,7 @@ class TestNormalize(unittest.TestCase):
     def test_libsize_norm_median_zero(self):
         X = self.X.copy()
         X[: X.shape[0] // 2 + 1] = 0
-        assert_warns_message(
+        utils.assert_warns_message(
             UserWarning,
             "Median library size is zero. " "Rescaling to mean instead.",
             scprep.normalize.library_size_normalize,

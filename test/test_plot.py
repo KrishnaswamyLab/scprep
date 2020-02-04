@@ -1,11 +1,11 @@
-from tools import data
+from tools import data, utils
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import os
 import numbers
-from sklearn.utils.testing import assert_raise_message, assert_warns_message
+
 import unittest
 import scprep
 from scprep.plot.scatter import _ScatterParams
@@ -76,7 +76,7 @@ def test_generate_colorbar_list():
 
 
 def test_generate_colorbar_dict():
-    assert_raise_message(
+    utils.assert_raises_message(
         TypeError,
         "unhashable type: 'dict'",
         scprep.plot.tools.generate_colorbar,
@@ -128,19 +128,19 @@ def test_tab10_continuous_no_reverse():
 
 
 def test_tab10_continuous_invalid_n_colors():
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected 0 < n_colors <= 10. Got 0",
         scprep.plot.colors.tab10_continuous,
         n_colors=0,
     )
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected 0 < n_colors <= 10. Got 11",
         scprep.plot.colors.tab10_continuous,
         n_colors=11,
     )
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected n_step >= 2. Got 1",
         scprep.plot.colors.tab10_continuous,
@@ -224,7 +224,7 @@ def test_tab_overhang():
 
 
 def test_tab_invalid():
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError, "Expected n >= 1. Got 0", scprep.plot.colors.tab, n=0
     )
 
@@ -605,7 +605,7 @@ class TestScatterParams(unittest.TestCase):
         assert params.extend == "neither"
 
     def test_check_vmin_vmax(self):
-        assert_warns_message(
+        utils.assert_warns_message(
             UserWarning,
             "Cannot set `vmin` or `vmax` with constant `c=None`. "
             "Setting `vmin = vmax = None`.",
@@ -614,7 +614,7 @@ class TestScatterParams(unittest.TestCase):
             y=self.y,
             vmin=0,
         )
-        assert_warns_message(
+        utils.assert_warns_message(
             UserWarning,
             "Cannot set `vmin` or `vmax` with discrete data. " "Setting to `None`.",
             _ScatterParams,
@@ -625,7 +625,7 @@ class TestScatterParams(unittest.TestCase):
         )
 
     def test_check_legend(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Received conflicting values for synonyms "
             "`legend=True` and `colorbar=False`",
@@ -635,7 +635,7 @@ class TestScatterParams(unittest.TestCase):
             legend=True,
             colorbar=False,
         )
-        assert_warns_message(
+        utils.assert_warns_message(
             UserWarning,
             "`c` is a color array and cannot be used to create a "
             "legend. To interpret these values as labels instead, "
@@ -646,7 +646,7 @@ class TestScatterParams(unittest.TestCase):
             c=self.array_c,
             legend=True,
         )
-        assert_warns_message(
+        utils.assert_warns_message(
             UserWarning,
             "Cannot create a legend with constant `c=None`",
             _ScatterParams,
@@ -657,14 +657,14 @@ class TestScatterParams(unittest.TestCase):
         )
 
     def test_check_size(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected all axes of data to have the same length" ". Got [500, 100]",
             _ScatterParams,
             x=self.x,
             y=self.y[:100],
         )
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected all axes of data to have the same length" ". Got [500, 500, 100]",
             _ScatterParams,
@@ -674,7 +674,7 @@ class TestScatterParams(unittest.TestCase):
         )
 
     def test_check_c(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected c of length 500 or 1. Got 100",
             _ScatterParams,
@@ -684,7 +684,7 @@ class TestScatterParams(unittest.TestCase):
         )
 
     def test_check_discrete(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Cannot treat non-numeric data as continuous.",
             _ScatterParams,
@@ -695,7 +695,7 @@ class TestScatterParams(unittest.TestCase):
         )
 
     def test_check_cmap(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected list-like `c` with dictionary cmap." " Got <class 'str'>",
             _ScatterParams,
@@ -704,7 +704,7 @@ class TestScatterParams(unittest.TestCase):
             c="black",
             cmap={"+": "k", "-": "r"},
         )
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Cannot use dictionary cmap with " "continuous data.",
             _ScatterParams,
@@ -714,7 +714,7 @@ class TestScatterParams(unittest.TestCase):
             discrete=False,
             cmap={"+": "k", "-": "r"},
         )
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Dictionary cmap requires a color "
             "for every unique entry in `c`. "
@@ -725,7 +725,7 @@ class TestScatterParams(unittest.TestCase):
             c=np.where(self.c > 0, "+", "-"),
             cmap={"-": "r"},
         )
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected list-like `c` with list cmap. " "Got <class 'str'>",
             _ScatterParams,
@@ -736,7 +736,7 @@ class TestScatterParams(unittest.TestCase):
         )
 
     def test_check_cmap_scale(self):
-        assert_warns_message(
+        utils.assert_warns_message(
             UserWarning,
             "Cannot use non-linear `cmap_scale` with " "`c` as a color array.",
             _ScatterParams,
@@ -745,7 +745,7 @@ class TestScatterParams(unittest.TestCase):
             c=self.array_c,
             cmap_scale="log",
         )
-        assert_warns_message(
+        utils.assert_warns_message(
             UserWarning,
             "Cannot use non-linear `cmap_scale` with constant " "`c=black`.",
             _ScatterParams,
@@ -754,7 +754,7 @@ class TestScatterParams(unittest.TestCase):
             c="black",
             cmap_scale="log",
         )
-        assert_warns_message(
+        utils.assert_warns_message(
             UserWarning,
             "Cannot use non-linear `cmap_scale` with discrete data.",
             _ScatterParams,
@@ -955,7 +955,7 @@ class Test10X(unittest.TestCase):
         assert ax.get_title() == "histogram"
 
     def test_histogram_invalid_axis(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             TypeError,
             "Expected ax as a matplotlib.axes.Axes. Got ",
             scprep.plot.plot_library_size,
@@ -982,7 +982,7 @@ class Test10X(unittest.TestCase):
         assert all([t == int(t) for t in ax.get_xticks()]), ax.get_xticks()
 
     def test_scree_invalid_axis(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             TypeError,
             "Expected ax as a matplotlib.axes.Axes. Got ",
             scprep.plot.scree_plot,
@@ -1055,7 +1055,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_scatter_dict_c_none(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected list-like `c` with dictionary cmap. Got <class 'NoneType'>",
             scprep.plot.scatter2d,
@@ -1065,7 +1065,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_scatter_dict_continuous(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Cannot use dictionary cmap with continuous data",
             scprep.plot.scatter2d,
@@ -1076,7 +1076,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_scatter_dict_missing(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Dictionary cmap requires a color for every unique entry in `c`. "
             "Missing colors for [world]",
@@ -1109,7 +1109,7 @@ class Test10X(unittest.TestCase):
         scprep.plot.scatter2d(self.X_pca, c=self.X_pca[:, 0], cmap=["red"])
 
     def test_scatter_list_c_none(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected list-like `c` with list cmap. Got <class 'NoneType'>",
             scprep.plot.scatter2d,
@@ -1189,7 +1189,7 @@ class Test10X(unittest.TestCase):
         assert ax.azim == 270
 
     def test_scatter3d_data_2d(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected data.shape[1] >= 3. Got 2",
             scprep.plot.scatter3d,
@@ -1197,7 +1197,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_scatter3d_data_2d_list(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected data.shape[1] >= 3. Got 2",
             scprep.plot.scatter3d,
@@ -1213,7 +1213,7 @@ class Test10X(unittest.TestCase):
         assert os.path.exists("test.mp4")
 
     def test_scatter_rotate_invalid_filename(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "filename must end in .gif or .mp4. Got test.invalid",
             scprep.plot.rotate_scatter3d,
@@ -1224,7 +1224,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_scatter_invalid_data(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected all axes of data to have the same length. "
             "Got {}".format([self.X_pca.shape[0], self.X_pca.shape[1]]),
@@ -1232,7 +1232,7 @@ class Test10X(unittest.TestCase):
             x=self.X_pca[:, 0],
             y=self.X_pca[0, :],
         )
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected all axes of data to have the same length. "
             "Got {}".format(
@@ -1245,7 +1245,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_scatter_invalid_c(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected c of length {} or 1. Got {}".format(
                 self.X_pca.shape[0], self.X_pca.shape[1]
@@ -1256,7 +1256,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_scatter_invalid_s(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected s of length {} or 1. Got {}".format(
                 self.X_pca.shape[0], self.X_pca.shape[1]
@@ -1267,7 +1267,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_scatter_invalid_mask(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected mask of length {}. Got {}".format(
                 self.X_pca.shape[0], self.X_pca.shape[1]
@@ -1278,7 +1278,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_scatter_invalid_discrete(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Cannot treat non-numeric data as continuous",
             scprep.plot.scatter2d,
@@ -1288,7 +1288,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_scatter_invalid_legend(self):
-        assert_warns_message(
+        utils.assert_warns_message(
             UserWarning,
             "`c` is a color array and cannot be used to create a "
             "legend. To interpret these values as labels instead, "
@@ -1298,7 +1298,7 @@ class Test10X(unittest.TestCase):
             legend=True,
             c=np.random.choice(["red", "blue"], self.X_pca.shape[0], replace=True),
         )
-        assert_warns_message(
+        utils.assert_warns_message(
             UserWarning,
             "Cannot create a legend with constant `c=red`",
             scprep.plot.scatter2d,
@@ -1306,7 +1306,7 @@ class Test10X(unittest.TestCase):
             legend=True,
             c="red",
         )
-        assert_warns_message(
+        utils.assert_warns_message(
             UserWarning,
             "Cannot create a legend with constant `c=None`",
             scprep.plot.scatter2d,
@@ -1317,7 +1317,7 @@ class Test10X(unittest.TestCase):
 
     def test_scatter_invalid_axis(self):
         fig, ax = plt.subplots()
-        assert_raise_message(
+        utils.assert_raises_message(
             TypeError,
             "Expected ax with projection='3d'. " "Got 2D axis instead.",
             scprep.plot.scatter3d,
@@ -1337,7 +1337,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_scatter_colorbar_log_constant_c(self):
-        assert_warns_message(
+        utils.assert_warns_message(
             UserWarning,
             "Cannot use non-linear `cmap_scale` with constant `c=blue`",
             scprep.plot.scatter2d,
@@ -1348,7 +1348,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_scatter_colorbar_log_discrete(self):
-        assert_warns_message(
+        utils.assert_warns_message(
             UserWarning,
             "Cannot use non-linear `cmap_scale` with discrete data.",
             scprep.plot.scatter2d,
@@ -1359,7 +1359,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_scatter_colorbar_log_negative(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "`vmin` must be positive for `cmap_scale='log'`. "
             "Got {}".format(self.X_pca[:, 0].min()),
@@ -1381,7 +1381,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_scatter_colorbar_invalid(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected norm in ['linear', 'log', 'symlog',"
             "'sqrt'] or a matplotlib.colors.Normalize object."
@@ -1394,7 +1394,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_scatter_legend_and_colorbar(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Received conflicting values for synonyms "
             "`legend=True` and `colorbar=False`",
@@ -1409,7 +1409,7 @@ class Test10X(unittest.TestCase):
         scprep.plot.scatter2d(self.X_pca, c=self.X_pca[:, 0], vmin=1, vmax=2)
 
     def test_scatter_vmin_vmax_discrete(self):
-        assert_warns_message(
+        utils.assert_warns_message(
             UserWarning,
             "Cannot set `vmin` or `vmax` with discrete data. " "Setting to `None`.",
             scprep.plot.scatter3d,
@@ -1420,7 +1420,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_scatter_vmin_vmax_solid_color(self):
-        assert_warns_message(
+        utils.assert_warns_message(
             UserWarning,
             "Cannot set `vmin` or `vmax` with constant `c=red`. "
             "Setting `vmin = vmax = None`.",
@@ -1437,7 +1437,7 @@ class Test10X(unittest.TestCase):
 
     def test_generate_colorbar_vmin_vmax_none(self):
         cb = scprep.plot.tools.generate_colorbar("inferno")
-        assert_warns_message(
+        utils.assert_warns_message(
             UserWarning,
             "Cannot set `n_ticks` without setting `vmin` and `vmax`.",
             scprep.plot.tools.generate_colorbar,
@@ -1447,7 +1447,7 @@ class Test10X(unittest.TestCase):
     def test_generate_colorbar_mappable(self):
         im = plt.imshow([np.arange(10), np.arange(10)])
         scprep.plot.tools.generate_colorbar(mappable=im)
-        assert_warns_message(
+        utils.assert_warns_message(
             UserWarning,
             "Cannot set `vmin` or `vmax` when `mappable` is given.",
             scprep.plot.tools.generate_colorbar,
@@ -1455,14 +1455,14 @@ class Test10X(unittest.TestCase):
             vmin=10,
             vmax=20,
         )
-        assert_warns_message(
+        utils.assert_warns_message(
             UserWarning,
             "Cannot set `cmap` when `mappable` is given.",
             scprep.plot.tools.generate_colorbar,
             mappable=im,
             cmap="inferno",
         )
-        assert_warns_message(
+        utils.assert_warns_message(
             UserWarning,
             "Cannot set `scale` when `mappable` is given.",
             scprep.plot.tools.generate_colorbar,
@@ -1471,7 +1471,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_generate_colorbar_vmin_none_vmax_given(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Either both or neither of `vmax` and `vmin` should be set. "
             "Got `vmax=None, vmin=0`",
@@ -1525,7 +1525,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_marker_plot_bad_gene_names(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "All genes in `markers` must appear "
             "in gene_names. Did not find: {}".format("z"),
@@ -1550,7 +1550,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_marker_plot_no_gene_names(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Either `data` must be a pd.DataFrame, or gene_names must "
             "be provided. "

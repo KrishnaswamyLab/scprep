@@ -1,7 +1,6 @@
 from tools import data, matrix, utils
 import scprep
 from scipy import sparse
-from sklearn.utils.testing import assert_raise_message, assert_warns_message
 import numpy as np
 import pandas as pd
 from parameterized import parameterized
@@ -12,7 +11,7 @@ def test_with_pkg():
     def invalid():
         pass
 
-    assert_raise_message(
+    utils.assert_raises_message(
         ImportError,
         "invalid not found. Please install it with e.g. "
         "`pip install --user invalid`",
@@ -75,7 +74,7 @@ def test_with_pkg_version_fail_major():
     def test():
         return True
 
-    assert_raise_message(
+    utils.assert_raises_message(
         ImportError,
         "numpy>={0} is required (installed: {1}). "
         "Please upgrade it with e.g."
@@ -91,7 +90,7 @@ def test_with_pkg_version_fail_minor():
     def test():
         return True
 
-    assert_raise_message(
+    utils.assert_raises_message(
         ImportError,
         "numpy>={0}.{1} is required (installed: {2}). "
         "Please upgrade it with e.g."
@@ -214,7 +213,7 @@ def test_combine_batches_rangeindex():
 def test_combine_batches_uncommon_genes(sparse):
     X = data.load_10X(sparse=sparse)
     Y = X.iloc[:, : X.shape[1] // 2]
-    assert_warns_message(
+    utils.assert_warns_message(
         UserWarning,
         "Input data has inconsistent column names. "
         "Subsetting to {} common columns.".format(Y.shape[1]),
@@ -222,7 +221,7 @@ def test_combine_batches_uncommon_genes(sparse):
         [X, Y],
         ["x", "y"],
     )
-    assert_warns_message(
+    utils.assert_warns_message(
         UserWarning,
         "Input data has inconsistent column names. "
         "Padding with zeros to {} total columns.".format(X.shape[1]),
@@ -235,7 +234,7 @@ def test_combine_batches_uncommon_genes(sparse):
 
 def test_combine_batches_errors():
     X = data.load_10X()
-    assert_warns_message(
+    utils.assert_warns_message(
         UserWarning,
         "append_to_cell_names only valid for pd.DataFrame input. " "Got coo_matrix",
         scprep.utils.combine_batches,
@@ -243,14 +242,14 @@ def test_combine_batches_errors():
         batch_labels=[0, 1],
         append_to_cell_names=True,
     )
-    assert_raise_message(
+    utils.assert_raises_message(
         TypeError,
         "Expected data all of the same class. Got DataFrame, coo_matrix",
         scprep.utils.combine_batches,
         [X, X.iloc[: X.shape[0] // 2].sparse.to_coo()],
         batch_labels=[0, 1],
     )
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected data all with the same number of columns. "
         "Got {}, {}".format(X.shape[1], X.shape[1] // 2),
@@ -263,14 +262,14 @@ def test_combine_batches_errors():
         ],
         batch_labels=[0, 1],
     )
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected data (2) and batch_labels (1) to be the same length.",
         scprep.utils.combine_batches,
         [X, scprep.select.select_rows(X, idx=np.arange(X.shape[0] // 2))],
         batch_labels=[0],
     )
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected data to contain pandas DataFrames, "
         "scipy sparse matrices or numpy arrays. Got str",
@@ -307,7 +306,7 @@ def test_toarray():
 
 
 def test_toarray_string_error():
-    assert_raise_message(
+    utils.assert_raises_message(
         TypeError, "Expected array-like. Got ", scprep.utils.toarray, "hello"
     )
 
@@ -393,7 +392,7 @@ def test_matrix_sum():
         check=utils.assert_all_close,
     )
 
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected axis in [0, 1, None]. Got 5",
         scprep.utils.matrix_sum,
@@ -473,7 +472,7 @@ def test_matrix_std():
         assert np.all(x.index == X_df.index)
 
     matrix.test_pandas_matrix_types(X_df, test_fun)
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected axis in [0, 1, None]. Got 5",
         scprep.utils.matrix_std,
@@ -544,7 +543,7 @@ def test_matrix_elementwise_multiply_guess_col():
 
 def test_matrix_elementwise_multiply_square_guess():
     X = data.generate_positive_sparse_matrix(shape=(50, 50))
-    assert_raise_message(
+    utils.assert_raises_message(
         RuntimeError,
         "`data` is square, cannot guess axis from input. Please provide "
         "`axis=0` to multiply along rows or "
@@ -557,7 +556,7 @@ def test_matrix_elementwise_multiply_square_guess():
 
 def test_matrix_elementwise_multiply_row_wrong_size():
     X = data.generate_positive_sparse_matrix(shape=(50, 100))
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected `multiplier` to be a vector of length `data.shape[0]` (50)."
         " Got (100,)",
@@ -570,7 +569,7 @@ def test_matrix_elementwise_multiply_row_wrong_size():
 
 def test_matrix_elementwise_multiply_col_wrong_size():
     X = data.generate_positive_sparse_matrix(shape=(50, 100))
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected `multiplier` to be a vector of length `data.shape[1]` (100)."
         " Got (50,)",
@@ -583,7 +582,7 @@ def test_matrix_elementwise_multiply_col_wrong_size():
 
 def test_matrix_elementwise_multiply_guess_wrong_size():
     X = data.generate_positive_sparse_matrix(shape=(50, 100))
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected `multiplier` to be a vector of length `data.shape[0]` (50) "
         "or `data.shape[1]` (100). Got (10,)",
@@ -595,7 +594,7 @@ def test_matrix_elementwise_multiply_guess_wrong_size():
 
 def test_matrix_elementwise_multiply_invalid_axis():
     X = data.generate_positive_sparse_matrix(shape=(50, 100))
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected axis in [0, 1, None]. Got 5",
         scprep.utils.matrix_vector_elementwise_multiply,
@@ -607,7 +606,7 @@ def test_matrix_elementwise_multiply_invalid_axis():
 
 def test_deprecated():
     X = data.load_10X()
-    assert_raise_message(
+    utils.assert_raises_message(
         RuntimeError,
         "`scprep.utils.select_cols` is deprecated. Use "
         "`scprep.select.select_cols` instead.",
@@ -615,7 +614,7 @@ def test_deprecated():
         X,
         [1, 2, 3],
     )
-    assert_raise_message(
+    utils.assert_raises_message(
         RuntimeError,
         "`scprep.utils.select_rows` is deprecated. Use "
         "`scprep.select.select_rows` instead.",
@@ -623,7 +622,7 @@ def test_deprecated():
         X,
         [1, 2, 3],
     )
-    assert_raise_message(
+    utils.assert_raises_message(
         RuntimeError,
         "`scprep.utils.get_gene_set` is deprecated. Use "
         "`scprep.select.get_gene_set` instead.",
@@ -631,7 +630,7 @@ def test_deprecated():
         X,
         starts_with="D",
     )
-    assert_raise_message(
+    utils.assert_raises_message(
         RuntimeError,
         "`scprep.utils.get_cell_set` is deprecated. Use "
         "`scprep.select.get_cell_set` instead.",
@@ -639,7 +638,7 @@ def test_deprecated():
         X,
         starts_with="A",
     )
-    assert_raise_message(
+    utils.assert_raises_message(
         RuntimeError,
         "`scprep.utils.subsample` is deprecated. Use "
         "`scprep.select.subsample` instead.",
@@ -718,7 +717,7 @@ def test_sort_clusters_by_values_accurate():
 def test_sort_clusters_by_values_wrong_len():
     clusters = [0, 0, 1, 1, 2, 2]
     values = [5, 5, 1, 1, 2]
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected clusters ({}) and values ({}) to be the "
         "same length.".format(len(clusters), len(values)),

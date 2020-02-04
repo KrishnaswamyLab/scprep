@@ -4,7 +4,7 @@ from scipy import sparse
 import numpy as np
 import pandas as pd
 from sklearn import decomposition
-from sklearn.utils.testing import assert_raise_message, assert_warns_message
+
 from functools import partial
 import unittest
 
@@ -131,7 +131,7 @@ class TestPCA(unittest.TestCase):
         )
 
     def test_invalid_method(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected `method` in ['svd', 'orth_rproj', 'rproj']. " "Got 'invalid'",
             scprep.reduce.pca,
@@ -140,14 +140,14 @@ class TestPCA(unittest.TestCase):
         )
 
     def test_bad_n_components(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "n_components=0 must be between 0 and " "min(n_samples, n_features)=100",
             scprep.reduce.pca,
             self.X,
             n_components=0,
         )
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "n_components=101 must be between 0 and " "min(n_samples, n_features)=100",
             scprep.reduce.pca,
@@ -156,14 +156,14 @@ class TestPCA(unittest.TestCase):
         )
 
     def test_deprecated(self):
-        assert_warns_message(
+        utils.assert_warns_message(
             FutureWarning,
             "n_pca is deprecated. Setting n_components=2",
             scprep.reduce.pca,
             self.X,
             n_pca=2,
         )
-        assert_warns_message(
+        utils.assert_warns_message(
             FutureWarning,
             "svd_offset is deprecated. Please use `eps` instead.",
             scprep.reduce.pca,
@@ -171,7 +171,7 @@ class TestPCA(unittest.TestCase):
             n_components=2,
             svd_offset=100,
         )
-        assert_warns_message(
+        utils.assert_warns_message(
             FutureWarning,
             "svd_multiples is deprecated. Please use `eps` instead.",
             scprep.reduce.pca,

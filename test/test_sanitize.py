@@ -1,7 +1,6 @@
 from tools import utils, matrix, data
 import scprep
 import numpy as np
-from sklearn.utils.testing import assert_raise_message
 
 
 def test_check_numeric_copy():
@@ -27,7 +26,7 @@ def test_check_numeric_inplace():
         copy=False,
     )
     matrix._ignore_pandas_sparse_warning()
-    assert_raise_message(
+    utils.assert_raises_message(
         TypeError,
         "pd.SparseDataFrame does not support " "copy=False. Please use copy=True.",
         scprep.sanitize.check_numeric,
@@ -41,7 +40,7 @@ def test_check_numeric_inplace():
             return
 
     X = TypeErrorClass()
-    assert_raise_message(
+    utils.assert_raises_message(
         TypeError,
         "astype() got an unexpected keyword argument 'copy'",
         scprep.sanitize.check_numeric,
@@ -51,7 +50,7 @@ def test_check_numeric_inplace():
 
 
 def test_check_numeric_bad_dtype():
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "could not convert string to float: ",
         scprep.sanitize.check_numeric,
