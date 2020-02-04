@@ -690,7 +690,7 @@ def test_is_sparse_series():
     assert scprep.utils.is_sparse_series(X[X.columns[0]])
 
     def test_fun(X):
-        if isinstance(X, pd.SparseDataFrame):
+        if scprep.utils.is_SparseDataFrame(X):
             x = X[X.columns[0]]
         else:
             x = scprep.select.select_cols(X, idx=0)

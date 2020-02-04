@@ -383,7 +383,7 @@ def select_cols(
         _check_idx_1d(idx)
         idx = idx.flatten()
 
-    if isinstance(data, pd.SparseDataFrame):
+    if utils.is_SparseDataFrame(data):
         # evil deprecated dataframe; get rid of it
         data = utils.SparseDataFrame(data)
     if isinstance(data, pd.DataFrame):
@@ -531,7 +531,7 @@ def select_rows(
         _check_idx_1d(idx)
         idx = idx.flatten()
 
-    if isinstance(data, pd.SparseDataFrame):
+    if utils.is_SparseDataFrame(data):
         # evil deprecated dataframe; get rid of it
         data = utils.SparseDataFrame(data)
     if isinstance(data, (pd.DataFrame, pd.Series)):

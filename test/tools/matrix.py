@@ -3,6 +3,7 @@ import pandas as pd
 import warnings
 from scipy import sparse
 from functools import partial
+from scprep.utils import is_SparseDataFrame
 
 
 def _ignore_pandas_sparse_warning():
@@ -47,7 +48,7 @@ def SparseDataFrame(X, default_fill_value=0.0):
     if sparse.issparse(X):
         X = pd.DataFrame.sparse.from_spmatrix(X)
         X.sparse.fill_value = default_fill_value
-    elif isinstance(X, pd.SparseDataFrame) or not isinstance(X, pd.DataFrame):
+    elif is_SparseDataFrame(X) or not isinstance(X, pd.DataFrame):
         X = pd.DataFrame(X)
     return X.astype(pd.SparseDtype(float, fill_value=default_fill_value))
 
@@ -93,7 +94,7 @@ _indexable_matrix_types = (
 def _typename(X):
     if (
         isinstance(X, pd.DataFrame)
-        and not isinstance(X, pd.SparseDataFrame)
+        and not is_SparseDataFrame(X)
         and hasattr(X, "sparse")
     ):
         return "DataFrame[SparseArray]"

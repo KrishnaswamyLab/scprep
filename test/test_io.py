@@ -35,12 +35,12 @@ class TestMatrixToDataFrame(unittest.TestCase):
     def test_matrix_to_dataframe_no_names_dataframe_sparse(self):
         Y = scprep.io.utils._matrix_to_data_frame(self.X_dense, sparse=True)
         assert scprep.utils.is_sparse_dataframe(Y)
-        assert not isinstance(Y, pd.SparseDataFrame)
+        assert not scprep.utils.is_SparseDataFrame(Y)
         assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
         utils.assert_matrix_class_equivalent(Y, self.X_sparse)
         Y = scprep.io.utils._matrix_to_data_frame(self.X_sparse, sparse=True)
         assert scprep.utils.is_sparse_dataframe(Y)
-        assert not isinstance(Y, pd.SparseDataFrame)
+        assert not scprep.utils.is_SparseDataFrame(Y)
         assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
         utils.assert_matrix_class_equivalent(Y, self.X_sparse)
 
@@ -56,13 +56,13 @@ class TestMatrixToDataFrame(unittest.TestCase):
         Y = scprep.io.utils._matrix_to_data_frame(self.X_dense, sparse=False)
         assert isinstance(Y, pd.DataFrame)
         assert not scprep.utils.is_sparse_dataframe(Y)
-        assert not isinstance(Y, pd.SparseDataFrame)
+        assert not scprep.utils.is_SparseDataFrame(Y)
         assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
         utils.assert_matrix_class_equivalent(Y, self.X_dense)
         Y = scprep.io.utils._matrix_to_data_frame(self.X_sparse, sparse=False)
         assert isinstance(Y, pd.DataFrame)
         assert not scprep.utils.is_sparse_dataframe(Y)
-        assert not isinstance(Y, pd.SparseDataFrame)
+        assert not scprep.utils.is_SparseDataFrame(Y)
         assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
         utils.assert_matrix_class_equivalent(Y, self.X_dense)
 
@@ -74,7 +74,7 @@ class TestMatrixToDataFrame(unittest.TestCase):
             sparse=True,
         )
         assert scprep.utils.is_sparse_dataframe(Y)
-        assert not isinstance(Y, pd.SparseDataFrame)
+        assert not scprep.utils.is_SparseDataFrame(Y)
         assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
         utils.assert_matrix_class_equivalent(Y, self.X_sparse)
         Y = scprep.io.utils._matrix_to_data_frame(
@@ -84,7 +84,7 @@ class TestMatrixToDataFrame(unittest.TestCase):
             sparse=True,
         )
         assert scprep.utils.is_sparse_dataframe(Y)
-        assert not isinstance(Y, pd.SparseDataFrame)
+        assert not scprep.utils.is_SparseDataFrame(Y)
         assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
         utils.assert_matrix_class_equivalent(Y, self.X_sparse)
         Y = scprep.io.utils._matrix_to_data_frame(
@@ -94,7 +94,7 @@ class TestMatrixToDataFrame(unittest.TestCase):
             sparse=True,
         )
         assert scprep.utils.is_sparse_dataframe(Y)
-        assert not isinstance(Y, pd.SparseDataFrame)
+        assert not scprep.utils.is_SparseDataFrame(Y)
         assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
         utils.assert_matrix_class_equivalent(Y, self.X_sparse)
 
@@ -107,7 +107,7 @@ class TestMatrixToDataFrame(unittest.TestCase):
         )
         assert isinstance(Y, pd.DataFrame)
         assert not scprep.utils.is_sparse_dataframe(Y)
-        assert not isinstance(Y, pd.SparseDataFrame)
+        assert not scprep.utils.is_SparseDataFrame(Y)
         assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
         utils.assert_matrix_class_equivalent(Y, self.X_dense)
         Y = scprep.io.utils._matrix_to_data_frame(
@@ -118,7 +118,7 @@ class TestMatrixToDataFrame(unittest.TestCase):
         )
         assert isinstance(Y, pd.DataFrame)
         assert not scprep.utils.is_sparse_dataframe(Y)
-        assert not isinstance(Y, pd.SparseDataFrame)
+        assert not scprep.utils.is_SparseDataFrame(Y)
         assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
         utils.assert_matrix_class_equivalent(Y, self.X_dense)
         Y = scprep.io.utils._matrix_to_data_frame(
@@ -129,7 +129,7 @@ class TestMatrixToDataFrame(unittest.TestCase):
         )
         assert isinstance(Y, pd.DataFrame)
         assert not scprep.utils.is_sparse_dataframe(Y)
-        assert not isinstance(Y, pd.SparseDataFrame)
+        assert not scprep.utils.is_SparseDataFrame(Y)
         assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
         utils.assert_matrix_class_equivalent(Y, self.X_dense)
 

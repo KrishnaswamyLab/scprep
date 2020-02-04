@@ -196,7 +196,7 @@ def toarray(x):
     -------
     x : np.ndarray
     """
-    if isinstance(x, pd.SparseDataFrame):
+    if is_SparseDataFrame(x):
         x = x.to_coo().toarray()
     elif isinstance(x, pd.SparseSeries):
         x = x.to_dense().to_numpy()
@@ -241,7 +241,7 @@ def to_array_or_spmatrix(x):
     -------
     x : np.ndarray or scipy.sparse.spmatrix
     """
-    if isinstance(x, pd.SparseDataFrame):
+    if is_SparseDataFrame(x):
         x = x.to_coo()
     elif is_sparse_dataframe(x) or is_sparse_series(x):
         x = x.sparse.to_coo()
@@ -264,8 +264,21 @@ def to_array_or_spmatrix(x):
     return x
 
 
+def is_SparseDataFrame(X):
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            "The SparseDataFrame class is removed from pandas. Accessing it from the top-level namespace will also be removed in the next version",
+            FutureWarning,
+        )
+        try:
+            return isinstance(X, pd.core.sparse.frame.SparseDataFrame)
+        except AttributeError:
+            return False
+
+
 def is_sparse_dataframe(x):
-    if isinstance(x, pd.DataFrame) and not isinstance(x, pd.SparseDataFrame):
+    if isinstance(x, pd.DataFrame) and not is_SparseDataFrame(x):
         try:
             x.sparse
             return True
@@ -293,7 +306,7 @@ def SparseDataFrame(X, columns=None, index=None, default_fill_value=0.0):
         X = pd.DataFrame.sparse.from_spmatrix(X)
         X.sparse.fill_value = default_fill_value
     else:
-        if isinstance(X, pd.SparseDataFrame) or not isinstance(X, pd.DataFrame):
+        if is_SparseDataFrame(X) or not isinstance(X, pd.DataFrame):
             X = pd.DataFrame(X)
         X = dataframe_to_sparse(X, fill_value=default_fill_value)
     if columns is not None:
@@ -320,7 +333,7 @@ def matrix_transform(data, fun, *args, **kwargs):
     data : array-like, shape=[n_samples, n_features]
         Transformed output data
     """
-    if is_sparse_dataframe(data) or isinstance(data, pd.SparseDataFrame):
+    if is_sparse_dataframe(data) or is_SparseDataFrame(data):
         data = data.copy()
         for col in data.columns:
             data[col] = fun(data[col], *args, **kwargs)
@@ -355,7 +368,7 @@ def matrix_sum(data, axis=None):
     if axis not in [0, 1, None]:
         raise ValueError("Expected axis in [0, 1, None]. Got {}".format(axis))
     if isinstance(data, pd.DataFrame):
-        if isinstance(data, pd.SparseDataFrame):
+        if is_SparseDataFrame(data):
             if axis is None:
                 sums = data.to_coo().sum()
             else:
@@ -496,7 +509,7 @@ def matrix_vector_elementwise_multiply(data, multiplier, axis=None):
             )
         multiplier = multiplier.reshape(1, -1)
 
-    if isinstance(data, pd.SparseDataFrame) or is_sparse_dataframe(data):
+    if is_SparseDataFrame(data) or is_sparse_dataframe(data):
         data = data.copy()
         multiplier = multiplier.flatten()
         if axis == 0:
@@ -548,7 +561,7 @@ def matrix_min(data):
     minimum : float
         Minimum entry in `data`.
     """
-    if isinstance(data, pd.SparseDataFrame):
+    if is_SparseDataFrame(data):
         data = [np.min(data[col]) for col in data.columns]
     elif isinstance(data, pd.DataFrame):
         data = np.min(data)
@@ -709,7 +722,7 @@ def combine_batches(
 
     # check consistent type
     matrix_type = type(data[0])
-    if matrix_type is pd.SparseDataFrame:
+    if is_SparseDataFrame(data[0]):
         matrix_type = pd.DataFrame
     if not issubclass(matrix_type, (np.ndarray, pd.DataFrame, sparse.spmatrix)):
         raise ValueError(

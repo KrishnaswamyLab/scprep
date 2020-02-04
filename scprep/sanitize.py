@@ -2,6 +2,7 @@
 # (C) 2018 Krishnaswamy Lab GPLv2
 
 import pandas as pd
+from . import utils
 
 
 def check_numeric(data, dtype="float", copy=None):
@@ -27,11 +28,11 @@ def check_numeric(data, dtype="float", copy=None):
     TypeError : if `data` cannot be coerced to `dtype`
     """
     if copy is None:
-        copy = isinstance(data, pd.SparseDataFrame)
+        copy = utils.is_SparseDataFrame(data)
     try:
         return data.astype(dtype, copy=copy)
     except TypeError as e:
-        if isinstance(data, pd.SparseDataFrame):
+        if utils.is_SparseDataFrame(data):
             if not copy:
                 raise TypeError(
                     "pd.SparseDataFrame does not support "

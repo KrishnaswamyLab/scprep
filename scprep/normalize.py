@@ -70,7 +70,7 @@ def library_size_normalize(data, rescale=10000, return_library_size=False):
         columns, index = data.columns, data.index
         if utils.is_sparse_dataframe(data):
             data = data.sparse.to_coo()
-        elif isinstance(data, pd.SparseDataFrame):
+        elif utils.is_SparseDataFrame(data):
             data = data.to_coo()
         else:
             # dense data
@@ -126,7 +126,7 @@ def batch_mean_center(data, sample_idx=None):
     """
     if (
         sparse.issparse(data)
-        or isinstance(data, pd.SparseDataFrame)
+        or utils.is_SparseDataFrame(data)
         or utils.is_sparse_dataframe(data)
     ):
         raise ValueError(
