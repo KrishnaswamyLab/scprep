@@ -4,6 +4,7 @@ import warnings
 from scipy import sparse
 from functools import partial
 from scprep.utils import is_SparseDataFrame
+from packaging import version
 
 
 def _ignore_pandas_sparse_warning():
@@ -72,10 +73,13 @@ _pandas_dense_matrix_types = [
 
 _pandas_sparse_matrix_types = [
     SparseDataFrame,
-    SparseDataFrame_deprecated,
 ]
 
-_pandas_vector_types = [pd.Series, SparseSeries, SparseSeries_deprecated]
+_pandas_vector_types = [pd.Series, SparseSeries]
+
+if version.parse(pd.__version__) < version.parse("1.0.0"):
+    _pandas_sparse_matrix_types.append(SparseDataFrame_deprecated)
+    _pandas_vector_types.append(SparseSeries_deprecated)
 
 _pandas_matrix_types = _pandas_dense_matrix_types + _pandas_sparse_matrix_types
 
