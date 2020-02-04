@@ -20,6 +20,7 @@ test_requires = [
     "coveralls",
     "parameterized",
     "requests",
+    "packaging",
 ]
 
 doc_requires = [
