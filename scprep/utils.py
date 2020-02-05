@@ -198,7 +198,7 @@ def toarray(x):
     """
     if is_SparseDataFrame(x):
         x = x.to_coo().toarray()
-    elif isinstance(x, pd.SparseSeries):
+    elif is_SparseSeries(x):
         x = x.to_dense().to_numpy()
     elif isinstance(x, (pd.DataFrame, pd.Series, pd.Index)):
         x = x.to_numpy()
@@ -264,6 +264,19 @@ def to_array_or_spmatrix(x):
     return x
 
 
+def is_SparseSeries(X):
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            "The SparseSeries class is removed from pandas. Accessing it from the top-level namespace will also be removed in the next version",
+            FutureWarning,
+        )
+        try:
+            return isinstance(X, pd.SparseSeries)
+        except AttributeError:
+            return False
+
+
 def is_SparseDataFrame(X):
     with warnings.catch_warnings():
         warnings.filterwarnings(
@@ -272,7 +285,7 @@ def is_SparseDataFrame(X):
             FutureWarning,
         )
         try:
-            return isinstance(X, pd.core.sparse.frame.SparseDataFrame)
+            return isinstance(X, pd.SparseDataFrame)
         except AttributeError:
             return False
 
@@ -288,7 +301,7 @@ def is_sparse_dataframe(x):
 
 
 def is_sparse_series(x):
-    if isinstance(x, pd.Series) and not isinstance(x, pd.SparseSeries):
+    if isinstance(x, pd.Series) and not is_SparseSeries(x):
         try:
             x.sparse
             return True
