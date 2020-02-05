@@ -196,9 +196,9 @@ def toarray(x):
     -------
     x : np.ndarray
     """
-    if isinstance(x, pd.SparseDataFrame):
+    if is_SparseDataFrame(x):
         x = x.to_coo().toarray()
-    elif isinstance(x, pd.SparseSeries):
+    elif is_SparseSeries(x):
         x = x.to_dense().to_numpy()
     elif isinstance(x, (pd.DataFrame, pd.Series, pd.Index)):
         x = x.to_numpy()
@@ -241,7 +241,7 @@ def to_array_or_spmatrix(x):
     -------
     x : np.ndarray or scipy.sparse.spmatrix
     """
-    if isinstance(x, pd.SparseDataFrame):
+    if is_SparseDataFrame(x):
         x = x.to_coo()
     elif is_sparse_dataframe(x) or is_sparse_series(x):
         x = x.sparse.to_coo()
@@ -264,8 +264,34 @@ def to_array_or_spmatrix(x):
     return x
 
 
+def is_SparseSeries(X):
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            "The SparseSeries class is removed from pandas. Accessing it from the top-level namespace will also be removed in the next version",
+            FutureWarning,
+        )
+        try:
+            return isinstance(X, pd.SparseSeries)
+        except AttributeError:
+            return False
+
+
+def is_SparseDataFrame(X):
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            "The SparseDataFrame class is removed from pandas. Accessing it from the top-level namespace will also be removed in the next version",
+            FutureWarning,
+        )
+        try:
+            return isinstance(X, pd.SparseDataFrame)
+        except AttributeError:
+            return False
+
+
 def is_sparse_dataframe(x):
-    if isinstance(x, pd.DataFrame) and not isinstance(x, pd.SparseDataFrame):
+    if isinstance(x, pd.DataFrame) and not is_SparseDataFrame(x):
         try:
             x.sparse
             return True
@@ -275,7 +301,7 @@ def is_sparse_dataframe(x):
 
 
 def is_sparse_series(x):
-    if isinstance(x, pd.Series) and not isinstance(x, pd.SparseSeries):
+    if isinstance(x, pd.Series) and not is_SparseSeries(x):
         try:
             x.sparse
             return True
@@ -292,9 +318,10 @@ def SparseDataFrame(X, columns=None, index=None, default_fill_value=0.0):
     if sparse.issparse(X):
         X = pd.DataFrame.sparse.from_spmatrix(X)
         X.sparse.fill_value = default_fill_value
-    elif isinstance(X, pd.SparseDataFrame) or not isinstance(X, pd.DataFrame):
-        X = pd.DataFrame(X)
-    X = dataframe_to_sparse(X, fill_value=default_fill_value)
+    else:
+        if is_SparseDataFrame(X) or not isinstance(X, pd.DataFrame):
+            X = pd.DataFrame(X)
+        X = dataframe_to_sparse(X, fill_value=default_fill_value)
     if columns is not None:
         X.columns = columns
     if index is not None:
@@ -319,7 +346,7 @@ def matrix_transform(data, fun, *args, **kwargs):
     data : array-like, shape=[n_samples, n_features]
         Transformed output data
     """
-    if is_sparse_dataframe(data) or isinstance(data, pd.SparseDataFrame):
+    if is_sparse_dataframe(data) or is_SparseDataFrame(data):
         data = data.copy()
         for col in data.columns:
             data[col] = fun(data[col], *args, **kwargs)
@@ -354,7 +381,7 @@ def matrix_sum(data, axis=None):
     if axis not in [0, 1, None]:
         raise ValueError("Expected axis in [0, 1, None]. Got {}".format(axis))
     if isinstance(data, pd.DataFrame):
-        if isinstance(data, pd.SparseDataFrame):
+        if is_SparseDataFrame(data):
             if axis is None:
                 sums = data.to_coo().sum()
             else:
@@ -495,7 +522,7 @@ def matrix_vector_elementwise_multiply(data, multiplier, axis=None):
             )
         multiplier = multiplier.reshape(1, -1)
 
-    if isinstance(data, pd.SparseDataFrame) or is_sparse_dataframe(data):
+    if is_SparseDataFrame(data) or is_sparse_dataframe(data):
         data = data.copy()
         multiplier = multiplier.flatten()
         if axis == 0:
@@ -547,7 +574,7 @@ def matrix_min(data):
     minimum : float
         Minimum entry in `data`.
     """
-    if isinstance(data, pd.SparseDataFrame):
+    if is_SparseDataFrame(data):
         data = [np.min(data[col]) for col in data.columns]
     elif isinstance(data, pd.DataFrame):
         data = np.min(data)
@@ -595,13 +622,16 @@ def matrix_any(condition):
     return np.sum(np.sum(condition)) > 0
 
 
-def check_consistent_columns(data):
+def check_consistent_columns(data, common_columns_only=True):
     """Ensure that a set of data matrices have consistent columns
 
     Parameters
     ----------
     data : list of array-likes
         List of matrices to be checked
+    common_columns_only : bool, optional (default: True)
+        With pandas inputs, drop any columns that are not common to
+        all matrices
 
     Returns
     -------
@@ -621,16 +651,43 @@ def check_consistent_columns(data):
             np.all([d.shape[1] == matrix_shape for d in data[1:]])
             and np.all([data[0].columns == d.columns for d in data])
         ):
-            common_genes = data[0].columns.values
-            for d in data[1:]:
-                common_genes = common_genes[np.isin(common_genes, d.columns.values)]
-            for i in range(len(data)):
-                data[i] = data[i][common_genes]
-            warnings.warn(
-                "Input data has inconsistent column names. "
-                "Subsetting to {} common columns.".format(len(common_genes)),
-                UserWarning,
-            )
+            if common_columns_only:
+                common_genes = data[0].columns.values
+                for d in data[1:]:
+                    common_genes = common_genes[np.isin(common_genes, d.columns.values)]
+                warnings.warn(
+                    "Input data has inconsistent column names. "
+                    "Subsetting to {} common columns. "
+                    "To retain all columns, use "
+                    "`common_columns_only=False`.".format(len(common_genes)),
+                    UserWarning,
+                )
+                for i in range(len(data)):
+                    data[i] = data[i][common_genes]
+            else:
+                columns = [d.columns.values for d in data]
+                all_columns = np.unique(np.concatenate(columns))
+                warnings.warn(
+                    "Input data has inconsistent column names. "
+                    "Padding with zeros to {} total columns.".format(len(all_columns)),
+                    UserWarning,
+                )
+                for i in range(len(data)):
+                    uncommon_genes = np.setdiff1d(all_columns, columns[i])
+                    new_data = sparse.coo_matrix(
+                        (data[i].shape[0], len(uncommon_genes))
+                    )
+                    if is_sparse_dataframe(data[i]):
+                        new_data = SparseDataFrame(
+                            new_data, index=data[i].index, columns=uncommon_genes
+                        )
+                    else:
+                        new_data = pd.DataFrame(
+                            toarray(new_data),
+                            index=data[i].index,
+                            columns=uncommon_genes,
+                        )
+                    data[i] = pd.concat((data[i], new_data), axis=1)
     else:
         for d in data[1:]:
             if not d.shape[1] == matrix_shape:
@@ -642,7 +699,9 @@ def check_consistent_columns(data):
     return data
 
 
-def combine_batches(data, batch_labels, append_to_cell_names=None):
+def combine_batches(
+    data, batch_labels, append_to_cell_names=None, common_columns_only=True
+):
     """Combine data matrices from multiple batches and store a batch label
 
     Parameters
@@ -656,6 +715,9 @@ def combine_batches(data, batch_labels, append_to_cell_names=None):
         If input is a pandas dataframe, add the batch label corresponding to
         each cell to its existing index (or cell name / barcode.)
         Default behavior is `True` for dataframes and `False` otherwise.
+    common_columns_only : bool, optional (default: True)
+        With pandas inputs, drop any columns that are not common to
+        all data matrices
 
     Returns
     -------
@@ -673,7 +735,7 @@ def combine_batches(data, batch_labels, append_to_cell_names=None):
 
     # check consistent type
     matrix_type = type(data[0])
-    if matrix_type is pd.SparseDataFrame:
+    if is_SparseDataFrame(data[0]):
         matrix_type = pd.DataFrame
     if not issubclass(matrix_type, (np.ndarray, pd.DataFrame, sparse.spmatrix)):
         raise ValueError(
@@ -688,7 +750,7 @@ def combine_batches(data, batch_labels, append_to_cell_names=None):
                 "Expected data all of the same class. " "Got {}".format(types)
             )
 
-    data = check_consistent_columns(data)
+    data = check_consistent_columns(data, common_columns_only=common_columns_only)
 
     # check append_to_cell_names
     if append_to_cell_names and not issubclass(matrix_type, pd.DataFrame):
@@ -714,7 +776,7 @@ def combine_batches(data, batch_labels, append_to_cell_names=None):
 
     # conatenate data
     if issubclass(matrix_type, pd.DataFrame):
-        data_combined = pd.concat(data)
+        data_combined = pd.concat(data, axis=0, sort=True)
         if append_to_cell_names:
             index = np.concatenate(
                 [

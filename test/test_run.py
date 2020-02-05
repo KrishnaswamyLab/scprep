@@ -13,7 +13,6 @@ else:
     import sklearn.cluster
     import rpy2.rinterface_lib.callbacks
     import rpy2.rinterface_lib.embedded
-    from sklearn.utils.testing import assert_raise_message, assert_warns_message
 
     builtin_warning = rpy2.rinterface_lib.callbacks.consolewrite_warnerror
 
@@ -26,7 +25,7 @@ else:
         assert np.all(fun() == np.array([[1], [2], [3]]))
 
     def test_install_bioc():
-        assert_raise_message(
+        utils.assert_raises_message(
             rpy2.rinterface_lib.embedded.RRuntimeError,
             "Error: Bioconductor version '3.1' requires R version '3.2'; see",
             scprep.run.install_bioconductor,
@@ -281,7 +280,7 @@ else:
             assert np.all(np.any(~np.isnan(pseudotime), axis=1))
 
         def test_slingshot_distance(self):
-            assert_raise_message(
+            utils.assert_raises_message(
                 NotImplementedError,
                 "distance argument not currently implemented",
                 scprep.run.Slingshot,
@@ -341,7 +340,7 @@ else:
             assert np.all(np.any(~np.isnan(pseudotime), axis=1))
 
         def test_slingshot_errors(self):
-            assert_warns_message(
+            utils.assert_warns_message(
                 UserWarning,
                 "Expected data to be low-dimensional. " "Got data.shape[1] = 4",
                 scprep.run.Slingshot,
@@ -349,7 +348,7 @@ else:
                 self.clusters,
                 verbose=False,
             )
-            assert_raise_message(
+            utils.assert_raises_message(
                 ValueError,
                 "Expected len(cluster_labels) ({}) to equal "
                 "data.shape[0] ({})".format(self.X.shape[0] // 2, self.X.shape[0]),

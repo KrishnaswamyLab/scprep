@@ -2,7 +2,7 @@ from tools import utils, matrix, data
 import scprep
 import pandas as pd
 import numpy as np
-from sklearn.utils.testing import assert_warns_message, assert_raise_message
+
 from scipy import sparse
 from functools import partial
 import unittest
@@ -145,7 +145,7 @@ class Test10X(unittest.TestCase):
         assert not np.any(X_filtered.sum(1) <= np.percentile(self.libsize, 20))
 
     def test_library_size_filter_error(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected `keep_cells` in ['above', 'below', 'between']. Got invalid",
             scprep.filter.filter_library_size,
@@ -153,7 +153,7 @@ class Test10X(unittest.TestCase):
             cutoff=100,
             keep_cells="invalid",
         )
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected cutoff of length 2 with keep_cells='between'. Got 100",
             scprep.filter.filter_library_size,
@@ -161,7 +161,7 @@ class Test10X(unittest.TestCase):
             cutoff=100,
             keep_cells="between",
         )
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected a single cutoff with keep_cells='above'. Got (50, 100)",
             scprep.filter.filter_library_size,
@@ -169,7 +169,7 @@ class Test10X(unittest.TestCase):
             cutoff=(50, 100),
             keep_cells="above",
         )
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected a single cutoff with keep_cells='below'. Got (50, 100)",
             scprep.filter.filter_library_size,
@@ -179,7 +179,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_library_size_filter_sample_label(self):
-        sample_labels = pd.DataFrame(
+        sample_labels = pd.Series(
             np.random.choice([0, 1], self.X_dense.shape[0]), index=self.X_dense.index
         )
         sample_labels_filt = sample_labels.loc[self.X_dense.sum(1) > 100]
@@ -272,7 +272,7 @@ class Test10X(unittest.TestCase):
     def test_gene_expression_filter_warning(self):
         genes = np.arange(10)
         no_genes = "not_a_gene"
-        assert_warns_message(
+        utils.assert_warns_message(
             UserWarning,
             "`percentile` expects values between 0 and 100."
             "Got 0.9. Did you mean 90.0?",
@@ -282,7 +282,7 @@ class Test10X(unittest.TestCase):
             percentile=0.90,
             keep_cells="below",
         )
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Only one of `cutoff` and `percentile` should be given.",
             scprep.filter.filter_gene_set_expression,
@@ -291,7 +291,7 @@ class Test10X(unittest.TestCase):
             percentile=0.90,
             cutoff=50,
         )
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected `keep_cells` in ['above', 'below', 'between']. " "Got neither",
             scprep.filter.filter_gene_set_expression,
@@ -300,7 +300,7 @@ class Test10X(unittest.TestCase):
             percentile=90.0,
             keep_cells="neither",
         )
-        assert_warns_message(
+        utils.assert_warns_message(
             UserWarning,
             "`percentile` expects values between 0 and 100."
             "Got 0.9. Did you mean 90.0?",
@@ -310,7 +310,7 @@ class Test10X(unittest.TestCase):
             percentile=0.90,
             keep_cells="below",
         )
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "One of either `cutoff` or `percentile` must be given.",
             scprep.filter.filter_gene_set_expression,
@@ -319,7 +319,7 @@ class Test10X(unittest.TestCase):
             cutoff=None,
             percentile=None,
         )
-        assert_raise_message(
+        utils.assert_raises_message(
             KeyError,
             "not_a_gene",
             scprep.filter.filter_gene_set_expression,
@@ -335,28 +335,28 @@ class Test10X(unittest.TestCase):
         assert np.all(libsize_filt > 100)
 
     def test_deprecated_remove(self):
-        assert_warns_message(
+        utils.assert_warns_message(
             DeprecationWarning,
             "`scprep.filter.remove_empty_genes` is deprecated. Use "
             "`scprep.filter.filter_empty_genes` instead.",
             scprep.filter.remove_empty_genes,
             self.X_dense,
         )
-        assert_warns_message(
+        utils.assert_warns_message(
             DeprecationWarning,
             "`scprep.filter.remove_rare_genes` is deprecated. Use "
             "`scprep.filter.filter_rare_genes` instead.",
             scprep.filter.remove_rare_genes,
             self.X_dense,
         )
-        assert_warns_message(
+        utils.assert_warns_message(
             DeprecationWarning,
             "`scprep.filter.remove_empty_cells` is deprecated. Use "
             "`scprep.filter.filter_empty_cells` instead.",
             scprep.filter.remove_empty_cells,
             self.X_dense,
         )
-        assert_warns_message(
+        utils.assert_warns_message(
             DeprecationWarning,
             "`scprep.filter.remove_duplicates` is deprecated. Use "
             "`scprep.filter.filter_duplicates` instead.",
@@ -366,7 +366,7 @@ class Test10X(unittest.TestCase):
 
     def test_deprecated_sample_labels(self):
         sample_labels = np.arange(self.X_dense.shape[0])
-        assert_warns_message(
+        utils.assert_warns_message(
             DeprecationWarning,
             "`sample_labels` is deprecated. "
             "Passing `sample_labels` as `extra_data`.",
@@ -374,7 +374,7 @@ class Test10X(unittest.TestCase):
             self.X_dense,
             sample_labels=sample_labels,
         )
-        assert_warns_message(
+        utils.assert_warns_message(
             DeprecationWarning,
             "`sample_labels` is deprecated. "
             "Passing `sample_labels` as `extra_data`.",
@@ -382,7 +382,7 @@ class Test10X(unittest.TestCase):
             self.X_dense,
             sample_labels=sample_labels,
         )
-        assert_warns_message(
+        utils.assert_warns_message(
             DeprecationWarning,
             "`sample_labels` is deprecated. "
             "Passing `sample_labels` as `extra_data`.",
@@ -391,7 +391,7 @@ class Test10X(unittest.TestCase):
             cutoff=10,
             sample_labels=sample_labels,
         )
-        assert_warns_message(
+        utils.assert_warns_message(
             DeprecationWarning,
             "`filter_per_sample` is deprecated. " "Filtering as a single sample.",
             scprep.filter.filter_library_size,
@@ -402,13 +402,14 @@ class Test10X(unittest.TestCase):
 
 
 def test_large_sparse_dataframe_library_size():
-    matrix._ignore_pandas_sparse_warning()
-    X = pd.SparseDataFrame(
-        sparse.coo_matrix((10 ** 7, 2 * 10 ** 4)), default_fill_value=0.0
-    )
-    cell_sums = scprep.measure.library_size(X)
-    assert cell_sums.shape[0] == X.shape[0]
-    matrix._reset_warnings()
+    if matrix._pandas_0:
+        matrix._ignore_pandas_sparse_warning()
+        X = pd.SparseDataFrame(
+            sparse.coo_matrix((10 ** 7, 2 * 10 ** 4)), default_fill_value=0.0
+        )
+        cell_sums = scprep.measure.library_size(X)
+        assert cell_sums.shape[0] == X.shape[0]
+        matrix._reset_warnings()
     X = matrix.SparseDataFrame(
         sparse.coo_matrix((10 ** 7, 2 * 10 ** 4)), default_fill_value=0.0
     )

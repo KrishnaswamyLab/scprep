@@ -2,7 +2,7 @@ from tools import utils, matrix, data
 import scprep
 import pandas as pd
 import numpy as np
-from sklearn.utils.testing import assert_warns_message, assert_raise_message
+
 from scipy import sparse
 from functools import partial
 import unittest

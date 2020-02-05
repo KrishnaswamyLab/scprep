@@ -3,7 +3,6 @@ import numpy as np
 import scprep
 from scipy import sparse
 import pandas as pd
-from sklearn.utils.testing import assert_warns_message, assert_raise_message
 import warnings
 
 
@@ -44,7 +43,7 @@ def test_log_transform():
     Y = np.log2(X + 5)
 
     def test_fun(X):
-        assert_warns_message(
+        utils.assert_warns_message(
             RuntimeWarning,
             "log transform on sparse data requires pseudocount = 1",
             scprep.transform.log,
@@ -74,7 +73,7 @@ def test_arcsinh_transform():
         transform=scprep.transform.arcsinh,
         check=utils.assert_all_close,
     )
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected cofactor > 0 or None. " "Got 0",
         scprep.transform.arcsinh,
@@ -91,7 +90,7 @@ def test_deprecated():
         utils.assert_transform_equivalent(
             X, Y=Y, transform=scprep.transform.sqrt_transform
         )
-    assert_warns_message(
+    utils.assert_warns_message(
         FutureWarning,
         "scprep.transform.sqrt_transform is deprecated. Please use "
         "scprep.transform.sqrt in future.",
@@ -104,7 +103,7 @@ def test_deprecated():
         utils.assert_transform_equivalent(
             X, Y=Y, transform=scprep.transform.log_transform
         )
-    assert_warns_message(
+    utils.assert_warns_message(
         FutureWarning,
         "scprep.transform.log_transform is deprecated. Please use "
         "scprep.transform.log in future.",
@@ -117,7 +116,7 @@ def test_deprecated():
         utils.assert_transform_equivalent(
             X, Y=Y, transform=scprep.transform.arcsinh_transform
         )
-    assert_warns_message(
+    utils.assert_warns_message(
         FutureWarning,
         "scprep.transform.arcsinh_transform is deprecated. Please use "
         "scprep.transform.arcsinh in future.",
@@ -128,7 +127,7 @@ def test_deprecated():
 
 def test_sqrt_negative_value():
     X = np.arange(10) * -1
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Cannot square root transform negative values",
         scprep.transform.sqrt,
@@ -138,20 +137,20 @@ def test_sqrt_negative_value():
 
 def test_log_error():
     X = np.arange(10)
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Required pseudocount + min(data) (-9) > 0. Got pseudocount = 1",
         scprep.transform.log,
         data=X * -1,
     )
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected base in [2, 'e', 10]. Got 0",
         scprep.transform.log,
         data=X,
         base=0,
     )
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected base in [2, 'e', 10]. Got none",
         scprep.transform.log,

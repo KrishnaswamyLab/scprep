@@ -160,7 +160,14 @@ class _ScatterParams(object):
         """Is c constant?
 
         Either None or a single matplotlib color"""
-        return self._c is None or mpl.colors.is_color_like(self._c)
+        if self._c is None or isinstance(self._c, str):
+            return True
+        elif hasattr(self._c, "__len__") and len(self._c) == self.size:
+            # technically if self.size == 3 or 4 then this could be
+            # interpreted as a single color-like
+            return False
+        else:
+            return mpl.colors.is_color_like(self._c)
 
     def array_c(self):
         """Is c an array of matplotkib colors?"""
@@ -507,40 +514,32 @@ class _ScatterParams(object):
                 )
                 self._cmap_scale = "linear"
 
-    @property
-    def xlabel(self):
-        if self._xlabel is not None:
-            return self._xlabel
+    def _label(self, label, values, idx):
+        if label is False:
+            return None
+        elif label is not None:
+            return label
         elif self._label_prefix is not None:
-            return self._label_prefix + "1"
-        elif isinstance(self._x, pd.Series):
-            return self._x.name
+            return self._label_prefix + str(idx)
+        elif label is not False and isinstance(values, pd.Series):
+            return values.name
         else:
             return None
 
     @property
+    def xlabel(self):
+        return self._label(self._xlabel, self._x, "1")
+
+    @property
     def ylabel(self):
-        if self._ylabel is not None:
-            return self._ylabel
-        elif self._label_prefix is not None:
-            return self._label_prefix + "2"
-        elif isinstance(self._y, pd.Series):
-            return self._y.name
-        else:
-            return None
+        return self._label(self._ylabel, self._y, "2")
 
     @property
     def zlabel(self):
         if self._z is None:
             return None
-        elif self._zlabel is not None:
-            return self._zlabel
-        elif self._label_prefix is not None:
-            return self._label_prefix + "3"
-        elif isinstance(self._z, pd.Series):
-            return self._z.name
         else:
-            return None
+            return self._label(self._zlabel, self._z, "3")
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
@@ -647,9 +646,11 @@ def scatter(
         Prefix for all axis labels. Axes will be labelled `label_prefix`1,
         `label_prefix`2, etc. Can be overriden by setting `xlabel`,
         `ylabel`, and `zlabel`.
-    {x,y,z}label : str or None (default : None)
+    {x,y,z}label : str, None or False (default : None)
         Axis labels. Overrides the automatic label given by
-        label_prefix. If None and label_prefix is None, no label is set.
+        label_prefix. If None and label_prefix is None, no label is set
+        unless the data is a pandas Series, in which case the series name is used.
+        Override this behavior with `{x,y,z}label=False`
     title : str or None (default: None)
         axis title. If None, no title is set.
     fontsize : float or None (default: None)
@@ -890,7 +891,9 @@ def scatter2d(
         `ylabel`, and `zlabel`.
     {x,y}label : str or None (default : None)
         Axis labels. Overrides the automatic label given by
-        label_prefix. If None and label_prefix is None, no label is set.
+        label_prefix. If None and label_prefix is None, no label is set
+        unless the data is a pandas Series, in which case the series name is used.
+        Override this behavior with `{x,y,z}label=False`
     title : str or None (default: None)
         axis title. If None, no title is set.
     fontsize : float or None (default: None)
@@ -1071,7 +1074,9 @@ def scatter3d(
         `ylabel`, and `zlabel`.
     {x,y,z}label : str or None (default : None)
         Axis labels. Overrides the automatic label given by
-        label_prefix. If None and label_prefix is None, no label is set.
+        label_prefix. If None and label_prefix is None, no label is set
+        unless the data is a pandas Series, in which case the series name is used.
+        Override this behavior with `{x,y,z}label=False`
     title : str or None (default: None)
         axis title. If None, no title is set.
     fontsize : float or None (default: None)
@@ -1177,6 +1182,7 @@ def rotate_scatter3d(
     fps=10,
     ax=None,
     figsize=None,
+    elev=None,
     ipython_html="jshtml",
     dpi=None,
     **kwargs
@@ -1201,6 +1207,8 @@ def rotate_scatter3d(
     figsize : tuple, optional (default: None)
         Tuple of floats for creation of new `matplotlib` figure. Only used if
         `ax` is None.
+    elev : int, optional (default: None)
+        Elevation angle of viewpoint from horizontal, in degrees
     ipython_html : {'html5', 'jshtml'}
         which html writer to use if using a Jupyter Notebook
     dpi : int or None, optional (default: None)
@@ -1252,7 +1260,7 @@ def rotate_scatter3d(
     degrees_per_frame = 360 / frames
     interval = 1000 * degrees_per_frame / rotation_speed
 
-    scatter3d(data, ax=ax, **kwargs)
+    scatter3d(data, ax=ax, elev=elev, **kwargs)
 
     azim = ax.azim
 
@@ -1260,7 +1268,7 @@ def rotate_scatter3d(
         return ax
 
     def animate(i):
-        ax.view_init(azim=azim + i * degrees_per_frame)
+        ax.view_init(azim=azim + i * degrees_per_frame, elev=elev)
         return ax
 
     ani = mpl.animation.FuncAnimation(

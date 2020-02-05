@@ -1,11 +1,7 @@
 from tools import data, utils
 import scprep
 import scprep.io.utils
-from sklearn.utils.testing import (
-    assert_warns_message,
-    assert_raise_message,
-    assert_raises,
-)
+from nose.tools import assert_raises
 import pandas as pd
 import numpy as np
 from scipy import sparse
@@ -39,12 +35,12 @@ class TestMatrixToDataFrame(unittest.TestCase):
     def test_matrix_to_dataframe_no_names_dataframe_sparse(self):
         Y = scprep.io.utils._matrix_to_data_frame(self.X_dense, sparse=True)
         assert scprep.utils.is_sparse_dataframe(Y)
-        assert not isinstance(Y, pd.SparseDataFrame)
+        assert not scprep.utils.is_SparseDataFrame(Y)
         assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
         utils.assert_matrix_class_equivalent(Y, self.X_sparse)
         Y = scprep.io.utils._matrix_to_data_frame(self.X_sparse, sparse=True)
         assert scprep.utils.is_sparse_dataframe(Y)
-        assert not isinstance(Y, pd.SparseDataFrame)
+        assert not scprep.utils.is_SparseDataFrame(Y)
         assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
         utils.assert_matrix_class_equivalent(Y, self.X_sparse)
 
@@ -60,13 +56,13 @@ class TestMatrixToDataFrame(unittest.TestCase):
         Y = scprep.io.utils._matrix_to_data_frame(self.X_dense, sparse=False)
         assert isinstance(Y, pd.DataFrame)
         assert not scprep.utils.is_sparse_dataframe(Y)
-        assert not isinstance(Y, pd.SparseDataFrame)
+        assert not scprep.utils.is_SparseDataFrame(Y)
         assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
         utils.assert_matrix_class_equivalent(Y, self.X_dense)
         Y = scprep.io.utils._matrix_to_data_frame(self.X_sparse, sparse=False)
         assert isinstance(Y, pd.DataFrame)
         assert not scprep.utils.is_sparse_dataframe(Y)
-        assert not isinstance(Y, pd.SparseDataFrame)
+        assert not scprep.utils.is_SparseDataFrame(Y)
         assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
         utils.assert_matrix_class_equivalent(Y, self.X_dense)
 
@@ -78,7 +74,7 @@ class TestMatrixToDataFrame(unittest.TestCase):
             sparse=True,
         )
         assert scprep.utils.is_sparse_dataframe(Y)
-        assert not isinstance(Y, pd.SparseDataFrame)
+        assert not scprep.utils.is_SparseDataFrame(Y)
         assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
         utils.assert_matrix_class_equivalent(Y, self.X_sparse)
         Y = scprep.io.utils._matrix_to_data_frame(
@@ -88,7 +84,7 @@ class TestMatrixToDataFrame(unittest.TestCase):
             sparse=True,
         )
         assert scprep.utils.is_sparse_dataframe(Y)
-        assert not isinstance(Y, pd.SparseDataFrame)
+        assert not scprep.utils.is_SparseDataFrame(Y)
         assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
         utils.assert_matrix_class_equivalent(Y, self.X_sparse)
         Y = scprep.io.utils._matrix_to_data_frame(
@@ -98,7 +94,7 @@ class TestMatrixToDataFrame(unittest.TestCase):
             sparse=True,
         )
         assert scprep.utils.is_sparse_dataframe(Y)
-        assert not isinstance(Y, pd.SparseDataFrame)
+        assert not scprep.utils.is_SparseDataFrame(Y)
         assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
         utils.assert_matrix_class_equivalent(Y, self.X_sparse)
 
@@ -111,7 +107,7 @@ class TestMatrixToDataFrame(unittest.TestCase):
         )
         assert isinstance(Y, pd.DataFrame)
         assert not scprep.utils.is_sparse_dataframe(Y)
-        assert not isinstance(Y, pd.SparseDataFrame)
+        assert not scprep.utils.is_SparseDataFrame(Y)
         assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
         utils.assert_matrix_class_equivalent(Y, self.X_dense)
         Y = scprep.io.utils._matrix_to_data_frame(
@@ -122,7 +118,7 @@ class TestMatrixToDataFrame(unittest.TestCase):
         )
         assert isinstance(Y, pd.DataFrame)
         assert not scprep.utils.is_sparse_dataframe(Y)
-        assert not isinstance(Y, pd.SparseDataFrame)
+        assert not scprep.utils.is_SparseDataFrame(Y)
         assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
         utils.assert_matrix_class_equivalent(Y, self.X_dense)
         Y = scprep.io.utils._matrix_to_data_frame(
@@ -133,13 +129,13 @@ class TestMatrixToDataFrame(unittest.TestCase):
         )
         assert isinstance(Y, pd.DataFrame)
         assert not scprep.utils.is_sparse_dataframe(Y)
-        assert not isinstance(Y, pd.SparseDataFrame)
+        assert not scprep.utils.is_SparseDataFrame(Y)
         assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
         utils.assert_matrix_class_equivalent(Y, self.X_dense)
 
 
 def test_10X_duplicate_gene_names():
-    assert_warns_message(
+    utils.assert_warns_message(
         RuntimeWarning,
         "Duplicate gene names detected! Forcing `gene_labels='both'`. "
         "Alternatively, try `gene_labels='id'`, `allow_duplicates=True`, or "
@@ -149,7 +145,7 @@ def test_10X_duplicate_gene_names():
         gene_labels="symbol",
         sparse=True,
     )
-    assert_warns_message(
+    utils.assert_warns_message(
         RuntimeWarning,
         "Duplicate gene names detected! Forcing dense matrix",
         scprep.io.load_10X,
@@ -179,19 +175,19 @@ def test_10X():
     np.testing.assert_array_equal(X.index, X_cellranger3.index)
     np.testing.assert_array_equal(X.columns, X_cellranger3.columns)
     np.testing.assert_array_equal(X.index, X_cellranger3.index)
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "gene_labels='invalid' not recognized. " "Choose from ['symbol', 'id', 'both']",
         data.load_10X,
         gene_labels="invalid",
     )
-    assert_raise_message(
+    utils.assert_raises_message(
         FileNotFoundError,
         "{} is not a directory".format(os.path.join(data.data_dir, "test_10X.zip")),
         scprep.io.load_10X,
         os.path.join(data.data_dir, "test_10X.zip"),
     )
-    assert_raise_message(
+    utils.assert_raises_message(
         FileNotFoundError,
         "'matrix.mtx(.gz)', '[genes/features].tsv(.gz)', and 'barcodes.tsv(.gz)' must be present "
         "in {}".format(data.data_dir),
@@ -208,14 +204,14 @@ def test_10X_zip():
     assert np.sum(np.sum(X != X_zip)) == 0
     np.testing.assert_array_equal(X.columns, X_zip.columns)
     np.testing.assert_array_equal(X.index, X_zip.index)
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "gene_labels='invalid' not recognized. " "Choose from ['symbol', 'id', 'both']",
         scprep.io.load_10X_zip,
         filename,
         gene_labels="invalid",
     )
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected a single zipped folder containing 'matrix.mtx(.gz)', "
         "'[genes/features].tsv(.gz)', and 'barcodes.tsv(.gz)'. Got ",
@@ -235,7 +231,7 @@ def test_10X_zip_url():
 
 
 def test_10X_zip_url_not_a_zip():
-    assert_raise_message(
+    utils.assert_raises_message(
         zipfile.BadZipFile,
         "File is not a zip file",
         scprep.io.load_10X_zip,
@@ -250,7 +246,7 @@ def test_10X_zip_url_not_a_real_website():
 
 
 def test_10X_zip_url_404():
-    assert_raise_message(
+    utils.assert_raises_message(
         urllib.error.HTTPError,
         "HTTP Error 404: Not Found",
         scprep.io.load_10X_zip,
@@ -259,7 +255,7 @@ def test_10X_zip_url_404():
 
 
 def test_10X_zip_not_a_file():
-    assert_raise_message(
+    utils.assert_raises_message(
         FileNotFoundError,
         "No such file: 'not_a_file.zip'",
         scprep.io.load_10X_zip,
@@ -333,7 +329,7 @@ def test_10X_HDF5_cellranger3():
 
 def test_10X_HDF5_invalid_genome():
     h5_file = os.path.join(data.data_dir, "test_10X.h5")
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Genome invalid not found in {}. " "Available genomes: GRCh38".format(h5_file),
         scprep.io.load_10X_HDF5,
@@ -344,7 +340,7 @@ def test_10X_HDF5_invalid_genome():
 
 def test_10X_HDF5_genome_cellranger3():
     h5_file = os.path.join(data.data_dir, "test_10X_cellranger3.h5")
-    assert_raise_message(
+    utils.assert_raises_message(
         NotImplementedError,
         "Selecting genomes for Cellranger 3.0 files is not "
         "currently supported. Please file an issue at "
@@ -357,7 +353,7 @@ def test_10X_HDF5_genome_cellranger3():
 
 def test_10X_HDF5_invalid_backend():
     h5_file = os.path.join(data.data_dir, "test_10X.h5")
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected backend in ['tables', 'h5py']. Got invalid",
         scprep.io.load_10X_HDF5,
@@ -368,7 +364,7 @@ def test_10X_HDF5_invalid_backend():
 
 def test_10X_HDF5_invalid_gene_labels():
     h5_file = os.path.join(data.data_dir, "test_10X.h5")
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "gene_labels='invalid' not recognized. " "Choose from ['symbol', 'id', 'both']",
         scprep.io.load_10X_HDF5,
@@ -456,7 +452,7 @@ def test_csv_and_tsv():
     )
     assert "DUPLICATE" in X_csv.columns
     assert "DUPLICATE.1" in X_csv.columns
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "cell_axis neither not recognized. " "Expected 'row' or 'column'",
         scprep.io.load_csv,
@@ -490,7 +486,7 @@ def test_mtx():
     )
     assert np.sum(np.sum(X.to_numpy() != X_mtx)) == 0
     assert isinstance(X_mtx, np.ndarray)
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "cell_axis neither not recognized. " "Expected 'row' or 'column'",
         scprep.io.load_mtx,
@@ -601,7 +597,7 @@ def test_fcs_PnN():
 
 
 def test_fcs_file_error():
-    assert_raise_message(
+    utils.assert_raises_message(
         RuntimeError,
         "fcsparser failed to load {}, likely due to"
         " a malformed header. You can try using "
@@ -616,7 +612,7 @@ def test_fcs_file_error():
 
 def test_fcs_naming_error():
     path = fcsparser.test_sample_path
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected channel_naming in ['$PnS', '$PnN']. " "Got 'invalid'",
         scprep.io.load_fcs,
@@ -645,7 +641,7 @@ def test_fcs_header_error():
 
     meta_bad = copy.deepcopy(meta)
     meta_bad["$DATATYPE"] = "invalid"
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected $DATATYPE in ['F', 'D']. " "Got 'invalid'",
         scprep.io.fcs._parse_fcs_header,
@@ -657,7 +653,7 @@ def test_fcs_header_error():
         meta_bad["$BYTEORD"] = byteord
         assert scprep.io.fcs._parse_fcs_header(meta_bad)["$ENDIAN"] == endian
     meta_bad["$BYTEORD"] = "invalid"
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected $BYTEORD in ['1,2,3,4', '4,3,2,1']. " "Got 'invalid'",
         scprep.io.fcs._parse_fcs_header,
@@ -668,14 +664,14 @@ def test_fcs_header_error():
 def test_parse_header():
     header1 = np.arange(10)
     header2 = os.path.join(data.data_dir, "gene_symbols.csv")
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected 5 entries in gene_names. Got 10",
         scprep.io.utils._parse_header,
         header1,
         5,
     )
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected 50 entries in {}. Got 100".format(os.path.abspath(header2)),
         scprep.io.utils._parse_header,

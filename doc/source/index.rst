@@ -8,6 +8,10 @@
 
 .. raw:: html
 
+    <a href="https://anaconda.org/bioconda/scprep/"><img src="https://anaconda.org/bioconda/scprep/badges/version.svg" alt="Latest Conda version"></a>
+
+.. raw:: html
+
     <a href="https://travis-ci.com/KrishnaswamyLab/scprep"><img src="https://api.travis-ci.com/KrishnaswamyLab/scprep.svg?branch=master" alt="Travis CI Build"></a>
 
 .. raw:: html
@@ -25,6 +29,10 @@
 .. raw:: html
 
     <a href="https://github.com/KrishnaswamyLab/scprep/"><img src="https://img.shields.io/github/stars/KrishnaswamyLab/scprep.svg?style=social&label=Stars" alt="GitHub stars"></a>
+
+.. raw:: html
+
+    <a href="https://github.com/psf/black/"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code style: black"></a>
 
 `scprep` provides an all-in-one framework for loading, preprocessing, and plotting matrices in Python, with a focus on single-cell genomics.
 

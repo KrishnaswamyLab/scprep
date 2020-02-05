@@ -22,6 +22,9 @@
 .. image:: https://img.shields.io/github/stars/KrishnaswamyLab/scprep.svg?style=social&label=Stars
     :target: https://github.com/KrishnaswamyLab/scprep/
     :alt: GitHub stars
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/psf/black
+    :alt: Code style: black
 
 `scprep` provides an all-in-one framework for loading, preprocessing, and plotting matrices in Python, with a focus on single-cell genomics.
 

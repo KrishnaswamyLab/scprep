@@ -364,7 +364,7 @@ def _find_unique_cells(data):
     unique_idx : np.ndarray
         Sorted array of unique element indices
     """
-    if isinstance(data, pd.SparseDataFrame):
+    if utils.is_SparseDataFrame(data):
         unique_idx = _find_unique_cells(data.to_coo())
     elif utils.is_sparse_dataframe(data):
         unique_idx = _find_unique_cells(data.sparse.to_coo())

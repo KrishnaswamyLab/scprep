@@ -1,63 +1,59 @@
-  language: python
-  python:
-    - "3.5"
-    - "3.6"
-    - "3.7-dev"
-
-  sudo: required
-
-  dist: xenial
-
-  addons:
-    apt:
-      packages:
-        - libhdf5-dev
-        - ffmpeg
-        - pandoc
-        - gfortran
-        - libblas-dev
-        - liblapack-dev
-        - libglu1-mesa-dev
-        - freeglut3-dev
-        - mesa-common-dev
-        - libgsl-dev
-
-  cache: 
-    - pip
-    - apt
-    - directories:
+language: python
+python:
+  - '3.5'
+  - '3.6'
+  - 3.7-dev
+sudo: required
+dist: xenial
+addons:
+  apt:
+    packages:
+      - libhdf5-dev
+      - ffmpeg
+      - pandoc
+      - gfortran
+      - libblas-dev
+      - liblapack-dev
+      - libglu1-mesa-dev
+      - freeglut3-dev
+      - mesa-common-dev
+      - libgsl-dev
+cache:
+  - pip
+  - apt
+  - directories:
       - $HOME/R/Library
+install:
+  - pip install -U .
+before_script:
+  - >-
+    sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys
+    E298A3A825C0D65DFD57CBB651716619E084DAB9
+  - >-
+    echo "deb http://cran.rstudio.com/bin/linux/ubuntu xenial-cran35/" | sudo
+    tee -a /etc/apt/sources.list
+  - sudo apt-get update -qq
+  - sudo apt-get install r-base-core=3.6\* -y
+  - export R_LIBS_USER="$HOME/R/Library"
+  - 'echo ".libPaths(c(''$R_LIBS_USER'', .libPaths()))" >> $HOME/.Rprofile'
+  - Rscript travis_setup.R
+script:
+  - python -c "import scprep"
+  - 'pip install -U .[test]'
+  - 'if [ "$TRAVIS_PYTHON_VERSION" != "3.5" ]; then black . --check --diff; fi'
+  - python setup.py test
+  - 'pip install -U .[doc]'
+  - python setup.py build_sphinx
+after_success:
+  - coveralls
+deploy:
+  provider: pypi
+  user: scottgigante
+  password: '${PYPI_PASSWORD}'
+  distributions: sdist bdist_wheel
+  skip_existing: true
+  skip_cleanup: true
+  'on':
+    tags: true
+    branch: master
 
-  install:
-    - pip install -U .
-
-  before_script:
-    - sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
-    - echo "deb http://cran.rstudio.com/bin/linux/ubuntu xenial-cran35/" | sudo tee -a /etc/apt/sources.list
-    - sudo apt-get update -qq
-    - sudo apt-get install r-base-core=3.5\* -y
-    - export R_LIBS_USER="$HOME/R/Library"
-    - echo ".libPaths(c('$R_LIBS_USER', .libPaths()))" >> $HOME/.Rprofile
-    - Rscript travis_setup.R
-
-  script:
-    - pip install -U .[test]
-    - if [ "$TRAVIS_PYTHON_VERSION" != "3.5" ]; then black . --check --diff; fi
-    - python setup.py test
-    - pip install -U .[doc]
-    - cd doc; make html
-    - cd ..
-
-  after_success:
-    - coveralls
-
-  deploy:
-    provider: pypi
-    user: scottgigante
-    password: ${PYPI_PASSWORD}
-    distributions: sdist bdist_wheel
-    skip_existing: true
-    skip_cleanup: true
-    on:
-      tags: true
-      branch: master

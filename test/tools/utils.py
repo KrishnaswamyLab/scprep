@@ -2,8 +2,20 @@ import numpy as np
 from scipy import sparse
 import pandas as pd
 from nose.tools import assert_raises
-from scprep.utils import toarray
+from scprep.utils import toarray, is_SparseDataFrame
 from . import matrix
+from nose.tools import assert_raises_regex, assert_warns_regex
+import re
+
+
+def assert_warns_message(expected_warning, expected_message, *args, **kwargs):
+    expected_regex = re.escape(expected_message)
+    return assert_warns_regex(expected_warning, expected_regex, *args, **kwargs)
+
+
+def assert_raises_message(expected_warning, expected_message, *args, **kwargs):
+    expected_regex = re.escape(expected_message)
+    return assert_raises_regex(expected_warning, expected_regex, *args, **kwargs)
 
 
 def assert_all_equal(X, Y):
@@ -98,7 +110,7 @@ def assert_transform_raises(X, transform, exception=ValueError, **kwargs):
 
 
 def _is_sparse_dataframe(X):
-    return isinstance(X, pd.SparseDataFrame) or (
+    return is_SparseDataFrame(X) or (
         isinstance(X, pd.DataFrame) and hasattr(X, "sparse")
     )
 
@@ -123,7 +135,7 @@ def assert_matrix_class_equivalent(X, Y):
     if sparse.issparse(X):
         assert sparse.issparse(Y)
         assert X.tocoo().nnz == Y.tocoo().nnz
-    elif isinstance(X, pd.SparseDataFrame):
+    elif is_SparseDataFrame(X):
         assert _is_sparse_dataframe(Y)
     else:
         assert type(X) == type(Y), (type(X), type(Y))

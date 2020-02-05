@@ -70,7 +70,7 @@ def library_size_normalize(data, rescale=10000, return_library_size=False):
         columns, index = data.columns, data.index
         if utils.is_sparse_dataframe(data):
             data = data.sparse.to_coo()
-        elif isinstance(data, pd.SparseDataFrame):
+        elif utils.is_SparseDataFrame(data):
             data = data.to_coo()
         else:
             # dense data
@@ -99,7 +99,7 @@ def library_size_normalize(data, rescale=10000, return_library_size=False):
             data_norm = pd.DataFrame(data_norm)
         data_norm.columns = columns
         data_norm.index = index
-        libsize = pd.Series(libsize, index=index, name="library_size")
+        libsize = pd.Series(libsize, index=index, name="library_size", dtype="float64")
     if return_library_size:
         return data_norm, libsize
     else:
@@ -126,7 +126,7 @@ def batch_mean_center(data, sample_idx=None):
     """
     if (
         sparse.issparse(data)
-        or isinstance(data, pd.SparseDataFrame)
+        or utils.is_SparseDataFrame(data)
         or utils.is_sparse_dataframe(data)
     ):
         raise ValueError(
@@ -134,6 +134,8 @@ def batch_mean_center(data, sample_idx=None):
         )
     if sample_idx is None:
         sample_idx = np.ones(len(data))
+    else:
+        sample_idx = utils.toarray(sample_idx).flatten()
     for sample in np.unique(sample_idx):
         idx = sample_idx == sample
         if isinstance(data, pd.DataFrame):

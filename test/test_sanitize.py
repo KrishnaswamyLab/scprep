@@ -1,7 +1,6 @@
 from tools import utils, matrix, data
 import scprep
 import numpy as np
-from sklearn.utils.testing import assert_raise_message
 
 
 def test_check_numeric_copy():
@@ -26,22 +25,23 @@ def test_check_numeric_inplace():
         transform=scprep.sanitize.check_numeric,
         copy=False,
     )
-    matrix._ignore_pandas_sparse_warning()
-    assert_raise_message(
-        TypeError,
-        "pd.SparseDataFrame does not support " "copy=False. Please use copy=True.",
-        scprep.sanitize.check_numeric,
-        data=matrix.SparseDataFrame_deprecated(X),
-        copy=False,
-    )
-    matrix._reset_warnings()
+    if matrix._pandas_0:
+        matrix._ignore_pandas_sparse_warning()
+        utils.assert_raises_message(
+            TypeError,
+            "pd.SparseDataFrame does not support " "copy=False. Please use copy=True.",
+            scprep.sanitize.check_numeric,
+            data=matrix.SparseDataFrame_deprecated(X),
+            copy=False,
+        )
+        matrix._reset_warnings()
 
     class TypeErrorClass(object):
         def astype(self, dtype):
             return
 
     X = TypeErrorClass()
-    assert_raise_message(
+    utils.assert_raises_message(
         TypeError,
         "astype() got an unexpected keyword argument 'copy'",
         scprep.sanitize.check_numeric,
@@ -51,7 +51,7 @@ def test_check_numeric_inplace():
 
 
 def test_check_numeric_bad_dtype():
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "could not convert string to float: ",
         scprep.sanitize.check_numeric,

@@ -21,9 +21,14 @@ def _is_1d(data):
         return True
 
 
-def _check_idx_1d(idx):
+def _check_idx_1d(idx, silent=False):
     if (not _is_1d(idx)) and np.prod(idx.shape) != np.max(idx.shape):
-        raise ValueError("Expected idx to be 1D. Got shape {}".format(idx.shape))
+        if silent:
+            return False
+        else:
+            raise ValueError("Expected idx to be 1D. Got shape {}".format(idx.shape))
+    else:
+        return True
 
 
 def _get_columns(data):
@@ -80,9 +85,9 @@ def _check_rows_compatible(*data):
                 )
 
 
-def _convert_dataframe_1d(idx):
-    _check_idx_1d(idx)
-    idx = idx.iloc[:, 0] if idx.shape[1] == 1 else idx.iloc[0, :]
+def _convert_dataframe_1d(idx, silent=False):
+    if _check_idx_1d(idx, silent=silent):
+        idx = idx.iloc[:, 0] if idx.shape[1] == 1 else idx.iloc[0, :]
     return idx
 
 
@@ -378,7 +383,7 @@ def select_cols(
         _check_idx_1d(idx)
         idx = idx.flatten()
 
-    if isinstance(data, pd.SparseDataFrame):
+    if utils.is_SparseDataFrame(data):
         # evil deprecated dataframe; get rid of it
         data = utils.SparseDataFrame(data)
     if isinstance(data, pd.DataFrame):
@@ -437,6 +442,9 @@ def select_cols(
         data = data[:, idx]
     if _get_column_length(data) == 0:
         warnings.warn("Selecting 0 columns.", UserWarning)
+    elif isinstance(data, pd.DataFrame):
+        # convert to series if possible
+        data = _convert_dataframe_1d(data, silent=True)
     if len(extra_data) > 0:
         data = [data]
         for d in extra_data:
@@ -523,7 +531,7 @@ def select_rows(
         _check_idx_1d(idx)
         idx = idx.flatten()
 
-    if isinstance(data, pd.SparseDataFrame):
+    if utils.is_SparseDataFrame(data):
         # evil deprecated dataframe; get rid of it
         data = utils.SparseDataFrame(data)
     if isinstance(data, (pd.DataFrame, pd.Series)):
@@ -561,6 +569,9 @@ def select_rows(
         data = data[idx, :]
     if _get_row_length(data) == 0:
         warnings.warn("Selecting 0 rows.", UserWarning)
+    elif isinstance(data, pd.DataFrame):
+        # convert to series if possible
+        data = _convert_dataframe_1d(data, silent=True)
     if len(extra_data) > 0:
         data = [data]
         for d in extra_data:

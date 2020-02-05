@@ -1,7 +1,7 @@
 from tools import utils, matrix, data
 import numpy as np
 from scipy import stats
-from sklearn.utils.testing import assert_warns_message, assert_raise_message
+
 from sklearn.metrics import mutual_info_score
 import scprep
 from functools import partial
@@ -30,7 +30,7 @@ def test_EMD():
         transform=partial(_test_fun_2d, fun=scprep.stats.EMD),
         check=utils.assert_all_close,
     )
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected x and y to be 1D arrays. "
         "Got shapes x {}, y {}".format(X.shape, X[:, 1].shape),
@@ -180,7 +180,7 @@ def test_knnDREMI():
         assert scprep.stats.knnDREMI(
             X[:, 0], np.repeat(X[0, 1], X.shape[0]), return_drevi=True
         ) == (0, None)
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected k as an integer. Got ",
         scprep.stats.knnDREMI,
@@ -188,7 +188,7 @@ def test_knnDREMI():
         X[:, 1],
         k="invalid",
     )
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected n_bins as an integer. Got ",
         scprep.stats.knnDREMI,
@@ -196,7 +196,7 @@ def test_knnDREMI():
         X[:, 1],
         n_bins="invalid",
     )
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected n_mesh as an integer. Got ",
         scprep.stats.knnDREMI,
@@ -204,7 +204,7 @@ def test_knnDREMI():
         X[:, 1],
         n_mesh="invalid",
     )
-    assert_warns_message(
+    utils.assert_warns_message(
         UserWarning,
         "Attempting to calculate kNN-DREMI on a constant array. " "Returning `0`",
         scprep.stats.knnDREMI,
@@ -234,7 +234,7 @@ def test_mean_difference():
         transform=test_fun,
         check=utils.assert_all_close,
     )
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected X and Y to have the same number of columns. "
         "Got shapes {}, {}".format(X.shape, X.iloc[:, :10].shape),
@@ -330,7 +330,7 @@ def test_differential_expression(measure, direction):
 
 def test_differential_expression_error():
     X = data.load_10X()
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected `direction` in ['up', 'down', 'both']. " "Got invalid",
         scprep.stats.differential_expression,
@@ -338,7 +338,7 @@ def test_differential_expression_error():
         X,
         direction="invalid",
     )
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected `measure` in ['difference', 'emd', 'ttest', 'ranksum']. "
         "Got invalid",
@@ -347,7 +347,7 @@ def test_differential_expression_error():
         X,
         measure="invalid",
     )
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected `X` and `Y` to be matrices. "
         "Got shapes {}, {}".format(X.shape, X.iloc[0].shape),
@@ -355,7 +355,7 @@ def test_differential_expression_error():
         X,
         X.iloc[0],
     )
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected gene_names to have length {}. "
         "Got {}".format(X.shape[0], X.shape[0] // 2),
@@ -364,7 +364,7 @@ def test_differential_expression_error():
         X.sparse.to_coo(),
         gene_names=np.arange(X.shape[0] // 2),
     )
-    assert_raise_message(
+    utils.assert_raises_message(
         ValueError,
         "Expected gene_names to have length {}. "
         "Got {}".format(X.shape[0], X.shape[0] // 2),
@@ -373,7 +373,7 @@ def test_differential_expression_error():
         np.random.choice(2, X.shape[0], replace=True),
         gene_names=np.arange(X.shape[0] // 2),
     )
-    assert_warns_message(
+    utils.assert_warns_message(
         UserWarning,
         "Input data has inconsistent column names. " "Subsetting to 20 common columns.",
         scprep.stats.differential_expression,

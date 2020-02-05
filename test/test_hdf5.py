@@ -1,7 +1,6 @@
-from tools import data
+from tools import data, utils
 import os
 import scprep
-from sklearn.utils.testing import assert_raise_message
 
 
 @scprep.io.hdf5.with_HDF5
@@ -36,7 +35,7 @@ def test_failed_import_both():
     del scprep.io.hdf5.tables
     h5py = scprep.io.hdf5.h5py
     del scprep.io.hdf5.h5py
-    assert_raise_message(
+    utils.assert_raises_message(
         ImportError,
         "Found neither tables nor h5py. "
         "Please install one of them with e.g. "
@@ -49,7 +48,7 @@ def test_failed_import_both():
 
 
 def test_list_nodes_invalid():
-    assert_raise_message(
+    utils.assert_raises_message(
         TypeError,
         "Expected h5py.File, tables.File, h5py.Group or "
         "tables.Group. Got <class 'str'>",
@@ -59,7 +58,7 @@ def test_list_nodes_invalid():
 
 
 def test_get_node_invalid():
-    assert_raise_message(
+    utils.assert_raises_message(
         TypeError,
         "Expected h5py.File, tables.File, h5py.Group or "
         "tables.Group. Got <class 'str'>",
@@ -70,7 +69,7 @@ def test_get_node_invalid():
 
 
 def test_get_values_invalid():
-    assert_raise_message(
+    utils.assert_raises_message(
         TypeError,
         "Expected h5py.Dataset or tables.CArray. " "Got <class 'str'>",
         scprep.io.hdf5.get_values,

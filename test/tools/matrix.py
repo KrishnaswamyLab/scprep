@@ -3,6 +3,8 @@ import pandas as pd
 import warnings
 from scipy import sparse
 from functools import partial
+from scprep.utils import is_SparseDataFrame
+from packaging import version
 
 
 def _ignore_pandas_sparse_warning():
@@ -47,7 +49,7 @@ def SparseDataFrame(X, default_fill_value=0.0):
     if sparse.issparse(X):
         X = pd.DataFrame.sparse.from_spmatrix(X)
         X.sparse.fill_value = default_fill_value
-    elif isinstance(X, pd.SparseDataFrame) or not isinstance(X, pd.DataFrame):
+    elif is_SparseDataFrame(X) or not isinstance(X, pd.DataFrame):
         X = pd.DataFrame(X)
     return X.astype(pd.SparseDtype(float, fill_value=default_fill_value))
 
@@ -71,24 +73,34 @@ _pandas_dense_matrix_types = [
 
 _pandas_sparse_matrix_types = [
     SparseDataFrame,
-    SparseDataFrame_deprecated,
 ]
 
-_pandas_vector_types = [pd.Series, SparseSeries, SparseSeries_deprecated]
+_pandas_vector_types = [pd.Series, SparseSeries]
+
+_pandas_0 = version.parse(pd.__version__) < version.parse("1.0.0")
+
+if _pandas_0:
+    _pandas_sparse_matrix_types.append(SparseDataFrame_deprecated)
+    _pandas_vector_types.append(SparseSeries_deprecated)
 
 _pandas_matrix_types = _pandas_dense_matrix_types + _pandas_sparse_matrix_types
 
+_scipy_indexable_matrix_types = [
+    sparse.csr_matrix,
+    sparse.csc_matrix,
+    sparse.lil_matrix,
+    sparse.dok_matrix,
+]
+
 _indexable_matrix_types = (
-    [sparse.csr_matrix, sparse.csc_matrix, sparse.lil_matrix, sparse.dok_matrix]
-    + _numpy_matrix_types
-    + _pandas_matrix_types
+    _scipy_indexable_matrix_types + _numpy_matrix_types + _pandas_matrix_types
 )
 
 
 def _typename(X):
     if (
         isinstance(X, pd.DataFrame)
-        and not isinstance(X, pd.SparseDataFrame)
+        and not is_SparseDataFrame(X)
         and hasattr(X, "sparse")
     ):
         return "DataFrame[SparseArray]"

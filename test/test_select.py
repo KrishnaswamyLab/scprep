@@ -1,6 +1,6 @@
 from tools import data, matrix, utils
 import scprep
-from sklearn.utils.testing import assert_raise_message, assert_warns_message
+
 import numpy as np
 import pandas as pd
 import unittest
@@ -30,7 +30,7 @@ class Test10X(unittest.TestCase):
         assert np.all(scprep.select.get_gene_set(self.X, regex="8$") == gene_names)
 
     def test_get_gene_set_ndarray(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             TypeError,
             "data must be a list of gene names or a pandas " "DataFrame. Got ndarray",
             scprep.select.get_gene_set,
@@ -39,7 +39,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_get_gene_set_no_condition(self):
-        assert_warns_message(
+        utils.assert_warns_message(
             UserWarning,
             "No selection conditions provided. Returning all genes.",
             scprep.select.get_gene_set,
@@ -62,7 +62,7 @@ class Test10X(unittest.TestCase):
         assert np.all(scprep.select.get_cell_set(self.X, regex="G\\-1$") == cell_names)
 
     def test_get_cell_set_ndarray(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             TypeError,
             "data must be a list of cell names or a pandas " "DataFrame. Got ndarray",
             scprep.select.get_cell_set,
@@ -71,7 +71,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_get_cell_set_no_condition(self):
-        assert_warns_message(
+        utils.assert_warns_message(
             UserWarning,
             "No selection conditions provided. Returning all cells.",
             scprep.select.get_cell_set,
@@ -185,7 +185,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_select_rows_zero_rows(self):
-        assert_warns_message(
+        utils.assert_warns_message(
             UserWarning,
             "Selecting 0 rows",
             scprep.select.select_rows,
@@ -194,7 +194,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_select_rows_no_condition(self):
-        assert_warns_message(
+        utils.assert_warns_message(
             UserWarning,
             "No selection conditions provided. Returning all rows.",
             scprep.select.select_rows,
@@ -341,7 +341,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_select_cols_zero_columns(self):
-        assert_warns_message(
+        utils.assert_warns_message(
             UserWarning,
             "Selecting 0 columns",
             scprep.select.select_cols,
@@ -350,7 +350,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_select_cols_no_condition(self):
-        assert_warns_message(
+        utils.assert_warns_message(
             UserWarning,
             "No selection conditions provided. Returning all columns.",
             scprep.select.select_cols,
@@ -358,7 +358,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_select_rows_invalid_index(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             KeyError,
             "'not_a_cell'",
             scprep.select.select_rows,
@@ -367,7 +367,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_select_cols_invalid_index(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             KeyError,
             "'not_a_gene'",
             scprep.select.select_cols,
@@ -376,7 +376,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_select_rows_2d_dataframe_index(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected idx to be 1D. " "Got shape (2, {})".format(self.X.shape[0]),
             scprep.select.select_rows,
@@ -385,7 +385,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_select_rows_2d_list_index(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected idx to be 1D. " "Got shape (2, {})".format(self.X.shape[0]),
             scprep.select.select_rows,
@@ -394,7 +394,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_select_cols_2d_dataframe_index(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected idx to be 1D. " "Got shape (2, {})".format(self.X.shape[1]),
             scprep.select.select_cols,
@@ -403,7 +403,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_select_cols_2d_list_index(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected idx to be 1D. " "Got shape (2, {})".format(self.X.shape[1]),
             scprep.select.select_cols,
@@ -412,7 +412,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_select_cols_unequal_columns(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected `data` and `extra_data` to have the same number of "
             "columns. Got [100, 50]",
@@ -421,8 +421,14 @@ class Test10X(unittest.TestCase):
             self.X.to_numpy()[:, :50],
         )
 
+    def test_select_cols_return_series(self):
+        assert isinstance(scprep.select.select_cols(self.X, idx=0), pd.Series)
+
+    def test_select_cols_return_dataframe(self):
+        assert isinstance(scprep.select.select_cols(self.X, idx=[0, 1]), pd.DataFrame)
+
     def test_select_rows_unequal_rows(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected `data` and `extra_data` to have the same number of "
             "rows. Got [100, 50]",
@@ -432,7 +438,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_select_cols_conflicting_data(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected `data` and `extra_data` pandas inputs to have the same "
             "column names. Fix with "
@@ -443,7 +449,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_select_rows_conflicting_data(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected `data` and `extra_data` pandas inputs to have the same "
             "index. Fix with "
@@ -454,7 +460,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_select_cols_get_gene_set_ndarray_data(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Can only select based on column names with DataFrame input. "
             "Please set `idx` to select specific columns.",
@@ -464,7 +470,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_select_rows_get_cell_set_ndarray_data(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Can only select based on row names with DataFrame input. "
             "Please set `idx` to select specific rows.",
@@ -472,6 +478,12 @@ class Test10X(unittest.TestCase):
             self.X.to_numpy(),
             starts_with="A",
         )
+
+    def test_select_rows_return_series(self):
+        assert isinstance(scprep.select.select_rows(self.X, idx=0), pd.Series)
+
+    def test_select_rows_return_dataframe(self):
+        assert isinstance(scprep.select.select_rows(self.X, idx=[0, 1]), pd.DataFrame)
 
     def test_subsample(self):
         self.X = data.generate_positive_sparse_matrix(shape=(50, 100))
@@ -519,7 +531,7 @@ class Test10X(unittest.TestCase):
 
     def test_subsample_mismatch_size(self):
         libsize = self.libsize[:25]
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected `data` and `extra_data` to have the same number of "
             "rows. Got [100, 25]",
@@ -530,7 +542,7 @@ class Test10X(unittest.TestCase):
         )
 
     def test_subsample_n_too_large(self):
-        assert_raise_message(
+        utils.assert_raises_message(
             ValueError,
             "Expected n (101) <= n_samples (100)",
             scprep.select.subsample,

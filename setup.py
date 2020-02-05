@@ -20,6 +20,7 @@ test_requires = [
     "coveralls",
     "parameterized",
     "requests",
+    "packaging",
 ]
 
 doc_requires = [
@@ -30,9 +31,7 @@ doc_requires = [
     "nbsphinx",
 ]
 
-if sys.version_info[:2] < (3, 5):
-    raise RuntimeError("Python version >=3.5 required.")
-elif sys.version_info[:2] < (3, 6):
+if sys.version_info[:2] < (3, 6):
     test_requires += ["matplotlib>=3.0,<3.1", "rpy2>=3.0,<3.1"]
 else:
     test_requires += ["matplotlib>=3.0", "rpy2>=3.0", "black"]
@@ -51,6 +50,7 @@ setup(
     packages=find_packages(),
     license="GNU General Public License Version 2",
     install_requires=install_requires,
+    python_requires=">=3.5",
     extras_require={"test": test_requires, "doc": doc_requires},
     test_suite="nose2.collector.collector",
     long_description=readme,
