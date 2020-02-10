@@ -24,7 +24,7 @@ test_requires = [
 ]
 
 doc_requires = [
-    "sphinx<=1.8.5",
+    "sphinx>=2.2,<2.4",
     "sphinxcontrib-napoleon",
     "autodocsumm",
     "ipykernel",
