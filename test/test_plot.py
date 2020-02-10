@@ -1005,6 +1005,16 @@ class Test10X(unittest.TestCase):
         )
         assert ax.get_legend().get_title().get_text() == "test"
 
+    def test_scatter_discrete_str_int(self):
+        ax = scprep.plot.scatter2d(
+            self.X_pca,
+            c=np.random.choice(["1", "2", "3"], self.X_pca.shape[0], replace=True),
+            legend_title="test",
+            legend_loc="center left",
+            legend_anchor=(1.02, 0.5),
+        )
+        assert ax.get_legend().get_title().get_text() == "test"
+
     def test_jitter_discrete(self):
         ax = scprep.plot.jitter(
             np.where(self.X_pca[:, 0] > 0, "+", "-"),
