@@ -3,6 +3,15 @@ import numpy as np
 from . import r_function
 
 
+def _sum_to_one(x):
+    x = x / np.sum(x)  # fix numerical error
+    x = x.round(5)
+    if np.sum(x) != 1:
+        x[0] += 1 - np.sum(x)
+    x = x.round(5)
+    return x
+
+
 def install(site_repository=None, update=False, version=None, verbose=True):
     """Install the required R packages to run Splatter
     
@@ -264,6 +273,8 @@ def SplatSimulate(
     else:
         dropout_prob = None
     np.random.seed(seed)
+
+    group_prob = _sum_to_one(group_prob)
 
     sim = _SplatSimulate(
         method=method,
