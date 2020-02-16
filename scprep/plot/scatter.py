@@ -941,6 +941,8 @@ def scatter2d(
     """
     if isinstance(data, list):
         data = utils.toarray(data)
+    if isinstance(data, np.ndarray):
+        data = np.atleast_2d(data)
     return scatter(
         x=select.select_cols(data, idx=0),
         y=select.select_cols(data, idx=1),
@@ -1128,6 +1130,8 @@ def scatter3d(
     """
     if isinstance(data, list):
         data = utils.toarray(data)
+    if isinstance(data, np.ndarray):
+        data = np.atleast_2d(data)
     try:
         x = select.select_cols(data, idx=0)
         y = select.select_cols(data, idx=1)

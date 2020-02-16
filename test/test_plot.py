@@ -995,6 +995,12 @@ class Test10X(unittest.TestCase):
             self.X_pca, c=self.X_pca[:, 0], legend_title="test", title="title test"
         )
 
+    def test_scatter2d_one_point(self):
+        scprep.plot.scatter2d(self.X_pca[0], c=["red"])
+
+    def test_scatter3d_one_point(self):
+        scprep.plot.scatter3d(self.X_pca[0], c=["red"])
+
     def test_scatter_discrete(self):
         ax = scprep.plot.scatter2d(
             self.X_pca,
