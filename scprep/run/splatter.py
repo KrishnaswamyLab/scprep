@@ -163,8 +163,10 @@ def SplatSimulate(
     """Simulate count data from a fictional single-cell RNA-seq experiment using the Splat method.
 
     SplatSimulate is a Python wrapper for the R package Splatter. For more
-    details, read about Splatter  on [GitHub](https://github.com/Oshlack/splatter)
-    and [Bioconductor](https://bioconductor.org/packages/release/bioc/html/splatter.html).
+    details, read about Splatter on GitHub_ and Bioconductor_.
+
+    .. _GitHub: https://github.com/Oshlack/splatter
+    .. _Bioconductor: https://bioconductor.org/packages/release/bioc/html/splatter.html
 
     Parameters
     ----------
