@@ -1,7 +1,9 @@
 # author: Scott Gigante <scott.gigante@yale.edu>
 # (C) 2018 Krishnaswamy Lab GPLv2
 
+import numpy as np
 import pandas as pd
+import warnings
 from . import utils
 
 
@@ -42,3 +44,64 @@ def check_numeric(data, dtype="float", copy=None):
                 return data.astype(dtype)
         else:
             raise e
+
+
+def check_index(data, copy=False):
+    """Ensure that the data index is unique in a pandas DataFrame
+    
+    Parameters
+    ----------
+    data : pd.DataFrame
+        Input data
+    copy : bool, optional (default: True)
+        If True, return a modified copy of the data. Otherwise modify it in place.
+    
+    Returns
+    -------
+    data : pd.DataFrame
+        Sanitized data
+    """
+    if not hasattr(data, "index"):
+        warnings.warn(
+            "scprep.sanitize.check_index only accepts pandas input", UserWarning
+        )
+        return data
+    duplicated = data.index.duplicated()
+    if np.any(duplicated):
+        new_index = list(data.index)
+        is_mi = isinstance(data.index, pd.MultiIndex)
+        for idx in np.unique(data.index[duplicated]):
+            if is_mi:
+                rename = np.all(
+                    [
+                        data.index.get_level_values(data.index.names[i]) == idx[i]
+                        for i in range(len(idx))
+                    ],
+                    axis=0,
+                )
+            else:
+                rename = data.index == idx
+            rename = np.argwhere(rename).flatten()
+
+            for i, idx in enumerate(rename):
+                if i == 0:
+                    continue
+                if is_mi:
+                    new_index[idx] = new_index[idx][:-1] + (
+                        f"{new_index[idx][-1]}.{i}",
+                    )
+                else:
+                    new_index[idx] = f"{new_index[idx]}.{i}"
+
+            print_new_index = ", ".join([str(new_index[r]) for r in rename])
+            warnings.warn(
+                f"Renamed {len(rename)} copies of index "
+                f"{new_index[rename[0]]} to ({print_new_index})",
+                RuntimeWarning,
+            )
+        if copy:
+            data = data.copy()
+        if is_mi:
+            new_index = pd.MultiIndex.from_tuples(new_index, names=data.index.names)
+        data.index = new_index
+    return data

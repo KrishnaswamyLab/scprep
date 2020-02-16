@@ -294,7 +294,7 @@ def get_cell_set(data, starts_with=None, ends_with=None, exact_word=None, regex=
         and exact_word is None
     ):
         warnings.warn(
-            "No selection conditions provided. " "Returning all cells.", UserWarning
+            "No selection conditions provided. Returning all cells.", UserWarning
         )
     return _get_string_subset(
         data,
@@ -359,7 +359,7 @@ def select_cols(
         and regex is None
     ):
         warnings.warn(
-            "No selection conditions provided. " "Returning all columns.", UserWarning
+            "No selection conditions provided. Returning all columns.", UserWarning
         )
         return tuple([data] + list(extra_data)) if len(extra_data) > 0 else data
     if idx is None:
