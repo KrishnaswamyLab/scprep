@@ -88,15 +88,16 @@ def check_index(data, copy=False):
                     continue
                 if is_mi:
                     new_index[idx] = new_index[idx][:-1] + (
-                        f"{new_index[idx][-1]}.{i}",
+                        "{}.{}".format(new_index[idx][-1], i),
                     )
                 else:
-                    new_index[idx] = f"{new_index[idx]}.{i}"
+                    new_index[idx] = "{}.{}".format(new_index[idx], i)
 
             print_new_index = ", ".join([str(new_index[r]) for r in rename])
             warnings.warn(
-                f"Renamed {len(rename)} copies of index "
-                f"{new_index[rename[0]]} to ({print_new_index})",
+                "Renamed {} copies of index {} to ({})".format(
+                    len(rename), new_index[rename[0]], print_new_index
+                ),
                 RuntimeWarning,
             )
         if copy:
