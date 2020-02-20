@@ -995,10 +995,26 @@ class Test10X(unittest.TestCase):
             self.X_pca, c=self.X_pca[:, 0], legend_title="test", title="title test"
         )
 
+    def test_scatter2d_one_point(self):
+        scprep.plot.scatter2d(self.X_pca[0], c=["red"])
+
+    def test_scatter3d_one_point(self):
+        scprep.plot.scatter3d(self.X_pca[0], c=["red"])
+
     def test_scatter_discrete(self):
         ax = scprep.plot.scatter2d(
             self.X_pca,
             c=np.random.choice(["hello", "world"], self.X_pca.shape[0], replace=True),
+            legend_title="test",
+            legend_loc="center left",
+            legend_anchor=(1.02, 0.5),
+        )
+        assert ax.get_legend().get_title().get_text() == "test"
+
+    def test_scatter_discrete_str_int(self):
+        ax = scprep.plot.scatter2d(
+            self.X_pca,
+            c=np.random.choice(["1", "2", "3"], self.X_pca.shape[0], replace=True),
             legend_title="test",
             legend_loc="center left",
             legend_anchor=(1.02, 0.5),

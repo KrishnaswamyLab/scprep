@@ -379,6 +379,16 @@ def test_csv_and_tsv():
     X_csv = scprep.io.load_csv(
         os.path.join(data.data_dir, "test_small.csv"), gene_names=True, cell_names=True
     )
+    with utils.assert_warns_message(
+        RuntimeWarning,
+        "Duplicate cell names detected! Some functions may not work as intended. "
+        "You can fix this by running `scprep.sanitize.check_index(data)`.",
+    ):
+        scprep.io.load_csv(
+            os.path.join(data.data_dir, "test_small.csv"),
+            gene_names=True,
+            cell_names=[0] + list(range(X_csv.shape[1] - 1)),
+        )
     X_csv2 = scprep.io.load_csv(
         os.path.join(data.data_dir, "test_small.csv"),
         gene_names=True,
