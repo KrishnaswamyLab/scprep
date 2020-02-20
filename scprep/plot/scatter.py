@@ -575,6 +575,7 @@ def scatter(
     legend_title=None,
     legend_loc="best",
     legend_anchor=None,
+    legend_ncol=None,
     vmin=None,
     vmax=None,
     elev=None,
@@ -665,6 +666,9 @@ def scatter(
         Box that is used to position the legend in conjunction with loc.
         See <https://matplotlib.org/api/_as_gen/matplotlib.pyplot.legend.html>
         for details.
+    legend_ncol : `int` or `None`, optimal (default: None)
+        Number of columns to show in the legend.
+        If None, defaults to a maximum of entries per column.
     vmin, vmax : float, optional (default: None)
         Range of values to use as the range for the colormap.
         Only used if data is continuous
@@ -773,6 +777,7 @@ def scatter(
                     loc=legend_loc,
                     bbox_to_anchor=legend_anchor,
                     title=legend_title,
+                    ncol=legend_ncol,
                 )
             else:
                 generate_colorbar(
@@ -825,6 +830,7 @@ def scatter2d(
     legend_title=None,
     legend_loc="best",
     legend_anchor=None,
+    legend_ncol=None,
     filename=None,
     dpi=None,
     **plot_kwargs
@@ -908,6 +914,9 @@ def scatter2d(
         Box that is used to position the legend in conjunction with loc.
         See <https://matplotlib.org/api/_as_gen/matplotlib.pyplot.legend.html>
         for details.
+    legend_ncol : `int` or `None`, optimal (default: None)
+        Number of columns to show in the legend.
+        If None, defaults to a maximum of entries per column.
     vmin, vmax : float, optional (default: None)
         Range of values to use as the range for the colormap.
         Only used if data is continuous
@@ -971,6 +980,7 @@ def scatter2d(
         legend_title=legend_title,
         legend_loc=legend_loc,
         legend_anchor=legend_anchor,
+        legend_ncol=legend_ncol,
         filename=filename,
         dpi=dpi,
         **plot_kwargs
@@ -1008,6 +1018,7 @@ def scatter3d(
     legend_title=None,
     legend_loc="best",
     legend_anchor=None,
+    legend_ncol=None,
     elev=None,
     azim=None,
     filename=None,
@@ -1093,6 +1104,9 @@ def scatter3d(
         Box that is used to position the legend in conjunction with loc.
         See <https://matplotlib.org/api/_as_gen/matplotlib.pyplot.legend.html>
         for details.
+    legend_ncol : `int` or `None`, optimal (default: None)
+        Number of columns to show in the legend.
+        If None, defaults to a maximum of entries per column.
     vmin, vmax : float, optional (default: None)
         Range of values to use as the range for the colormap.
         Only used if data is continuous
