@@ -426,7 +426,7 @@ def mean_difference(X, Y):
 
 def t_statistic(X, Y):
     """Calculate Welch's t statistic
-    
+
     Assumes data of unequal number of samples and unequal variance
 
     Parameters
@@ -447,7 +447,7 @@ def t_statistic(X, Y):
 
 def _rank(X, axis=0):
     """Analogue of scipy.stats.rankdata
-    
+
     TODO: handle sparse data
     """
     X = utils.toarray(X)
@@ -528,7 +528,7 @@ def rank_sum_statistic(X, Y):
 
 
 def differential_expression(
-    X, Y, measure="difference", direction="up", gene_names=None, n_jobs=-2
+    X, Y, measure="difference", direction="both", gene_names=None, n_jobs=-2
 ):
     """Calculate the most significant genes between two datasets
 
@@ -542,7 +542,7 @@ def differential_expression(
         'emd' refers to Earth Mover's Distance.
         'ttest' refers to Welch's t-statistic.
         'ranksum' refers to the Wilcoxon rank sum statistic (or the Mann-Whitney U statistic).
-    direction : {'up', 'down', 'both'}, optional (default: 'up')
+    direction : {'up', 'down', 'both'}, optional (default: 'both')
         The direction in which to consider genes significant. If 'up', rank genes where X > Y.
         If 'down', rank genes where X < Y. If 'both', rank genes by absolute value.
     gene_names : list-like or `None`, optional (default: `None`)
@@ -612,9 +612,15 @@ def differential_expression(
         difference = np.array(difference) * np.sign(mean_difference(X, Y))
     result = pd.DataFrame({measure: difference}, index=gene_names)
     if direction == "up":
-        result = result.sort_index().sort_values([measure], ascending=False)
+        if measure == "ranksum":
+            result = result.sort_index().sort_values([measure], ascending=True)
+        else:
+            result = result.sort_index().sort_values([measure], ascending=False)
     elif direction == "down":
-        result = result.sort_index().sort_values([measure], ascending=True)
+        if measure == "ranksum":
+            result = result.sort_index().sort_values([measure], ascending=False)
+        else:
+            result = result.sort_index().sort_values([measure], ascending=True)
     elif direction == "both":
         result["measure_abs"] = np.abs(difference)
         result = result.sort_index().sort_values(["measure_abs"], ascending=False)
@@ -624,7 +630,7 @@ def differential_expression(
 
 
 def differential_expression_by_cluster(
-    data, clusters, measure="difference", direction="up", gene_names=None, n_jobs=-2
+    data, clusters, measure="difference", direction="both", gene_names=None, n_jobs=-2
 ):
     """Calculate the most significant genes for each cluster in a dataset
 
@@ -640,7 +646,7 @@ def differential_expression_by_cluster(
         'emd' refers to Earth Mover's Distance.
         'ttest' refers to Welch's t-statistic.
         'ranksum' refers to the Wilcoxon rank sum statistic (or the Mann-Whitney U statistic).
-    direction : {'up', 'down', 'both'}, optional (default: 'up')
+    direction : {'up', 'down', 'both'}, optional (default: 'both')
         The direction in which to consider genes significant. If 'up', rank genes where X > Y. If 'down', rank genes where X < Y. If 'both', rank genes by absolute value.
     gene_names : list-like or `None`, optional (default: `None`)
         List of gene names associated with the columns of X and Y
