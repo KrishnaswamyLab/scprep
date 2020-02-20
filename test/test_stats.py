@@ -276,8 +276,8 @@ def test_differential_expression(measure, direction):
         ("ttest", "up"): ("Trmt1", 2.6335),
         ("ttest", "down"): ("Dhfr", -1.93347),
         ("ttest", "both"): ("Trmt1", 2.6335),
-        ("ranksum", "up"): ("Adam30", 796),
-        ("ranksum", "down"): ("Gstm5", 339),
+        ("ranksum", "down"): ("Adam30", 796),
+        ("ranksum", "up"): ("Gstm5", 339),
         ("ranksum", "both"): ("Adam30", 796),
     }
     assert result.index[0] == expected_results[(measure, direction)][0], result.index[0]
