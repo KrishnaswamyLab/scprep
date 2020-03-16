@@ -195,11 +195,11 @@ nbsphinx_prolog = r"""
 
         | This page was generated from `{{ docname }}`__ by nbsphinx_.
         | Interactive version:
-          :raw-html:`<a href="https://mybinder.org/v2/gh/KrishnaswamyLab/scprep/{{ env.config.release }}?filepath={{ docname }}"><img alt="Run in Binder" src="https://mybinder.org/badge.svg" style="vertical-align:text-bottom"></a>`
-          :raw-html:`<a href="https://colab.research.google.com/github/KrishnaswamyLab/scprep/blob/{{ env.config.release }}/{{ docname }}"><img alt="Run in Colab" src="https://colab.research.google.com/assets/colab-badge.svg" style="vertical-align:text-bottom"></a>`
+          :raw-html:`<a href="https://mybinder.org/v2/gh/KrishnaswamyLab/scprep/v{{ env.config.release }}?filepath={{ docname }}"><img alt="Run in Binder" src="https://mybinder.org/badge.svg" style="vertical-align:text-bottom"></a>`
+          :raw-html:`<a href="https://colab.research.google.com/github/KrishnaswamyLab/scprep/blob/v{{ env.config.release }}/{{ docname }}"><img alt="Run in Colab" src="https://colab.research.google.com/assets/colab-badge.svg" style="vertical-align:text-bottom"></a>`
 
     __ https://github.com/KrishnaswamyLab/scprep/blob/
-        {{ env.config.release }}/{{ docname }}
+        v{{ env.config.release }}/{{ docname }}
 
       .. _nbsphinx: http://nbsphinx.readthedocs.io/.
 
