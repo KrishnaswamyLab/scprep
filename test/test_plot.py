@@ -82,11 +82,13 @@ def test_generate_colorbar_list():
 
 def test_generate_colorbar_dict():
     if Version(matplotlib.__version__) >= Version("3.2"):
+        errtype = ValueError
         msg = "is not a valid value for name; supported values are"
     else:
+        errtype = TypeError
         msg = "unhashable type: 'dict'"
     utils.assert_raises_message(
-        TypeError, msg, scprep.plot.tools.generate_colorbar, cmap={"+": "r", "-": "b"},
+        errtype, msg, scprep.plot.tools.generate_colorbar, cmap={"+": "r", "-": "b"},
     )
 
 
