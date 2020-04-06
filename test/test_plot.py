@@ -1,17 +1,22 @@
-from tools import data, utils
-import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import os
-import numbers
 
-import unittest
 import scprep
+import matplotlib
+
+import os
+import sys
+import numbers
+import unittest
+
+from packaging.version import Version
+
 from scprep.plot.scatter import _ScatterParams
 from scprep.plot.jitter import _JitterParams
 from scprep.plot.histogram import _symlog_bins
-import sys
+
+from tools import data, utils
 
 
 def try_remove(filename):
@@ -76,11 +81,12 @@ def test_generate_colorbar_list():
 
 
 def test_generate_colorbar_dict():
+    if Version(matplotlib.__version__) >= Version("3.2"):
+        msg = "is not a valid value for name; supported values are"
+    else:
+        msg = "unhashable type: 'dict'"
     utils.assert_raises_message(
-        TypeError,
-        "unhashable type: 'dict'",
-        scprep.plot.tools.generate_colorbar,
-        cmap={"+": "r", "-": "b"},
+        TypeError, msg, scprep.plot.tools.generate_colorbar, cmap={"+": "r", "-": "b"},
     )
 
 
