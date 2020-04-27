@@ -1,18 +1,22 @@
-from tools import data, utils
-import scprep
-import scprep.io.utils
-from nose.tools import assert_raises
 import pandas as pd
 import numpy as np
-from scipy import sparse
-from parameterized import parameterized
+import fcsparser
+
 import os
 import copy
 import shutil
-import fcsparser
 import zipfile
 import urllib
 import unittest
+
+import scprep
+import scprep.io.utils
+
+from tools import data, utils
+
+from scipy import sparse
+from parameterized import parameterized
+from nose.tools import assert_raises
 
 
 class TestMatrixToDataFrame(unittest.TestCase):
