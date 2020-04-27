@@ -213,6 +213,7 @@ def test_10X_zip(filename):
 
 
 def test_10X_zip_error():
+    filename = os.path.join(data.data_dir, "test_10X.zip")
     utils.assert_raises_message(
         ValueError,
         "gene_labels='invalid' not recognized. " "Choose from ['symbol', 'id', 'both']",
