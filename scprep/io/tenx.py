@@ -209,26 +209,27 @@ def load_10X_zip(filename, sparse=True, gene_labels="symbol", allow_duplicates=N
             valid_dirnames = []
         else:
             valid_dirnames = []
-            for dirname in set(["/".join(f.split("/")[:-1]) for f in files]):
+            for dirname in set([""] + ["/".join(f.split("/")[:-1]) for f in files]):
                 subdir_files = [f for f in files if f.startswith(dirname)]
+                path = lambda x: "{}/{}".format(dirname, x) if dirname != "" else x
                 if (
                     (
-                        "{}/barcodes.tsv".format(dirname) in subdir_files
-                        or "{}/barcodes.tsv.gz".format(dirname) in subdir_files
+                        path("barcodes.tsv") in subdir_files
+                        or path("barcodes.tsv.gz") in subdir_files
                     )
                     and (
                         (
-                            "{}/genes.tsv".format(dirname) in subdir_files
-                            or "{}/genes.tsv.gz".format(dirname) in subdir_files
+                            path("genes.tsv") in subdir_files
+                            or path("genes.tsv.gz") in subdir_files
                         )
                         or (
-                            "{}/features.tsv".format(dirname) in subdir_files
-                            or "{}/features.tsv.gz".format(dirname) in subdir_files
+                            path("features.tsv") in subdir_files
+                            or path("features.tsv.gz") in subdir_files
                         )
                     )
                     and (
-                        "{}/matrix.mtx".format(dirname) in subdir_files
-                        or "{}/matrix.mtx.gz".format(dirname) in subdir_files
+                        path("matrix.mtx") in subdir_files
+                        or path("matrix.mtx.gz") in subdir_files
                     )
                 ):
                     valid_dirnames.append(dirname)
