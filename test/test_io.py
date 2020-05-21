@@ -138,6 +138,10 @@ class TestMatrixToDataFrame(unittest.TestCase):
         assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
         utils.assert_matrix_class_equivalent(Y, self.X_dense)
 
+    def test_parse_names_none(self):
+        assert scprep.io.utils._parse_gene_names(self.X_numpy) is None
+        assert scprep.io.utils._parse_cell_names(self.X_numpy) is None
+
 
 def test_10X_duplicate_gene_names():
     utils.assert_warns_message(
