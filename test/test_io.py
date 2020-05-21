@@ -139,8 +139,8 @@ class TestMatrixToDataFrame(unittest.TestCase):
         utils.assert_matrix_class_equivalent(Y, self.X_dense)
 
     def test_parse_names_none(self):
-        assert scprep.io.utils._parse_gene_names(self.X_numpy) is None
-        assert scprep.io.utils._parse_cell_names(self.X_numpy) is None
+        assert scprep.io.utils._parse_gene_names(None, self.X_numpy) is None
+        assert scprep.io.utils._parse_cell_names(None, self.X_numpy) is None
 
 
 def test_10X_duplicate_gene_names():
