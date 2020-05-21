@@ -52,6 +52,7 @@ def check_numeric(data, dtype="float", copy=None, suppress_errors=False):
                 "Data is not numeric. Many scprep functions will not work.",
                 RuntimeWarning,
             )
+            return data
         else:
             raise
 
