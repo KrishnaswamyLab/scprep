@@ -6,8 +6,7 @@ from . import r_function
 def _sum_to_one(x):
     x = x / np.sum(x)  # fix numerical error
     x = x.round(5)
-    if np.sum(x) != 1:
-        x[0] += 1 - np.sum(x)
+    x[0] += 1 - np.sum(x)
     x = x.round(5)
     return x
 
