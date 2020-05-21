@@ -7,7 +7,7 @@ import warnings
 from . import utils
 
 
-def check_numeric(data, dtype="float", copy=None):
+def check_numeric(data, dtype="float", copy=None, suppress_errors=False):
     """Check a matrix contains only numeric data
 
     Parameters
@@ -19,6 +19,8 @@ def check_numeric(data, dtype="float", copy=None):
     copy : bool or None, optional (default: None)
         Copy the data before coercion. If None, default to
         False for all datatypes except pandas.SparseDataFrame
+    suppress_errors : bool, optional (default: False)
+        Suppress errors from non-numeric data
 
     Returns
     -------
@@ -44,6 +46,14 @@ def check_numeric(data, dtype="float", copy=None):
                 return data.astype(dtype)
         else:
             raise e
+    except ValueError:
+        if suppress_errors:
+            warnings.warn(
+                "Data is not numeric. Many scprep functions will not work.",
+                RuntimeWarning,
+            )
+        else:
+            raise
 
 
 def check_index(data, copy=False):

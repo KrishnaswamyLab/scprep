@@ -6,7 +6,7 @@ import scipy.sparse as sp
 import warnings
 import numpy as np
 
-from .. import utils
+from .. import utils, sanitize
 
 
 def _parse_header(header, n_expected, header_type="gene_names"):
@@ -106,7 +106,6 @@ def _matrix_to_data_frame(data, gene_names=None, cell_names=None, sparse=None):
         else:
             # return data as is
             pass
-        return data
     else:
         gene_names = _parse_gene_names(gene_names, data)
         cell_names = _parse_cell_names(cell_names, data)
@@ -157,4 +156,5 @@ def _matrix_to_data_frame(data, gene_names=None, cell_names=None, sparse=None):
                 if sp.issparse(data):
                     data = data.toarray()
                 data = pd.DataFrame(data, index=cell_names, columns=gene_names)
-        return data
+    data = sanitize.check_numeric(data, suppress_errors=True)
+    return data
