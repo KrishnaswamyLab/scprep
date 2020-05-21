@@ -92,8 +92,10 @@ def Slingshot(
     this function performs lineage inference using a cluster-based minimum spanning tree and
     constructing simulatenous principal curves for branching paths through the tree.
 
-    For more details, read about Slingshot on [GitHub](https://github.com/kstreet13/slingshot)
-    and [Bioconductor](https://bioconductor.org/packages/release/bioc/html/slingshot.html).
+    For more details, read about Slingshot on GitHub_ and Bioconductor_.
+
+    .. _GitHub: https://github.com/kstreet13/slingshot
+    .. _Bioconductor: https://bioconductor.org/packages/release/bioc/html/slingshot.html
 
     Parameters
     ----------

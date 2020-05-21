@@ -83,9 +83,19 @@ class TestGeneSetExpression(unittest.TestCase):
         matrix.test_pandas_matrix_types(self.X_dense, test_fun)
 
     def test_variable_genes(self):
+        X_dense = scprep.filter.filter_rare_genes(self.X_dense, cutoff=5)
+        Y = scprep.measure.gene_variability(X_dense)
+        matrix.test_all_matrix_types(
+            X_dense,
+            utils.assert_transform_equals,
+            Y,
+            scprep.measure.gene_variability,
+            check=utils.assert_all_close,
+        )
+
         def test_fun(X):
             x = scprep.measure.gene_variability(X)
             assert x.name == "variability"
-            assert np.all(x.index == self.X_dense.columns)
+            assert np.all(x.index == X.columns)
 
-        matrix.test_pandas_matrix_types(self.X_dense, test_fun)
+        matrix.test_pandas_matrix_types(X_dense, test_fun)

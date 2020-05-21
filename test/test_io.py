@@ -1,17 +1,22 @@
-from tools import data, utils
-import scprep
-import scprep.io.utils
-from nose.tools import assert_raises
 import pandas as pd
 import numpy as np
-from scipy import sparse
+import fcsparser
+
 import os
 import copy
 import shutil
-import fcsparser
 import zipfile
 import urllib
 import unittest
+
+import scprep
+import scprep.io.utils
+
+from tools import data, utils
+
+from scipy import sparse
+from parameterized import parameterized
+from nose.tools import assert_raises
 
 
 class TestMatrixToDataFrame(unittest.TestCase):
@@ -133,6 +138,10 @@ class TestMatrixToDataFrame(unittest.TestCase):
         assert np.all(scprep.utils.toarray(Y) == self.X_numpy)
         utils.assert_matrix_class_equivalent(Y, self.X_dense)
 
+    def test_parse_names_none(self):
+        assert scprep.io.utils._parse_gene_names(None, self.X_numpy) is None
+        assert scprep.io.utils._parse_cell_names(None, self.X_numpy) is None
+
 
 def test_10X_duplicate_gene_names():
     utils.assert_warns_message(
@@ -196,14 +205,19 @@ def test_10X():
     )
 
 
-def test_10X_zip():
+@parameterized([("test_10X.zip",), ("test_10X_no_subdir.zip",)])
+def test_10X_zip(filename):
     X = data.load_10X()
-    filename = os.path.join(data.data_dir, "test_10X.zip")
+    filename = os.path.join(data.data_dir, filename)
     X_zip = scprep.io.load_10X_zip(filename)
     assert scprep.utils.is_sparse_dataframe(X_zip)
     assert np.sum(np.sum(X != X_zip)) == 0
     np.testing.assert_array_equal(X.columns, X_zip.columns)
     np.testing.assert_array_equal(X.index, X_zip.index)
+
+
+def test_10X_zip_error():
+    filename = os.path.join(data.data_dir, "test_10X.zip")
     utils.assert_raises_message(
         ValueError,
         "gene_labels='invalid' not recognized. " "Choose from ['symbol', 'id', 'both']",
@@ -379,6 +393,16 @@ def test_csv_and_tsv():
     X_csv = scprep.io.load_csv(
         os.path.join(data.data_dir, "test_small.csv"), gene_names=True, cell_names=True
     )
+    with utils.assert_warns_message(
+        RuntimeWarning,
+        "Duplicate cell names detected! Some functions may not work as intended. "
+        "You can fix this by running `scprep.sanitize.check_index(data)`.",
+    ):
+        scprep.io.load_csv(
+            os.path.join(data.data_dir, "test_small.csv"),
+            gene_names=True,
+            cell_names=[0] + list(range(X_csv.shape[1] - 1)),
+        )
     X_csv2 = scprep.io.load_csv(
         os.path.join(data.data_dir, "test_small.csv"),
         gene_names=True,

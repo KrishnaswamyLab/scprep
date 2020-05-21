@@ -1,17 +1,22 @@
-from tools import data, utils
-import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import os
-import numbers
 
-import unittest
 import scprep
+import matplotlib
+
+import os
+import sys
+import numbers
+import unittest
+
+from packaging.version import Version
+
 from scprep.plot.scatter import _ScatterParams
 from scprep.plot.jitter import _JitterParams
 from scprep.plot.histogram import _symlog_bins
-import sys
+
+from tools import data, utils
 
 
 def try_remove(filename):
@@ -76,11 +81,14 @@ def test_generate_colorbar_list():
 
 
 def test_generate_colorbar_dict():
+    if Version(matplotlib.__version__) >= Version("3.2"):
+        errtype = ValueError
+        msg = "is not a valid value for name; supported values are"
+    else:
+        errtype = TypeError
+        msg = "unhashable type: 'dict'"
     utils.assert_raises_message(
-        TypeError,
-        "unhashable type: 'dict'",
-        scprep.plot.tools.generate_colorbar,
-        cmap={"+": "r", "-": "b"},
+        errtype, msg, scprep.plot.tools.generate_colorbar, cmap={"+": "r", "-": "b"},
     )
 
 
@@ -995,10 +1003,26 @@ class Test10X(unittest.TestCase):
             self.X_pca, c=self.X_pca[:, 0], legend_title="test", title="title test"
         )
 
+    def test_scatter2d_one_point(self):
+        scprep.plot.scatter2d(self.X_pca[0], c=["red"])
+
+    def test_scatter3d_one_point(self):
+        scprep.plot.scatter3d(self.X_pca[0], c=["red"])
+
     def test_scatter_discrete(self):
         ax = scprep.plot.scatter2d(
             self.X_pca,
             c=np.random.choice(["hello", "world"], self.X_pca.shape[0], replace=True),
+            legend_title="test",
+            legend_loc="center left",
+            legend_anchor=(1.02, 0.5),
+        )
+        assert ax.get_legend().get_title().get_text() == "test"
+
+    def test_scatter_discrete_str_int(self):
+        ax = scprep.plot.scatter2d(
+            self.X_pca,
+            c=np.random.choice(["1", "2", "3"], self.X_pca.shape[0], replace=True),
             legend_title="test",
             legend_loc="center left",
             legend_anchor=(1.02, 0.5),

@@ -2,6 +2,8 @@ import numpy as np
 import numbers
 import warnings
 
+from scipy import sparse
+
 from .. import measure, utils
 from .utils import _get_figure, show, temp_fontsize, parse_fontsize
 from .tools import label_axis
@@ -234,7 +236,9 @@ def plot_library_size(
         axis on which plot was drawn
     """
     data = utils.to_array_or_spmatrix(data)
-    if len(data.shape) > 2 or data.dtype.type is np.object_:
+    if (not sparse.issparse(data)) and (
+        len(data.shape) > 2 or data.dtype.type is np.object_
+    ):
         # top level must be list
         libsize = [measure.library_size(d) for d in data]
     else:

@@ -55,10 +55,16 @@ def _is_color_array(c):
     if c is None:
         return False
     else:
-        for val in c:
-            if not mpl.colors.is_color_like(val):
-                return False
-        return True
+        try:
+            c_rgb = mpl.colors.to_rgba_array(c)
+            if np.any(c_rgb > 1):
+                # possibly https://github.com/matplotlib/matplotlib/issues/13912
+                for i in np.argwhere(c_rgb > 1).flatten():
+                    if isinstance(c[i], str):
+                        return False
+            return True
+        except ValueError:
+            return False
 
 
 def _in_ipynb():

@@ -1,6 +1,16 @@
 import numpy as np
+import numbers
 
 from . import r_function
+
+
+def _sum_to_one(x):
+    x = x / np.sum(x)  # fix numerical error
+    x = x.round(5)
+    if not isinstance(x, numbers.Number):
+        x[0] += 1 - np.sum(x)
+    x = x.round(5)
+    return x
 
 
 def install(site_repository=None, update=False, version=None, verbose=True):
@@ -154,8 +164,10 @@ def SplatSimulate(
     """Simulate count data from a fictional single-cell RNA-seq experiment using the Splat method.
 
     SplatSimulate is a Python wrapper for the R package Splatter. For more
-    details, read about Splatter  on [GitHub](https://github.com/Oshlack/splatter)
-    and [Bioconductor](https://bioconductor.org/packages/release/bioc/html/splatter.html).
+    details, read about Splatter on GitHub_ and Bioconductor_.
+
+    .. _GitHub: https://github.com/Oshlack/splatter
+    .. _Bioconductor: https://bioconductor.org/packages/release/bioc/html/splatter.html
 
     Parameters
     ----------
@@ -264,6 +276,8 @@ def SplatSimulate(
     else:
         dropout_prob = None
     np.random.seed(seed)
+
+    group_prob = _sum_to_one(group_prob)
 
     sim = _SplatSimulate(
         method=method,

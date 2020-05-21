@@ -1,5 +1,5 @@
 .
-sphinx>=2.2
+sphinx>=2.2,<2.4
 sphinxcontrib-napoleon
 autodocsumm
 ipykernel

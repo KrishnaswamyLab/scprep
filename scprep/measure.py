@@ -109,7 +109,7 @@ def gene_variability(data, kernel_size=0.005, smooth=5, return_means=False):
     if isinstance(data, sparse.dia_matrix):
         data = data.tocsc()
     data_std = utils.matrix_std(data, axis=0) ** 2
-    data_mean = utils.toarray(np.mean(data, axis=0)).flatten()
+    data_mean = utils.toarray(data.mean(axis=0)).flatten()
 
     if kernel_size < 1:
         kernel_size = 2 * (int(kernel_size * len(data_std)) // 2) + 1

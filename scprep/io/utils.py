@@ -6,7 +6,7 @@ import scipy.sparse as sp
 import warnings
 import numpy as np
 
-from .. import utils
+from .. import utils, sanitize
 
 
 def _parse_header(header, n_expected, header_type="gene_names"):
@@ -57,11 +57,23 @@ def _parse_header(header, n_expected, header_type="gene_names"):
 
 
 def _parse_gene_names(header, data):
-    return _parse_header(header, data.shape[1], header_type="gene_names")
+    header = _parse_header(header, data.shape[1], header_type="gene_names")
+    if header is None:
+        try:
+            return data.columns
+        except AttributeError:
+            pass
+    return header
 
 
 def _parse_cell_names(header, data):
-    return _parse_header(header, data.shape[0], header_type="cell_names")
+    header = _parse_header(header, data.shape[0], header_type="cell_names")
+    if header is None:
+        try:
+            return data.index
+        except AttributeError:
+            pass
+    return header
 
 
 def _matrix_to_data_frame(data, gene_names=None, cell_names=None, sparse=None):
@@ -94,7 +106,6 @@ def _matrix_to_data_frame(data, gene_names=None, cell_names=None, sparse=None):
         else:
             # return data as is
             pass
-        return data
     else:
         gene_names = _parse_gene_names(gene_names, data)
         cell_names = _parse_cell_names(cell_names, data)
@@ -108,9 +119,14 @@ def _matrix_to_data_frame(data, gene_names=None, cell_names=None, sparse=None):
             and len(np.unique(gene_names)) < len(gene_names)
         ):
             warnings.warn(
-                "Duplicate gene names detected! Forcing dense matrix", RuntimeWarning
+                "Duplicate gene names detected! Forcing dense matrix.", RuntimeWarning
             )
             sparse = False
+        if cell_names is not None and len(np.unique(cell_names)) < len(cell_names):
+            warnings.warn(
+                "Duplicate cell names detected! Some functions may not work as intended. You can fix this by running `scprep.sanitize.check_index(data)`.",
+                RuntimeWarning,
+            )
         if sparse:
             # return pandas.DataFrame[SparseArray]
             if isinstance(data, pd.DataFrame):
@@ -140,4 +156,5 @@ def _matrix_to_data_frame(data, gene_names=None, cell_names=None, sparse=None):
                 if sp.issparse(data):
                     data = data.toarray()
                 data = pd.DataFrame(data, index=cell_names, columns=gene_names)
-        return data
+    data = sanitize.check_numeric(data, suppress_errors=True)
+    return data

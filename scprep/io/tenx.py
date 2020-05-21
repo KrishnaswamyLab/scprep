@@ -205,29 +205,42 @@ def load_10X_zip(filename, sparse=True, gene_labels="symbol", allow_duplicates=N
     tmpdir = tempfile.mkdtemp()
     with zipfile.ZipFile(filename) as handle:
         files = handle.namelist()
-        if len(files) != 4:
-            valid = False
+        if len(files) < 3:
+            valid_dirnames = []
         else:
-            dirname = files[0].strip("/")
-            subdir_files = [f.split("/")[-1] for f in files]
-            valid = (
-                ("barcodes.tsv" in subdir_files or "barcodes.tsv.gz" in subdir_files)
-                and (
-                    ("genes.tsv" in subdir_files or "genes.tsv.gz" in subdir_files)
-                    or (
-                        "features.tsv" in subdir_files
-                        or "features.tsv.gz" in subdir_files
+            valid_dirnames = []
+            for dirname in set([""] + ["/".join(f.split("/")[:-1]) for f in files]):
+                subdir_files = [f for f in files if f.startswith(dirname)]
+                path = lambda x: "{}/{}".format(dirname, x) if dirname != "" else x
+                if (
+                    (
+                        path("barcodes.tsv") in subdir_files
+                        or path("barcodes.tsv.gz") in subdir_files
                     )
-                )
-                and ("matrix.mtx" in subdir_files or "matrix.mtx.gz" in subdir_files)
-            )
-        if not valid:
+                    and (
+                        (
+                            path("genes.tsv") in subdir_files
+                            or path("genes.tsv.gz") in subdir_files
+                        )
+                        or (
+                            path("features.tsv") in subdir_files
+                            or path("features.tsv.gz") in subdir_files
+                        )
+                    )
+                    and (
+                        path("matrix.mtx") in subdir_files
+                        or path("matrix.mtx.gz") in subdir_files
+                    )
+                ):
+                    valid_dirnames.append(dirname)
+        if len(valid_dirnames) != 1:
             raise ValueError(
                 "Expected a single zipped folder containing 'matrix.mtx(.gz)', "
                 "'[genes/features].tsv(.gz)', and 'barcodes.tsv(.gz)'. Got {}".format(
                     files
                 )
             )
+        dirname = valid_dirnames[0]
         handle.extractall(path=tmpdir)
     data = load_10X(os.path.join(tmpdir, dirname))
     shutil.rmtree(tmpdir)
