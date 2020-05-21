@@ -564,14 +564,16 @@ class Test10X(unittest.TestCase):
         )
 
     def test_select_variable_genes(self):
-        X_filtered = scprep.select.highly_variable_genes(self.X, percentile=90)
-        assert X_filtered.shape[0] == self.X.shape[0]
-        assert X_filtered.shape[1] == 10
-        assert (
-            self.X.columns[np.argmax(self.X.values.std(axis=0))] in X_filtered.columns
+        X = scprep.filter.filter_rare_genes(self.X, cutoff=5)
+        X_filtered = scprep.select.highly_variable_genes(X, percentile=90)
+        assert X_filtered.shape[0] == X.shape[0]
+        assert X_filtered.shape[1] == int(np.round(X.shape[1] / 10)), (
+            X.shape[1],
+            X_filtered.shape[1],
         )
+        assert X.columns[np.argmax(X.values.std(axis=0))] in X_filtered.columns
         matrix.test_all_matrix_types(
-            self.X,
+            X,
             utils.assert_transform_equals,
             Y=X_filtered,
             transform=scprep.select.highly_variable_genes,
