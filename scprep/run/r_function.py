@@ -168,7 +168,7 @@ def install_bioconductor(
     package=None, site_repository=None, update=False, version=None, verbose=True
 ):
     """Install a Bioconductor package
-    
+
     Parameters
     ----------
     site_repository : string, optional (default: None)

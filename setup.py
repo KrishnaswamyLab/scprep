@@ -58,7 +58,10 @@ setup(
     download_url="https://github.com/KrishnaswamyLab/scprep/archive/v{}.tar.gz".format(
         version
     ),
-    keywords=["big-data", "computational-biology",],
+    keywords=[
+        "big-data",
+        "computational-biology",
+    ],
     classifiers=[
         "Development Status :: 4 - Beta",
         "Environment :: Console",

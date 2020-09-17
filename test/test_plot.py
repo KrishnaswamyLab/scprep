@@ -88,7 +88,10 @@ def test_generate_colorbar_dict():
         errtype = TypeError
         msg = "unhashable type: 'dict'"
     utils.assert_raises_message(
-        errtype, msg, scprep.plot.tools.generate_colorbar, cmap={"+": "r", "-": "b"},
+        errtype,
+        msg,
+        scprep.plot.tools.generate_colorbar,
+        cmap={"+": "r", "-": "b"},
     )
 
 

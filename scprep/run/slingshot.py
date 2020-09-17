@@ -8,7 +8,7 @@ from .. import utils
 
 def install(site_repository=None, update=False, version=None, verbose=True):
     """Install the required R packages to run Slingshot
-    
+
     Parameters
     ----------
     site_repository : string, optional (default: None)
@@ -127,7 +127,7 @@ def Slingshot(
         boolean or numeric between 0 and 1, determines whether and how much to shrink
         branching lineages toward their average prior to the split.
     extend : {'y', 'n', 'pc1'}, optional (default: "y")
-        how to handle root and leaf clusters of lineages when 
+        how to handle root and leaf clusters of lineages when
         constructing the initial, piece-wise linear curve.
     reweight : boolean, optional (default: True)
         whether to allow cells shared between lineages to be reweighted during curve-fitting.

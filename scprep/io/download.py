@@ -46,9 +46,9 @@ def _GET_google_drive(id):
 
 def download_google_drive(id, destination):
     """Download a file from Google Drive
-    
+
     Requires the file to be available to view by anyone with the URL.
-    
+
     Parameters
     ----------
     id : string

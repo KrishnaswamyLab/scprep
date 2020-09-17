@@ -15,7 +15,7 @@ def _sum_to_one(x):
 
 def install(site_repository=None, update=False, version=None, verbose=True):
     """Install the required R packages to run Splatter
-    
+
     Parameters
     ----------
     site_repository : string, optional (default: None)
