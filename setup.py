@@ -26,15 +26,16 @@ test_requires = [
 doc_requires = [
     "sphinx>=2.2,<2.4",
     "sphinxcontrib-napoleon",
-    "autodocsumm",
     "ipykernel",
     "nbsphinx",
 ]
 
 if sys.version_info[:2] < (3, 6):
     test_requires += ["matplotlib>=3.0,<3.1", "rpy2>=3.0,<3.1"]
+    doc_requires += ["autodocsumm<2.0"]
 else:
     test_requires += ["matplotlib>=3.0", "rpy2>=3.0", "black"]
+    doc_requires += ["autodocsumm"]
 
 version_py = os.path.join(os.path.dirname(__file__), "scprep", "version.py")
 version = open(version_py).read().strip().split("=")[-1].replace('"', "").strip()
