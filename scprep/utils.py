@@ -577,7 +577,9 @@ def matrix_min(data):
     if is_SparseDataFrame(data):
         data = [np.min(data[col]) for col in data.columns]
     elif is_sparse_dataframe(data):
-        data = [np.min(data[col].sparse.sp_values) for col in data.columns]
+        data = [np.min(data[col].sparse.sp_values) for col in data.columns] + [
+            data.sparse.fill_value
+        ]
     elif isinstance(data, pd.DataFrame):
         data = np.min(data)
     elif isinstance(data, sparse.lil_matrix):
