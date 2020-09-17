@@ -559,6 +559,24 @@ def matrix_vector_elementwise_multiply(data, multiplier, axis=None):
     return data
 
 
+def sparse_series_min(data):
+    """Get the minimum value from a pandas sparse series
+
+    Pandas SparseDataFrame does not handle np.min.
+
+    Parameters
+    ----------
+    data : pd.Series[SparseArray]
+        Input data
+
+    Returns
+    -------
+    minimum : float
+        Minimum entry in `data`.
+    """
+    return np.concatenate([data.sparse.sp_values, [data.sparse.fill_value]]).min()
+
+
 def matrix_min(data):
     """Get the minimum value from a data matrix.
 
@@ -577,10 +595,7 @@ def matrix_min(data):
     if is_SparseDataFrame(data):
         data = [np.min(data[col]) for col in data.columns]
     elif is_sparse_dataframe(data):
-        data = [
-            min(np.min(data[col].sparse.sp_values), data[col].sparse.fill_value)
-            for col in data.columns
-        ]
+        data = [sparse_series_min(data[col]) for col in data.columns]
     elif isinstance(data, pd.DataFrame):
         data = np.min(data)
     elif isinstance(data, sparse.lil_matrix):
