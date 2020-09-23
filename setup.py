@@ -32,7 +32,7 @@ doc_requires = [
 
 if sys.version_info[:2] < (3, 6):
     test_requires += ["matplotlib>=3.0,<3.1", "rpy2>=3.0,<3.1"]
-    doc_requires += ["autodocsumm<0.2.0"]
+    doc_requires += ["autodocsumm!=0.2.0"]
 else:
     test_requires += ["matplotlib>=3.0", "rpy2>=3.0", "black"]
     doc_requires += ["autodocsumm"]
