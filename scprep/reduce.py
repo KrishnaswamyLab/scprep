@@ -144,14 +144,12 @@ class SparseInputPCA(sklearn.base.BaseEstimator):
 
     @property
     def singular_values_(self):
-        """Singular values of the PCA decomposition
-        """
+        """Singular values of the PCA decomposition"""
         return self.pca_op.singular_values_
 
     @property
     def explained_variance_(self):
-        """The amount of variance explained by each of the selected components.
-        """
+        """The amount of variance explained by each of the selected components."""
         return self.pca_op.explained_variance_
 
     @property
@@ -265,7 +263,7 @@ def pca(
     method : {'svd', 'orth_rproj', 'rproj', 'dense'}, optional (default: 'svd')
         Dimensionality reduction method applied prior to mean centering
         of sparse input. The method choice affects accuracy
-        (`svd` > `orth_rproj` > `rproj`) and comes with increased 
+        (`svd` > `orth_rproj` > `rproj`) and comes with increased
         computational cost (but not memory.) On the other hand,
         `method='dense'` adds a memory cost but is faster.
     seed : int, RandomState or None, optional (default: None)

@@ -663,7 +663,9 @@ def test_is_sparse_dataframe():
     if matrix._pandas_0:
         types.append(matrix.SparseDataFrame_deprecated)
     matrix.test_matrix_types(
-        X, test_fun, types,
+        X,
+        test_fun,
+        types,
     )
 
 

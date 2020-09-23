@@ -386,6 +386,8 @@ def select_cols(
     if utils.is_SparseDataFrame(data):
         # evil deprecated dataframe; get rid of it
         data = utils.SparseDataFrame(data)
+
+    input_1d = _is_1d(data)
     if isinstance(data, pd.DataFrame):
         try:
             if isinstance(idx, (numbers.Integral, str)):
@@ -442,7 +444,7 @@ def select_cols(
         data = data[:, idx]
     if _get_column_length(data) == 0:
         warnings.warn("Selecting 0 columns.", UserWarning)
-    elif isinstance(data, pd.DataFrame):
+    elif isinstance(data, pd.DataFrame) and not input_1d:
         # convert to series if possible
         data = _convert_dataframe_1d(data, silent=True)
     if len(extra_data) > 0:
@@ -534,6 +536,8 @@ def select_rows(
     if utils.is_SparseDataFrame(data):
         # evil deprecated dataframe; get rid of it
         data = utils.SparseDataFrame(data)
+
+    input_1d = _is_1d(data)
     if isinstance(data, (pd.DataFrame, pd.Series)):
         try:
             if isinstance(idx, (numbers.Integral, str)):
@@ -569,7 +573,7 @@ def select_rows(
         data = data[idx, :]
     if _get_row_length(data) == 0:
         warnings.warn("Selecting 0 rows.", UserWarning)
-    elif isinstance(data, pd.DataFrame):
+    elif isinstance(data, pd.DataFrame) and not input_1d:
         # convert to series if possible
         data = _convert_dataframe_1d(data, silent=True)
     if len(extra_data) > 0:

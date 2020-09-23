@@ -59,14 +59,14 @@ def check_numeric(data, dtype="float", copy=None, suppress_errors=False):
 
 def check_index(data, copy=False):
     """Ensure that the data index is unique in a pandas DataFrame
-    
+
     Parameters
     ----------
     data : pd.DataFrame
         Input data
     copy : bool, optional (default: True)
         If True, return a modified copy of the data. Otherwise modify it in place.
-    
+
     Returns
     -------
     data : pd.DataFrame

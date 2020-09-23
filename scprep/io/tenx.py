@@ -56,8 +56,7 @@ def _parse_10x_genes(symbols, ids, gene_labels="symbol", allow_duplicates=True):
 
 
 def _find_gz_file(*path):
-    """Find a file that could be gzipped.
-    """
+    """Find a file that could be gzipped."""
     path = os.path.join(*path)
     if os.path.isfile(path):
         return path
