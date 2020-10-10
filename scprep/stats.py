@@ -292,7 +292,7 @@ def knnDREMI(
             density,
             bin_density,
             drevi,
-            **kwargs
+            **kwargs,
         )
     if return_drevi:
         return dremi, drevi

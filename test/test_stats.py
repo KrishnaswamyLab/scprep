@@ -14,7 +14,7 @@ def _test_fun_2d(X, fun, **kwargs):
     return fun(
         scprep.select.select_cols(X, idx=0),
         scprep.select.select_cols(X, idx=1),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -224,7 +224,7 @@ def test_mean_difference():
         return scprep.stats.mean_difference(
             scprep.select.select_rows(X, idx=np.arange(20)),
             scprep.select.select_rows(X, idx=np.arange(20, 100)),
-            **kwargs
+            **kwargs,
         )
 
     matrix.test_all_matrix_types(
@@ -304,7 +304,7 @@ def test_differential_expression(measure, direction):
         return scprep.stats.differential_expression(
             scprep.select.select_rows(X, idx=np.arange(20)),
             scprep.select.select_rows(X, idx=np.arange(20, 100)),
-            **kwargs
+            **kwargs,
         )
 
     def check_fun(Y1, Y2):

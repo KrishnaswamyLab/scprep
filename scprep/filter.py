@@ -258,7 +258,7 @@ def filter_library_size(
         keep_cells=keep_cells,
         return_values=return_library_size,
         sample_labels=sample_labels,
-        filter_per_sample=filter_per_sample
+        filter_per_sample=filter_per_sample,
     )
 
 
@@ -347,7 +347,7 @@ def filter_gene_set_expression(
         keep_cells=keep_cells,
         return_values=return_expression,
         sample_labels=sample_labels,
-        filter_per_sample=filter_per_sample
+        filter_per_sample=filter_per_sample,
     )
 
 

@@ -738,7 +738,7 @@ def scatter(
             s=params.s,
             vmin=params.vmin,
             vmax=params.vmax,
-            **plot_kwargs
+            **plot_kwargs,
         )
 
         # label axes
@@ -983,7 +983,7 @@ def scatter2d(
         legend_ncol=legend_ncol,
         filename=filename,
         dpi=dpi,
-        **plot_kwargs
+        **plot_kwargs,
     )
 
 
@@ -1188,7 +1188,7 @@ def scatter3d(
         azim=azim,
         filename=filename,
         dpi=dpi,
-        **plot_kwargs
+        **plot_kwargs,
     )
 
 

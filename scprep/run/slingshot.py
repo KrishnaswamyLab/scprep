@@ -240,7 +240,7 @@ def Slingshot(
         allow_breaks=allow_breaks,
         **kwargs,
         seed=seed,
-        rpy_verbose=verbose
+        rpy_verbose=verbose,
     )
     slingshot["curves"] = np.array(list(slingshot["curves"].values()))
 

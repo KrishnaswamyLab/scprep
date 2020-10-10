@@ -7,7 +7,7 @@ from .utils import _matrix_to_data_frame
 from .. import utils
 
 
-def _read_csv_sparse(filename, chunksize=1000000, fill_value=0.0, **kwargs):
+def _read_csv_sparse(filename, chunksize=10000, fill_value=0.0, **kwargs):
     """Read a csv file into a pd.DataFrame[pd.SparseArray]"""
     chunks = pd.read_csv(filename, chunksize=chunksize, **kwargs)
     data = pd.concat(
@@ -23,6 +23,7 @@ def load_csv(
     gene_names=True,
     cell_names=True,
     sparse=False,
+    chunksize=10000,
     **kwargs
 ):
     """Load a csv file
@@ -45,6 +46,9 @@ def load_csv(
     sparse : bool, optional (default: False)
         If True, loads the data as a pd.DataFrame[pd.SparseArray]. This uses less memory
         but more CPU.
+    chunksize : int, optional (default: 10000)
+        If `sparse=True`, read this many lines of dense data at a time
+        before converting to sparse.
     **kwargs : optional arguments for `pd.read_csv`.
 
     Returns
@@ -84,6 +88,7 @@ def load_csv(
     # Read in csv file
     if sparse:
         read_fun = _read_csv_sparse
+        kwargs["chunksize"] = chunksize
     else:
         read_fun = pd.read_csv
     data = read_fun(
@@ -144,5 +149,5 @@ def load_tsv(
         gene_names=gene_names,
         cell_names=cell_names,
         sparse=sparse,
-        **kwargs
+        **kwargs,
     )
