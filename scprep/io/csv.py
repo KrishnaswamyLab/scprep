@@ -23,7 +23,8 @@ def load_csv(
     gene_names=True,
     cell_names=True,
     sparse=False,
-    chunksize=10000 ** kwargs,
+    chunksize=10000,
+    **kwargs,
 ):
     """Load a csv file
 
@@ -110,7 +111,7 @@ def load_tsv(
     gene_names=True,
     cell_names=True,
     sparse=False,
-    **kwargs
+    **kwargs,
 ):
     """Load a tsv file
 
@@ -148,5 +149,5 @@ def load_tsv(
         gene_names=gene_names,
         cell_names=cell_names,
         sparse=sparse,
-        **kwargs
+        **kwargs,
     )
