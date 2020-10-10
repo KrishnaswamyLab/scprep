@@ -79,5 +79,5 @@ def plot_gene_variability(
         fontsize=fontsize,
         filename=filename,
         dpi=dpi,
-        **kwargs
+        **kwargs,
     )

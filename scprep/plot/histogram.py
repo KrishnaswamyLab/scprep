@@ -256,7 +256,7 @@ def plot_library_size(
         fontsize=fontsize,
         filename=filename,
         dpi=dpi,
-        **kwargs
+        **kwargs,
     )
 
 
@@ -381,5 +381,5 @@ def plot_gene_set_expression(
         fontsize=fontsize,
         filename=filename,
         dpi=dpi,
-        **kwargs
+        **kwargs,
     )

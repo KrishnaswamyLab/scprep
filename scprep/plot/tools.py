@@ -155,7 +155,7 @@ def generate_legend(
         bbox_to_anchor=bbox_to_anchor,
         fontsize=fontsize,
         ncol=ncol,
-        **kwargs
+        **kwargs,
     )
     plt.setp(legend.get_title(), fontsize=title_fontsize)
     return legend

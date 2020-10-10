@@ -6,7 +6,7 @@ set -e
 files=\$(git diff --staged --name-only --diff-filter=d -- "*.py")
 
 for file in \$files; do
-  black -q \$file
+  black -t py35 -q \$file
   git add \$file
 done
 EOF

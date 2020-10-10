@@ -188,7 +188,7 @@ def jitter(
             s=params.s,
             vmin=params.vmin,
             vmax=params.vmax,
-            **plot_kwargs
+            **plot_kwargs,
         )
 
         # Plotting means

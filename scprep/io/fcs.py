@@ -312,7 +312,7 @@ def load_fcs(
             filename,
             reformat_meta=reformat_meta,
             channel_naming=channel_naming,
-            **kwargs
+            **kwargs,
         )
     else:
         try:
