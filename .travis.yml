@@ -40,7 +40,7 @@ before_script:
 script:
   - python -c "import scprep"
   - 'pip install -U .[test]'
-  - 'if [ "$TRAVIS_PYTHON_VERSION" != "3.5" ]; then black . --check --diff --target py35; fi'
+  - 'if [ "$TRAVIS_PYTHON_VERSION" != "3.5" ]; then black . --check --diff --target-version py35; fi'
   - python setup.py test
   - 'pip install -U .[doc]'
   - python setup.py build_sphinx
