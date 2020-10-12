@@ -642,6 +642,27 @@ def matrix_any(condition):
     return np.sum(np.sum(condition)) > 0
 
 
+def matrix_transpose(X):
+    """Transpose a matrix in a memory-efficient manner
+
+    Pandas sparse dataframes are coerced to dense
+
+    Parameters
+    ----------
+    X : array-like, shape=[n,m]
+        Input data
+
+    Returns
+    -------
+    X_T : array-like, shape=[m,n]
+        Transposed input data
+    """
+    if is_sparse_dataframe(X):
+        X_T = X.sparse.to_coo().T
+        return SparseDataFrame(X_T, index=X.columns, columns=X.index, fill_value=X.sparse.fill_value)
+    else:
+        return X.T
+
 def check_consistent_columns(data, common_columns_only=True):
     """Ensure that a set of data matrices have consistent columns
 
