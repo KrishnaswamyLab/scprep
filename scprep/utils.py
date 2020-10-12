@@ -666,7 +666,7 @@ def matrix_transpose(X):
             )
         X_T = X.sparse.to_coo().T
         return SparseDataFrame(
-            X_T, index=X.columns, columns=X.index, fill_value=fill_values[0]
+            X_T, index=X.columns, columns=X.index, default_fill_value=fill_values[0]
         )
     else:
         return X.T
