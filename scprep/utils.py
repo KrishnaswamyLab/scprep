@@ -658,9 +658,15 @@ def matrix_transpose(X):
         Transposed input data
     """
     if is_sparse_dataframe(X):
+        fill_values = np.array([dtype.fill_value for dtype in X.dtypes])
+        if not np.all(fill_values == fill_values[0]):
+            raise TypeError(
+                "Can only transpose sparse dataframes with constant fill value. "
+                "If you wish to proceed, first convert the data to dense with scprep.utils.toarray."
+            )
         X_T = X.sparse.to_coo().T
         return SparseDataFrame(
-            X_T, index=X.columns, columns=X.index, fill_value=X.sparse.fill_value
+            X_T, index=X.columns, columns=X.index, fill_value=fill_values[0]
         )
     else:
         return X.T
