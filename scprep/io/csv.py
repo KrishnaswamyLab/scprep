@@ -96,7 +96,7 @@ def load_csv(
     )
 
     if cell_axis in ["column", "col"]:
-        data = data.T
+        data = utils.matrix_transpose(data)
 
     data = _matrix_to_data_frame(
         data, gene_names=gene_names, cell_names=cell_names, sparse=sparse
