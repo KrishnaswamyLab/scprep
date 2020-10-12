@@ -659,9 +659,12 @@ def matrix_transpose(X):
     """
     if is_sparse_dataframe(X):
         X_T = X.sparse.to_coo().T
-        return SparseDataFrame(X_T, index=X.columns, columns=X.index, fill_value=X.sparse.fill_value)
+        return SparseDataFrame(
+            X_T, index=X.columns, columns=X.index, fill_value=X.sparse.fill_value
+        )
     else:
         return X.T
+
 
 def check_consistent_columns(data, common_columns_only=True):
     """Ensure that a set of data matrices have consistent columns
