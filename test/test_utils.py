@@ -305,14 +305,14 @@ def test_matrix_transpose():
         Y=X_T,
         transform=scprep.utils.matrix_transpose,
     )
-    
+
     X = scprep.utils.SparseDataFrame(X)
-    X.iloc[:,1] = X.iloc[:,1].astype(pd.SparseDtype(float, fill_value=1))
+    X.iloc[:, 1] = X.iloc[:, 1].astype(pd.SparseDtype(float, fill_value=1))
     utils.assert_raises_message(
         TypeError,
         "Can only transpose sparse dataframes with constant fill value.",
         scprep.utils.matrix_transpose,
-        X
+        X,
     )
 
 
