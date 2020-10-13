@@ -642,6 +642,36 @@ def matrix_any(condition):
     return np.sum(np.sum(condition)) > 0
 
 
+def matrix_transpose(X):
+    """Transpose a matrix in a memory-efficient manner
+
+    Pandas sparse dataframes are coerced to dense
+
+    Parameters
+    ----------
+    X : array-like, shape=[n,m]
+        Input data
+
+    Returns
+    -------
+    X_T : array-like, shape=[m,n]
+        Transposed input data
+    """
+    if is_sparse_dataframe(X):
+        fill_values = np.array([dtype.fill_value for dtype in X.dtypes])
+        if not np.all(fill_values == fill_values[0]):
+            raise TypeError(
+                "Can only transpose sparse dataframes with constant fill value. "
+                "If you wish to proceed, first convert the data to dense with scprep.utils.toarray."
+            )
+        X_T = X.sparse.to_coo().T
+        return SparseDataFrame(
+            X_T, index=X.columns, columns=X.index, default_fill_value=fill_values[0]
+        )
+    else:
+        return X.T
+
+
 def check_consistent_columns(data, common_columns_only=True):
     """Ensure that a set of data matrices have consistent columns
 

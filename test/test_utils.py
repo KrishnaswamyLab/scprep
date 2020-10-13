@@ -295,6 +295,27 @@ def test_matrix_any():
     matrix.test_all_matrix_types(X, test_fun)
 
 
+def test_matrix_transpose():
+    X = data.generate_positive_sparse_matrix(shape=(50, 50))
+    X_T = X.T
+
+    matrix.test_all_matrix_types(
+        X,
+        utils.assert_transform_equals,
+        Y=X_T,
+        transform=scprep.utils.matrix_transpose,
+    )
+
+    X = scprep.utils.SparseDataFrame(X)
+    X.iloc[:, 1] = X.iloc[:, 1].astype(pd.SparseDtype(float, fill_value=1))
+    utils.assert_raises_message(
+        TypeError,
+        "Can only transpose sparse dataframes with constant fill value.",
+        scprep.utils.matrix_transpose,
+        X,
+    )
+
+
 def test_toarray():
     X = data.generate_positive_sparse_matrix(shape=(50, 50))
 
