@@ -3,11 +3,13 @@ import numpy as np
 import fcsparser
 
 import os
+import sys
 import copy
 import shutil
 import zipfile
 import urllib
 import unittest
+import mock
 
 import scprep
 import scprep.io.utils
@@ -280,12 +282,6 @@ def test_10X_zip_not_a_file():
 def test_10X_HDF5():
     X = data.load_10X()
     h5_file = os.path.join(data.data_dir, "test_10X.h5")
-    # automatic tables backend
-    X_hdf5 = scprep.io.load_10X_HDF5(h5_file)
-    assert scprep.utils.is_sparse_dataframe(X_hdf5)
-    assert np.sum(np.sum(X != X_hdf5)) == 0
-    np.testing.assert_array_equal(X.columns, X_hdf5.columns)
-    np.testing.assert_array_equal(X.index, X_hdf5.index)
     # explicit tables backend
     X_hdf5 = scprep.io.load_10X_HDF5(h5_file, backend="tables")
     assert scprep.utils.is_sparse_dataframe(X_hdf5)
@@ -298,15 +294,20 @@ def test_10X_HDF5():
     assert np.sum(np.sum(X != X_hdf5)) == 0
     np.testing.assert_array_equal(X.columns, X_hdf5.columns)
     np.testing.assert_array_equal(X.index, X_hdf5.index)
+    # automatic tables backend
+    with mock.patch.dict(sys.modules, {"h5py": None}):
+        X_hdf5 = scprep.io.load_10X_HDF5(h5_file)
+        assert scprep.utils.is_sparse_dataframe(X_hdf5)
+        assert np.sum(np.sum(X != X_hdf5)) == 0
+        np.testing.assert_array_equal(X.columns, X_hdf5.columns)
+        np.testing.assert_array_equal(X.index, X_hdf5.index)
     # automatic h5py backend
-    tables = scprep.io.hdf5.tables
-    del scprep.io.hdf5.tables
-    X_hdf5 = scprep.io.load_10X_HDF5(h5_file)
-    assert scprep.utils.is_sparse_dataframe(X_hdf5)
-    assert np.sum(np.sum(X != X_hdf5)) == 0
-    np.testing.assert_array_equal(X.columns, X_hdf5.columns)
-    np.testing.assert_array_equal(X.index, X_hdf5.index)
-    scprep.io.hdf5.tables = tables
+    with mock.patch.dict(sys.modules, {"tables": None}):
+        X_hdf5 = scprep.io.load_10X_HDF5(h5_file)
+        assert scprep.utils.is_sparse_dataframe(X_hdf5)
+        assert np.sum(np.sum(X != X_hdf5)) == 0
+        np.testing.assert_array_equal(X.columns, X_hdf5.columns)
+        np.testing.assert_array_equal(X.index, X_hdf5.index)
 
 
 def test_10X_HDF5_cellranger3():
