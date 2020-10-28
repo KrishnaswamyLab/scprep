@@ -15,7 +15,6 @@ optional_requires = [
     "tables",
     "h5py",
     "anndata",
-    "anndata2ri",
 ]
 
 test_requires = [
@@ -40,6 +39,7 @@ if sys.version_info[:2] < (3, 6):
     doc_requires += ["autodocsumm!=0.2.0"]
 else:
     test_requires += ["matplotlib>=3.0", "rpy2>=3.0", "black"]
+    optional_requires += ["anndata2ri"]
     doc_requires += ["autodocsumm"]
 
 version_py = os.path.join(os.path.dirname(__file__), "scprep", "version.py")
