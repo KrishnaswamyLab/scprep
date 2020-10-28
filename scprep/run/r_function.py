@@ -1,5 +1,4 @@
-import numpy as np
-
+from . import conversion
 from .. import utils
 from .._lazyload import rpy2
 
@@ -96,13 +95,7 @@ class RFunction(object):
             name=self.name, args=self.args, body=self.body
         )
         fun = getattr(rpy2.robjects.packages.STAP(function_text, self.name), self.name)
-        rpy2.robjects.numpy2ri.activate()
-        rpy2.robjects.pandas2ri.activate()
-        try:
-            import anndata2ri
-            anndata2ri.activate()
-        except ModuleNotFoundError:
-            pass
+        conversion.activate()
         return fun
 
     @property
@@ -112,43 +105,6 @@ class RFunction(object):
         except AttributeError:
             self._function = self._build()
             return self._function
-
-    def is_r_object(self, obj):
-        return "rpy2.robjects" in str(type(obj)) or obj is rpy2.rinterface.NULL
-
-    @utils._with_pkg(pkg="rpy2", min_version="3.0")
-    def convert(self, robject):
-        if self.is_r_object(robject):
-            if isinstance(robject, rpy2.robjects.vectors.ListVector):
-                names = self.convert(robject.names)
-                if names is None or len(names) > len(np.unique(names)):
-                    # list
-                    robject = np.array([self.convert(obj) for obj in robject])
-                else:
-                    # dictionary
-                    robject = {
-                        name: self.convert(obj)
-                        for name, obj in zip(robject.names, robject)
-                    }
-            else:
-                # try anndata first
-                try:
-                    robject = anndata2ri.rpy2py(robject)
-                except (NameError, NotImplementedError):
-                    pass
-                # then try pandas
-                try:
-                    robject = rpy2.robjects.pandas2ri.rpy2py(robject)
-                except NotImplementedError:
-                    pass
-                # then numpy
-                robject = rpy2.robjects.numpy2ri.rpy2py(robject)
-                if self.is_r_object(robject):
-                    # try regular conversion
-                    robject = rpy2.robjects.conversion.rpy2py(robject)
-                if robject is rpy2.rinterface.NULL:
-                    robject = None
-        return robject
 
     @utils._with_pkg(pkg="rpy2", min_version="3.0")
     def __call__(self, *args, rpy_cleanup=None, rpy_verbose=None, **kwargs):
@@ -161,7 +117,7 @@ class RFunction(object):
             rpy_cleanup = self.cleanup
         with _ConsoleWarning(rpy_verbose):
             robject = self.function(*args, **kwargs)
-            robject = self.convert(robject)
+            robject = conversion.rpy2py(robject)
             if rpy_cleanup:
                 rpy2.robjects.r("rm(list=ls())")
         self.verbose = default_verbose

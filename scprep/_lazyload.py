@@ -19,7 +19,7 @@ _importspec = {
     "mpl_toolkits": ["mplot3d"],
     "fcsparser": ["api"],
     "rpy2": [
-        {"robjects": ["numpy2ri", "packages", "vectors", "conversion"]},
+        {"robjects": ["numpy2ri", "pandas2ri", "packages", "vectors", "conversion"]},
         "rinterface",
         {"rinterface_lib": ["callbacks"]},
     ],
