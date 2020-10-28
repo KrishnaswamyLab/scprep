@@ -26,6 +26,7 @@ _importspec = {
     "h5py": [],
     "tables": [],
     "requests": [],
+    "anndata2ri": [],
 }
 
 

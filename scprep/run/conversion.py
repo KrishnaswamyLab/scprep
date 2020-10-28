@@ -1,18 +1,14 @@
 import numpy as np
 
 from .. import utils
-from .._lazyload import rpy2
+from .._lazyload import rpy2, anndata2ri
 
 
 def _activate():
     rpy2.robjects.numpy2ri.activate()
     rpy2.robjects.pandas2ri.activate()
-    try:
-        import anndata2ri
-
+    if utils._try_import("anndata2ri"):
         anndata2ri.activate()
-    except ModuleNotFoundError:
-        pass
 
 
 def _rpylist2py(robject):
@@ -35,12 +31,9 @@ def _rpynull2py(robject):
 
 
 def _rpysce2py(robject):
-    try:
-        import anndata2ri
-
-        return anndata2ri.rpy2py(robject)
-    except ModuleNotFoundError:
-        return robject
+    if utils._try_import("anndata2ri"):
+        robject = anndata2ri.rpy2py(robject)
+    return robject
 
 
 def _is_r_object(obj):
