@@ -4,7 +4,7 @@ from .. import utils
 from .._lazyload import rpy2
 
 
-def activate():
+def _activate():
     rpy2.robjects.numpy2ri.activate()
     rpy2.robjects.pandas2ri.activate()
     try:
@@ -15,7 +15,7 @@ def activate():
         pass
 
 
-def rpylist2py(robject):
+def _rpylist2py(robject):
     if not isinstance(robject, rpy2.robjects.vectors.ListVector):
         raise NotImplementedError
     names = rpy2py(robject.names)
@@ -28,28 +28,43 @@ def rpylist2py(robject):
     return robject
 
 
-def rpynull2py(robject):
+def _rpynull2py(robject):
     if robject is rpy2.rinterface.NULL:
-        return None
-    else:
-        raise NotImplementedError
+        robject = None
+    return robject
 
 
-def rpysce2py(robject):
+def _rpysce2py(robject):
     try:
         import anndata2ri
 
         return anndata2ri.rpy2py(robject)
     except ModuleNotFoundError:
-        raise NotImplementedError
+        return robject
 
 
-def is_r_object(obj):
+def _is_r_object(obj):
     return "rpy2.robjects" in str(type(obj)) or obj is rpy2.rinterface.NULL
 
 
 @utils._with_pkg(pkg="rpy2", min_version="3.0")
 def rpy2py(robject):
+    """Convert an rpy2 object to Python.
+
+    Attempts the following, in order: data.frame -> pd.DataFrame, named list -> dict,
+    unnamed list -> list, SingleCellExperiment -> anndata.AnnData, vector -> np.ndarray,
+    rpy2 generic converter, NULL -> None.
+
+    Parameters
+    ----------
+    robject : rpy2 object
+        Object to be converted
+
+    Returns
+    -------
+    pyobject : python object
+        Converted object
+    """
     for converter in [
         rpy2.robjects.pandas2ri.rpy2py,
         rpylist2py,
