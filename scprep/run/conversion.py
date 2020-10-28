@@ -4,7 +4,8 @@ from .. import utils
 from .._lazyload import rpy2, anndata2ri
 
 
-def _activate():
+def activate():
+    """Activate extra rpy2 converters."""
     rpy2.robjects.numpy2ri.activate()
     rpy2.robjects.pandas2ri.activate()
     if utils._try_import("anndata2ri"):
@@ -60,13 +61,13 @@ def rpy2py(robject):
     """
     for converter in [
         rpy2.robjects.pandas2ri.rpy2py,
-        rpylist2py,
-        rpysce2py,
+        _rpylist2py,
+        _rpysce2py,
         rpy2.robjects.numpy2ri.rpy2py,
         rpy2.robjects.conversion.rpy2py,
-        rpynull2py,
+        _rpynull2py,
     ]:
-        if is_r_object(robject):
+        if _is_r_object(robject):
             try:
                 robject = converter(robject)
             except NotImplementedError:
