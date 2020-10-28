@@ -10,12 +10,17 @@ install_requires = [
     "pandas>=0.25",
 ]
 
-test_requires = [
-    "nose",
-    "nose2",
+optional_requires = [
     "fcsparser",
     "tables",
     "h5py",
+    "anndata",
+    "anndata2ri",
+]
+
+test_requires = [
+    "nose",
+    "nose2",
     "coverage",
     "coveralls",
     "parameterized",
@@ -52,7 +57,11 @@ setup(
     license="GNU General Public License Version 2",
     install_requires=install_requires,
     python_requires=">=3.5",
-    extras_require={"test": test_requires, "doc": doc_requires},
+    extras_require={
+        "test": test_requires + optional_requires,
+        "doc": doc_requires,
+        "optional": optional_requires,
+    },
     test_suite="nose2.collector.collector",
     long_description=readme,
     url="https://github.com/KrishnaswamyLab/scprep",
