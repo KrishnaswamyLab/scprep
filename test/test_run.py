@@ -17,6 +17,7 @@ else:
     import scipy.sparse
     import rpy2.rinterface_lib.callbacks
     import rpy2.rinterface_lib.embedded
+    import mock
 
     builtin_warning = rpy2.rinterface_lib.callbacks.consolewrite_warnerror
 
@@ -411,3 +412,8 @@ else:
         assert x.layers["counts"].shape == (3, 2)
         assert np.all(x.obs["cols"] == np.array([1, 2, 3]))
         assert np.all(x.var["rows"] == np.array(["a", "b"]))
+
+    def test_conversion_anndata_missing():
+        with mock.patch.dict(sys.modules, {"anndata2ri": None, "anndata": None}):
+            x = scprep.run.conversion.rpy2py(ro.r("NULL"))
+            assert x is None

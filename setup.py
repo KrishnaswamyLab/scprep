@@ -25,6 +25,7 @@ test_requires = [
     "parameterized",
     "requests",
     "packaging",
+    "mock",
 ]
 
 doc_requires = [
