@@ -4,6 +4,7 @@ from decorator import decorator
 
 from .._lazyload import tables
 from .._lazyload import h5py
+from .. import utils
 
 try:
     ModuleNotFoundError
@@ -14,17 +15,12 @@ except NameError:
 
 @decorator
 def with_HDF5(fun, *args, **kwargs):
-    try:
-        tables
-    except NameError:
-        try:
-            h5py
-        except NameError:
-            raise ModuleNotFoundError(
-                "Found neither tables nor h5py. "
-                "Please install one of them with e.g. "
-                "`pip install --user tables` or `pip install --user h5py`"
-            )
+    if not (utils._try_import("tables") or utils._try_import("h5py")):
+        raise ModuleNotFoundError(
+            "Found neither tables nor h5py. "
+            "Please install one of them with e.g. "
+            "`pip install --user tables` or `pip install --user h5py`"
+        )
     return fun(*args, **kwargs)
 
 
@@ -51,10 +47,9 @@ def open_file(filename, mode="r", backend=None):
         Open HDF5 file handle.
     """
     if backend is None:
-        try:
-            tables
+        if utils._try_import("tables"):
             backend = "tables"
-        except NameError:
+        else:
             backend = "h5py"
     if backend == "tables":
         return tables.open_file(filename, mode)
@@ -67,7 +62,9 @@ def open_file(filename, mode="r", backend=None):
 
 
 def _is_tables(obj, allow_file=True, allow_group=True, allow_dataset=True):
-    try:
+    if not utils._try_import("tables"):
+        return False
+    else:
         types = []
         if allow_file:
             types.append(tables.File)
@@ -76,13 +73,13 @@ def _is_tables(obj, allow_file=True, allow_group=True, allow_dataset=True):
         if allow_dataset:
             types.append(tables.CArray)
             types.append(tables.Array)
-    except NameError:
-        return False
-    return isinstance(obj, tuple(types))
+        return isinstance(obj, tuple(types))
 
 
 def _is_h5py(obj, allow_file=True, allow_group=True, allow_dataset=True):
-    try:
+    if not utils._try_import("h5py"):
+        return False
+    else:
         types = []
         if allow_file:
             types.append(h5py.File)
@@ -90,9 +87,7 @@ def _is_h5py(obj, allow_file=True, allow_group=True, allow_dataset=True):
             types.append(h5py.Group)
         if allow_dataset:
             types.append(h5py.Dataset)
-    except NameError:
-        return False
-    return isinstance(obj, tuple(types))
+        return isinstance(obj, tuple(types))
 
 
 @with_HDF5

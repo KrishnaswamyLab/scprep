@@ -7,12 +7,17 @@ else:
     from tools import utils, matrix, data
     import numpy as np
     import pandas as pd
+    import rpy2.robjects as ro
     import scprep
     import scprep.run.r_function
+    import scprep.run.conversion
     import unittest
+    import anndata
     import sklearn.cluster
+    import scipy.sparse
     import rpy2.rinterface_lib.callbacks
     import rpy2.rinterface_lib.embedded
+    import mock
 
     builtin_warning = rpy2.rinterface_lib.callbacks.consolewrite_warnerror
 
@@ -357,3 +362,58 @@ else:
                 self.clusters[: self.X.shape[0] // 2],
                 verbose=False,
             )
+
+    def test_conversion_list():
+        x = scprep.run.conversion.rpy2py(ro.r("list(1,2,3)"))
+        assert isinstance(x, np.ndarray)
+        assert len(x) == 3
+        assert np.all(x == np.array([[1], [2], [3]]))
+
+    def test_conversion_dict():
+        x = scprep.run.conversion.rpy2py(ro.r("list(a=1,b=2,c=3)"))
+        assert isinstance(x, dict)
+        assert len(x) == 3
+        assert np.all(np.array(list(x.keys())) == np.array(["a", "b", "c"]))
+        assert np.all(np.array(list(x.values())) == np.array([[1], [2], [3]]))
+
+    def test_conversion_array():
+        x = scprep.run.conversion.rpy2py(ro.r("matrix(c(1,2,3,4,5,6), nrow=2, ncol=3)"))
+        assert isinstance(x, np.ndarray)
+        assert x.shape == (2, 3)
+        assert np.all(x == np.array([[1, 3, 5], [2, 4, 6]]))
+
+    def test_conversion_spmatrix():
+        ro.r("library(Matrix)")
+        x = scprep.run.conversion.rpy2py(
+            ro.r("as(matrix(c(1,2,3,4,5,6), nrow=2, ncol=3), 'CsparseMatrix')")
+        )
+        assert isinstance(x, scipy.sparse.csc_matrix)
+        assert x.shape == (2, 3)
+        assert np.all(x.toarray() == np.array([[1, 3, 5], [2, 4, 6]]))
+
+    def test_conversion_dataframe():
+        x = scprep.run.conversion.rpy2py(
+            ro.r("data.frame(x=c(1,2,3), y=c('a', 'b', 'c'))")
+        )
+        assert isinstance(x, pd.DataFrame)
+        assert x.shape == (3, 2)
+        assert np.all(x["x"] == np.array([1, 2, 3]))
+        assert np.all(x["y"] == np.array(["a", "b", "c"]))
+
+    def test_conversion_spmatrix():
+        ro.r("library(SingleCellExperiment)")
+        ro.r("X <- matrix(1:6, nrow=2, ncol=3)")
+        ro.r("counts <- X * 2")
+        ro.r("sce <- SingleCellExperiment(assays=list(X=X, counts=counts))")
+        ro.r("rowData(sce)$rows <- c('a', 'b')")
+        ro.r("colData(sce)$cols <- c(1, 2, 3)")
+        x = scprep.run.conversion.rpy2py(ro.r("sce"))
+        assert isinstance(x, anndata.AnnData)
+        assert x.layers["counts"].shape == (3, 2)
+        assert np.all(x.obs["cols"] == np.array([1, 2, 3]))
+        assert np.all(x.var["rows"] == np.array(["a", "b"]))
+
+    def test_conversion_anndata_missing():
+        with mock.patch.dict(sys.modules, {"anndata2ri": None, "anndata": None}):
+            x = scprep.run.conversion.rpy2py(ro.r("NULL"))
+            assert x is None

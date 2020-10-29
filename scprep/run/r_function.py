@@ -1,5 +1,4 @@
-import numpy as np
-
+from . import conversion
 from .. import utils
 from .._lazyload import rpy2
 
@@ -66,17 +65,21 @@ class RFunction(object):
         R code to run prior to function definition (e.g. loading libraries)
     body : str, optional (default: "")
         R code to run in the body of the function
+    cleanup : boolean, optional (default: True)
+        If true, clear the R workspace after the function is complete.
+        If false, this could result in memory leaks.
     verbose : int, optional (default: 1)
         R script verbosity. For verbose==0, all messages are printed.
         For verbose==1, messages from the function body are printed.
         For verbose==2, messages from the function setup and body are printed.
     """
 
-    def __init__(self, args="", setup="", body="", verbose=1):
+    def __init__(self, args="", setup="", body="", cleanup=True, verbose=1):
         self.name = "fun"
         self.args = args
         self.setup = setup
         self.body = body
+        self.cleanup = cleanup
         self.verbose = verbose
 
     @utils._with_pkg(pkg="rpy2", min_version="3.0")
@@ -92,7 +95,7 @@ class RFunction(object):
             name=self.name, args=self.args, body=self.body
         )
         fun = getattr(rpy2.robjects.packages.STAP(function_text, self.name), self.name)
-        rpy2.robjects.numpy2ri.activate()
+        conversion.activate()
         return fun
 
     @property
@@ -103,43 +106,20 @@ class RFunction(object):
             self._function = self._build()
             return self._function
 
-    def is_r_object(self, obj):
-        return "rpy2.robjects" in str(type(obj)) or obj is rpy2.rinterface.NULL
-
     @utils._with_pkg(pkg="rpy2", min_version="3.0")
-    def convert(self, robject):
-        if self.is_r_object(robject):
-            if isinstance(robject, rpy2.robjects.vectors.ListVector):
-                names = self.convert(robject.names)
-                if names is None or len(names) > len(np.unique(names)):
-                    # list
-                    robject = np.array([self.convert(obj) for obj in robject])
-                else:
-                    # dictionary
-                    robject = {
-                        name: self.convert(obj)
-                        for name, obj in zip(robject.names, robject)
-                    }
-            else:
-                # try numpy first
-                robject = rpy2.robjects.numpy2ri.rpy2py(robject)
-                if self.is_r_object(robject):
-                    # try regular conversion
-                    robject = rpy2.robjects.conversion.rpy2py(robject)
-                if robject is rpy2.rinterface.NULL:
-                    robject = None
-        return robject
-
-    @utils._with_pkg(pkg="rpy2", min_version="3.0")
-    def __call__(self, *args, rpy_verbose=None, **kwargs):
+    def __call__(self, *args, rpy_cleanup=None, rpy_verbose=None, **kwargs):
         default_verbose = self.verbose
         if rpy_verbose is None:
             rpy_verbose = self.verbose
         else:
             self.verbose = rpy_verbose
+        if rpy_cleanup is None:
+            rpy_cleanup = self.cleanup
         with _ConsoleWarning(rpy_verbose):
             robject = self.function(*args, **kwargs)
-            robject = self.convert(robject)
+            robject = conversion.rpy2py(robject)
+            if rpy_cleanup:
+                rpy2.robjects.r("rm(list=ls())")
         self.verbose = default_verbose
         return robject
 

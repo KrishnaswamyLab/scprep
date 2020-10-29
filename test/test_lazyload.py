@@ -24,6 +24,8 @@ def test_lazyload():
 
 def test_builtins():
     for module in scprep._lazyload._importspec.keys():
+        if module == "anndata2ri" and sys.version_info[:2] < (3, 6):
+            continue
         try:
             del sys.modules[module]
         except KeyError:

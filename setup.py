@@ -10,17 +10,22 @@ install_requires = [
     "pandas>=0.25",
 ]
 
-test_requires = [
-    "nose",
-    "nose2",
+optional_requires = [
     "fcsparser",
     "tables",
     "h5py",
+    "anndata",
+]
+
+test_requires = [
+    "nose",
+    "nose2",
     "coverage",
     "coveralls",
     "parameterized",
     "requests",
     "packaging",
+    "mock",
 ]
 
 doc_requires = [
@@ -35,6 +40,7 @@ if sys.version_info[:2] < (3, 6):
     doc_requires += ["autodocsumm!=0.2.0"]
 else:
     test_requires += ["matplotlib>=3.0", "rpy2>=3.0", "black"]
+    optional_requires += ["anndata2ri"]
     doc_requires += ["autodocsumm"]
 
 version_py = os.path.join(os.path.dirname(__file__), "scprep", "version.py")
@@ -52,7 +58,11 @@ setup(
     license="GNU General Public License Version 2",
     install_requires=install_requires,
     python_requires=">=3.5",
-    extras_require={"test": test_requires, "doc": doc_requires},
+    extras_require={
+        "test": test_requires + optional_requires,
+        "doc": doc_requires,
+        "optional": optional_requires,
+    },
     test_suite="nose2.collector.collector",
     long_description=readme,
     url="https://github.com/KrishnaswamyLab/scprep",
