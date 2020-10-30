@@ -3,13 +3,18 @@ import numpy as np
 from .. import utils
 from .._lazyload import rpy2, anndata2ri
 
+__activated__ = False
+
 
 def activate():
     """Activate extra rpy2 converters."""
-    rpy2.robjects.numpy2ri.activate()
-    rpy2.robjects.pandas2ri.activate()
-    if utils._try_import("anndata2ri"):
-        anndata2ri.activate()
+    global __activated__
+    if not __activated__:
+        rpy2.robjects.numpy2ri.activate()
+        rpy2.robjects.pandas2ri.activate()
+        if utils._try_import("anndata2ri"):
+            anndata2ri.activate()
+        __activated__ = True
 
 
 def _rpylist2py(robject):
