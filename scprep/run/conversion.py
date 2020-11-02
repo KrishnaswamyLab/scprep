@@ -3,19 +3,6 @@ import numpy as np
 from .. import utils
 from .._lazyload import rpy2, anndata2ri
 
-__activated__ = False
-
-
-def activate():
-    """Activate extra rpy2 converters."""
-    global __activated__
-    if not __activated__:
-        rpy2.robjects.numpy2ri.activate()
-        rpy2.robjects.pandas2ri.activate()
-        if utils._try_import("anndata2ri"):
-            anndata2ri.activate()
-        __activated__ = True
-
 
 def _rpylist2py(robject):
     if not isinstance(robject, rpy2.robjects.vectors.ListVector):
@@ -36,10 +23,22 @@ def _rpynull2py(robject):
     return robject
 
 
+def _pynull2rpy(pyobject):
+    if pyobject is None:
+        pyobject = rpy2.rinterface.NULL
+    return pyobject
+
+
 def _rpysce2py(robject):
     if utils._try_import("anndata2ri"):
         robject = anndata2ri.rpy2py(robject)
     return robject
+
+
+def _pysce2rpy(pyobject):
+    if utils._try_import("anndata2ri"):
+        pyobject = anndata2ri.py2rpy(pyobject)
+    return pyobject
 
 
 def _is_r_object(obj):
@@ -80,3 +79,38 @@ def rpy2py(robject):
         else:
             break
     return robject
+
+
+@utils._with_pkg(pkg="rpy2", min_version="3.0")
+def py2rpy(pyobject):
+    """Convert an Python object to rpy2.
+
+    Attempts the following, in order: data.frame -> pd.DataFrame, named list -> dict,
+    unnamed list -> list, SingleCellExperiment -> anndata.AnnData, vector -> np.ndarray,
+    rpy2 generic converter, NULL -> None.
+
+    Parameters
+    ----------
+    pyobject : python object
+        Converted object
+
+    Returns
+    -------
+    robject : rpy2 object
+        Object to be converted
+    """
+    for converter in [
+        rpy2.robjects.pandas2ri.py2rpy,
+        _pysce2rpy,
+        rpy2.robjects.numpy2ri.py2rpy,
+        rpy2.robjects.conversion.py2rpy,
+        _pynull2rpy,
+    ]:
+        if not _is_r_object(pyobject):
+            try:
+                pyobject = converter(pyobject)
+            except NotImplementedError:
+                pass
+        else:
+            break
+    return pyobject
