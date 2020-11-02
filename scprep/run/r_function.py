@@ -95,7 +95,6 @@ class RFunction(object):
             name=self.name, args=self.args, body=self.body
         )
         fun = getattr(rpy2.robjects.packages.STAP(function_text, self.name), self.name)
-        conversion.activate()
         return fun
 
     @property
@@ -115,6 +114,8 @@ class RFunction(object):
             self.verbose = rpy_verbose
         if rpy_cleanup is None:
             rpy_cleanup = self.cleanup
+        args = [conversion.py2rpy(a) for a in args]
+        kwargs = {k: conversion.py2rpy(v) for k, v in kwargs.items()}
         with _ConsoleWarning(rpy_verbose):
             robject = self.function(*args, **kwargs)
             robject = conversion.rpy2py(robject)

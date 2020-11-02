@@ -14,20 +14,22 @@ def hdf5_available():
 
 def test_failed_import_tables():
     h5_file = os.path.join(data.data_dir, "test_10X.h5")
-    with mock.patch.dict(sys.modules, {"tables": None}):
-        assert hdf5_available() is True
-        with tables.File(h5_file, "r") as f:
-            assert scprep.io.hdf5._is_tables(f) is False
-        with scprep.io.hdf5.open_file(h5_file) as f:
-            assert scprep.io.hdf5._is_h5py(f)
+    with tables.File(h5_file, "r") as f_tables:
+        with mock.patch.dict(sys.modules, {"tables": None}):
+            assert hdf5_available() is True
+            assert scprep.io.hdf5._is_tables(f_tables) is False
+            with scprep.io.hdf5.open_file(h5_file) as f_h5py:
+                assert scprep.io.hdf5._is_h5py(f_h5py)
 
 
 def test_failed_import_h5py():
     h5_file = os.path.join(data.data_dir, "test_10X.h5")
-    with mock.patch.dict(sys.modules, {"h5py": None}):
-        assert hdf5_available() is True
-        with h5py.File(h5_file, "r") as f:
-            assert scprep.io.hdf5._is_h5py(f) is False
+    with h5py.File(h5_file, "r") as f_h5py:
+        with mock.patch.dict(sys.modules, {"h5py": None}):
+            assert hdf5_available() is True
+            assert scprep.io.hdf5._is_h5py(f_h5py) is False
+            with scprep.io.hdf5.open_file(h5_file) as f_tables:
+                assert scprep.io.hdf5._is_tables(f_tables)
 
 
 def test_failed_import_both():
