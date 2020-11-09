@@ -35,7 +35,6 @@ def _rpysce2py(robject):
         robject = anndata2ri.rpy2py(robject)
         for k, v in robject.uns.items():
             robject.uns[k] = rpy2py(v)
-            assert not _is_r_object(robject.uns[k])
     return robject
 
 
@@ -75,6 +74,7 @@ def rpy2py(robject):
         rpy2.robjects.numpy2ri.rpy2py,
         rpy2.robjects.conversion.rpy2py,
     ]:
+        print(robject, converter)
         if _is_r_object(robject):
             try:
                 robject = converter(robject)
