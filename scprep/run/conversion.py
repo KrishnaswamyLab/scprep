@@ -67,11 +67,11 @@ def rpy2py(robject):
         Converted object
     """
     for converter in [
+        _rpynull2py,
         rpy2.robjects.pandas2ri.rpy2py,
         _rpylist2py,
         _rpysce2py,
         rpy2.robjects.numpy2ri.rpy2py,
-        _rpynull2py,
         rpy2.robjects.conversion.rpy2py,
     ]:
         if _is_r_object(robject):
@@ -105,10 +105,10 @@ def py2rpy(pyobject):
         Object to be converted
     """
     for converter in [
+        _pynull2rpy,
         rpy2.robjects.pandas2ri.py2rpy,
         _pysce2rpy,
         rpy2.robjects.numpy2ri.py2rpy,
-        _pynull2rpy,
         rpy2.robjects.conversion.py2rpy,
     ]:
         if not _is_r_object(pyobject):
