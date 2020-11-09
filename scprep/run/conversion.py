@@ -35,6 +35,7 @@ def _rpysce2py(robject):
         robject = anndata2ri.rpy2py(robject)
         for k, v in robject.uns.items():
             robject.uns[k] = rpy2py(v)
+            assert not _is_r_object(robject.uns[k])
     return robject
 
 
@@ -68,9 +69,9 @@ def rpy2py(robject):
     """
     for converter in [
         _rpynull2py,
+        _rpysce2py,
         rpy2.robjects.pandas2ri.rpy2py,
         _rpylist2py,
-        _rpysce2py,
         rpy2.robjects.numpy2ri.rpy2py,
         rpy2.robjects.conversion.rpy2py,
     ]:
@@ -106,8 +107,8 @@ def py2rpy(pyobject):
     """
     for converter in [
         _pynull2rpy,
-        rpy2.robjects.pandas2ri.py2rpy,
         _pysce2rpy,
+        rpy2.robjects.pandas2ri.py2rpy,
         rpy2.robjects.numpy2ri.py2rpy,
         rpy2.robjects.conversion.py2rpy,
     ]:
