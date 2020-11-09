@@ -74,7 +74,6 @@ def rpy2py(robject):
         rpy2.robjects.numpy2ri.rpy2py,
         rpy2.robjects.conversion.rpy2py,
     ]:
-        print(robject, converter)
         if _is_r_object(robject):
             try:
                 robject = converter(robject)
