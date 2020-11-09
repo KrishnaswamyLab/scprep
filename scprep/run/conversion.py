@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 
 from .. import utils
 from .._lazyload import rpy2, anndata2ri
@@ -80,6 +81,8 @@ def rpy2py(robject):
                 pass
         else:
             break
+    if _is_r_object(robject):
+        warnings.warn("Object not converted: {}".format(robject))
     return robject
 
 
@@ -115,4 +118,6 @@ def py2rpy(pyobject):
                 pass
         else:
             break
+    if not _is_r_object(pyobject):
+        warnings.warn("Object not converted: {}".format(pyobject))
     return pyobject
