@@ -82,7 +82,7 @@ def rpy2py(robject):
         else:
             break
     if _is_r_object(robject):
-        warnings.warn("Object not converted: {}".format(robject))
+        warnings.warn("Object not converted: {}".format(robject), RuntimeWarning)
     return robject
 
 
@@ -119,5 +119,5 @@ def py2rpy(pyobject):
         else:
             break
     if not _is_r_object(pyobject):
-        warnings.warn("Object not converted: {}".format(pyobject))
+        warnings.warn("Object not converted: {}".format(pyobject), RuntimeWarning)
     return pyobject
