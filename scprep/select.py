@@ -342,8 +342,16 @@ def select_cols(
 
     Examples
     --------
-    data_subset = scprep.select.select_cols(data, idx=np.random.choice([True, False], data.shape[1]))
-    data_subset, metadata_subset = scprep.select.select_cols(data, metadata, starts_with="MT")
+    data_subset = scprep.select.select_cols(
+        data,
+        idx=np.random.choice([True, False],
+        data.shape[1])
+    )
+    data_subset, metadata_subset = scprep.select.select_cols(
+        data,
+        metadata,
+        starts_with="MT"
+    )
 
     Raises
     ------
@@ -492,8 +500,16 @@ def select_rows(
 
     Examples
     --------
-    data_subset = scprep.select.select_rows(data, idx=np.random.choice([True, False], data.shape[0]))
-    data_subset, labels_subset = scprep.select.select_rows(data, labels, end_with="batch1")
+    data_subset = scprep.select.select_rows(
+        data,
+        idx=np.random.choice([True, False],
+        data.shape[0])
+    )
+    data_subset, labels_subset = scprep.select.select_rows(
+        data,
+        labels,
+        end_with="batch1"
+    )
 
     Raises
     ------
@@ -631,8 +647,8 @@ def highly_variable_genes(
     extra_data : array-like, shape=[any, n_features], optional
         Optional additional data objects from which to select the same rows
     kernel_size : float or int, optional (default: 0.005)
-        Width of rolling median window. If a float between 0 and 1, the width is given by
-        kernel_size * data.shape[1]. Otherwise should be an odd integer
+        Width of rolling median window. If a float between 0 and 1, the width is given
+        by kernel_size * data.shape[1]. Otherwise should be an odd integer
     smooth : int, optional (default: 5)
         Amount of smoothing to apply to the median filter
     cutoff : float, optional (default: None)

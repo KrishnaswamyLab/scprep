@@ -29,8 +29,8 @@ def plot_gene_variability(
     data : array-like, shape=[n_samples, n_features]
         Input data. Multiple datasets may be given as a list of array-likes.
     kernel_size : float or int, optional (default: 0.005)
-        Width of rolling median window. If a float between 0 and 1, the width is given by
-        kernel_size * data.shape[1]. Otherwise should be an odd integer
+        Width of rolling median window. If a float between 0 and 1, the width is given
+        by kernel_size * data.shape[1]. Otherwise should be an odd integer
     smooth : int, optional (default: 5)
         Amount of smoothing to apply to the median filter
     cutoff : float or `None`, optional (default: `None`)

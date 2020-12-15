@@ -25,7 +25,8 @@ def scree_plot(
     Parameters
     ----------
     singular_values : list-like, shape=[n_components]
-        Singular values returned by `scprep.reduce.pca(data, return_singular_values=True)`
+        Singular values returned by
+        `scprep.reduce.pca(data, return_singular_values=True)`
     cumulative : bool, optional (default=False)
         If True, plot the cumulative explained variance
     ax : `matplotlib.Axes` or None, optional (default: None)
@@ -54,7 +55,9 @@ def scree_plot(
     >>> import scprep
     >>> import numpy as np
     >>> data = np.random.normal(0, 1, [200, 1000])
-    >>> pca_data, singular_values = scprep.reduce.pca(data, n_components=100, return_singular_values=True)
+    >>> pca_data, singular_values = scprep.reduce.pca(
+            data, n_components=100, return_singular_values=True
+        )
     >>> scprep.plot.scree_plot(singular_values)
     >>> scprep.plot.scree_plot(singular_values, cumulative=True)
     """

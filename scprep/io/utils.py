@@ -124,7 +124,9 @@ def _matrix_to_data_frame(data, gene_names=None, cell_names=None, sparse=None):
             sparse = False
         if cell_names is not None and len(np.unique(cell_names)) < len(cell_names):
             warnings.warn(
-                "Duplicate cell names detected! Some functions may not work as intended. You can fix this by running `scprep.sanitize.check_index(data)`.",
+                "Duplicate cell names detected! Some functions may not work as "
+                "intended. You can fix this by running "
+                "`scprep.sanitize.check_index(data)`.",
                 RuntimeWarning,
             )
         if sparse:

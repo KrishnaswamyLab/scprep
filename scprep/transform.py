@@ -3,7 +3,6 @@
 
 import numpy as np
 from scipy import sparse
-import pandas as pd
 import warnings
 from . import utils
 
@@ -68,7 +67,7 @@ def log(data, pseudocount=1, base=10):
         req = "1 - min(data) ({})".format(1 - data_min) if data_min != 0 else "1"
         warnings.warn(
             "log transform on sparse data requires "
-            "pseudocount = {}. Got {}".format(req, 1 - data_min, pseudocount),
+            "pseudocount = {}. Got {}".format(req, pseudocount),
             RuntimeWarning,
         )
         pseudocount = data_min + 1

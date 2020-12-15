@@ -1,7 +1,5 @@
 import numpy as np
 import pandas as pd
-import warnings
-import numbers
 import scipy.signal
 from scipy import sparse
 
@@ -92,8 +90,8 @@ def gene_variability(data, kernel_size=0.005, smooth=5, return_means=False):
     data : array-like, shape=[n_samples, n_features]
         Input data
     kernel_size : float or int, optional (default: 0.005)
-        Width of rolling median window. If a float between 0 and 1, the width is given by
-        kernel_size * data.shape[1]. Otherwise should be an odd integer
+        Width of rolling median window. If a float between 0 and 1, the width is given
+        by kernel_size * data.shape[1]. Otherwise should be an odd integer
     smooth : int, optional (default: 5)
         Amount of smoothing to apply to the median filter
     return_means : boolean, optional (default: False)

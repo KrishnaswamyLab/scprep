@@ -323,7 +323,7 @@ class _ScatterParams(object):
         if self._cmap is not None:
             if isinstance(self._cmap, dict):
                 return mpl.colors.ListedColormap(
-                    [mpl.colors.to_rgba(self._cmap[l]) for l in self.labels]
+                    [mpl.colors.to_rgba(self._cmap[label]) for label in self.labels]
                 )
             elif self.list_cmap():
                 return create_colormap(self._cmap)
@@ -476,13 +476,13 @@ class _ScatterParams(object):
                 )
             elif not self.discrete:
                 raise ValueError("Cannot use dictionary cmap with " "continuous data.")
-            elif np.any([l not in self._cmap for l in np.unique(self._c)]):
+            elif np.any([color not in self._cmap for color in np.unique(self._c)]):
                 missing = set(np.unique(self._c).tolist()).difference(self._cmap.keys())
                 raise ValueError(
                     "Dictionary cmap requires a color "
                     "for every unique entry in `c`. "
                     "Missing colors for [{}]".format(
-                        ", ".join([str(l) for l in missing])
+                        ", ".join([str(color) for color in missing])
                     )
                 )
         elif self.list_cmap():
@@ -609,7 +609,8 @@ def scatter(
         `inferno` for continuous data. If a dictionary, expects one key
         for every unique value in `c`, where values are valid matplotlib colors
         (hsv, rbg, rgba, or named colors)
-    cmap_scale : {'linear', 'log', 'symlog', 'sqrt'} or `matplotlib.colors.Normalize`, optional (default: 'linear')
+    cmap_scale : {'linear', 'log', 'symlog', 'sqrt'} or `matplotlib.colors.Normalize`,
+        optional (default: 'linear')
         Colormap normalization scale. For advanced use, see
         <https://matplotlib.org/users/colormapnorms.html>
     s : float, optional (default: None)
@@ -857,7 +858,8 @@ def scatter2d(
         continuous data. If a dictionary, expects one key
         for every unique value in `c`, where values are valid matplotlib colors
         (hsv, rbg, rgba, or named colors)
-    cmap_scale : {'linear', 'log', 'symlog', 'sqrt'} or `matplotlib.colors.Normalize`, optional (default: 'linear')
+    cmap_scale : {'linear', 'log', 'symlog', 'sqrt'} or `matplotlib.colors.Normalize`,
+        optional (default: 'linear')
         Colormap normalization scale. For advanced use, see
         <https://matplotlib.org/users/colormapnorms.html>
     s : float, optional (default: None)
@@ -946,7 +948,9 @@ def scatter2d(
     >>> # Discrete color vector with custom colormap
     >>> colors = np.random.choice(['a','b'], data.shape[0], replace=True)
     >>> data[colors == 'a'] += 10
-    >>> scprep.plot.scatter2d(data, c=colors, cmap={'a' : [1,0,0,1], 'b' : 'xkcd:sky blue'})
+    >>> scprep.plot.scatter2d(
+            data, c=colors, cmap={'a' : [1,0,0,1], 'b' : 'xkcd:sky blue'}
+        )
     """
     if isinstance(data, list):
         data = utils.toarray(data)
@@ -1047,7 +1051,8 @@ def scatter3d(
         continuous data. If a dictionary, expects one key
         for every unique value in `c`, where values are valid matplotlib colors
         (hsv, rbg, rgba, or named colors)
-    cmap_scale : {'linear', 'log', 'symlog', 'sqrt'} or `matplotlib.colors.Normalize`, optional (default: 'linear')
+    cmap_scale : {'linear', 'log', 'symlog', 'sqrt'} or `matplotlib.colors.Normalize`,
+        optional (default: 'linear')
         Colormap normalization scale. For advanced use, see
         <https://matplotlib.org/users/colormapnorms.html>
     s : float, optional (default: None)
@@ -1140,7 +1145,9 @@ def scatter3d(
     >>> # Discrete color vector with custom colormap
     >>> colors = np.random.choice(['a','b'], data.shape[0], replace=True)
     >>> data[colors == 'a'] += 5
-    >>> scprep.plot.scatter3d(data, c=colors, cmap={'a' : [1,0,0,1], 'b' : 'xkcd:sky blue'})
+    >>> scprep.plot.scatter3d(
+            data, c=colors, cmap={'a' : [1,0,0,1], 'b' : 'xkcd:sky blue'}
+        )
     """
     if isinstance(data, list):
         data = utils.toarray(data)
@@ -1253,7 +1260,12 @@ def rotate_scatter3d(
     >>> # Discrete color vector with custom colormap
     >>> colors = np.random.choice(['a','b'], data.shape[0], replace=True)
     >>> data[colors == 'a'] += 5
-    >>> scprep.plot.rotate_scatter3d(data, c=colors, cmap={'a' : [1,0,0,1], 'b' : 'xkcd:sky blue'}, filename="animation.mp4")
+    >>> scprep.plot.rotate_scatter3d(
+            data,
+            c=colors,
+            cmap={'a' : [1,0,0,1], 'b' : 'xkcd:sky blue'},
+            filename="animation.mp4"
+        )
     """
     if _in_ipynb():
         # credit to

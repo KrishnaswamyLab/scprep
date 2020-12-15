@@ -61,8 +61,8 @@ def _get_channel_names(meta, channel_numbers, channel_naming="$PnS"):
 
 def _reformat_meta(meta, channel_numbers):
     """Collect the meta data information in a more user friendly format.
-    Function looks through the meta data, collecting the channel related information into a
-    dataframe and moving it into the _channels_ key.
+    Function looks through the meta data, collecting the channel related information
+    into a dataframe and moving it into the _channels_ key.
 
     Credit: https://github.com/eyurtsev/fcsparser/blob/master/fcsparser/api.py
     """
@@ -186,7 +186,8 @@ def _fcsextract(filename, channel_naming="$PnS", reformat_meta=True):
             Will look like 'FSC-H' (Forward scatter)
         The chosen field will be used to population self.channels
         Note: These names are not flipped in the implementation.
-        It looks like they were swapped for some reason in the official FCS specification.
+        It looks like they were swapped for some reason in the official FCS
+        specification.
     reformat_meta: bool
         If true, the meta data is reformatted with the channel information organized
         into a DataFrame and moved into the '_channels_' key
@@ -231,8 +232,8 @@ def _fcsextract(filename, channel_naming="$PnS", reformat_meta=True):
     if reformat_meta:
         try:
             meta["_channels_"] = _reformat_meta(meta, channel_numbers)
-        except Exception as e:
-            warnings.warn("Metadata reformatting failed: {}".format(str(e)))
+        except Exception as exp:
+            warnings.warn("Metadata reformatting failed: {}".format(str(exp)))
         meta["_channel_names_"] = channel_names
     return meta, events
 
@@ -272,16 +273,20 @@ def load_fcs(
     sparse : bool, optional (default: None)
         If True, loads the data as a pd.DataFrame[SparseArray]. This uses less memory
         but more CPU.
-    metadata_channels : list-like, optional, shape=[n_meta] (default: ['Time', 'Event_length', 'DNA1', 'DNA2', 'Cisplatin', 'beadDist', 'bead1'])
+    metadata_channels : list-like, optional, shape=[n_meta]
+        (default: ['Time', 'Event_length', 'DNA1',
+            'DNA2', 'Cisplatin', 'beadDist', 'bead1'])
         Channels to be excluded from the data
     channel_naming: '$PnS' | '$PnN'
         Determines which meta data field is used for naming the channels.
         The default should be $PnS (even though it is not guaranteed to be unique)
         $PnN stands for the short name (guaranteed to be unique). Will look like 'FL1-H'
-        $PnS stands for the actual name (not guaranteed to be unique). Will look like 'FSC-H' (Forward scatter)
+        $PnS stands for the actual name (not guaranteed to be unique). Will look like
+        'FSC-H' (Forward scatter)
         The chosen field will be used to population self.channels
         Note: These names are not flipped in the implementation.
-        It looks like they were swapped for some reason in the official FCS specification.
+        It looks like they were swapped for some reason in the official FCS
+        specification.
     reformat_meta : bool, optional (default: True)
         If true, the meta data is reformatted with the channel information
         organized into a DataFrame and moved into the '_channels_' key

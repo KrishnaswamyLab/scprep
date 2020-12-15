@@ -45,7 +45,8 @@ def create_normalize(vmin, vmax, scale=None):
 
     Parameters
     ----------
-    scale : {'linear', 'log', 'symlog', 'sqrt'} or `matplotlib.colors.Normalize`, optional (default: 'linear')
+    scale : {'linear', 'log', 'symlog', 'sqrt'} or `matplotlib.colors.Normalize`,
+    optional (default: 'linear')
         Colormap normalization scale. For advanced use, see
         <https://matplotlib.org/users/colormapnorms.html>
 
@@ -184,7 +185,8 @@ def generate_colorbar(
         Colormap with which to draw colorbar
     vmin, vmax : float, optional (default: None)
         Range of values to display on colorbar
-    scale : {'linear', 'log', 'symlog', 'sqrt'} or `matplotlib.colors.Normalize`, optional (default: 'linear')
+    scale : {'linear', 'log', 'symlog', 'sqrt'} or `matplotlib.colors.Normalize`,
+        optional (default: 'linear')
         Colormap normalization scale. For advanced use, see
         <https://matplotlib.org/users/colormapnorms.html>
     ax : `matplotlib.axes.Axes`, list or None, optional (default: None)

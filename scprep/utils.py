@@ -9,8 +9,6 @@ import re
 from scipy import sparse
 from decorator import decorator
 
-from . import select
-
 try:
     ModuleNotFoundError
 except NameError:
@@ -268,7 +266,8 @@ def is_SparseSeries(X):
     with warnings.catch_warnings():
         warnings.filterwarnings(
             "ignore",
-            "The SparseSeries class is removed from pandas. Accessing it from the top-level namespace will also be removed in the next version",
+            "The SparseSeries class is removed from pandas. Accessing it from the"
+            "top-level namespace will also be removed in the next version",
             FutureWarning,
         )
         try:
@@ -281,7 +280,8 @@ def is_SparseDataFrame(X):
     with warnings.catch_warnings():
         warnings.filterwarnings(
             "ignore",
-            "The SparseDataFrame class is removed from pandas. Accessing it from the top-level namespace will also be removed in the next version",
+            "The SparseDataFrame class is removed from pandas. Accessing it from the"
+            "top-level namespace will also be removed in the next version",
             FutureWarning,
         )
         try:
@@ -662,7 +662,8 @@ def matrix_transpose(X):
         if not np.all(fill_values == fill_values[0]):
             raise TypeError(
                 "Can only transpose sparse dataframes with constant fill value. "
-                "If you wish to proceed, first convert the data to dense with scprep.utils.toarray."
+                "If you wish to proceed, first convert the data to dense with "
+                "scprep.utils.toarray."
             )
         X_T = X.sparse.to_coo().T
         return SparseDataFrame(

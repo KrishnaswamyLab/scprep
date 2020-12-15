@@ -47,7 +47,8 @@ class InvertibleRandomProjection(random_projection.GaussianRandomProjection):
 
 
 class AutomaticDimensionSVD(decomposition.TruncatedSVD):
-    """Truncated SVD with automatic dimensionality selected by the Johnson-Lindenstrauss lemma."""
+    """Truncated SVD with automatic dimensionality selected by the
+    Johnson-Lindenstrauss lemma."""
 
     def __init__(
         self,
@@ -79,7 +80,7 @@ class AutomaticDimensionSVD(decomposition.TruncatedSVD):
             )
         try:
             return super().fit(X)
-        except ValueError as e:
+        except ValueError:
             if self.n_components >= X.shape[1]:
                 raise RuntimeError(
                     "eps={} and n_samples={} lead to a target "

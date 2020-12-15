@@ -127,8 +127,8 @@ def load_10X(data_dir, sparse=True, gene_labels="symbol", allow_duplicates=None)
 
     except (FileNotFoundError, IOError):
         raise FileNotFoundError(
-            "'matrix.mtx(.gz)', '[genes/features].tsv(.gz)', and 'barcodes.tsv(.gz)' must be present "
-            "in {}".format(data_dir)
+            "'matrix.mtx(.gz)', '[genes/features].tsv(.gz)', and 'barcodes.tsv(.gz)'"
+            "must be present in {}".format(data_dir)
         )
 
     cell_names = barcodes[0]
@@ -210,25 +210,32 @@ def load_10X_zip(filename, sparse=True, gene_labels="symbol", allow_duplicates=N
             valid_dirnames = []
             for dirname in set([""] + ["/".join(f.split("/")[:-1]) for f in files]):
                 subdir_files = [f for f in files if f.startswith(dirname)]
-                path = lambda x: "{}/{}".format(dirname, x) if dirname != "" else x
+
+                # Helper function to parse paths
+                def path(fn, dirname):
+                    if dirname != "":
+                        path = "{}/{}".format(dirname, fn)
+                    else:
+                        path = fn
+                    return path
                 if (
                     (
-                        path("barcodes.tsv") in subdir_files
-                        or path("barcodes.tsv.gz") in subdir_files
+                        path("barcodes.tsv", dirname) in subdir_files
+                        or path("barcodes.tsv.gz", dirname) in subdir_files
                     )
                     and (
                         (
-                            path("genes.tsv") in subdir_files
-                            or path("genes.tsv.gz") in subdir_files
+                            path("genes.tsv", dirname) in subdir_files
+                            or path("genes.tsv.gz", dirname) in subdir_files
                         )
                         or (
-                            path("features.tsv") in subdir_files
-                            or path("features.tsv.gz") in subdir_files
+                            path("features.tsv", dirname) in subdir_files
+                            or path("features.tsv.gz", dirname) in subdir_files
                         )
                     )
                     and (
-                        path("matrix.mtx") in subdir_files
-                        or path("matrix.mtx.gz") in subdir_files
+                        path("matrix.mtx", dirname) in subdir_files
+                        or path("matrix.mtx.gz", dirname) in subdir_files
                     )
                 ):
                     valid_dirnames.append(dirname)

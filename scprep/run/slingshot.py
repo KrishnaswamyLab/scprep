@@ -54,8 +54,9 @@ _Slingshot = r_function.RFunction(
         # Run Slingshot
         sling <- slingshot(data, clusterLabels = cluster_labels,
                          start.clus = start_cluster, end.clus = end_cluster,
-                         dist.fun = distance, omega = omega, lineages = lineages, shrink = shrink,
-                         extend = extend, reweight = reweight, reassign = reassign, thresh = thresh,
+                         dist.fun = distance, omega = omega, lineages = lineages,
+                         shrink = shrink, extend = extend, reweight = reweight,
+                         reassign = reassign, thresh = thresh,
                          maxit = max_iter, stretch = stretch,
                          smoother = smoother, shrink.method = shrink_method,
                          allow.breaks = allow_breaks)
@@ -88,9 +89,10 @@ def Slingshot(
     """Perform lineage inference with Slingshot
 
     Given a reduced-dimensional data matrix n by p and a vector of cluster labels
-    (or matrix of soft cluster assignments, potentially including a -1 label for "unclustered"),
-    this function performs lineage inference using a cluster-based minimum spanning tree and
-    constructing simulatenous principal curves for branching paths through the tree.
+    (or matrix of soft cluster assignments, potentially including a -1 label for
+    "unclustered"), this function performs lineage inference using a cluster-based
+    minimum spanning tree and constructing simulatenous principal curves for branching
+    paths through the tree.
 
     For more details, read about Slingshot on GitHub_ and Bioconductor_.
 
@@ -130,8 +132,8 @@ def Slingshot(
         how to handle root and leaf clusters of lineages when
         constructing the initial, piece-wise linear curve.
     reweight : boolean, optional (default: True)
-        whether to allow cells shared between lineages to be reweighted during curve-fitting.
-        If True, cells shared between lineages will be iteratively
+        whether to allow cells shared between lineages to be reweighted during
+        curve-fitting. If True, cells shared between lineages will be iteratively
         reweighted based on the quantiles of their projection distances to each curve.
     reassign : boolean, optional (default: True)
         whether to reassign cells to lineages at each iteration.
@@ -149,7 +151,8 @@ def Slingshot(
         maximum number of iterations
     stretch : int, optional (default: 2)
         factor between 0 and 2 by which curves can be extrapolated beyond endpoints
-    smoother : {"smooth.spline", "lowess", "periodic_lowess"}, optional (default: "smooth.spline")
+    smoother : {"smooth.spline", "lowess", "periodic_lowess"},
+        optional (default: "smooth.spline")
         choice of smoother. "periodic_lowess" allows one to fit closed
         curves. Beware, you may want to use iter = 0 with "lowess".
     shrink_method : string, optional (default: "cosine")
@@ -185,13 +188,25 @@ def Slingshot(
     >>> phate_op = phate.PHATE()
     >>> data_phate = phate_op.fit_transform(data)
     >>> slingshot = scprep.run.Slingshot(data_phate, clusters)
-    >>> ax = scprep.plot.scatter2d(data_phate, c=slingshot['pseudotime'][:,0], cmap='magma', legend_title='Branch 1')
-    >>> scprep.plot.scatter2d(data_phate, c=slingshot['pseudotime'][:,1], cmap='viridis', ax=ax,
-    ...                       ticks=False, label_prefix='PHATE', legend_title='Branch 2')
+    >>> ax = scprep.plot.scatter2d(
+    ...     data_phate,
+    ...     c=slingshot['pseudotime'][:,0],
+    ...     cmap='magma',
+    ...     legend_title='Branch 1'
+    ... )
+    >>> scprep.plot.scatter2d(
+    ...     data_phate,
+    ...     c=slingshot['pseudotime'][:,1],
+    ...     cmap='viridis',
+    ...     ax=ax,
+    ...     ticks=False,
+    ...     label_prefix='PHATE',
+    ...     legend_title='Branch 2'
+    ...     )
     >>> for curve in slingshot['curves']:
     ...     ax.plot(curve[:,0], curve[:,1], c='black')
-    >>> ax = scprep.plot.scatter2d(data_phate, c=slingshot['branch'], legend_title='Branch',
-    ...                            ticks=False, label_prefix='PHATE')
+    >>> ax = scprep.plot.scatter2d(data_phate, c=slingshot['branch'],
+    ...                        legend_title='Branch', ticks=False, label_prefix='PHATE')
     >>> for curve in slingshot['curves']:
     ...     ax.plot(curve[:,0], curve[:,1], c='black')
     """

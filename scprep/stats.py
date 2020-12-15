@@ -24,6 +24,9 @@ def EMD(x, y):
     identifying differentially expressed genes between two groups of cells. For
     more information see https://en.wikipedia.org/wiki/Wasserstein_metric.
 
+    Note, this is a wrapper function for scipy.stats.wasserstein_disance and assumes
+    the data is 1-dimensional
+
     Parameters
     ----------
     x : array-like, shape=[n_samples]
@@ -498,9 +501,9 @@ def _ranksum(X, sum_idx, axis=0):
         elif axis == 0:
             next_fn = X.getcol
         for i in range(X.shape[(axis + 1) % 2]):
-            coldata = X.getcol(i)
-            colrank = _rank(coldata, axis=axis)
-            ranksums.append(np.sum(colrank[sum_idx]))
+            data = next_fn(i)
+            rank = _rank(data, axis=axis)
+            ranksums.append(np.sum(rank[sum_idx]))
         return np.array(ranksums)
     else:
         data_rank = _rank(X, axis=0)
@@ -536,19 +539,23 @@ def differential_expression(
     ----------
     X : array-like, shape=[n_cells, n_genes]
     Y : array-like, shape=[m_cells, n_genes]
-    measure : {'difference', 'emd', 'ttest', 'ranksum'}, optional (default: 'difference')
+    measure : {'difference', 'emd', 'ttest', 'ranksum'},
+              optional (default: 'difference')
         The measurement to be used to rank genes.
         'difference' is the mean difference between genes.
         'emd' refers to Earth Mover's Distance.
         'ttest' refers to Welch's t-statistic.
-        'ranksum' refers to the Wilcoxon rank sum statistic (or the Mann-Whitney U statistic).
+        'ranksum' refers to the Wilcoxon rank sum statistic (or the Mann-Whitney
+         U statistic).
     direction : {'up', 'down', 'both'}, optional (default: 'both')
-        The direction in which to consider genes significant. If 'up', rank genes where X > Y.
-        If 'down', rank genes where X < Y. If 'both', rank genes by absolute value.
+        The direction in which to consider genes significant. If 'up', rank
+        genes where X > Y. If 'down', rank genes where X < Y. If 'both', rank genes by
+        absolute value.
     gene_names : list-like or `None`, optional (default: `None`)
         List of gene names associated with the columns of X and Y
     n_jobs : int, optional (default: -2)
-        Number of threads to use if the measurement is parallelizable (currently used for EMD).
+        Number of threads to use if the measurement is parallelizable (currently used
+        for EMD).
         If negative, -1 refers to all available cores.
 
     Returns
@@ -556,12 +563,12 @@ def differential_expression(
     result : pd.DataFrame
         Ordered DataFrame with a column "gene" and a column named `measure`.
     """
-    if not direction in ["up", "down", "both"]:
+    if direction not in ["up", "down", "both"]:
         raise ValueError(
             "Expected `direction` in ['up', 'down', 'both']. "
             "Got {}".format(direction)
         )
-    if not measure in ["difference", "emd", "ttest", "ranksum"]:
+    if measure not in ["difference", "emd", "ttest", "ranksum"]:
         raise ValueError(
             "Expected `measure` in ['difference', 'emd', 'ttest', 'ranksum']. "
             "Got {}".format(measure)
@@ -640,23 +647,29 @@ def differential_expression_by_cluster(
     ----------
     data : array-like, shape=[n_cells, n_genes]
     clusters : list-like, shape=[n_cells]
-    measure : {'difference', 'emd', 'ttest', 'ranksum'}, optional (default: 'difference')
+    measure : {'difference', 'emd', 'ttest', 'ranksum'}, optional
+              (default: 'difference')
         The measurement to be used to rank genes.
         'difference' is the mean difference between genes.
         'emd' refers to Earth Mover's Distance.
         'ttest' refers to Welch's t-statistic.
-        'ranksum' refers to the Wilcoxon rank sum statistic (or the Mann-Whitney U statistic).
+        'ranksum' refers to the Wilcoxon rank sum statistic (or the Mann-Whitney U
+        statistic).
     direction : {'up', 'down', 'both'}, optional (default: 'both')
-        The direction in which to consider genes significant. If 'up', rank genes where X > Y. If 'down', rank genes where X < Y. If 'both', rank genes by absolute value.
+        The direction in which to consider genes significant. If 'up', rank genes
+        where X > Y. If 'down', rank genes where X < Y. If 'both', rank genes
+        by absolute value.
     gene_names : list-like or `None`, optional (default: `None`)
         List of gene names associated with the columns of X and Y
     n_jobs : int, optional (default: -2)
-        Number of threads to use if the measurement is parallelizable (currently used for EMD). If negative, -1 refers to all available cores.
+        Number of threads to use if the measurement is parallelizable (currently used
+        for EMD). If negative, -1 refers to all available cores.
 
     Returns
     -------
     result : dict(pd.DataFrame)
-        Dictionary containing an ordered DataFrame with a column "gene" and a column named `measure` for each cluster.
+        Dictionary containing an ordered DataFrame with a column "gene" and a column
+        named `measure` for each cluster.
     """
     if gene_names is not None and isinstance(data, pd.DataFrame):
         data = select.select_cols(data, idx=gene_names)

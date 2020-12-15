@@ -106,7 +106,8 @@ _SplatSimulate = r_function.RFunction(
             dropout=if (is.null(assays(sim)$Dropout)) NULL else t(assays(sim)$Dropout))
         row_data <- as.data.frame(rowData(sim))
         if (any(startsWith(names(row_data), "BatchFac"))) {
-            batch_fac <- as.data.frame(row_data[,startsWith(names(row_data), "BatchFac")])
+            batch_fac <- as.data.frame(row_data[,startsWith(names(row_data),
+                         "BatchFac")])
             names(batch_fac) <- paste("batch_fac", 1:ncol(batch_fac), sep="_")
             batch_fac <- as.list(batch_fac)
             result <- c(result, batch_fac)
@@ -118,7 +119,8 @@ _SplatSimulate = r_function.RFunction(
             result <- c(result, de_fac)
         }
         if (any(startsWith(names(row_data), "SigmaFac"))) {
-            sigma_fac <- as.data.frame(row_data[,startsWith(names(row_data), "SigmaFac")])
+            sigma_fac <- as.data.frame(row_data[,startsWith(names(row_data),
+                         "SigmaFac")])
             colnames(sigma_fac) <- paste("sigma_fac", 1:ncol(sigma_fac), sep="_")
             sigma_fac <- as.list(sigma_fac)
             result <- c(result, sigma_fac)
@@ -161,7 +163,8 @@ def SplatSimulate(
     seed=None,
     verbose=1,
 ):
-    """Simulate count data from a fictional single-cell RNA-seq experiment using the Splat method.
+    """Simulate count data from a fictional single-cell RNA-seq experiment using
+       the Splat method.
 
     SplatSimulate is a Python wrapper for the R package Splatter. For more
     details, read about Splatter on GitHub_ and Bioconductor_.
@@ -217,7 +220,8 @@ def SplatSimulate(
         Underlying common dispersion across all genes.
     bcv_df float, optional (default: 60)
         Degrees of Freedom for the BCV inverse chi-squared distribution.
-    dropout_type : {'none', 'experiment', 'batch', 'group', 'cell', 'binomial'}, optional (default: 'none')
+    dropout_type : {'none', 'experiment', 'batch', 'group', 'cell', 'binomial'},
+        optional (default: 'none')
         The type of dropout to simulate. "none" indicates no dropout,
         "experiment" is global dropout using the same parameters for every
         cell, "batch" uses the same parameters for every cell in each batch,
@@ -257,13 +261,20 @@ def SplatSimulate(
         exp_lib_size : The expected library size for that cell.
         step (paths only) : how far along the path each cell is.
         base_gene_mean : The base expression level for that gene.
-        outlier_factor : Expression outlier factor for that gene. Values of 1 indicate the gene is not an expression outlier.
+        outlier_factor : Expression outlier factor for that gene. Values of 1 indicate
+            the gene is not an expression outlier.
         gene_mean : Expression level after applying outlier factors.
-        batch_fac_[batch] : The batch effects factor for each gene for a particular batch.
-        de_fac_[group] : The differential expression factor for each gene in a particular group. Values of 1 indicate the gene is not differentially expressed.
-        sigma_fac_[path] : Factor applied to genes that have non-linear changes in expression along a path.
-        batch_cell_means : The mean expression of genes in each cell after adding batch effects.
-        base_cell_means : The mean expression of genes in each cell after any differential expression and adjusted for expected library size.
+        batch_fac_[batch] : The batch effects factor for each gene for a particular
+            batch.
+        de_fac_[group] : The differential expression factor for each gene in a
+            particular group. Values of 1 indicate the gene is not differentially
+            expressed.
+        sigma_fac_[path] : Factor applied to genes that have non-linear changes in
+            expression along a path.
+        batch_cell_means : The mean expression of genes in each cell after adding
+            batch effects.
+        base_cell_means : The mean expression of genes in each cell after any
+            differential expression and adjusted for expected library size.
         bcv : The Biological Coefficient of Variation for each gene in each cell.
         cell_means : The mean expression level of genes in each cell adjusted for BCV.
         true_counts : The simulated counts before dropout.
