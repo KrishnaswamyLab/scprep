@@ -155,7 +155,7 @@ def histogram(
         ax.hist(data, bins=bins, histtype=histtype, alpha=alpha, **kwargs)
 
         if log == "x" or log is True:
-            ax.set_xscale("symlog", linthreshx=abs_min)
+            ax.set_xscale("symlog", linthresh=abs_min)
         if log == "y" or log is True:
             ax.set_yscale("log")
 
