@@ -250,7 +250,7 @@ def to_array_or_spmatrix(x):
                 # recursed too far
                 pass
             x_out.append(xi)
-        x = np.array(x_out)
+        x = np.array(x_out, dtype="object")
     else:
         x = toarray(x)
     return x
