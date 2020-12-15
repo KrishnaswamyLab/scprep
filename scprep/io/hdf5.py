@@ -111,9 +111,7 @@ def list_nodes(f):
     else:
         raise TypeError(
             "Expected h5py.File, tables.File, h5py.Group or tables.Group. "
-            "Got {}".format(
-                type(f)
-            )
+            "Got {}".format(type(f))
         )
 
 
@@ -143,9 +141,7 @@ def get_node(f, node):
     else:
         raise TypeError(
             "Expected h5py.File, tables.File, h5py.Group or tables.Group. "
-            "Got {}".format(
-                type(f)
-            )
+            "Got {}".format(type(f))
         )
 
 

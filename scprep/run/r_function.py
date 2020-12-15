@@ -127,7 +127,7 @@ class RFunction(object):
 
 _install_bioconductor = RFunction(
     args="package = character(), site_repository = character(), update = FALSE, "
-         "version = BiocManager::version()",
+    "version = BiocManager::version()",
     body="""
         if (!require('BiocManager')) install.packages("BiocManager")
         ask <- !update

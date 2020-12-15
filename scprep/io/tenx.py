@@ -218,6 +218,7 @@ def load_10X_zip(filename, sparse=True, gene_labels="symbol", allow_duplicates=N
                     else:
                         path = fn
                     return path
+
                 if (
                     (
                         path("barcodes.tsv", dirname) in subdir_files
