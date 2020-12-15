@@ -184,12 +184,10 @@ def _get_filter_idx(values, cutoff, percentile, keep_cells):
 
 def toarray(x):
     """Convert an array-like to a np.ndarray
-
     Parameters
     ----------
     x : array-like
         Array-like to be converted
-
     Returns
     -------
     x : np.ndarray
@@ -205,21 +203,21 @@ def toarray(x):
     elif isinstance(x, np.matrix):
         x = x.A
     elif isinstance(x, list):
-        if np.all([isinstance(xi, numbers.Number) for xi in x]):
-            # if list contains all numbers, convert
-            x = np.array(x)
-        else:
-            # if list contains not all numbers, recursively convert to array
-            # and set dtype object
-            x_out = []
-            for xi in x:
-                try:
-                    xi = toarray(xi)
-                except TypeError:
-                    # recursed too far
-                    pass
-                x_out.append(xi)
-            x = np.array(x_out, dtype=object)
+        x_out = []
+        for xi in x:
+            try:
+                xi = toarray(xi)
+            except TypeError:
+                # recursed too far
+                pass
+            x_out.append(xi)
+        try:
+            x = np.array(x_out)
+        except ValueError as e:
+            if str(e) == "setting an array element with a sequence":
+                x = np.array(x_out, dtype=object)
+            else:
+                raise
     elif isinstance(x, (np.ndarray, numbers.Number)):
         pass
     else:
@@ -229,12 +227,10 @@ def toarray(x):
 
 def to_array_or_spmatrix(x):
     """Convert an array-like to a np.ndarray or scipy.sparse.spmatrix
-
     Parameters
     ----------
     x : array-like
         Array-like to be converted
-
     Returns
     -------
     x : np.ndarray or scipy.sparse.spmatrix
@@ -248,21 +244,15 @@ def to_array_or_spmatrix(x):
     ) and not isinstance(x, np.matrix):
         pass
     elif isinstance(x, list):
-        if np.all([isinstance(xi, numbers.Number) for xi in x]):
-            # if list contains all numbers, convert
-            x = np.array(x)
-        else:
-            # if list contains not all numbers, recursively convert to array
-            # and set dtype object
-            x_out = []
-            for xi in x:
-                try:
-                    xi = to_array_or_spmatrix(xi)
-                except TypeError:
-                    # recursed too far
-                    pass
-                x_out.append(xi)
-            x = np.array(x_out, dtype="object")
+        x_out = []
+        for xi in x:
+            try:
+                xi = to_array_or_spmatrix(xi)
+            except TypeError:
+                # recursed too far
+                pass
+            x_out.append(xi)
+        x = np.array(x_out)
     else:
         x = toarray(x)
     return x
