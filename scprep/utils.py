@@ -205,15 +205,21 @@ def toarray(x):
     elif isinstance(x, np.matrix):
         x = x.A
     elif isinstance(x, list):
-        x_out = []
-        for xi in x:
-            try:
-                xi = toarray(xi)
-            except TypeError:
-                # recursed too far
-                pass
-            x_out.append(xi)
-        x = np.array(x_out, dtype=object)
+        if np.all([isinstance(xi, numbers.Number) for xi in x]):
+            # if list contains all numbers, convert
+            x = np.array(x)
+        else:
+            # if list contains not all numbers, recursively convert to array
+            # and set dtype object
+            x_out = []
+            for xi in x:
+                try:
+                    xi = toarray(xi)
+                except TypeError:
+                    # recursed too far
+                    pass
+                x_out.append(xi)
+            x = np.array(x_out, dtype=object)
     elif isinstance(x, (np.ndarray, numbers.Number)):
         pass
     else:
