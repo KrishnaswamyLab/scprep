@@ -26,6 +26,7 @@ test_requires = [
     "requests",
     "packaging",
     "mock",
+    "h5py",
 ]
 
 doc_requires = [
