@@ -11,6 +11,7 @@ else:
     import scprep
     import scprep.run.r_function
     import scprep.run.conversion
+    import scprep.run.install_bioconductor
     import unittest
     import anndata
     import sklearn.cluster
@@ -401,6 +402,7 @@ else:
         assert np.all(x["y"] == np.array(["a", "b", "c"]))
 
     def test_conversion_spmatrix():
+        scprep.run.install_bioconductor("SingleCellExperiment")
         ro.r("library(SingleCellExperiment)")
         ro.r("X <- matrix(1:6, nrow=2, ncol=3)")
         ro.r("counts <- X * 2")
