@@ -361,7 +361,7 @@ class _ScatterParams(object):
                 return np.nanmax(self.c)
 
     @property
-    def vmin(self):
+    def vmax(self):
         if self._use_norm:
             return None
         else:
