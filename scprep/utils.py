@@ -182,6 +182,29 @@ def _get_filter_idx(values, cutoff, percentile, keep_cells):
     return keep_cells_idx
 
 
+def _check_numpy_dtype(x):
+    try:
+        if all([len(xi) == len(x[0]) for xi in x]):
+            # all sequences of the same length; infer dtype
+            return None
+        else:
+            # sequences of different lengths; object dtype is forced
+            return object
+    except TypeError as e:
+        if str(e).startswith("sparse matrix length is ambiguous"):
+            # list contains sparse matrices; must be object
+            return object
+        elif str(e).endswith("has no len()"):
+            if any([hasattr(xi, "__len__") for xi in x]):
+                # some sequences and some not; must be object
+                return object
+            else:
+                # no sequences; infer
+                return None
+        else:
+            raise
+
+
 def toarray(x):
     """Convert an array-like to a np.ndarray
     Parameters
@@ -211,28 +234,8 @@ def toarray(x):
                 # recursed too far
                 pass
             x_out.append(xi)
-        try:
-            # If all items in list have same len
-            if all([len(xi) == len(x_out[0]) for xi in x_out]):
-                x = np.array(x_out)
-            # If all items in list have len, but not  the same len
-            else:
-                x = np.array(x_out, dtype=object)
-        except TypeError as e:
-            if str(e) == "object of type '{}' has no len()".format(type(x[0]).__name__):
-                # If none of the items in the list have __len__
-                if all([not hasattr(xi, "__len__") for xi in x]):
-                    x = np.array(x_out)
-                # If some items in list have len, but not all
-                else:
-                    x = np.array(x_out, dtype=object)
-            else:
-                raise
-        except ValueError as e:
-            if str(e) == "setting an array element with a sequence":
-                x = np.array(x_out, dtype=object)
-            else:
-                raise
+        # convert x_out from list to array
+        x = np.array(x_out, dtype=_check_numpy_dtype(x_out))
     elif isinstance(x, (np.ndarray, numbers.Number)):
         pass
     else:
@@ -267,10 +270,8 @@ def to_array_or_spmatrix(x):
                 # recursed too far
                 pass
             x_out.append(xi)
-        if all([len(xi) == len(x_out[0]) for xi in x_out]):
-            x = np.array(x_out)
-        else:
-            x = np.array(x_out, dtype=object)
+        # convert x_out from list to array
+        x = np.array(x_out, dtype=_check_numpy_dtype(x_out))
     else:
         x = toarray(x)
     return x
