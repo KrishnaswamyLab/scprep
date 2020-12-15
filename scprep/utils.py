@@ -248,15 +248,21 @@ def to_array_or_spmatrix(x):
     ) and not isinstance(x, np.matrix):
         pass
     elif isinstance(x, list):
-        x_out = []
-        for xi in x:
-            try:
-                xi = to_array_or_spmatrix(xi)
-            except TypeError:
-                # recursed too far
-                pass
-            x_out.append(xi)
-        x = np.array(x_out, dtype="object")
+        if np.all([isinstance(xi, numbers.Number) for xi in x]):
+            # if list contains all numbers, convert
+            x = np.array(x)
+        else:
+            # if list contains not all numbers, recursively convert to array
+            # and set dtype object
+            x_out = []
+            for xi in x:
+                try:
+                    xi = to_array_or_spmatrix(xi)
+                except TypeError:
+                    # recursed too far
+                    pass
+                x_out.append(xi)
+            x = np.array(x_out, dtype="object")
     else:
         x = toarray(x)
     return x
