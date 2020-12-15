@@ -224,6 +224,7 @@ def generate_colorbar(
             if vmax is None and vmin is None:
                 vmax = 1
                 vmin = 0
+                color_range = np.linspace(vmin, vmax, 10).reshape(-1, 1)
                 remove_ticks = True
                 norm = None
                 if n_ticks != "auto":
@@ -239,6 +240,9 @@ def generate_colorbar(
             else:
                 remove_ticks = False
                 norm = create_normalize(vmin, vmax, scale=scale)
+                color_range = np.linspace(vmin, vmax, 10).reshape(-1, 1)
+                vmax = vmin = None
+
             if ax is None:
                 ax = plot_axis
             xmin, xmax = plot_axis.get_xlim()
@@ -247,7 +251,7 @@ def generate_colorbar(
                 # list colormap
                 cmap = create_colormap(cmap)
             mappable = plot_axis.imshow(
-                np.linspace(vmin, vmax, 10).reshape(-1, 1),
+                color_range,
                 vmin=vmin,
                 vmax=vmax,
                 cmap=cmap,
