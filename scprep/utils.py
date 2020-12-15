@@ -213,13 +213,7 @@ def toarray(x):
                 # recursed too far
                 pass
             x_out.append(xi)
-        try:
-            x = np.array(x_out)
-        except ValueError as e:
-            if str(e) == "setting an array element with a sequence":
-                x = np.array(x_out, dtype=object)
-            else:
-                raise
+        x = np.array(x_out, dtype=object)
     elif isinstance(x, (np.ndarray, numbers.Number)):
         pass
     else:
