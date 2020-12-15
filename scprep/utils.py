@@ -212,8 +212,11 @@ def toarray(x):
                 pass
             x_out.append(xi)
         try:
-            if all([isinstance(xi, numbers.Number) for xi in x]) or \
-               all([len(xi) == len(x_out[0]) for xi in x_out]):
+            if all(
+                [isinstance(xi, numbers.Number) for xi in x]
+            ) or all(
+               [len(xi) == len(x_out[0]) for xi in x_out]
+            ):
                 x = np.array(x_out)
             else:
                 x = np.array(x_out, dtype=object)
