@@ -66,8 +66,8 @@ class _ScatterParams(object):
         self._discrete = discrete
         self._cmap = cmap
         self._cmap_scale = cmap_scale
-        self._vmin = vmin
-        self._vmax = vmax
+        self._vmin_set = vmin
+        self._vmax_set = vmax
         self._s = s
         self._legend = legend
         self._colorbar = colorbar
@@ -284,26 +284,6 @@ class _ScatterParams(object):
             else:
                 return True
 
-    @property
-    def vmin(self):
-        if self._vmin is not None:
-            return self._vmin
-        else:
-            if self.constant_c() or self.array_c() or self.discrete:
-                return None
-            else:
-                return np.nanmin(self.c)
-
-    @property
-    def vmax(self):
-        if self._vmax is not None:
-            return self._vmax
-        else:
-            if self.constant_c() or self.array_c() or self.discrete:
-                return None
-            else:
-                return np.nanmax(self.c)
-
     def list_cmap(self):
         """Is the colormap a list?"""
         return hasattr(self._cmap, "__len__") and not isinstance(
@@ -350,11 +330,47 @@ class _ScatterParams(object):
                 return "linear"
 
     @property
+    def _use_norm(self):
+        return self.cmap_scale is not None and self.cmap_scale != "linear"
+
+    @property
+    def _vmin(self):
+        if self._vmin_set is not None:
+            return self._vmin_set
+        else:
+            if self.constant_c() or self.array_c() or self.discrete:
+                return None
+            else:
+                return np.nanmin(self.c)
+
+    @property
+    def vmin(self):
+        if self._use_norm:
+            return None
+        else:
+            return self._vmin
+
+    @property
+    def _vmax(self):
+        if self._vmax_set is not None:
+            return self._vmax_set
+        else:
+            if self.constant_c() or self.array_c() or self.discrete:
+                return None
+            else:
+                return np.nanmax(self.c)
+
+    @property
+    def vmin(self):
+        if self._use_norm:
+            return None
+        else:
+            return self._vmax
+
+    @property
     def norm(self):
-        if self.cmap_scale is not None and self.cmap_scale != "linear":
-            norm = create_normalize(self.vmin, self.vmax, self.cmap_scale)
-            self._vmin = self._vmax = None  # MPL 3.3.0 deprecation fix
-            return norm
+        if self._use_norm:
+            return create_normalize(self._vmin, self._vmax, self.cmap_scale)
         else:
             return None
 
