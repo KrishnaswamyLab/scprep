@@ -212,14 +212,22 @@ def toarray(x):
                 pass
             x_out.append(xi)
         try:
-            if all(
-                [isinstance(xi, numbers.Number) for xi in x]
-            ) or all(
-               [len(xi) == len(x_out[0]) for xi in x_out]
-            ):
+            # If all items in list have same len
+            if all([len(xi) == len(x_out[0]) for xi in x_out]):
                 x = np.array(x_out)
+            # If all items in list have len, but not  the same len
             else:
                 x = np.array(x_out, dtype=object)
+        except TypeError as e:
+            if str(e) == "object of type '{}' has no len()".format(type(x[0]).__name__):
+                # If none of the items in the list have __len__
+                if all([not hasattr(xi, "__len__") for xi in x]):
+                    x = np.array(x_out)
+                # If some items in list have len, but not all
+                else:
+                    x = np.array(x_out, dtype=object)
+            else:
+                raise
         except ValueError as e:
             if str(e) == "setting an array element with a sequence":
                 x = np.array(x_out, dtype=object)
