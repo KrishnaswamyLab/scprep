@@ -212,7 +212,10 @@ def toarray(x):
                 pass
             x_out.append(xi)
         try:
-            x = np.array(x_out)
+            if all([len(xi) == len(x_out[0]) for xi in x_out]):
+                x = np.array(x_out)
+            else:
+                x = np.array(x_out, dtype=object)
         except ValueError as e:
             if str(e) == "setting an array element with a sequence":
                 x = np.array(x_out, dtype=object)
@@ -252,7 +255,10 @@ def to_array_or_spmatrix(x):
                 # recursed too far
                 pass
             x_out.append(xi)
-        x = np.array(x_out)
+        if all([len(xi) == len(x_out[0]) for xi in x_out]):
+            x = np.array(x_out)
+        else:
+            x = np.array(x_out, dtype=object)
     else:
         x = toarray(x)
     return x

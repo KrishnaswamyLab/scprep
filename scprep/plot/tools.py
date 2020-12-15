@@ -66,7 +66,10 @@ def create_normalize(vmin, vmax, base=np.e, scale=None):
         norm = mpl.colors.LogNorm(vmin=vmin, vmax=vmin)
     elif scale == "symlog":
         norm = mpl.colors.SymLogNorm(
-            linthresh=0.03, linscale=0.03, vmin=vmin, vmax=vmax,
+            linthresh=0.03,
+            linscale=0.03,
+            vmin=vmin,
+            vmax=vmax,
             base=10,
         )
     elif scale == "sqrt":
