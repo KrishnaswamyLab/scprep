@@ -280,7 +280,7 @@ def is_SparseDataFrame(X):
     with warnings.catch_warnings():
         warnings.filterwarnings(
             "ignore",
-            "The SparseDataFrame class is removed from pandas. Accessing it from the"
+            "The SparseDataFrame class is removed from pandas. Accessing it from the "
             "top-level namespace will also be removed in the next version",
             FutureWarning,
         )
