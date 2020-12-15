@@ -352,7 +352,9 @@ class _ScatterParams(object):
     @property
     def norm(self):
         if self.cmap_scale is not None and self.cmap_scale != "linear":
-            return create_normalize(self.vmin, self.vmax, self.cmap_scale)
+            norm = create_normalize(self.vmin, self.vmax, self.cmap_scale)
+            self.vmin = self.vmax = None # MPL 3.3.0 deprecation fix
+            return norm
         else:
             return None
 
