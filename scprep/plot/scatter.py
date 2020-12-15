@@ -378,8 +378,8 @@ class _ScatterParams(object):
     def extend(self):
         if self.legend and not self.discrete:
             # migrate this to _ScatterParams
-            extend_min = np.min(self.c) < self.vmin
-            extend_max = np.max(self.c) > self.vmax
+            extend_min = np.min(self.c) < self._vmin
+            extend_max = np.max(self.c) > self._vmax
             if extend_min:
                 return "both" if extend_max else "min"
             else:
