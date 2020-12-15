@@ -396,23 +396,23 @@ class _ScatterParams(object):
 
     def check_vmin_vmax(self):
         if self.constant_c():
-            if self._vmin is not None or self._vmax is not None:
+            if self._vmin_set is not None or self._vmax_set is not None:
                 warnings.warn(
                     "Cannot set `vmin` or `vmax` with constant `c={}`. "
                     "Setting `vmin = vmax = None`.".format(self.c),
                     UserWarning,
                 )
-            self._vmin = None
-            self._vmax = None
+            self._vmin_set = None
+            self._vmax_set = None
         elif self.discrete:
-            if self._vmin is not None or self._vmax is not None:
+            if self._vmin_set is not None or self._vmax_set is not None:
                 warnings.warn(
                     "Cannot set `vmin` or `vmax` with discrete data. "
                     "Setting to `None`.",
                     UserWarning,
                 )
-            self._vmin = None
-            self._vmax = None
+            self._vmin_set = None
+            self._vmax_set = None
 
     def check_legend(self):
         # legend and colorbar are synonyms
