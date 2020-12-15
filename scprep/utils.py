@@ -266,7 +266,7 @@ def is_SparseSeries(X):
     with warnings.catch_warnings():
         warnings.filterwarnings(
             "ignore",
-            "The SparseSeries class is removed from pandas. Accessing it from the"
+            "The SparseSeries class is removed from pandas. Accessing it from the "
             "top-level namespace will also be removed in the next version",
             FutureWarning,
         )
