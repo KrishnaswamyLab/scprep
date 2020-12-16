@@ -33,8 +33,9 @@ def _pynull2rpy(pyobject):
 def _rpysce2py(robject):
     if utils._try_import("anndata2ri"):
         robject = anndata2ri.rpy2py(robject)
-        for k, v in robject.uns.items():
-            robject.uns[k] = rpy2py(v)
+        if hasattr(robject, "uns"):
+            for k, v in robject.uns.items():
+                robject.uns[k] = rpy2py(v)
     return robject
 
 
