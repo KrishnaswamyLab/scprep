@@ -11,7 +11,7 @@ else:
     import scprep
     import scprep.run.r_function
     import scprep.run.conversion
-    import scprep.run.install_bioconductor
+    import scprep.run
     import unittest
     import anndata
     import sklearn.cluster
