@@ -312,7 +312,7 @@ else:
                 self.X_pca[:, :2],
                 self.clusters,
                 start_cluster=4,
-                omega=0.1,
+                omega=2,
                 verbose=False,
             )
             pseudotime, branch, curves = (
