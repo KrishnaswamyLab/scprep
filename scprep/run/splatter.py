@@ -324,7 +324,7 @@ def SplatSimulate(
         dropout_shape=dropout_shape,
         group_prob=group_prob,
         path_from=path_from,
-        path_length=path_length,
+        path_n_steps=path_n_steps,
         path_skew=path_skew,
         path_nonlinear_prob=path_nonlinear_prob,
         path_sigma_fac=path_sigma_fac,
