@@ -1,5 +1,6 @@
 import numpy as np
 import numbers
+import warnings
 
 from . import r_function
 
@@ -58,7 +59,7 @@ _SplatSimulate = r_function.RFunction(
         dropout_type='none',
         dropout_mid=0, dropout_shape=-1,
         group_prob=1,
-        path_from=0, path_length=100, path_skew=0.5,
+        path_from=0, path_n_steps=100, path_skew=0.5,
         path_nonlinear_prob=0.1, path_sigma_fac=0.8,
         seed=0
     """,
@@ -66,7 +67,7 @@ _SplatSimulate = r_function.RFunction(
         batch_cells <- as.numeric(batch_cells)
         group_prob <- as.numeric(group_prob)
         path_from <- as.numeric(path_from)
-        path_length <- as.numeric(path_length)
+        path_n_steps <- as.numeric(path_n_steps)
         path_skew <- as.numeric(path_skew)
         dropout_mid <- as.numeric(dropout_mid)
         dropout_shape <- as.numeric(dropout_shape)
@@ -88,7 +89,7 @@ _SplatSimulate = r_function.RFunction(
             bcv.common=bcv_common, bcv.df=bcv_df,
             dropout.type=dropout_type, dropout.mid=dropout_mid,
             dropout.shape=dropout_shape,
-            path.from=path_from, path.length=path_length, path.skew=path_skew,
+            path.from=path_from, path.nSteps=path_n_steps, path.skew=path_skew,
             path.nonlinearProb=path_nonlinear_prob, path.sigmaFac=path_sigma_fac,
             seed=seed
         )
@@ -156,12 +157,13 @@ def SplatSimulate(
     dropout_shape=-1,
     group_prob=1,
     path_from=0,
-    path_length=100,
+    path_n_steps=100,
     path_skew=0.5,
     path_nonlinear_prob=0.1,
     path_sigma_fac=0.8,
     seed=None,
     verbose=1,
+    path_length=None,
 ):
     """Simulate count data from a fictional single-cell RNA-seq experiment using
        the Splat method.
@@ -286,6 +288,13 @@ def SplatSimulate(
         dropout_type = "none"
     else:
         dropout_prob = None
+    if path_length is not None:
+        warnings.warn(
+            "path_length has been renamed path_n_steps, "
+            "please use path_n_steps in the future.",
+            FutureWarning,
+        )
+        path_n_steps = path_length
     np.random.seed(seed)
 
     group_prob = _sum_to_one(group_prob)
