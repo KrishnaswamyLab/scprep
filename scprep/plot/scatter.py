@@ -375,7 +375,7 @@ class _ScatterParams(object):
     @property
     def norm(self):
         if self._use_norm:
-            return create_normalize(self._vmin, self._vmax, self.cmap_scale)
+            return create_normalize(self._vmin, self._vmax, scale=self.cmap_scale)
         else:
             return None
 
