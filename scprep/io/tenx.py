@@ -127,7 +127,7 @@ def load_10X(data_dir, sparse=True, gene_labels="symbol", allow_duplicates=None)
 
     except (FileNotFoundError, IOError):
         raise FileNotFoundError(
-            "'matrix.mtx(.gz)', '[genes/features].tsv(.gz)', and 'barcodes.tsv(.gz)'"
+            "'matrix.mtx(.gz)', '[genes/features].tsv(.gz)', and 'barcodes.tsv(.gz)' "
             "must be present in {}".format(data_dir)
         )
 
