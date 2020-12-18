@@ -584,19 +584,19 @@ class TestScatterParams(unittest.TestCase):
     def test_cmap_scale_symlog(self):
         params = _ScatterParams(x=self.x, y=self.y, c=self.c, cmap_scale="symlog")
         assert params.cmap_scale == "symlog"
-        assert isinstance(params.norm, matplotlib.colors.SymLogNorm)
+        assert isinstance(params.norm, matplotlib.colors.SymLogNorm), params.norm
 
     def test_cmap_scale_log(self):
         params = _ScatterParams(
             x=self.x, y=self.y, c=np.abs(self.c) + 1, cmap_scale="log"
         )
         assert params.cmap_scale == "log"
-        assert isinstance(params.norm, matplotlib.colors.LogNorm)
+        assert isinstance(params.norm, matplotlib.colors.LogNorm), params.norm
 
     def test_cmap_scale_sqrt(self):
         params = _ScatterParams(x=self.x, y=self.y, c=self.c, cmap_scale="sqrt")
         assert params.cmap_scale == "sqrt"
-        assert isinstance(params.norm, matplotlib.colors.PowerNorm)
+        assert isinstance(params.norm, matplotlib.colors.PowerNorm), params.norm
         assert params.norm.gamma == 0.5
 
     def test_extend(self):
