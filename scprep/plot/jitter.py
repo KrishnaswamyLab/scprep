@@ -62,8 +62,10 @@ def jitter(
     dpi=None,
     **plot_kwargs
 ):
-    """Creates a 2D scatterplot showing the distribution of `values` for points
-    that have associated `labels`.
+    """Create a jitter plot.
+
+    Creates a 2D scatterplot showing the distribution of ``values`` for points
+    that have associated ``labels``.
 
     Parameters
     ----------
@@ -157,7 +159,6 @@ def jitter(
     -------
     ax : `matplotlib.Axes`
         axis on which plot was drawn
-
     """
     with temp_fontsize(fontsize):
         params = _JitterParams(

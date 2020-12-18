@@ -8,7 +8,7 @@ from .. import utils
 
 
 def _read_csv_sparse(filename, chunksize=10000, fill_value=0.0, **kwargs):
-    """Read a csv file into a pd.DataFrame[pd.SparseArray]"""
+    """Read a csv file into a pd.DataFrame[pd.SparseArray]."""
     chunks = pd.read_csv(filename, chunksize=chunksize, **kwargs)
     data = pd.concat(
         utils.dataframe_to_sparse(chunk, fill_value=fill_value) for chunk in chunks
@@ -26,7 +26,7 @@ def load_csv(
     chunksize=10000,
     **kwargs
 ):
-    """Load a csv file
+    r"""Load a csv file.
 
     Parameters
     ----------
@@ -36,7 +36,7 @@ def load_csv(
         If your data has genes on the rows and cells on the columns, use
         cell_axis='column'
     delimiter : str, optional (default: ',')
-        Use '\\t' for tab separated values (tsv)
+        Use '\t' for tab separated values (tsv)
     gene_names : `bool`, `str`, array-like, or `None` (default: True)
         If `True`, we assume gene names are in the first row/column. Otherwise
         expects a filename or an array containing a list of gene symbols or ids
@@ -113,7 +113,7 @@ def load_tsv(
     sparse=False,
     **kwargs
 ):
-    """Load a tsv file
+    r"""Load a tsv file.
 
     Parameters
     ----------
@@ -122,7 +122,7 @@ def load_tsv(
     cell_axis : {'row', 'column'}, optional (default: 'row')
         If your data has genes on the rows and cells on the columns, use
         cell_axis='column'
-    delimiter : str, optional (default: '\\t')
+    delimiter : str, optional (default: '\t')
         Use ',' for comma separated values (csv)
     gene_names : `bool`, `str`, array-like, or `None` (default: True)
         If `True`, we assume gene names are in the first row/column. Otherwise

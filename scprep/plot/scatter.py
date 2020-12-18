@@ -157,9 +157,13 @@ class _ScatterParams(object):
             return 200 / np.sqrt(self.size)
 
     def constant_c(self):
-        """Is c constant?
+        """Check if ``c`` is constant.
 
-        Either None or a single matplotlib color"""
+        Returns
+        -------
+        c : ``str`` or ``None``
+            Either None or a single matplotlib color
+        """
         if self._c is None or isinstance(self._c, str):
             return True
         elif hasattr(self._c, "__len__") and len(self._c) == self.size:
@@ -170,7 +174,7 @@ class _ScatterParams(object):
             return mpl.colors.is_color_like(self._c)
 
     def array_c(self):
-        """Is c an array of matplotkib colors?"""
+        """Check if ``c`` is an array of matplotlib colors."""
         try:
             return self._array_c
         except AttributeError:
@@ -186,7 +190,7 @@ class _ScatterParams(object):
 
     @property
     def c_unique(self):
-        """Get unique values in c to avoid recomputing every time"""
+        """Get unique values in c to avoid recomputing every time."""
         try:
             return self._c_unique
         except AttributeError:
@@ -195,7 +199,7 @@ class _ScatterParams(object):
 
     @property
     def n_c_unique(self):
-        """Number of unique values in c"""
+        """Get the number of unique values in `c`."""
         try:
             return self._n_c_unique
         except AttributeError:
@@ -204,13 +208,14 @@ class _ScatterParams(object):
 
     @property
     def discrete(self):
-        """Is the color array discrete?
+        """Check if the color array is discrete.
 
         If not provided:
         * If c is constant or an array, return None
         * If cmap is a dict, return True
         * If c has 20 or less unique values, return True
-        * Otherwise, return False"""
+        * Otherwise, return False
+        """
         if self._discrete is not None:
             return self._discrete
         else:
@@ -232,7 +237,7 @@ class _ScatterParams(object):
 
     @property
     def c_discrete(self):
-        """Discretized form of c
+        """Discretize ``c``.
 
         If c is discrete then this converts it to
         integers from 0 to `n_c_unique`
@@ -264,7 +269,7 @@ class _ScatterParams(object):
 
     @property
     def labels(self):
-        """Labels associated with each integer c, if c is discrete"""
+        """Get labels associated with each integer c, if c is discrete."""
         if self.constant_c() or self.array_c():
             return None
         elif self.discrete:
@@ -285,13 +290,13 @@ class _ScatterParams(object):
                 return True
 
     def list_cmap(self):
-        """Is the colormap a list?"""
+        """Check if the colormap is a list."""
         return hasattr(self._cmap, "__len__") and not isinstance(
             self._cmap, (str, dict)
         )
 
     def process_string_cmap(self, cmap):
-        """If necessary, subset a discrete colormap based on the number of colors"""
+        """Subset a discrete colormap based on the number of colors if necessary."""
         cmap = mpl.cm.get_cmap(cmap)
         if self.discrete and cmap.N <= 20 and self.n_c_unique <= cmap.N:
             return mpl.colors.ListedColormap(cmap.colors[: self.n_c_unique])
@@ -602,7 +607,7 @@ def scatter(
     dpi=None,
     **plot_kwargs
 ):
-    """Create a scatter plot
+    """Create a scatter plot.
 
     Builds upon `matplotlib.pyplot.scatter` with nice defaults
     and handles categorical colors / legends better. For easy access, use
@@ -854,7 +859,7 @@ def scatter2d(
     dpi=None,
     **plot_kwargs
 ):
-    """Create a 2D scatter plot
+    """Create a 2D scatter plot.
 
     Builds upon `matplotlib.pyplot.scatter` with nice defaults
     and handles categorical colors / legends better.
@@ -1047,7 +1052,7 @@ def scatter3d(
     dpi=None,
     **plot_kwargs
 ):
-    """Create a 3D scatter plot
+    """Create a 3D scatter plot.
 
     Builds upon `matplotlib.pyplot.scatter` with nice defaults
     and handles categorical colors / legends better.
@@ -1230,7 +1235,7 @@ def rotate_scatter3d(
     dpi=None,
     **kwargs
 ):
-    """Create a rotating 3D scatter plot
+    """Create a rotating 3D scatter plot.
 
     Builds upon `matplotlib.pyplot.scatter` with nice defaults
     and handles categorical colors / legends better.

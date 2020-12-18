@@ -21,9 +21,14 @@ def _channel_names_from_meta(meta, channel_numbers, naming="N"):
 
 
 def _get_channel_names(meta, channel_numbers, channel_naming="$PnS"):
-    """Get list of channel names. Raises a warning if the names are not unique.
+    """Get list of channel names.
 
     Credit: https://github.com/eyurtsev/fcsparser/blob/master/fcsparser/api.py
+
+    Raises
+    ------
+    RuntimeWarning
+        Warns if the names are not unique.
     """
     names_n = _channel_names_from_meta(meta, channel_numbers, "N")
     names_s = _channel_names_from_meta(meta, channel_numbers, "S")
@@ -61,7 +66,8 @@ def _get_channel_names(meta, channel_numbers, channel_naming="$PnS"):
 
 def _reformat_meta(meta, channel_numbers):
     """Collect the meta data information in a more user friendly format.
-    Function looks through the meta data, collecting the channel related information
+
+    Looks through the meta data, collecting the channel related information
     into a dataframe and moving it into the _channels_ key.
 
     Credit: https://github.com/eyurtsev/fcsparser/blob/master/fcsparser/api.py
@@ -168,7 +174,7 @@ def _parse_fcs_header(meta):
 
 
 def _fcsextract(filename, channel_naming="$PnS", reformat_meta=True):
-    """Experimental FCS parser
+    """Parse FCS with experimental parser.
 
     Some files fail to load with `fcsparser.parse`. For these, we provide an
     alternative parser. It is not guaranteed to work in all cases.
@@ -258,7 +264,7 @@ def load_fcs(
     override=False,
     **kwargs
 ):
-    """Load a fcs file
+    """Load a fcs file.
 
     Parameters
     ----------

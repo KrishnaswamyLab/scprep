@@ -80,7 +80,7 @@ def gene_set_expression(
 
 
 def gene_variability(data, kernel_size=0.005, smooth=5, return_means=False):
-    """Measure the variability of each gene in a dataset
+    """Measure the variability of each gene in a dataset.
 
     Variability is computed as the deviation from
     the rolling median of the mean-variance curve
@@ -141,7 +141,7 @@ def gene_variability(data, kernel_size=0.005, smooth=5, return_means=False):
 
 
 def gene_capture_count(data, cutoff=0):
-    """Measure the number of cells in which each gene has non-negligible counts
+    """Measure the number of cells in which each gene has non-negligible counts.
 
     Parameters
     ----------

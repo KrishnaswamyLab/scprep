@@ -8,7 +8,7 @@ from . import utils
 
 
 def check_numeric(data, dtype="float", copy=None, suppress_errors=False):
-    """Check a matrix contains only numeric data
+    """Check a matrix contains only numeric data.
 
     Parameters
     ----------
@@ -58,7 +58,7 @@ def check_numeric(data, dtype="float", copy=None, suppress_errors=False):
 
 
 def check_index(data, copy=False):
-    """Ensure that the data index is unique in a pandas DataFrame
+    """Ensure that the data index is unique in a pandas DataFrame.
 
     Parameters
     ----------

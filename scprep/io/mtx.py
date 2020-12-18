@@ -11,7 +11,7 @@ from .. import utils
 
 
 def load_mtx(mtx_file, cell_axis="row", gene_names=None, cell_names=None, sparse=None):
-    """Load a mtx file
+    """Load a mtx file.
 
     Parameters
     ----------
@@ -50,7 +50,7 @@ def load_mtx(mtx_file, cell_axis="row", gene_names=None, cell_names=None, sparse
 
 
 def save_mtx(data, destination, cell_names=None, gene_names=None):
-    """Save a mtx file
+    """Save a mtx file.
 
     Parameters
     ----------

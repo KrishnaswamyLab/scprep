@@ -17,16 +17,14 @@ from . import hdf5
 
 
 def _combine_gene_id(symbols, ids):
-    """Creates gene labels of the form SYMBOL (ID)
+    """Create gene labels of the form SYMBOL (ID).
 
     Parameters
     ----------
-
     genes: pandas.DataFrame with columns['symbol', 'id']
 
     Returns
     -------
-
     pandas.Index with combined gene symbols and ids
     """
     columns = np.core.defchararray.add(np.array(symbols, dtype=str), " (")
@@ -65,7 +63,7 @@ def _find_gz_file(*path):
 
 
 def load_10X(data_dir, sparse=True, gene_labels="symbol", allow_duplicates=None):
-    """Basic IO for 10X data produced from the 10X Cellranger pipeline.
+    """Load data produced from the 10X Cellranger pipeline.
 
     A default run of the `cellranger count` command will generate gene-barcode
     matrices for secondary analysis. For both "raw" and "filtered" output,
@@ -95,7 +93,6 @@ def load_10X(data_dir, sparse=True, gene_labels="symbol", allow_duplicates=None)
         If sparse, data will be a pd.DataFrame[pd.SparseArray]. Otherwise, data will
         be a pd.DataFrame.
     """
-
     if gene_labels not in ["id", "symbol", "both"]:
         raise ValueError(
             "gene_labels='{}' not recognized. "
@@ -148,9 +145,9 @@ def load_10X(data_dir, sparse=True, gene_labels="symbol", allow_duplicates=None)
 
 
 def load_10X_zip(filename, sparse=True, gene_labels="symbol", allow_duplicates=None):
-    """Basic IO for zipped 10X data produced from the 10X Cellranger pipeline.
+    """Load zipped 10X data produced from the 10X Cellranger pipeline.
 
-    Runs `load_10X` after unzipping the data contained in `filename`
+    Runs `load_10X` after unzipping the data contained in `filename`.
 
     Parameters
     ----------
@@ -173,7 +170,6 @@ def load_10X_zip(filename, sparse=True, gene_labels="symbol", allow_duplicates=N
         If sparse, data will be a pd.DataFrame[pd.SparseArray]. Otherwise, data will
         be a pd.DataFrame.
     """
-
     if gene_labels not in ["id", "symbol", "both"]:
         raise ValueError(
             "gene_labels='{}' not recognized. "
@@ -263,7 +259,7 @@ def load_10X_HDF5(
     allow_duplicates=None,
     backend=None,
 ):
-    """Basic IO for HDF5 10X data produced from the 10X Cellranger pipeline.
+    """Load HDF5 10X data produced from the 10X Cellranger pipeline.
 
     Equivalent to `load_10X` but for HDF5 format.
 
@@ -293,7 +289,6 @@ def load_10X_HDF5(
         If sparse, data will be a pd.DataFrame[pd.SparseArray]. Otherwise, data will
         be a pd.DataFrame.
     """
-
     if gene_labels not in ["id", "symbol", "both"]:
         raise ValueError(
             "gene_labels='{}' not recognized. "

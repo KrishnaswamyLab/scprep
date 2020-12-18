@@ -26,7 +26,7 @@ def with_HDF5(fun, *args, **kwargs):
 
 @with_HDF5
 def open_file(filename, mode="r", backend=None):
-    """Open an HDF5 file with either tables or h5py
+    """Open an HDF5 file with either tables or h5py.
 
     Gives a simple, unified interface for both tables and h5py
 

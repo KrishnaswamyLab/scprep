@@ -15,7 +15,7 @@ def _sum_to_one(x):
 
 
 def install(site_repository=None, update=False, version=None, verbose=True):
-    """Install the required R packages to run Splatter
+    """Install the required R packages to run Splatter.
 
     Parameters
     ----------
@@ -165,8 +165,7 @@ def SplatSimulate(
     verbose=1,
     path_length=None,
 ):
-    """Simulate count data from a fictional single-cell RNA-seq experiment using
-       the Splat method.
+    """Simulate count data from a fictional single-cell RNA-seq experiment Splat.
 
     SplatSimulate is a Python wrapper for the R package Splatter. For more
     details, read about Splatter on GitHub_ and Bioconductor_.

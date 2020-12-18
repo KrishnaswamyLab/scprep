@@ -59,7 +59,7 @@ class _ConsoleWarning(object):
 
 
 class RFunction(object):
-    """Run an R function from Python
+    """Run an R function from Python.
 
     Parameters
     ----------
@@ -153,7 +153,7 @@ _install_bioconductor = RFunction(
 def install_bioconductor(
     package=None, site_repository=None, update=False, version=None, verbose=True
 ):
-    """Install a Bioconductor package
+    """Install a Bioconductor package.
 
     Parameters
     ----------

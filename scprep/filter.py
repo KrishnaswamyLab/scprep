@@ -48,7 +48,7 @@ def remove_duplicates(data, *extra_data, sample_labels=None):
 
 
 def filter_empty_genes(data, *extra_data):
-    """Filter all genes with zero counts across all cells
+    """Filter all genes with zero counts across all cells.
 
     This is equivalent to `filter_rare_genes(data, cutoff=0, min_cells=1)`
     but should be faster.
@@ -74,7 +74,7 @@ def filter_empty_genes(data, *extra_data):
 
 
 def filter_rare_genes(data, *extra_data, cutoff=0, min_cells=5):
-    """Filter all genes with negligible counts in all but a few cells
+    """Filter all genes with negligible counts in all but a few cells.
 
     Parameters
     ----------
@@ -101,7 +101,7 @@ def filter_rare_genes(data, *extra_data, cutoff=0, min_cells=5):
 
 
 def filter_empty_cells(data, *extra_data, sample_labels=None):
-    """Remove all cells with zero library size
+    """Remove all cells with zero library size.
 
     Parameters
     ----------
@@ -142,7 +142,7 @@ def filter_values(
     sample_labels=None,
     filter_per_sample=None
 ):
-    """Remove all cells with `values` above or below a certain threshold
+    """Remove all cells with `values` above or below a certain threshold.
 
     It is recommended to use :func:`~scprep.plot.histogram` to
     choose a cutoff prior to filtering.
@@ -211,7 +211,7 @@ def filter_library_size(
     sample_labels=None,
     filter_per_sample=None
 ):
-    """Remove all cells with library size above or below a certain threshold
+    """Remove all cells with library size above or below a certain threshold.
 
     It is recommended to use :func:`~scprep.plot.plot_library_size` to
     choose a cutoff prior to filtering.
@@ -278,7 +278,7 @@ def filter_gene_set_expression(
     sample_labels=None,
     filter_per_sample=None
 ):
-    """Remove cells with total expression of a gene set above or below a certain threshold
+    """Remove cells with total expression of a gene set above or below a threshold.
 
     It is recommended to use :func:`~scprep.plot.plot_gene_set_expression` to
     choose a cutoff prior to filtering.
@@ -352,7 +352,7 @@ def filter_gene_set_expression(
 
 
 def _find_unique_cells(data):
-    """Identify unique cells
+    """Identify unique cells.
 
     Parameters
     ----------
@@ -381,7 +381,7 @@ def _find_unique_cells(data):
 
 
 def filter_duplicates(data, *extra_data, sample_labels=None):
-    """Filter all duplicate cells
+    """Filter all duplicate cells.
 
     Parameters
     ----------

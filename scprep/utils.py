@@ -82,7 +82,7 @@ def _with_pkg(fun, pkg=None, min_version=None, *args, **kwargs):
 
 
 def _get_percentile_cutoff(data, cutoff=None, percentile=None, required=False):
-    """Get a cutoff for a dataset
+    """Get a cutoff for a dataset.
 
     Parameters
     ----------
@@ -122,7 +122,7 @@ def _get_percentile_cutoff(data, cutoff=None, percentile=None, required=False):
 
 
 def _get_filter_idx(values, cutoff, percentile, keep_cells):
-    """Return a boolean array to index cells based on a filter
+    """Return a boolean array to index cells based on a filter.
 
     Parameters
     ----------
@@ -206,7 +206,8 @@ def _check_numpy_dtype(x):
 
 
 def toarray(x):
-    """Convert an array-like to a np.ndarray
+    """Convert an array-like to a np.ndarray.
+
     Parameters
     ----------
     x : array-like
@@ -244,7 +245,8 @@ def toarray(x):
 
 
 def to_array_or_spmatrix(x):
-    """Convert an array-like to a np.ndarray or scipy.sparse.spmatrix
+    """Convert an array-like to a np.ndarray or scipy.sparse.spmatrix.
+
     Parameters
     ----------
     x : array-like
@@ -345,7 +347,7 @@ def SparseDataFrame(X, columns=None, index=None, default_fill_value=0.0):
 
 
 def matrix_transform(data, fun, *args, **kwargs):
-    """Perform a numerical transformation to data
+    """Perform a numerical transformation to data.
 
     Parameters
     ----------
@@ -378,7 +380,7 @@ def matrix_transform(data, fun, *args, **kwargs):
 
 
 def matrix_sum(data, axis=None):
-    """Get the column-wise, row-wise, or total sum of values in a matrix
+    """Get the column-wise, row-wise, or total sum of values in a matrix.
 
     Parameters
     ----------
@@ -424,7 +426,7 @@ def matrix_sum(data, axis=None):
 
 
 def matrix_std(data, axis=None):
-    """Get the column-wise, row-wise, or total standard deviation of a matrix
+    """Get the column-wise, row-wise, or total standard deviation of a matrix.
 
     Parameters
     ----------
@@ -483,7 +485,7 @@ def matrix_std(data, axis=None):
 
 
 def matrix_vector_elementwise_multiply(data, multiplier, axis=None):
-    """Elementwise multiply a matrix by a vector
+    """Elementwise multiply a matrix by a vector.
 
     Parameters
     ----------
@@ -575,7 +577,7 @@ def matrix_vector_elementwise_multiply(data, multiplier, axis=None):
 
 
 def sparse_series_min(data):
-    """Get the minimum value from a pandas sparse series
+    """Get the minimum value from a pandas sparse series.
 
     Pandas SparseDataFrame does not handle np.min.
 
@@ -623,7 +625,7 @@ def matrix_min(data):
 
 
 def matrix_non_negative(data, allow_equal=True):
-    """Check if all values in a matrix are non-negative
+    """Check if all values in a matrix are non-negative.
 
     Parameters
     ----------
@@ -640,7 +642,7 @@ def matrix_non_negative(data, allow_equal=True):
 
 
 def matrix_any(condition):
-    """Check if a condition is true anywhere in a data matrix
+    """Check if a condition is true anywhere in a data matrix.
 
     np.any doesn't handle matrices of type pd.DataFrame
 
@@ -658,7 +660,7 @@ def matrix_any(condition):
 
 
 def matrix_transpose(X):
-    """Transpose a matrix in a memory-efficient manner
+    """Transpose a matrix in a memory-efficient manner.
 
     Pandas sparse dataframes are coerced to dense
 
@@ -689,7 +691,7 @@ def matrix_transpose(X):
 
 
 def check_consistent_columns(data, common_columns_only=True):
-    """Ensure that a set of data matrices have consistent columns
+    """Ensure that a set of data matrices have consistent columns.
 
     Parameters
     ----------
@@ -752,7 +754,7 @@ def check_consistent_columns(data, common_columns_only=True):
 def combine_batches(
     data, batch_labels, append_to_cell_names=None, common_columns_only=True
 ):
-    """Combine data matrices from multiple batches and store a batch label
+    """Combine data matrices from multiple batches and store a batch label.
 
     Parameters
     ----------
@@ -887,7 +889,7 @@ def subsample(*data, n=10000, seed=None):
 
 
 def sort_clusters_by_values(clusters, values):
-    """Sorts `clusters` in increasing order of `values`.
+    """Sort `clusters` in increasing order of `values`.
 
     Parameters
     ----------

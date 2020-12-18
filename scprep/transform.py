@@ -8,7 +8,7 @@ from . import utils
 
 
 def sqrt(data):
-    """Square root transform
+    """Square root transform.
 
     Parameters
     ----------
@@ -30,7 +30,7 @@ def sqrt(data):
 
 
 def log(data, pseudocount=1, base=10):
-    """Log transform
+    """Log transform.
 
     Parameters
     ----------
@@ -83,7 +83,7 @@ def log(data, pseudocount=1, base=10):
 
 
 def arcsinh(data, cofactor=5):
-    """Inverse hyperbolic sine transform
+    """Inverse hyperbolic sine transform.
 
     Parameters
     ----------

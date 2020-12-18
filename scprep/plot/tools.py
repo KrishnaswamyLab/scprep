@@ -11,7 +11,7 @@ plt = mpl.pyplot
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
 def create_colormap(colors, name="scprep_custom_cmap"):
-    """Create a custom colormap from a list of colors
+    """Create a custom colormap from a list of colors.
 
     Parameters
     ----------
@@ -41,7 +41,7 @@ def create_colormap(colors, name="scprep_custom_cmap"):
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
 def create_normalize(vmin, vmax, base=np.e, scale=None):
-    """Create a colormap normalizer
+    """Create a colormap normalizer.
 
     Parameters
     ----------
@@ -312,7 +312,7 @@ def label_axis(
     ticklabel_horizontal_alignment=None,
     ticklabel_vertical_alignment=None,
 ):
-    """Set axis ticks and labels
+    """Set axis ticks and labels.
 
     Parameters
     ----------

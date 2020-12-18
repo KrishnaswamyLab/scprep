@@ -124,7 +124,7 @@ def marker_plot(
     ax=None,
     fontsize=None,
 ):
-    """Marker gene enrichment plot
+    """Plot marker gene enrichment.
 
     Generate a plot indicating the expression level and enrichment of
     a set of marker genes for each cluster.

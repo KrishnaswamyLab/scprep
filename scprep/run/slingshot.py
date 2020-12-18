@@ -7,7 +7,7 @@ from .. import utils
 
 
 def install(site_repository=None, update=False, version=None, verbose=True):
-    """Install the required R packages to run Slingshot
+    """Install the required R packages to run Slingshot.
 
     Parameters
     ----------
@@ -86,7 +86,7 @@ def Slingshot(
     seed=None,
     verbose=1,
 ):
-    """Perform lineage inference with Slingshot
+    """Perform lineage inference with Slingshot.
 
     Given a reduced-dimensional data matrix n by p and a vector of cluster labels
     (or matrix of soft cluster assignments, potentially including a -1 label for

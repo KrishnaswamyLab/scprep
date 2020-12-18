@@ -68,7 +68,7 @@ def _is_color_array(c):
 
 
 def _in_ipynb():
-    """Check if we are running in a Jupyter Notebook
+    """Check if we are running in a Jupyter Notebook.
 
     Credit to https://stackoverflow.com/a/24937408/3996580
     """
@@ -84,7 +84,7 @@ def _in_ipynb():
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
 def show(fig):
-    """Show a matplotlib Figure correctly, regardless of platform
+    """Show a matplotlib Figure correctly, regardless of platform.
 
     If running a Jupyter notebook, we avoid running `fig.show`. If running
     in Windows, it is necessary to run `plt.show` rather than `fig.show`.
@@ -119,7 +119,7 @@ def _is_default_matplotlibrc():
 
 
 def parse_fontsize(size=None, default=None):
-    """Parse the user's input font size
+    """Parse the user's input font size.
 
     Returns `size` if explicitly set by user,
     `default` if not set by user and the user's matplotlibrc is also default,
@@ -158,7 +158,7 @@ class temp_fontsize(object):
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
 def shift_ticklabels(axis, dx=0, dy=0):
-    """Shifts ticklabels on an axis
+    """Shifts ticklabels on an axis.
 
     Parameters
     ----------

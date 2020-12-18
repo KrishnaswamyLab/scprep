@@ -20,7 +20,7 @@ def scree_plot(
     dpi=None,
     **kwargs
 ):
-    """Plot the explained variance of each principal component
+    """Plot the explained variance of each principal component.
 
     Parameters
     ----------

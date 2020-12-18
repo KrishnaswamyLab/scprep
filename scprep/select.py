@@ -92,7 +92,7 @@ def _convert_dataframe_1d(idx, silent=False):
 
 
 def _string_vector_match(data, match, fun, dtype=str):
-    """Get a boolean match array from a vector
+    """Get a boolean match array from a vector.
 
     Parameters
     ----------
@@ -127,7 +127,7 @@ def _exact_word_regex(word):
 def _get_string_subset_mask(
     data, starts_with=None, ends_with=None, exact_word=None, regex=None
 ):
-    """Get a subset from a string array
+    """Get a subset from a string array.
 
     Parameters
     ----------
@@ -180,7 +180,7 @@ def _get_string_subset_mask(
 def _get_string_subset(
     data, starts_with=None, ends_with=None, exact_word=None, regex=None
 ):
-    """Get a subset from a string array
+    """Get a subset from a string array.
 
     Parameters
     ----------
@@ -212,7 +212,7 @@ def _get_string_subset(
 
 
 def get_gene_set(data, starts_with=None, ends_with=None, exact_word=None, regex=None):
-    """Get a list of genes from data
+    """Get a list of genes from data.
 
     Parameters
     ----------
@@ -259,7 +259,7 @@ def get_gene_set(data, starts_with=None, ends_with=None, exact_word=None, regex=
 
 
 def get_cell_set(data, starts_with=None, ends_with=None, exact_word=None, regex=None):
-    """Get a list of cells from data
+    """Get a list of cells from data.
 
     Parameters
     ----------
@@ -314,7 +314,7 @@ def select_cols(
     exact_word=None,
     regex=None
 ):
-    """Select columns from a data matrix
+    """Select columns from a data matrix.
 
     Parameters
     ----------
@@ -472,7 +472,7 @@ def select_rows(
     exact_word=None,
     regex=None
 ):
-    """Select rows from a data matrix
+    """Select rows from a data matrix.
 
     Parameters
     ----------
@@ -601,7 +601,7 @@ def select_rows(
 
 
 def subsample(*data, n=10000, seed=None):
-    """Subsample the number of points in a dataset
+    """Subsample the number of points in a dataset.
 
     Selects a random subset of (optionally multiple) datasets.
     Helpful for plotting, or for methods with computational
@@ -635,7 +635,7 @@ def subsample(*data, n=10000, seed=None):
 def highly_variable_genes(
     data, *extra_data, kernel_size=0.05, smooth=5, cutoff=None, percentile=80
 ):
-    """Select genes with high variability
+    """Select genes with high variability.
 
     Variability is computed as the deviation from a loess fit
     to the rolling median of the mean-variance curve

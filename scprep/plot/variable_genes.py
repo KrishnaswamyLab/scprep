@@ -19,7 +19,7 @@ def plot_gene_variability(
     dpi=None,
     **kwargs
 ):
-    """Plot the histogram of gene variability
+    """Plot the histogram of gene variability.
 
     Variability is computed as the deviation from a loess fit
     to the rolling median of the mean-variance curve
