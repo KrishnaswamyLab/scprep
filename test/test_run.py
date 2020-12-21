@@ -313,7 +313,7 @@ else:
                 self.clusters,
                 start_cluster=4,
                 omega=0.1,
-                smoother="lowess",
+                smoother="loess",
                 verbose=False,
             )
             pseudotime, branch, curves = (
