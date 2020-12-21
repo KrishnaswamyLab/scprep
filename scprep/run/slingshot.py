@@ -44,7 +44,7 @@ _Slingshot = r_function.RFunction(
         extend = "y", reweight = TRUE, reassign = TRUE, thresh = 0.001,
         max_iter = 15, stretch = 2,
         smoother = "smooth.spline", shrink_method = "cosine",
-        allow_breaks = TRUE, seed = NULL
+        allow_breaks = TRUE, seed = NULL, ...
     """,
     body="""
         set.seed(seed)
@@ -59,7 +59,7 @@ _Slingshot = r_function.RFunction(
                          reassign = reassign, thresh = thresh,
                          maxit = max_iter, stretch = stretch,
                          smoother = smoother, shrink.method = shrink_method,
-                         allow.breaks = allow_breaks)
+                         allow.breaks = allow_breaks, ...)
         list(pseudotime = slingPseudotime(sling),
              curves = lapply(sling@curves, function(curve) curve$s[curve$ord,]))
     """,
@@ -85,6 +85,7 @@ def Slingshot(
     allow_breaks=True,
     seed=None,
     verbose=1,
+    **kwargs,
 ):
     """Perform lineage inference with Slingshot.
 
@@ -232,7 +233,6 @@ def Slingshot(
             "data.shape[0] ({})".format(cluster_labels.shape[0], data.shape[0])
         )
 
-    kwargs = {}
     if start_cluster is not None:
         kwargs["start_cluster"] = start_cluster
     if end_cluster is not None:
