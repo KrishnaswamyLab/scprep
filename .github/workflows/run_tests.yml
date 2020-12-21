@@ -105,7 +105,8 @@ jobs:
       run: |
         if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
         renv::restore()
-        install.packages("BiocManager")
+        renv::install("bioc::splatter")
+        renv::install("bioc::slingshot")
       shell: Rscript {0}
 
     - name: Install package & dependencies
