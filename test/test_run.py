@@ -314,6 +314,7 @@ else:
                 start_cluster=4,
                 omega=0.1,
                 smoother="loess",
+                maxit=0,
                 verbose=False,
             )
             pseudotime, branch, curves = (
