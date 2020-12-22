@@ -2,7 +2,7 @@ name: Unit Tests
 
 on:
   push:
-    exclude_branches:
+    branches-ignore:
       - 'test_deploy'
   pull_request:
     branches:
