@@ -92,7 +92,7 @@ def _convert_dataframe_1d(idx, silent=False):
 
 
 def _string_vector_match(data, match, fun, dtype=str):
-    """Get a boolean match array from a vector
+    """Get a boolean match array from a vector.
 
     Parameters
     ----------
@@ -127,7 +127,7 @@ def _exact_word_regex(word):
 def _get_string_subset_mask(
     data, starts_with=None, ends_with=None, exact_word=None, regex=None
 ):
-    """Get a subset from a string array
+    """Get a subset from a string array.
 
     Parameters
     ----------
@@ -180,7 +180,7 @@ def _get_string_subset_mask(
 def _get_string_subset(
     data, starts_with=None, ends_with=None, exact_word=None, regex=None
 ):
-    """Get a subset from a string array
+    """Get a subset from a string array.
 
     Parameters
     ----------
@@ -212,7 +212,7 @@ def _get_string_subset(
 
 
 def get_gene_set(data, starts_with=None, ends_with=None, exact_word=None, regex=None):
-    """Get a list of genes from data
+    """Get a list of genes from data.
 
     Parameters
     ----------
@@ -259,7 +259,7 @@ def get_gene_set(data, starts_with=None, ends_with=None, exact_word=None, regex=
 
 
 def get_cell_set(data, starts_with=None, ends_with=None, exact_word=None, regex=None):
-    """Get a list of cells from data
+    """Get a list of cells from data.
 
     Parameters
     ----------
@@ -314,7 +314,7 @@ def select_cols(
     exact_word=None,
     regex=None
 ):
-    """Select columns from a data matrix
+    """Select columns from a data matrix.
 
     Parameters
     ----------
@@ -342,8 +342,16 @@ def select_cols(
 
     Examples
     --------
-    data_subset = scprep.select.select_cols(data, idx=np.random.choice([True, False], data.shape[1]))
-    data_subset, metadata_subset = scprep.select.select_cols(data, metadata, starts_with="MT")
+    data_subset = scprep.select.select_cols(
+        data,
+        idx=np.random.choice([True, False],
+        data.shape[1])
+    )
+    data_subset, metadata_subset = scprep.select.select_cols(
+        data,
+        metadata,
+        starts_with="MT"
+    )
 
     Raises
     ------
@@ -464,7 +472,7 @@ def select_rows(
     exact_word=None,
     regex=None
 ):
-    """Select rows from a data matrix
+    """Select rows from a data matrix.
 
     Parameters
     ----------
@@ -492,8 +500,16 @@ def select_rows(
 
     Examples
     --------
-    data_subset = scprep.select.select_rows(data, idx=np.random.choice([True, False], data.shape[0]))
-    data_subset, labels_subset = scprep.select.select_rows(data, labels, end_with="batch1")
+    data_subset = scprep.select.select_rows(
+        data,
+        idx=np.random.choice([True, False],
+        data.shape[0])
+    )
+    data_subset, labels_subset = scprep.select.select_rows(
+        data,
+        labels,
+        end_with="batch1"
+    )
 
     Raises
     ------
@@ -585,7 +601,7 @@ def select_rows(
 
 
 def subsample(*data, n=10000, seed=None):
-    """Subsample the number of points in a dataset
+    """Subsample the number of points in a dataset.
 
     Selects a random subset of (optionally multiple) datasets.
     Helpful for plotting, or for methods with computational
@@ -619,7 +635,7 @@ def subsample(*data, n=10000, seed=None):
 def highly_variable_genes(
     data, *extra_data, kernel_size=0.05, smooth=5, cutoff=None, percentile=80
 ):
-    """Select genes with high variability
+    """Select genes with high variability.
 
     Variability is computed as the deviation from a loess fit
     to the rolling median of the mean-variance curve
@@ -631,8 +647,8 @@ def highly_variable_genes(
     extra_data : array-like, shape=[any, n_features], optional
         Optional additional data objects from which to select the same rows
     kernel_size : float or int, optional (default: 0.005)
-        Width of rolling median window. If a float between 0 and 1, the width is given by
-        kernel_size * data.shape[1]. Otherwise should be an odd integer
+        Width of rolling median window. If a float between 0 and 1, the width is given
+        by kernel_size * data.shape[1]. Otherwise should be an odd integer
     smooth : int, optional (default: 5)
         Amount of smoothing to apply to the median filter
     cutoff : float, optional (default: None)

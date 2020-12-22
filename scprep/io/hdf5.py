@@ -26,7 +26,7 @@ def with_HDF5(fun, *args, **kwargs):
 
 @with_HDF5
 def open_file(filename, mode="r", backend=None):
-    """Open an HDF5 file with either tables or h5py
+    """Open an HDF5 file with either tables or h5py.
 
     Gives a simple, unified interface for both tables and h5py
 
@@ -110,9 +110,8 @@ def list_nodes(f):
         return [node._v_name for node in f.list_nodes(f.root)]
     else:
         raise TypeError(
-            "Expected h5py.File, tables.File, h5py.Group or tables.Group. Got {}".format(
-                type(f)
-            )
+            "Expected h5py.File, tables.File, h5py.Group or tables.Group. "
+            "Got {}".format(type(f))
         )
 
 
@@ -141,9 +140,8 @@ def get_node(f, node):
             return f[node]
     else:
         raise TypeError(
-            "Expected h5py.File, tables.File, h5py.Group or tables.Group. Got {}".format(
-                type(f)
-            )
+            "Expected h5py.File, tables.File, h5py.Group or tables.Group. "
+            "Got {}".format(type(f))
         )
 
 

@@ -1,6 +1,5 @@
 import numpy as np
 import numbers
-import warnings
 
 from scipy import sparse
 
@@ -106,10 +105,13 @@ def histogram(
         Axis title.
     fontsize : float or None (default: None)
         Base font size.
-    histtype : {'bar', 'barstacked', 'step', 'stepfilled'}, optional (default: 'stepfilled')
+    histtype : {'bar', 'barstacked', 'step', 'stepfilled'}, optional
+        (default: 'stepfilled')
         The type of histogram to draw.
-        'bar' is a traditional bar-type histogram. If multiple data are given the bars are arranged side by side.
-        'barstacked' is a bar-type histogram where multiple data are stacked on top of each other.
+        'bar' is a traditional bar-type histogram. If multiple data are given the bars
+        are arranged side by side.
+        'barstacked' is a bar-type histogram where multiple data are stacked on top of
+        each other.
         'step' generates a lineplot that is by default unfilled.
         'stepfilled' generates a lineplot that is by default filled.
     alpha : float, optional (default: 1 for a single dataset, 0.5 for multiple)
@@ -153,7 +155,7 @@ def histogram(
         ax.hist(data, bins=bins, histtype=histtype, alpha=alpha, **kwargs)
 
         if log == "x" or log is True:
-            ax.set_xscale("symlog", linthreshx=abs_min)
+            ax.set_xscale("symlog", linthresh=abs_min)
         if log == "y" or log is True:
             ax.set_yscale("log")
 

@@ -3,6 +3,14 @@ from .. import utils
 from .._lazyload import rpy2
 
 
+def _console_warning(s, log_fn):
+    s = s.strip()
+    if s == "=":
+        return
+    else:
+        return log_fn(rpy2.rinterface_lib.callbacks._WRITECONSOLE_EXCEPTION_LOG, s)
+
+
 class _ConsoleWarning(object):
     def __init__(self, verbose=1):
         if verbose is True:
@@ -13,15 +21,11 @@ class _ConsoleWarning(object):
 
     @staticmethod
     def warning(s: str) -> None:
-        rpy2.rinterface_lib.callbacks.logger.warning(
-            rpy2.rinterface_lib.callbacks._WRITECONSOLE_EXCEPTION_LOG, s.strip()
-        )
+        _console_warning(s, rpy2.rinterface_lib.callbacks.logger.warning)
 
     @staticmethod
     def debug(s: str) -> None:
-        rpy2.rinterface_lib.callbacks.logger.debug(
-            rpy2.rinterface_lib.callbacks._WRITECONSOLE_EXCEPTION_LOG, s.strip()
-        )
+        _console_warning(s, rpy2.rinterface_lib.callbacks.logger.debug)
 
     @staticmethod
     def set(fun):
@@ -55,7 +59,7 @@ class _ConsoleWarning(object):
 
 
 class RFunction(object):
-    """Run an R function from Python
+    """Run an R function from Python.
 
     Parameters
     ----------
@@ -126,7 +130,8 @@ class RFunction(object):
 
 
 _install_bioconductor = RFunction(
-    args="package = character(), site_repository = character(), update = FALSE, version = BiocManager::version()",
+    args="package = character(), site_repository = character(), update = FALSE, "
+    "version = BiocManager::version()",
     body="""
         if (!require('BiocManager')) install.packages("BiocManager")
         ask <- !update
@@ -148,7 +153,7 @@ _install_bioconductor = RFunction(
 def install_bioconductor(
     package=None, site_repository=None, update=False, version=None, verbose=True
 ):
-    """Install a Bioconductor package
+    """Install a Bioconductor package.
 
     Parameters
     ----------

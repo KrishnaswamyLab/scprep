@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 
 from .. import utils
 from .._lazyload import rpy2, anndata2ri
@@ -32,8 +33,9 @@ def _pynull2rpy(pyobject):
 def _rpysce2py(robject):
     if utils._try_import("anndata2ri"):
         robject = anndata2ri.rpy2py(robject)
-        for k, v in robject.uns.items():
-            robject.uns[k] = rpy2py(v)
+        if hasattr(robject, "uns"):
+            for k, v in robject.uns.items():
+                robject.uns[k] = rpy2py(v)
     return robject
 
 
@@ -66,12 +68,12 @@ def rpy2py(robject):
         Converted object
     """
     for converter in [
+        _rpynull2py,
+        _rpysce2py,
         rpy2.robjects.pandas2ri.rpy2py,
         _rpylist2py,
-        _rpysce2py,
         rpy2.robjects.numpy2ri.rpy2py,
         rpy2.robjects.conversion.rpy2py,
-        _rpynull2py,
     ]:
         if _is_r_object(robject):
             try:
@@ -80,6 +82,8 @@ def rpy2py(robject):
                 pass
         else:
             break
+    if _is_r_object(robject):
+        warnings.warn("Object not converted: {}".format(robject), RuntimeWarning)
     return robject
 
 
@@ -102,11 +106,11 @@ def py2rpy(pyobject):
         Object to be converted
     """
     for converter in [
-        rpy2.robjects.pandas2ri.py2rpy,
+        _pynull2rpy,
         _pysce2rpy,
+        rpy2.robjects.pandas2ri.py2rpy,
         rpy2.robjects.numpy2ri.py2rpy,
         rpy2.robjects.conversion.py2rpy,
-        _pynull2rpy,
     ]:
         if not _is_r_object(pyobject):
             try:
@@ -115,4 +119,6 @@ def py2rpy(pyobject):
                 pass
         else:
             break
+    if not _is_r_object(pyobject):
+        warnings.warn("Object not converted: {}".format(pyobject), RuntimeWarning)
     return pyobject

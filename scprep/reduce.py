@@ -19,7 +19,7 @@ class InvertibleRandomProjection(random_projection.GaussianRandomProjection):
 
     @property
     def pseudoinverse(self):
-        """Pseudoinverse of the random projection
+        """Pseudoinverse of the random projection.
 
         This inverts the projection operation for any vector in the span of the
         random projection. For small enough `eps`, this should be close to the
@@ -47,7 +47,7 @@ class InvertibleRandomProjection(random_projection.GaussianRandomProjection):
 
 
 class AutomaticDimensionSVD(decomposition.TruncatedSVD):
-    """Truncated SVD with automatic dimensionality selected by the Johnson-Lindenstrauss lemma."""
+    """Truncated SVD with automatic dimensionality selected by Johnson-Lindenstrauss."""
 
     def __init__(
         self,
@@ -79,7 +79,7 @@ class AutomaticDimensionSVD(decomposition.TruncatedSVD):
             )
         try:
             return super().fit(X)
-        except ValueError as e:
+        except ValueError:
             if self.n_components >= X.shape[1]:
                 raise RuntimeError(
                     "eps={} and n_samples={} lead to a target "
@@ -93,7 +93,7 @@ class AutomaticDimensionSVD(decomposition.TruncatedSVD):
 
 
 class SparseInputPCA(sklearn.base.BaseEstimator):
-    """Calculate PCA using random projections to handle sparse matrices
+    """Calculate PCA using random projections to handle sparse matrices.
 
     Uses the Johnson-Lindenstrauss Lemma to determine the number of
     dimensions of random projections prior to subtracting the mean.
@@ -144,7 +144,7 @@ class SparseInputPCA(sklearn.base.BaseEstimator):
 
     @property
     def singular_values_(self):
-        """Singular values of the PCA decomposition"""
+        """Singular values of the PCA decomposition."""
         return self.pca_op.singular_values_
 
     @property
@@ -164,8 +164,7 @@ class SparseInputPCA(sklearn.base.BaseEstimator):
 
     @property
     def components_(self):
-        """Principal axes in feature space, representing the
-        directions of maximum variance in the data.
+        """Principal axes in feature space, representing directions of maximum variance.
 
         The components are sorted by explained variance.
         """
@@ -244,7 +243,7 @@ def pca(
     svd_offset=None,
     svd_multiples=None,
 ):
-    """Calculate PCA using random projections to handle sparse matrices
+    """Calculate PCA using random projections to handle sparse matrices.
 
     Uses the Johnson-Lindenstrauss Lemma to determine the number of
     dimensions of random projections prior to subtracting the mean.

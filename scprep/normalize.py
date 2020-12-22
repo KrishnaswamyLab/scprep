@@ -38,7 +38,8 @@ def _get_scaled_libsize(data, rescale=10000, return_library_size=False):
 
 
 def library_size_normalize(data, rescale=10000, return_library_size=False):
-    """Performs L1 normalization on input data
+    """Perform L1 normalization on input data.
+
     Performs L1 normalization on input data such that the sum of expression
     values for each cell sums to 1
     then returns normalized matrix to the metric space using median UMI count
@@ -107,7 +108,7 @@ def library_size_normalize(data, rescale=10000, return_library_size=False):
 
 
 def batch_mean_center(data, sample_idx=None):
-    """Performs batch mean-centering on the data
+    """Perform batch mean-centering on the data.
 
     The features of the data are all centered such that
     the column means are zero. Each batch is centered separately.

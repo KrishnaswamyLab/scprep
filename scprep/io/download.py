@@ -31,7 +31,7 @@ def _google_drive_confirm_token(response):
 
 @utils._with_pkg(pkg="requests")
 def _GET_google_drive(id):
-    """Post a GET request to Google Drive"""
+    """Post a GET request to Google Drive."""
     global _GOOGLE_DRIVE_URL
 
     with requests.Session() as session:
@@ -45,7 +45,7 @@ def _GET_google_drive(id):
 
 
 def download_google_drive(id, destination):
-    """Download a file from Google Drive
+    """Download a file from Google Drive.
 
     Requires the file to be available to view by anyone with the URL.
 
@@ -63,7 +63,7 @@ def download_google_drive(id, destination):
 
 
 def download_url(url, destination):
-    """Download a file from a URL
+    """Download a file from a URL.
 
     Parameters
     ----------
@@ -85,7 +85,7 @@ def download_url(url, destination):
 
 
 def unzip(filename, destination=None, delete=True):
-    """Extract a .zip file and optionally remove the archived version
+    """Extract a .zip file and optionally remove the archived version.
 
     Parameters
     ----------
@@ -109,7 +109,7 @@ def unzip(filename, destination=None, delete=True):
 
 
 def download_and_extract_zip(url, destination):
-    """Download a .zip file from a URL and extract it
+    """Download a .zip file from a URL and extract it.
 
     Parameters
     ----------

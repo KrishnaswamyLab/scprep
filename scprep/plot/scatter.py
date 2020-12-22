@@ -66,8 +66,8 @@ class _ScatterParams(object):
         self._discrete = discrete
         self._cmap = cmap
         self._cmap_scale = cmap_scale
-        self._vmin = vmin
-        self._vmax = vmax
+        self._vmin_set = vmin
+        self._vmax_set = vmax
         self._s = s
         self._legend = legend
         self._colorbar = colorbar
@@ -157,9 +157,13 @@ class _ScatterParams(object):
             return 200 / np.sqrt(self.size)
 
     def constant_c(self):
-        """Is c constant?
+        """Check if ``c`` is constant.
 
-        Either None or a single matplotlib color"""
+        Returns
+        -------
+        c : ``str`` or ``None``
+            Either None or a single matplotlib color
+        """
         if self._c is None or isinstance(self._c, str):
             return True
         elif hasattr(self._c, "__len__") and len(self._c) == self.size:
@@ -170,7 +174,7 @@ class _ScatterParams(object):
             return mpl.colors.is_color_like(self._c)
 
     def array_c(self):
-        """Is c an array of matplotkib colors?"""
+        """Check if ``c`` is an array of matplotlib colors."""
         try:
             return self._array_c
         except AttributeError:
@@ -186,7 +190,7 @@ class _ScatterParams(object):
 
     @property
     def c_unique(self):
-        """Get unique values in c to avoid recomputing every time"""
+        """Get unique values in c to avoid recomputing every time."""
         try:
             return self._c_unique
         except AttributeError:
@@ -195,7 +199,7 @@ class _ScatterParams(object):
 
     @property
     def n_c_unique(self):
-        """Number of unique values in c"""
+        """Get the number of unique values in `c`."""
         try:
             return self._n_c_unique
         except AttributeError:
@@ -204,13 +208,14 @@ class _ScatterParams(object):
 
     @property
     def discrete(self):
-        """Is the color array discrete?
+        """Check if the color array is discrete.
 
         If not provided:
         * If c is constant or an array, return None
         * If cmap is a dict, return True
         * If c has 20 or less unique values, return True
-        * Otherwise, return False"""
+        * Otherwise, return False
+        """
         if self._discrete is not None:
             return self._discrete
         else:
@@ -232,7 +237,7 @@ class _ScatterParams(object):
 
     @property
     def c_discrete(self):
-        """Discretized form of c
+        """Discretize ``c``.
 
         If c is discrete then this converts it to
         integers from 0 to `n_c_unique`
@@ -264,7 +269,7 @@ class _ScatterParams(object):
 
     @property
     def labels(self):
-        """Labels associated with each integer c, if c is discrete"""
+        """Get labels associated with each integer c, if c is discrete."""
         if self.constant_c() or self.array_c():
             return None
         elif self.discrete:
@@ -284,34 +289,14 @@ class _ScatterParams(object):
             else:
                 return True
 
-    @property
-    def vmin(self):
-        if self._vmin is not None:
-            return self._vmin
-        else:
-            if self.constant_c() or self.array_c() or self.discrete:
-                return None
-            else:
-                return np.nanmin(self.c)
-
-    @property
-    def vmax(self):
-        if self._vmax is not None:
-            return self._vmax
-        else:
-            if self.constant_c() or self.array_c() or self.discrete:
-                return None
-            else:
-                return np.nanmax(self.c)
-
     def list_cmap(self):
-        """Is the colormap a list?"""
+        """Check if the colormap is a list."""
         return hasattr(self._cmap, "__len__") and not isinstance(
             self._cmap, (str, dict)
         )
 
     def process_string_cmap(self, cmap):
-        """If necessary, subset a discrete colormap based on the number of colors"""
+        """Subset a discrete colormap based on the number of colors if necessary."""
         cmap = mpl.cm.get_cmap(cmap)
         if self.discrete and cmap.N <= 20 and self.n_c_unique <= cmap.N:
             return mpl.colors.ListedColormap(cmap.colors[: self.n_c_unique])
@@ -323,7 +308,7 @@ class _ScatterParams(object):
         if self._cmap is not None:
             if isinstance(self._cmap, dict):
                 return mpl.colors.ListedColormap(
-                    [mpl.colors.to_rgba(self._cmap[l]) for l in self.labels]
+                    [mpl.colors.to_rgba(self._cmap[label]) for label in self.labels]
                 )
             elif self.list_cmap():
                 return create_colormap(self._cmap)
@@ -350,9 +335,47 @@ class _ScatterParams(object):
                 return "linear"
 
     @property
+    def _use_norm(self):
+        return self.cmap_scale is not None and self.cmap_scale != "linear"
+
+    @property
+    def _vmin(self):
+        if self._vmin_set is not None:
+            return self._vmin_set
+        else:
+            if self.constant_c() or self.array_c() or self.discrete:
+                return None
+            else:
+                return np.nanmin(self.c)
+
+    @property
+    def vmin(self):
+        if self._use_norm:
+            return None
+        else:
+            return self._vmin
+
+    @property
+    def _vmax(self):
+        if self._vmax_set is not None:
+            return self._vmax_set
+        else:
+            if self.constant_c() or self.array_c() or self.discrete:
+                return None
+            else:
+                return np.nanmax(self.c)
+
+    @property
+    def vmax(self):
+        if self._use_norm:
+            return None
+        else:
+            return self._vmax
+
+    @property
     def norm(self):
-        if self.cmap_scale is not None and self.cmap_scale != "linear":
-            return create_normalize(self.vmin, self.vmax, self.cmap_scale)
+        if self._use_norm:
+            return create_normalize(self._vmin, self._vmax, scale=self.cmap_scale)
         else:
             return None
 
@@ -360,8 +383,8 @@ class _ScatterParams(object):
     def extend(self):
         if self.legend and not self.discrete:
             # migrate this to _ScatterParams
-            extend_min = np.min(self.c) < self.vmin
-            extend_max = np.max(self.c) > self.vmax
+            extend_min = np.min(self.c) < self._vmin
+            extend_max = np.max(self.c) > self._vmax
             if extend_min:
                 return "both" if extend_max else "min"
             else:
@@ -378,23 +401,23 @@ class _ScatterParams(object):
 
     def check_vmin_vmax(self):
         if self.constant_c():
-            if self._vmin is not None or self._vmax is not None:
+            if self._vmin_set is not None or self._vmax_set is not None:
                 warnings.warn(
                     "Cannot set `vmin` or `vmax` with constant `c={}`. "
                     "Setting `vmin = vmax = None`.".format(self.c),
                     UserWarning,
                 )
-            self._vmin = None
-            self._vmax = None
+            self._vmin_set = None
+            self._vmax_set = None
         elif self.discrete:
-            if self._vmin is not None or self._vmax is not None:
+            if self._vmin_set is not None or self._vmax_set is not None:
                 warnings.warn(
                     "Cannot set `vmin` or `vmax` with discrete data. "
                     "Setting to `None`.",
                     UserWarning,
                 )
-            self._vmin = None
-            self._vmax = None
+            self._vmin_set = None
+            self._vmax_set = None
 
     def check_legend(self):
         # legend and colorbar are synonyms
@@ -476,13 +499,13 @@ class _ScatterParams(object):
                 )
             elif not self.discrete:
                 raise ValueError("Cannot use dictionary cmap with " "continuous data.")
-            elif np.any([l not in self._cmap for l in np.unique(self._c)]):
+            elif np.any([color not in self._cmap for color in np.unique(self._c)]):
                 missing = set(np.unique(self._c).tolist()).difference(self._cmap.keys())
                 raise ValueError(
                     "Dictionary cmap requires a color "
                     "for every unique entry in `c`. "
                     "Missing colors for [{}]".format(
-                        ", ".join([str(l) for l in missing])
+                        ", ".join([str(color) for color in missing])
                     )
                 )
         elif self.list_cmap():
@@ -584,7 +607,7 @@ def scatter(
     dpi=None,
     **plot_kwargs
 ):
-    """Create a scatter plot
+    """Create a scatter plot.
 
     Builds upon `matplotlib.pyplot.scatter` with nice defaults
     and handles categorical colors / legends better. For easy access, use
@@ -609,7 +632,8 @@ def scatter(
         `inferno` for continuous data. If a dictionary, expects one key
         for every unique value in `c`, where values are valid matplotlib colors
         (hsv, rbg, rgba, or named colors)
-    cmap_scale : {'linear', 'log', 'symlog', 'sqrt'} or `matplotlib.colors.Normalize`, optional (default: 'linear')
+    cmap_scale : {'linear', 'log', 'symlog', 'sqrt'} or `matplotlib.colors.Normalize`,
+        optional (default: 'linear')
         Colormap normalization scale. For advanced use, see
         <https://matplotlib.org/users/colormapnorms.html>
     s : float, optional (default: None)
@@ -835,7 +859,7 @@ def scatter2d(
     dpi=None,
     **plot_kwargs
 ):
-    """Create a 2D scatter plot
+    """Create a 2D scatter plot.
 
     Builds upon `matplotlib.pyplot.scatter` with nice defaults
     and handles categorical colors / legends better.
@@ -857,7 +881,8 @@ def scatter2d(
         continuous data. If a dictionary, expects one key
         for every unique value in `c`, where values are valid matplotlib colors
         (hsv, rbg, rgba, or named colors)
-    cmap_scale : {'linear', 'log', 'symlog', 'sqrt'} or `matplotlib.colors.Normalize`, optional (default: 'linear')
+    cmap_scale : {'linear', 'log', 'symlog', 'sqrt'} or `matplotlib.colors.Normalize`,
+        optional (default: 'linear')
         Colormap normalization scale. For advanced use, see
         <https://matplotlib.org/users/colormapnorms.html>
     s : float, optional (default: None)
@@ -946,7 +971,9 @@ def scatter2d(
     >>> # Discrete color vector with custom colormap
     >>> colors = np.random.choice(['a','b'], data.shape[0], replace=True)
     >>> data[colors == 'a'] += 10
-    >>> scprep.plot.scatter2d(data, c=colors, cmap={'a' : [1,0,0,1], 'b' : 'xkcd:sky blue'})
+    >>> scprep.plot.scatter2d(
+            data, c=colors, cmap={'a' : [1,0,0,1], 'b' : 'xkcd:sky blue'}
+        )
     """
     if isinstance(data, list):
         data = utils.toarray(data)
@@ -1025,7 +1052,7 @@ def scatter3d(
     dpi=None,
     **plot_kwargs
 ):
-    """Create a 3D scatter plot
+    """Create a 3D scatter plot.
 
     Builds upon `matplotlib.pyplot.scatter` with nice defaults
     and handles categorical colors / legends better.
@@ -1047,7 +1074,8 @@ def scatter3d(
         continuous data. If a dictionary, expects one key
         for every unique value in `c`, where values are valid matplotlib colors
         (hsv, rbg, rgba, or named colors)
-    cmap_scale : {'linear', 'log', 'symlog', 'sqrt'} or `matplotlib.colors.Normalize`, optional (default: 'linear')
+    cmap_scale : {'linear', 'log', 'symlog', 'sqrt'} or `matplotlib.colors.Normalize`,
+        optional (default: 'linear')
         Colormap normalization scale. For advanced use, see
         <https://matplotlib.org/users/colormapnorms.html>
     s : float, optional (default: None)
@@ -1140,7 +1168,9 @@ def scatter3d(
     >>> # Discrete color vector with custom colormap
     >>> colors = np.random.choice(['a','b'], data.shape[0], replace=True)
     >>> data[colors == 'a'] += 5
-    >>> scprep.plot.scatter3d(data, c=colors, cmap={'a' : [1,0,0,1], 'b' : 'xkcd:sky blue'})
+    >>> scprep.plot.scatter3d(
+            data, c=colors, cmap={'a' : [1,0,0,1], 'b' : 'xkcd:sky blue'}
+        )
     """
     if isinstance(data, list):
         data = utils.toarray(data)
@@ -1205,7 +1235,7 @@ def rotate_scatter3d(
     dpi=None,
     **kwargs
 ):
-    """Create a rotating 3D scatter plot
+    """Create a rotating 3D scatter plot.
 
     Builds upon `matplotlib.pyplot.scatter` with nice defaults
     and handles categorical colors / legends better.
@@ -1253,7 +1283,12 @@ def rotate_scatter3d(
     >>> # Discrete color vector with custom colormap
     >>> colors = np.random.choice(['a','b'], data.shape[0], replace=True)
     >>> data[colors == 'a'] += 5
-    >>> scprep.plot.rotate_scatter3d(data, c=colors, cmap={'a' : [1,0,0,1], 'b' : 'xkcd:sky blue'}, filename="animation.mp4")
+    >>> scprep.plot.rotate_scatter3d(
+            data,
+            c=colors,
+            cmap={'a' : [1,0,0,1], 'b' : 'xkcd:sky blue'},
+            filename="animation.mp4"
+        )
     """
     if _in_ipynb():
         # credit to

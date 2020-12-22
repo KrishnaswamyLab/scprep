@@ -62,8 +62,10 @@ def jitter(
     dpi=None,
     **plot_kwargs
 ):
-    """Creates a 2D scatterplot showing the distribution of `values` for points
-    that have associated `labels`.
+    """Create a jitter plot.
+
+    Creates a 2D scatterplot showing the distribution of ``values`` for points
+    that have associated ``labels``.
 
     Parameters
     ----------
@@ -84,7 +86,8 @@ def jitter(
         `inferno` for continuous data. If a dictionary, expects one key
         for every unique value in `c`, where values are valid matplotlib colors
         (hsv, rbg, rgba, or named colors)
-    cmap_scale : {'linear', 'log', 'symlog', 'sqrt'} or `matplotlib.colors.Normalize`, optional (default: 'linear')
+    cmap_scale : {'linear', 'log', 'symlog', 'sqrt'} or `matplotlib.colors.Normalize`,
+        optional (default: 'linear')
         Colormap normalization scale. For advanced use, see
         <https://matplotlib.org/users/colormapnorms.html>
     s : float, optional (default: None)
@@ -156,7 +159,6 @@ def jitter(
     -------
     ax : `matplotlib.Axes`
         axis on which plot was drawn
-
     """
     with temp_fontsize(fontsize):
         params = _JitterParams(

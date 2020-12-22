@@ -11,7 +11,7 @@ plt = mpl.pyplot
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
 def create_colormap(colors, name="scprep_custom_cmap"):
-    """Create a custom colormap from a list of colors
+    """Create a custom colormap from a list of colors.
 
     Parameters
     ----------
@@ -40,12 +40,13 @@ def create_colormap(colors, name="scprep_custom_cmap"):
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
-def create_normalize(vmin, vmax, scale=None):
-    """Create a colormap normalizer
+def create_normalize(vmin, vmax, base=np.e, scale=None):
+    """Create a colormap normalizer.
 
     Parameters
     ----------
-    scale : {'linear', 'log', 'symlog', 'sqrt'} or `matplotlib.colors.Normalize`, optional (default: 'linear')
+    scale : {'linear', 'log', 'symlog', 'sqrt'} or `matplotlib.colors.Normalize`,
+    optional (default: 'linear')
         Colormap normalization scale. For advanced use, see
         <https://matplotlib.org/users/colormapnorms.html>
 
@@ -65,7 +66,11 @@ def create_normalize(vmin, vmax, scale=None):
         norm = mpl.colors.LogNorm(vmin=vmin, vmax=vmin)
     elif scale == "symlog":
         norm = mpl.colors.SymLogNorm(
-            linthresh=0.03, linscale=0.03, vmin=vmin, vmax=vmax
+            linthresh=0.03,
+            linscale=0.03,
+            vmin=vmin,
+            vmax=vmax,
+            base=10,
         )
     elif scale == "sqrt":
         norm = mpl.colors.PowerNorm(gamma=1.0 / 2.0)
@@ -184,7 +189,8 @@ def generate_colorbar(
         Colormap with which to draw colorbar
     vmin, vmax : float, optional (default: None)
         Range of values to display on colorbar
-    scale : {'linear', 'log', 'symlog', 'sqrt'} or `matplotlib.colors.Normalize`, optional (default: 'linear')
+    scale : {'linear', 'log', 'symlog', 'sqrt'} or `matplotlib.colors.Normalize`,
+        optional (default: 'linear')
         Colormap normalization scale. For advanced use, see
         <https://matplotlib.org/users/colormapnorms.html>
     ax : `matplotlib.axes.Axes`, list or None, optional (default: None)
@@ -222,6 +228,7 @@ def generate_colorbar(
             if vmax is None and vmin is None:
                 vmax = 1
                 vmin = 0
+                color_range = np.linspace(vmin, vmax, 10).reshape(-1, 1)
                 remove_ticks = True
                 norm = None
                 if n_ticks != "auto":
@@ -237,6 +244,9 @@ def generate_colorbar(
             else:
                 remove_ticks = False
                 norm = create_normalize(vmin, vmax, scale=scale)
+                color_range = np.linspace(vmin, vmax, 10).reshape(-1, 1)
+                vmax = vmin = None
+
             if ax is None:
                 ax = plot_axis
             xmin, xmax = plot_axis.get_xlim()
@@ -245,7 +255,7 @@ def generate_colorbar(
                 # list colormap
                 cmap = create_colormap(cmap)
             mappable = plot_axis.imshow(
-                np.linspace(vmin, vmax, 10).reshape(-1, 1),
+                color_range,
                 vmin=vmin,
                 vmax=vmax,
                 cmap=cmap,
@@ -302,7 +312,7 @@ def label_axis(
     ticklabel_horizontal_alignment=None,
     ticklabel_vertical_alignment=None,
 ):
-    """Set axis ticks and labels
+    """Set axis ticks and labels.
 
     Parameters
     ----------

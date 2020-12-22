@@ -11,6 +11,7 @@ else:
     import scprep
     import scprep.run.r_function
     import scprep.run.conversion
+    import scprep.run
     import unittest
     import anndata
     import sklearn.cluster
@@ -43,6 +44,18 @@ else:
         @classmethod
         def setUpClass(self):
             scprep.run.splatter.install(verbose=False)
+
+        def test_splatter_deprecated(self):
+            utils.assert_warns_message(
+                FutureWarning,
+                "path_length has been renamed path_n_steps, "
+                "please use path_n_steps in the future.",
+                scprep.run.SplatSimulate,
+                batch_cells=10,
+                n_genes=200,
+                verbose=0,
+                path_length=100,
+            )
 
         def test_splatter_default(self):
             sim = scprep.run.SplatSimulate(batch_cells=10, n_genes=200, verbose=0)
@@ -124,7 +137,7 @@ else:
                 n_genes=200,
                 group_prob=[0.5, 0.5],
                 path_from=[0, 0],
-                path_length=[100, 200],
+                path_n_steps=[100, 200],
                 path_skew=[0.4, 0.6],
                 de_fac_loc=[0.1, 0.5],
                 verbose=0,
@@ -300,6 +313,8 @@ else:
                 self.clusters,
                 start_cluster=4,
                 omega=0.1,
+                smoother="loess",
+                max_iter=0,
                 verbose=False,
             )
             pseudotime, branch, curves = (
@@ -401,6 +416,7 @@ else:
         assert np.all(x["y"] == np.array(["a", "b", "c"]))
 
     def test_conversion_spmatrix():
+        scprep.run.install_bioconductor("SingleCellExperiment")
         ro.r("library(SingleCellExperiment)")
         ro.r("X <- matrix(1:6, nrow=2, ncol=3)")
         ro.r("counts <- X * 2")

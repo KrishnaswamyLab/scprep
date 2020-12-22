@@ -9,8 +9,6 @@ import re
 from scipy import sparse
 from decorator import decorator
 
-from . import select
-
 try:
     ModuleNotFoundError
 except NameError:
@@ -84,7 +82,7 @@ def _with_pkg(fun, pkg=None, min_version=None, *args, **kwargs):
 
 
 def _get_percentile_cutoff(data, cutoff=None, percentile=None, required=False):
-    """Get a cutoff for a dataset
+    """Get a cutoff for a dataset.
 
     Parameters
     ----------
@@ -124,7 +122,7 @@ def _get_percentile_cutoff(data, cutoff=None, percentile=None, required=False):
 
 
 def _get_filter_idx(values, cutoff, percentile, keep_cells):
-    """Return a boolean array to index cells based on a filter
+    """Return a boolean array to index cells based on a filter.
 
     Parameters
     ----------
@@ -184,14 +182,36 @@ def _get_filter_idx(values, cutoff, percentile, keep_cells):
     return keep_cells_idx
 
 
+def _check_numpy_dtype(x):
+    try:
+        if all([len(xi) == len(x[0]) for xi in x]):
+            # all sequences of the same length; infer dtype
+            return None
+        else:
+            # sequences of different lengths; object dtype is forced
+            return object
+    except TypeError as e:
+        if str(e).startswith("sparse matrix length is ambiguous"):
+            # list contains sparse matrices; must be object
+            return object
+        elif str(e).endswith("has no len()"):
+            if any([hasattr(xi, "__len__") for xi in x]):
+                # some sequences and some not; must be object
+                return object
+            else:
+                # no sequences; infer
+                return None
+        else:
+            raise
+
+
 def toarray(x):
-    """Convert an array-like to a np.ndarray
+    """Convert an array-like to a np.ndarray.
 
     Parameters
     ----------
     x : array-like
         Array-like to be converted
-
     Returns
     -------
     x : np.ndarray
@@ -215,13 +235,8 @@ def toarray(x):
                 # recursed too far
                 pass
             x_out.append(xi)
-        try:
-            x = np.array(x_out)
-        except ValueError as e:
-            if str(e) == "setting an array element with a sequence":
-                x = np.array(x_out, dtype=object)
-            else:
-                raise
+        # convert x_out from list to array
+        x = np.array(x_out, dtype=_check_numpy_dtype(x_out))
     elif isinstance(x, (np.ndarray, numbers.Number)):
         pass
     else:
@@ -230,13 +245,12 @@ def toarray(x):
 
 
 def to_array_or_spmatrix(x):
-    """Convert an array-like to a np.ndarray or scipy.sparse.spmatrix
+    """Convert an array-like to a np.ndarray or scipy.sparse.spmatrix.
 
     Parameters
     ----------
     x : array-like
         Array-like to be converted
-
     Returns
     -------
     x : np.ndarray or scipy.sparse.spmatrix
@@ -258,7 +272,8 @@ def to_array_or_spmatrix(x):
                 # recursed too far
                 pass
             x_out.append(xi)
-        x = np.array(x_out)
+        # convert x_out from list to array
+        x = np.array(x_out, dtype=_check_numpy_dtype(x_out))
     else:
         x = toarray(x)
     return x
@@ -268,7 +283,8 @@ def is_SparseSeries(X):
     with warnings.catch_warnings():
         warnings.filterwarnings(
             "ignore",
-            "The SparseSeries class is removed from pandas. Accessing it from the top-level namespace will also be removed in the next version",
+            "The SparseSeries class is removed from pandas. Accessing it from the "
+            "top-level namespace will also be removed in the next version",
             FutureWarning,
         )
         try:
@@ -281,7 +297,8 @@ def is_SparseDataFrame(X):
     with warnings.catch_warnings():
         warnings.filterwarnings(
             "ignore",
-            "The SparseDataFrame class is removed from pandas. Accessing it from the top-level namespace will also be removed in the next version",
+            "The SparseDataFrame class is removed from pandas. Accessing it from the "
+            "top-level namespace will also be removed in the next version",
             FutureWarning,
         )
         try:
@@ -330,7 +347,7 @@ def SparseDataFrame(X, columns=None, index=None, default_fill_value=0.0):
 
 
 def matrix_transform(data, fun, *args, **kwargs):
-    """Perform a numerical transformation to data
+    """Perform a numerical transformation to data.
 
     Parameters
     ----------
@@ -363,7 +380,7 @@ def matrix_transform(data, fun, *args, **kwargs):
 
 
 def matrix_sum(data, axis=None):
-    """Get the column-wise, row-wise, or total sum of values in a matrix
+    """Get the column-wise, row-wise, or total sum of values in a matrix.
 
     Parameters
     ----------
@@ -409,7 +426,7 @@ def matrix_sum(data, axis=None):
 
 
 def matrix_std(data, axis=None):
-    """Get the column-wise, row-wise, or total standard deviation of a matrix
+    """Get the column-wise, row-wise, or total standard deviation of a matrix.
 
     Parameters
     ----------
@@ -468,7 +485,7 @@ def matrix_std(data, axis=None):
 
 
 def matrix_vector_elementwise_multiply(data, multiplier, axis=None):
-    """Elementwise multiply a matrix by a vector
+    """Elementwise multiply a matrix by a vector.
 
     Parameters
     ----------
@@ -560,7 +577,7 @@ def matrix_vector_elementwise_multiply(data, multiplier, axis=None):
 
 
 def sparse_series_min(data):
-    """Get the minimum value from a pandas sparse series
+    """Get the minimum value from a pandas sparse series.
 
     Pandas SparseDataFrame does not handle np.min.
 
@@ -608,7 +625,7 @@ def matrix_min(data):
 
 
 def matrix_non_negative(data, allow_equal=True):
-    """Check if all values in a matrix are non-negative
+    """Check if all values in a matrix are non-negative.
 
     Parameters
     ----------
@@ -625,7 +642,7 @@ def matrix_non_negative(data, allow_equal=True):
 
 
 def matrix_any(condition):
-    """Check if a condition is true anywhere in a data matrix
+    """Check if a condition is true anywhere in a data matrix.
 
     np.any doesn't handle matrices of type pd.DataFrame
 
@@ -643,7 +660,7 @@ def matrix_any(condition):
 
 
 def matrix_transpose(X):
-    """Transpose a matrix in a memory-efficient manner
+    """Transpose a matrix in a memory-efficient manner.
 
     Pandas sparse dataframes are coerced to dense
 
@@ -662,7 +679,8 @@ def matrix_transpose(X):
         if not np.all(fill_values == fill_values[0]):
             raise TypeError(
                 "Can only transpose sparse dataframes with constant fill value. "
-                "If you wish to proceed, first convert the data to dense with scprep.utils.toarray."
+                "If you wish to proceed, first convert the data to dense with "
+                "scprep.utils.toarray."
             )
         X_T = X.sparse.to_coo().T
         return SparseDataFrame(
@@ -673,7 +691,7 @@ def matrix_transpose(X):
 
 
 def check_consistent_columns(data, common_columns_only=True):
-    """Ensure that a set of data matrices have consistent columns
+    """Ensure that a set of data matrices have consistent columns.
 
     Parameters
     ----------
@@ -736,7 +754,7 @@ def check_consistent_columns(data, common_columns_only=True):
 def combine_batches(
     data, batch_labels, append_to_cell_names=None, common_columns_only=True
 ):
-    """Combine data matrices from multiple batches and store a batch label
+    """Combine data matrices from multiple batches and store a batch label.
 
     Parameters
     ----------
@@ -871,7 +889,7 @@ def subsample(*data, n=10000, seed=None):
 
 
 def sort_clusters_by_values(clusters, values):
-    """Sorts `clusters` in increasing order of `values`.
+    """Sort `clusters` in increasing order of `values`.
 
     Parameters
     ----------

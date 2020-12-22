@@ -10,15 +10,15 @@ from .. import utils, sanitize
 
 
 def _parse_header(header, n_expected, header_type="gene_names"):
-    """
+    """Parse row or column names from a file.
+
     Parameters
     ----------
     header : `str` filename, array-like or `None`
-
     n_expected : `int`
         Expected header length
-
-    header_type : argument name for error printing
+    header_type : str
+        argument name for error printing
 
     Returns
     -------
@@ -81,15 +81,11 @@ def _matrix_to_data_frame(data, gene_names=None, cell_names=None, sparse=None):
 
     Parameters
     ----------
-
     data : array-like
-
     gene_names : `str`, array-like or `None` (default: None)
         Either a filename or an array containing a list of gene symbols or ids.
-
     cell_names : `str`, array-like or `None` (default: None)
         Either a filename or an array containing a list of cell barcodes.
-
     sparse : `bool` or `None` (default: None)
         If not `None`, overrides default sparsity of the data.
     """
@@ -124,7 +120,9 @@ def _matrix_to_data_frame(data, gene_names=None, cell_names=None, sparse=None):
             sparse = False
         if cell_names is not None and len(np.unique(cell_names)) < len(cell_names):
             warnings.warn(
-                "Duplicate cell names detected! Some functions may not work as intended. You can fix this by running `scprep.sanitize.check_index(data)`.",
+                "Duplicate cell names detected! Some functions may not work as "
+                "intended. You can fix this by running "
+                "`scprep.sanitize.check_index(data)`.",
                 RuntimeWarning,
             )
         if sparse:

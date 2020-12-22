@@ -16,13 +16,16 @@ plt = matplotlib.pyplot
 
 
 def EMD(x, y):
-    """Earth Mover's Distance between samples
+    """Compute Earth Mover's Distance between samples.
 
     Calculates an approximation of Earth Mover's Distance (also called
     Wasserstein distance) for 2 variables. This can be thought of as the
     distance between two probability distributions. This metric is useful for
     identifying differentially expressed genes between two groups of cells. For
     more information see https://en.wikipedia.org/wiki/Wasserstein_metric.
+
+    Note, this is a wrapper function for scipy.stats.wasserstein_disance and assumes
+    the data is 1-dimensional
 
     Parameters
     ----------
@@ -47,7 +50,7 @@ def EMD(x, y):
 
 
 def pairwise_correlation(X, Y):
-    """Pairwise Pearson correlation between columns of two matrices
+    """Compute pairwise Pearson correlation between columns of two matrices.
 
     From https://stackoverflow.com/a/33651442/3996580
 
@@ -92,7 +95,7 @@ def pairwise_correlation(X, Y):
 
 
 def mutual_information(x, y, bins=8):
-    """Mutual information score with set number of bins
+    """Compute mutual information score with set number of bins.
 
     Helper function for `sklearn.metrics.mutual_info_score` that builds a
     contingency table over a set number of bins.
@@ -128,7 +131,7 @@ def mutual_information(x, y, bins=8):
 def knnDREMI(
     x, y, k=10, n_bins=20, n_mesh=3, n_jobs=1, plot=False, return_drevi=False, **kwargs
 ):
-    """kNN conditional Density Resampled Estimate of Mutual Information
+    """Compute kNN conditional Density Resampled Estimate of Mutual Information.
 
     Calculates k-Nearest Neighbor conditional Density Resampled Estimate of
     Mutual Information as defined in Van Dijk et al, 2018. [1]_
@@ -319,7 +322,7 @@ def plot_knnDREMI(
     label_fontsize=16,
     dpi=150,
 ):
-    """Plot results of DREMI
+    """Plot results of DREMI.
 
     Create plots of the data like those seen in
     Fig 5C/D of van Dijk et al. 2018. [1]_
@@ -425,7 +428,7 @@ def mean_difference(X, Y):
 
 
 def t_statistic(X, Y):
-    """Calculate Welch's t statistic
+    """Calculate Welch's t statistic.
 
     Assumes data of unequal number of samples and unequal variance
 
@@ -446,7 +449,7 @@ def t_statistic(X, Y):
 
 
 def _rank(X, axis=0):
-    """Analogue of scipy.stats.rankdata
+    """Analogue of scipy.stats.rankdata.
 
     TODO: handle sparse data
     """
@@ -498,9 +501,9 @@ def _ranksum(X, sum_idx, axis=0):
         elif axis == 0:
             next_fn = X.getcol
         for i in range(X.shape[(axis + 1) % 2]):
-            coldata = X.getcol(i)
-            colrank = _rank(coldata, axis=axis)
-            ranksums.append(np.sum(colrank[sum_idx]))
+            data = next_fn(i)
+            rank = _rank(data, axis=axis)
+            ranksums.append(np.sum(rank[sum_idx]))
         return np.array(ranksums)
     else:
         data_rank = _rank(X, axis=0)
@@ -508,7 +511,7 @@ def _ranksum(X, sum_idx, axis=0):
 
 
 def rank_sum_statistic(X, Y):
-    """Calculate the Wilcoxon rank-sum (aka Mann-Whitney U) statistic
+    """Calculate the Wilcoxon rank-sum (aka Mann-Whitney U) statistic.
 
     Parameters
     ----------
@@ -530,25 +533,29 @@ def rank_sum_statistic(X, Y):
 def differential_expression(
     X, Y, measure="difference", direction="both", gene_names=None, n_jobs=-2
 ):
-    """Calculate the most significant genes between two datasets
+    """Calculate the most significant genes between two datasets.
 
     Parameters
     ----------
     X : array-like, shape=[n_cells, n_genes]
     Y : array-like, shape=[m_cells, n_genes]
-    measure : {'difference', 'emd', 'ttest', 'ranksum'}, optional (default: 'difference')
+    measure : {'difference', 'emd', 'ttest', 'ranksum'},
+              optional (default: 'difference')
         The measurement to be used to rank genes.
         'difference' is the mean difference between genes.
         'emd' refers to Earth Mover's Distance.
         'ttest' refers to Welch's t-statistic.
-        'ranksum' refers to the Wilcoxon rank sum statistic (or the Mann-Whitney U statistic).
+        'ranksum' refers to the Wilcoxon rank sum statistic (or the Mann-Whitney
+         U statistic).
     direction : {'up', 'down', 'both'}, optional (default: 'both')
-        The direction in which to consider genes significant. If 'up', rank genes where X > Y.
-        If 'down', rank genes where X < Y. If 'both', rank genes by absolute value.
+        The direction in which to consider genes significant. If 'up', rank
+        genes where X > Y. If 'down', rank genes where X < Y. If 'both', rank genes by
+        absolute value.
     gene_names : list-like or `None`, optional (default: `None`)
         List of gene names associated with the columns of X and Y
     n_jobs : int, optional (default: -2)
-        Number of threads to use if the measurement is parallelizable (currently used for EMD).
+        Number of threads to use if the measurement is parallelizable (currently used
+        for EMD).
         If negative, -1 refers to all available cores.
 
     Returns
@@ -556,12 +563,12 @@ def differential_expression(
     result : pd.DataFrame
         Ordered DataFrame with a column "gene" and a column named `measure`.
     """
-    if not direction in ["up", "down", "both"]:
+    if direction not in ["up", "down", "both"]:
         raise ValueError(
             "Expected `direction` in ['up', 'down', 'both']. "
             "Got {}".format(direction)
         )
-    if not measure in ["difference", "emd", "ttest", "ranksum"]:
+    if measure not in ["difference", "emd", "ttest", "ranksum"]:
         raise ValueError(
             "Expected `measure` in ['difference', 'emd', 'ttest', 'ranksum']. "
             "Got {}".format(measure)
@@ -632,7 +639,7 @@ def differential_expression(
 def differential_expression_by_cluster(
     data, clusters, measure="difference", direction="both", gene_names=None, n_jobs=-2
 ):
-    """Calculate the most significant genes for each cluster in a dataset
+    """Calculate the most significant genes for each cluster in a dataset.
 
     Measurements are run for each cluster against the rest of the dataset.
 
@@ -640,23 +647,29 @@ def differential_expression_by_cluster(
     ----------
     data : array-like, shape=[n_cells, n_genes]
     clusters : list-like, shape=[n_cells]
-    measure : {'difference', 'emd', 'ttest', 'ranksum'}, optional (default: 'difference')
+    measure : {'difference', 'emd', 'ttest', 'ranksum'}, optional
+              (default: 'difference')
         The measurement to be used to rank genes.
         'difference' is the mean difference between genes.
         'emd' refers to Earth Mover's Distance.
         'ttest' refers to Welch's t-statistic.
-        'ranksum' refers to the Wilcoxon rank sum statistic (or the Mann-Whitney U statistic).
+        'ranksum' refers to the Wilcoxon rank sum statistic (or the Mann-Whitney U
+        statistic).
     direction : {'up', 'down', 'both'}, optional (default: 'both')
-        The direction in which to consider genes significant. If 'up', rank genes where X > Y. If 'down', rank genes where X < Y. If 'both', rank genes by absolute value.
+        The direction in which to consider genes significant. If 'up', rank genes
+        where X > Y. If 'down', rank genes where X < Y. If 'both', rank genes
+        by absolute value.
     gene_names : list-like or `None`, optional (default: `None`)
         List of gene names associated with the columns of X and Y
     n_jobs : int, optional (default: -2)
-        Number of threads to use if the measurement is parallelizable (currently used for EMD). If negative, -1 refers to all available cores.
+        Number of threads to use if the measurement is parallelizable (currently used
+        for EMD). If negative, -1 refers to all available cores.
 
     Returns
     -------
     result : dict(pd.DataFrame)
-        Dictionary containing an ordered DataFrame with a column "gene" and a column named `measure` for each cluster.
+        Dictionary containing an ordered DataFrame with a column "gene" and a column
+        named `measure` for each cluster.
     """
     if gene_names is not None and isinstance(data, pd.DataFrame):
         data = select.select_cols(data, idx=gene_names)

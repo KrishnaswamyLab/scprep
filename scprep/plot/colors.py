@@ -7,7 +7,7 @@ plt = mpl.pyplot
 
 
 def tab10_continuous(n_colors=10, n_step=200, reverse=False):
-    """Creates a discrete colormap with continuous gradation
+    """Create a discrete colormap with continuous gradation.
 
     This colormap uses the colors in `matplotlib`'s `tab10` colormap
     as the base for a discrete colormap, but additionally creates
@@ -50,7 +50,7 @@ def tab10_continuous(n_colors=10, n_step=200, reverse=False):
 
 
 def tab30():
-    """A discrete colormap with 30 unique colors
+    """Create a discrete colormap with 30 unique colors.
 
     This colormap combines `matplotlib`'s `tab20b` and `tab20c` colormaps,
     removing the lightest color of each hue.
@@ -65,7 +65,7 @@ def tab30():
 
 
 def tab40():
-    """A discrete colormap with 40 unique colors
+    """Create a discrete colormap with 40 unique colors.
 
     This colormap combines `matplotlib`'s `tab20b` and `tab20c` colormaps
 
@@ -78,7 +78,7 @@ def tab40():
 
 
 def tab(n=10):
-    """A discrete colormap with an arbitrary number of colors
+    """Create a discrete colormap with an arbitrary number of colors.
 
     This colormap chooses the best of the following, in order:
     - `plt.cm.tab10`
