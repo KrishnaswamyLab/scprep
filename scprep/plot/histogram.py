@@ -73,6 +73,7 @@ def histogram(
     fontsize=None,
     histtype="stepfilled",
     label=None,
+    legend=True,
     alpha=None,
     filename=None,
     dpi=None,
