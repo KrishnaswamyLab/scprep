@@ -865,6 +865,7 @@ class Test10X(unittest.TestCase):
         scprep.plot.histogram(
             [scprep.select.select_rows(self.X, idx=0), [1, 2, 2, 2, 3]],
             color=["r", "b"],
+            label=["one", "two"],
         )
 
     def test_histogram_multiple_cutoff(self):
