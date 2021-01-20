@@ -46,7 +46,15 @@ def _pysce2rpy(pyobject):
 
 
 def _is_r_object(obj):
-    return "rpy2.robjects" in str(type(obj)) or obj is rpy2.rinterface.NULL
+    return (
+        "rpy2.robjects" in str(type(obj))
+        or "rpy2.rinterface" in str(type(obj))
+        or obj is rpy2.rinterface.NULL
+    )
+
+
+def _is_builtin(obj):
+    return isinstance(obj, (int, str, float))
 
 
 @utils._with_pkg(pkg="rpy2", min_version="3.0")
@@ -83,7 +91,12 @@ def rpy2py(robject):
         else:
             break
     if _is_r_object(robject):
-        warnings.warn("Object not converted: {}".format(robject), RuntimeWarning)
+        warnings.warn(
+            "Object not converted: {} (type {})".format(
+                robject, type(robject).__name__
+            ),
+            RuntimeWarning,
+        )
     return robject
 
 
@@ -119,6 +132,11 @@ def py2rpy(pyobject):
                 pass
         else:
             break
-    if not _is_r_object(pyobject):
-        warnings.warn("Object not converted: {}".format(pyobject), RuntimeWarning)
+    if not _is_r_object(pyobject) and not _is_builtin(pyobject):
+        warnings.warn(
+            "Object not converted: {} (type {})".format(
+                pyobject, type(pyobject).__name__
+            ),
+            RuntimeWarning,
+        )
     return pyobject
