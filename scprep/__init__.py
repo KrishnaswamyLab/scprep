@@ -17,7 +17,7 @@ import scprep.run
 
 import pandas as pd
 
-if int(pd.__version__.split(".")[1]) < 26:
+if int(pd.__version__.split(".")[0]) == 0 and int(pd.__version__.split(".")[1]) < 26:
 
     def _fill_value(self):
         # Used in reindex_indexer
