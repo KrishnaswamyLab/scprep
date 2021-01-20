@@ -72,6 +72,8 @@ def histogram(
     title=None,
     fontsize=None,
     histtype="stepfilled",
+    label=None,
+    legend=True,
     alpha=None,
     filename=None,
     dpi=None,
@@ -114,6 +116,10 @@ def histogram(
         each other.
         'step' generates a lineplot that is by default unfilled.
         'stepfilled' generates a lineplot that is by default filled.
+    label : str or None, optional (default: None)
+        String, or sequence of strings to match multiple datasets.
+    legend : bool, optional (default: True)
+        Show the legend if ``label`` is given.
     alpha : float, optional (default: 1 for a single dataset, 0.5 for multiple)
         Histogram transparency
     filename : str or None (default: None)
@@ -152,7 +158,7 @@ def histogram(
             if abs_min == 0:
                 abs_min = 0.1
             bins = _symlog_bins(xmin, xmax, abs_min, bins=bins)
-        ax.hist(data, bins=bins, histtype=histtype, alpha=alpha, **kwargs)
+        ax.hist(data, bins=bins, histtype=histtype, alpha=alpha, label=label, **kwargs)
 
         if log == "x" or log is True:
             ax.set_xscale("symlog", linthresh=abs_min)
@@ -172,6 +178,10 @@ def histogram(
             else:
                 for c in cutoff:
                     ax.axvline(c, color="red")
+
+        if label is not None and legend:
+            ax.legend()
+
         # save and show
         if show_fig:
             show(fig)
