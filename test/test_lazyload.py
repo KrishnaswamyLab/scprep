@@ -35,5 +35,5 @@ def test_builtins():
                 module_name,
                 module,
             )
-            module.__file__
+            module.__package__
             assert module.__class__ is type(scprep), (module_name, module)
