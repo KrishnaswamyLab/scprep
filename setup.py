@@ -8,6 +8,7 @@ install_requires = [
     "scikit-learn>=0.19.1",
     "decorator>=4.3.0",
     "pandas>=0.25",
+    "packaging",
 ]
 
 optional_requires = [
