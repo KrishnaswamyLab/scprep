@@ -32,9 +32,9 @@ def test_builtins():
             pass
         assert (
             getattr(scprep._lazyload, module).__class__ is scprep._lazyload.AliasModule
-        )
+        ), module
         try:
             getattr(scprep._lazyload, module).__version__
         except AttributeError:
             pass
-        assert getattr(scprep._lazyload, module).__class__ is type(scprep)
+        assert getattr(scprep._lazyload, module).__class__ is type(scprep), module
