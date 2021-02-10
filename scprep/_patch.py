@@ -23,4 +23,4 @@ def patch_matplotlib_backend():
         try:
             mpl.backend_bases
         except AttributeError:
-            import matplotlib.backend_bases
+            import matplotlib.backend_bases  # noqa
