@@ -2,8 +2,8 @@ name: Unit Tests
 
 on:
   push:
-    branches:
-      - '*'
+    branches-ignore:
+      - 'test_deploy'
   pull_request:
     branches:
       - '*'
