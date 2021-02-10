@@ -34,12 +34,14 @@ jobs:
 
     - name: Install tools
       run: |
-        python -m pip install --upgrade "pip<=21.0"
-        pip install --use-deprecated=legacy-resolver -U wheel setuptools
-        pip install --use-deprecated=legacy-resolver -U black flake8
+        python -m pip install --upgrade pip
+        pip install -U wheel setuptools
+        pip install -U black flake8
+
     - name: Lint with Black
       run: |
         black . --check --diff
+
     - name: Lint with flake8
       run: |
         flake8 scprep
@@ -103,10 +105,13 @@ jobs:
 
     - name: Install package & dependencies
       run: |
-        python -m pip install --upgrade "pip<=21.0"
-        pip install --use-deprecated=legacy-resolver -U wheel setuptools
-        pip install --use-deprecated=legacy-resolver -U --no-binary :all: --force-reinstall h5py tables
-        pip install --use-deprecated=legacy-resolver -U .[test]
+        python -m pip install --upgrade pip
+        pip install --upgrade wheel setuptools
+        pip install --upgrade .[test]
+        # install hdy5 libs from source
+        pip install --upgrade Cython
+        pip install --upgrade --no-binary=h5py h5py
+        pip install --upgrade --no-binbary=tables tables
         python -c "import scprep"
 
     - name: Install R packages
