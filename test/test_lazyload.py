@@ -1,4 +1,5 @@
 import subprocess
+import mock
 import os
 import scprep
 import sys
@@ -26,15 +27,13 @@ def test_builtins():
     for module in scprep._lazyload._importspec.keys():
         if module == "anndata2ri" and sys.version_info[:2] < (3, 6):
             continue
-        try:
-            del sys.modules[module]
-        except KeyError:
-            pass
-        assert (
-            getattr(scprep._lazyload, module).__class__ is scprep._lazyload.AliasModule
-        ), module
-        try:
-            getattr(scprep._lazyload, module).__version__
-        except AttributeError:
-            pass
-        assert getattr(scprep._lazyload, module).__class__ is type(scprep), module
+        with mock.patch.dict(sys.modules, {module: None}):
+            assert (
+                getattr(scprep._lazyload, module).__class__
+                is scprep._lazyload.AliasModule
+            ), module
+            try:
+                getattr(scprep._lazyload, module).__version__
+            except AttributeError:
+                pass
+            assert getattr(scprep._lazyload, module).__class__ is type(scprep), module
