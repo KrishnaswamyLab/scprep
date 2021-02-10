@@ -15,18 +15,6 @@ import scprep.stats
 import scprep.reduce
 import scprep.run
 
-import pandas as _pd
-import packaging.version as _packaging_version
+from . import _patch
 
-if _packaging_version.parse(_pd.__version__) < _packaging_version.parse("2.0"):
-
-    def _fill_value(self):
-        # Used in reindex_indexer
-        try:
-            return self.values.dtype.fill_value
-        except AttributeError:
-            return self.values.dtype.na_value
-
-    from pandas.core.internals.blocks import ExtensionBlock as _ExtensionBlock
-
-    setattr(_ExtensionBlock, "fill_value", property(_fill_value))
+_patch.patch_fill_value()
