@@ -1,5 +1,3 @@
-import matplotlib as mpl
-import matplotlib.pyplot as plt
 import packaging.version
 import pandas as pd
 
@@ -17,13 +15,3 @@ def patch_fill_value():
         from pandas.core.internals.blocks import ExtensionBlock
 
         setattr(ExtensionBlock, "fill_value", property(_fill_value))
-
-
-def patch_matplotlib_backend():
-    if packaging.version.parse(mpl.__version__) < packaging.version.parse("4.0"):
-        try:
-            plt.matplotlib.backend_bases
-        except AttributeError:
-            import matplotlib.backend_bases as _bases
-
-            plt.matplotlib.backend_bases = _bases
