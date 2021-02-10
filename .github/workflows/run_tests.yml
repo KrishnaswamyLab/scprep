@@ -117,7 +117,7 @@ jobs:
       shell: Rscript {0}
 
     - name: Run tests
-      run: echo nose2 -vvv
+      run: nose2 -vvv
 
     - name: Coveralls
       env:
