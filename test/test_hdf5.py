@@ -68,7 +68,7 @@ def test_get_node_invalid():
 def test_get_values_invalid():
     utils.assert_raises_message(
         TypeError,
-        "Expected h5py.Dataset or tables.CArray. " "Got <class 'str'>",
+        "Expected h5py.Dataset or tables.CArray. Got <class 'str'>",
         scprep.io.hdf5.get_values,
         "invalid",
     )
