@@ -4,7 +4,7 @@ if int(sys.version.split(".")[1]) < 6:
     # python 3.5
     pass
 else:
-    from tools import utils, matrix, data
+    #from tools import utils, matrix, data
     import numpy as np
     import pandas as pd
     import rpy2.robjects as ro
@@ -19,6 +19,7 @@ else:
     import rpy2.rinterface_lib.callbacks
     import rpy2.rinterface_lib.embedded
     import mock
+    import re
 
     builtin_warning = rpy2.rinterface_lib.callbacks.consolewrite_warnerror
 
@@ -237,6 +238,7 @@ else:
             assert (
                 rpy2.rinterface_lib.callbacks.consolewrite_warnerror is builtin_warning
             )
+
             
     class TestDyngen(unittest.TestCase):
         @classmethod
@@ -256,19 +258,36 @@ else:
                                             num_targets=10, num_hks=10,verbose=False)
             
             assert set(sim.keys()) == {'cell_info', 'expression'}
+            assert sim['cell_info'].shape[0] > 0
+            assert sim['cell_info'].shape[0] <= 50
+            assert sim['cell_info'].shape[1] == 7
+            assert sim['expression'].shape[0] > 0
+            assert sim['expression'].shape[0] <= 50
+            assert sim['expression'].shape[1] == 70
+
+        def test_dyngen_force_cell_counts(self):
+            sim = scprep.run.DyngenSimulate(backbone="bifurcating", num_cells=50, num_tfs=50,
+                                            num_targets=10, num_hks=10,verbose=False,
+                                            force_num_cells=True)
+            
+            assert set(sim.keys()) == {'cell_info', 'expression'}
             assert sim['cell_info'].shape == (50, 7)
             assert sim['expression'].shape == (50, 70)
-            
+
         def test_dyngen_with_grn(self):
             sim = scprep.run.DyngenSimulate(backbone="bifurcating", num_cells=50, num_tfs=50,
                                             num_targets=10, num_hks=10,
                                             compute_cellwise_grn=True, verbose=False)
             
             assert set(sim.keys()) == {'cell_info', 'expression', 'bulk_grn', 'cellwise_grn'}
-            assert sim['cell_info'].shape == (50, 7)
-            assert sim['expression'].shape == (50, 70)
-            assert sim['bulk_grn'].shape == (134, 4)
-            assert sim['cellwsie_grn'].shape == (2133, 4)
+            assert sim['cell_info'].shape[0] > 0
+            assert sim['cell_info'].shape[0] <= 50
+            assert sim['cell_info'].shape[1] == 7
+            assert sim['expression'].shape[0] > 0
+            assert sim['expression'].shape[0] <= 50
+            assert sim['expression'].shape[1] == 70
+            assert sim['bulk_grn'].shape[1] == 4
+            assert sim['cellwise_grn'].shape[1] == 4
             
         def test_dyngen_with_rna_velocity(self):
             sim = scprep.run.DyngenSimulate(backbone="bifurcating", num_cells=50, num_tfs=50,
@@ -276,9 +295,15 @@ else:
                                             compute_rna_velocity=True, verbose=False)
             
             assert set(sim.keys()) == {'cell_info', 'expression', 'rna_velocity'}
-            assert sim['cell_info'].shape == (50, 7)
-            assert sim['expression'].shape == (50, 70)
-            assert sim['rna_velocity'].shape == (50, 70)
+            assert sim['cell_info'].shape[0] > 0
+            assert sim['cell_info'].shape[0] <= 50
+            assert sim['cell_info'].shape[1] == 7
+            assert sim['expression'].shape[0] > 0
+            assert sim['expression'].shape[0] <= 50
+            assert sim['expression'].shape[1] == 70
+            assert sim['rna_velocity'].shape[0] > 0
+            assert sim['rna_velocity'].shape[0] <= 50
+            assert sim['rna_velocity'].shape[1] == 70
             
     class TestSlingshot(unittest.TestCase):
         @classmethod

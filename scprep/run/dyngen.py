@@ -147,7 +147,8 @@ def get_backbones():
 
 def DyngenSimulate(backbone, num_cells=500, num_tfs=100, num_targets=50, num_hks=25,
         simulation_census_interval=10, compute_cellwise_grn=False, 
-        compute_rna_velocity=False, n_jobs=7, random_state=None, verbose=True):
+        compute_rna_velocity=False, n_jobs=7, random_state=None, verbose=True,
+        force_num_cells=False):
     """Simulate dataset with cellular backbone.
     
     The backbone determines the overall dynamic process during a simulation.
@@ -201,6 +202,9 @@ def DyngenSimulate(backbone, num_cells=500, num_tfs=100, num_targets=50, num_hks
            Fixes seed for simulation generator.
     verbose: boolean, optional (default: True)
            Data generation verbosity.
+    force_num_cells: boolean, optional (default: False)
+           Dyngen occassionally produces fewer cells than specified. 
+           Set this flag to TRUE to rerun Dyngen until correct cell count is reached.
              
     Returns
     -------
@@ -254,6 +258,24 @@ def DyngenSimulate(backbone, num_cells=500, num_tfs=100, num_targets=50, num_hks
                         verbose=verbose,
                         rpy_verbose=verbose,
                         **kwargs)
+    if force_num_cells:
+        if random_state is None:
+            random_state = -1
+        while(pd.DataFrame(rdata['cell_info']).shape[0] != num_cells):
+            random_state += 1
+            rdata = _DyngenSimulate(backbone_name=backbone,
+                        num_cells=num_cells,
+                        num_tfs=num_tfs,
+                        num_targets=num_targets,
+                        num_hks=num_hks,
+                        simulation_census_interval=simulation_census_interval,
+                        compute_cellwise_grn=compute_cellwise_grn,
+                        compute_rna_velocity=compute_rna_velocity,
+                        n_jobs=n_jobs,
+                        verbose=verbose,
+                        rpy_verbose=verbose,
+                        random_state=random_state)
+
     data = {}
     data['cell_info'] = pd.DataFrame(rdata['cell_info'])
     data['expression'] = pd.DataFrame(rdata['expression'])
