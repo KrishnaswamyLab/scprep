@@ -57,7 +57,7 @@ jobs:
         - {name: '3.8', os: ubuntu-latest, python: '3.8', r: 'devel' }
         - {name: '3.7', os: ubuntu-latest, python: '3.7', r: 'release' }
         - {name: '3.6', os: ubuntu-latest, python: '3.6', r: 'release' }
-        - {name: '3.5', os: ubuntu-latest, python: '3.5', r: 'oldrel' }
+        - {name: '3.5', os: ubuntu-latest, python: '3.5', r: 'release' }
 
     steps:
     - name: Cancel Previous Runs
