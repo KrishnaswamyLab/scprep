@@ -25,8 +25,8 @@ class CustomBlock(ExtensionBlock):
 
 def test_fill_value():
     values = pd.Series(np.arange(3), dtype=pd.UInt16Dtype())
-    custom_block = CustomBlock(values, placement=slice(1, 2))
+    custom_block = CustomBlock(values, placement=slice(1, 2), ndim=2)
     assert pd.isna(custom_block.fill_value)
     values = pd.Series(np.arange(3), dtype=pd.SparseDtype(float, 0.0))
-    custom_block = CustomBlock(values, placement=slice(1, 2))
+    custom_block = CustomBlock(values, placement=slice(1, 2), ndim=2)
     assert not pd.isna(custom_block.fill_value)

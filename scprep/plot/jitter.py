@@ -195,12 +195,12 @@ def jitter(
 
         # Plotting means
         if plot_means:
+            plot_x_means = [
+                i for i in range(len(params.x_labels)) if np.any(params.x_coords == i)
+            ]
             ax.scatter(
-                np.arange(len(params.x_labels)),
-                [
-                    np.nanmean(params.y[params.x_coords == i])
-                    for i in range(len(params.x_labels))
-                ],
+                plot_x_means,
+                [np.nanmean(params.y[params.x_coords == i]) for i in plot_x_means],
                 c=means_c,
                 edgecolors="black",
                 lw=1.5,
