@@ -1,6 +1,6 @@
 import numpy  # noqa
-import scipy  # noqa
 import pandas  # noqa
+import scipy  # noqa
 
 
 def test_lazyload():
