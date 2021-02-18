@@ -1,11 +1,12 @@
-import numpy as np
-import pandas as pd
+from . import measure
+from . import select
+from . import utils
 from scipy import sparse
 
-import warnings
 import numbers
-
-from . import utils, measure, select
+import numpy as np
+import pandas as pd
+import warnings
 
 
 def remove_empty_genes(data, *extra_data):  # noqa

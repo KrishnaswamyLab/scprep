@@ -1,22 +1,19 @@
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-
-import scprep
-import matplotlib
-
-import os
-import sys
-import numbers
-import unittest
-
 from packaging.version import Version
-
-from scprep.plot.scatter import _ScatterParams
-from scprep.plot.jitter import _JitterParams
 from scprep.plot.histogram import _symlog_bins
+from scprep.plot.jitter import _JitterParams
+from scprep.plot.scatter import _ScatterParams
+from tools import data
+from tools import utils
 
-from tools import data, utils
+import matplotlib
+import matplotlib.pyplot as plt
+import numbers
+import numpy as np
+import os
+import pandas as pd
+import scprep
+import sys
+import unittest
 
 
 def try_remove(filename):
@@ -438,7 +435,7 @@ class TestScatterParams(unittest.TestCase):
         np.testing.assert_equal(params.cmap.colors[:10], plt.cm.tab10.colors)
         np.testing.assert_equal(
             params.cmap.colors[10:],
-            plt.cm.tab20.colors[1 : 1 + (len(params.cmap.colors) - 10) * 2 : 2],
+            plt.cm.tab20.colors[1: 1 + (len(params.cmap.colors) - 10) * 2: 2],
         )
 
     def test_continuous_less_than_20(self):

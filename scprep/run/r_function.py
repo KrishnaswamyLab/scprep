@@ -1,6 +1,6 @@
-from . import conversion
 from .. import utils
 from .._lazyload import rpy2
+from . import conversion
 
 
 def _console_warning(s, log_fn):

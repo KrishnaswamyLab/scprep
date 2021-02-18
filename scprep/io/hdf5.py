@@ -1,8 +1,7 @@
-from decorator import decorator
-
-from .._lazyload import tables
-from .._lazyload import h5py
 from .. import utils
+from .._lazyload import h5py
+from .._lazyload import tables
+from decorator import decorator
 
 try:
     ModuleNotFoundError

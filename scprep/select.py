@@ -1,12 +1,12 @@
+from . import utils
+from scipy import sparse
+
+import numbers
 import numpy as np
 import pandas as pd
-import numbers
-from scipy import sparse
-import warnings
 import re
 import sys
-
-from . import utils
+import warnings
 
 if int(sys.version.split(".")[1]) < 7:
     _re_pattern = type(re.compile(""))

@@ -1,9 +1,11 @@
-from tools import data, utils
-import os
+from tools import data
+from tools import utils
+
+import h5py
 import mock
+import os
 import scprep
 import sys
-import h5py
 import tables
 
 

@@ -1,13 +1,15 @@
-from tools import utils, matrix, data
-import numpy as np
-from scipy import stats
-
-from sklearn.metrics import mutual_info_score
-import scprep
 from functools import partial
-import warnings
-import os
 from parameterized import parameterized
+from scipy import stats
+from sklearn.metrics import mutual_info_score
+from tools import data
+from tools import matrix
+from tools import utils
+
+import numpy as np
+import os
+import scprep
+import warnings
 
 
 def _test_fun_2d(X, fun, **kwargs):

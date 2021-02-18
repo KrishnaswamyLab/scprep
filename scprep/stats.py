@@ -1,13 +1,17 @@
+from . import plot
+from . import select
+from . import utils
+from ._lazyload import matplotlib
+from scipy import sparse
+from scipy import stats
+from sklearn import metrics
+from sklearn import neighbors
+
+import joblib
 import numbers
 import numpy as np
 import pandas as pd
-from scipy import stats, sparse
-from sklearn import neighbors, metrics
-import joblib
-from . import plot, utils, select
 import warnings
-
-from ._lazyload import matplotlib
 
 plt = matplotlib.pyplot
 

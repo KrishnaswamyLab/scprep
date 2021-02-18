@@ -1,11 +1,14 @@
-import numpy as np
-import numbers
-
+from .. import measure
+from .. import utils
+from .tools import label_axis
+from .utils import _get_figure
+from .utils import parse_fontsize
+from .utils import show
+from .utils import temp_fontsize
 from scipy import sparse
 
-from .. import measure, utils
-from .utils import _get_figure, show, temp_fontsize, parse_fontsize
-from .tools import label_axis
+import numbers
+import numpy as np
 
 _EPS = np.finfo("float").eps
 

@@ -1,16 +1,16 @@
+from . import hdf5
+from .utils import _matrix_to_data_frame
+
+import numpy as np
+import os
 import pandas as pd
 import scipy.io as sio
 import scipy.sparse as sp
-import warnings
-import numpy as np
-import os
-import zipfile
+import shutil
 import tempfile
 import urllib
-import shutil
-
-from .utils import _matrix_to_data_frame
-from . import hdf5
+import warnings
+import zipfile
 
 
 def _combine_gene_id(symbols, ids):

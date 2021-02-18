@@ -1,5 +1,6 @@
+from .. import measure
+from .. import utils
 from .scatter import scatter
-from .. import utils, measure
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)

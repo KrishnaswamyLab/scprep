@@ -4,21 +4,24 @@ if int(sys.version.split(".")[1]) < 6:
     # python 3.5
     pass
 else:
-    from tools import utils, matrix, data
+    from tools import data
+    from tools import matrix
+    from tools import utils
+
+    import anndata
+    import mock
     import numpy as np
     import pandas as pd
-    import rpy2.robjects as ro
-    import scprep
-    import scprep.run.r_function
-    import scprep.run.conversion
-    import scprep.run
-    import unittest
-    import anndata
-    import sklearn.cluster
-    import scipy.sparse
     import rpy2.rinterface_lib.callbacks
     import rpy2.rinterface_lib.embedded
-    import mock
+    import rpy2.robjects as ro
+    import scipy.sparse
+    import scprep
+    import scprep.run
+    import scprep.run.conversion
+    import scprep.run.r_function
+    import sklearn.cluster
+    import unittest
 
     builtin_warning = rpy2.rinterface_lib.callbacks.consolewrite_warnerror
 

@@ -1,10 +1,11 @@
+from functools import partial
+from packaging import version
+from scipy import sparse
+from scprep.utils import is_SparseDataFrame
+
 import numpy as np
 import pandas as pd
 import warnings
-from scipy import sparse
-from functools import partial
-from scprep.utils import is_SparseDataFrame
-from packaging import version
 
 
 def _ignore_pandas_sparse_warning():

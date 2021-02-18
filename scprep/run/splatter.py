@@ -1,8 +1,8 @@
-import numpy as np
-import numbers
-import warnings
-
 from . import r_function
+
+import numbers
+import numpy as np
+import warnings
 
 
 def _sum_to_one(x):

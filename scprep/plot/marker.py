@@ -1,10 +1,16 @@
-import numpy as np
-import pandas as pd
+from .. import select
+from .. import stats
+from .. import utils
+from .tools import label_axis
+from .utils import _get_figure
+from .utils import parse_fontsize
+from .utils import shift_ticklabels
+from .utils import show
+from .utils import temp_fontsize
 from scipy.cluster import hierarchy
 
-from .. import utils, stats, select
-from .utils import _get_figure, show, temp_fontsize, parse_fontsize, shift_ticklabels
-from .tools import label_axis
+import numpy as np
+import pandas as pd
 
 
 def _make_scatter_arrays(

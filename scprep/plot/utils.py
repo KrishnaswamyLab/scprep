@@ -1,10 +1,9 @@
-import numpy as np
-import platform
-
 from .. import utils
-
 from .._lazyload import matplotlib as mpl
 from .._lazyload import mpl_toolkits
+
+import numpy as np
+import platform
 
 plt = mpl.pyplot
 

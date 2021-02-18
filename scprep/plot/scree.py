@@ -1,10 +1,11 @@
-import numpy as np
-
 from .. import utils
 from .._lazyload import matplotlib as mpl
-
-from .utils import _get_figure, show, temp_fontsize
 from .tools import label_axis
+from .utils import _get_figure
+from .utils import show
+from .utils import temp_fontsize
+
+import numpy as np
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)

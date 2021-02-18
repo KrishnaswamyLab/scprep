@@ -1,6 +1,6 @@
 import numpy
-import scipy
 import pandas
+import scipy
 import sys
 
 

@@ -1,10 +1,13 @@
-import numpy as np
-from scipy import sparse
-import pandas as pd
-from nose.tools import assert_raises
-from scprep.utils import toarray, is_SparseDataFrame
 from . import matrix
-from nose.tools import assert_raises_regex, assert_warns_regex
+from nose.tools import assert_raises
+from nose.tools import assert_raises_regex
+from nose.tools import assert_warns_regex
+from scipy import sparse
+from scprep.utils import is_SparseDataFrame
+from scprep.utils import toarray
+
+import numpy as np
+import pandas as pd
 import re
 
 

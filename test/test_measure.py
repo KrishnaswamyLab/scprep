@@ -1,10 +1,12 @@
-from tools import utils, matrix, data
-import scprep
-import pandas as pd
-import numpy as np
-
-from scipy import sparse
 from functools import partial
+from scipy import sparse
+from tools import data
+from tools import matrix
+from tools import utils
+
+import numpy as np
+import pandas as pd
+import scprep
 import unittest
 
 

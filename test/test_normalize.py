@@ -1,9 +1,11 @@
-from tools import utils, matrix, data
-import numpy as np
-from sklearn.preprocessing import normalize
-
-import scprep
 from functools import partial
+from sklearn.preprocessing import normalize
+from tools import data
+from tools import matrix
+from tools import utils
+
+import numpy as np
+import scprep
 import unittest
 
 

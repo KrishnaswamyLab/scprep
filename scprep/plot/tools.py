@@ -1,10 +1,11 @@
+from .. import utils
+from .._lazyload import matplotlib as mpl
+from .utils import _get_figure
+from .utils import parse_fontsize
+from .utils import temp_fontsize
+
 import numpy as np
 import warnings
-
-from .. import utils
-from .utils import _get_figure, parse_fontsize, temp_fontsize
-
-from .._lazyload import matplotlib as mpl
 
 plt = mpl.pyplot
 

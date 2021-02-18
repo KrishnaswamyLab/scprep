@@ -1,10 +1,12 @@
-from sklearn.preprocessing import normalize
-import numpy as np
+from . import measure
+from . import utils
 from scipy import sparse
-import pandas as pd
+from sklearn.preprocessing import normalize
+
 import numbers
+import numpy as np
+import pandas as pd
 import warnings
-from . import measure, utils
 
 
 def _get_scaled_libsize(data, rescale=10000, return_library_size=False):

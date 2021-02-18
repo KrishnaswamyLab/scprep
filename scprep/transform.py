@@ -1,7 +1,8 @@
-import numpy as np
-from scipy import sparse
-import warnings
 from . import utils
+from scipy import sparse
+
+import numpy as np
+import warnings
 
 
 def sqrt(data):

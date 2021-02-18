@@ -1,8 +1,9 @@
+from .. import utils
+from .._lazyload import anndata2ri
+from .._lazyload import rpy2
+
 import numpy as np
 import warnings
-
-from .. import utils
-from .._lazyload import rpy2, anndata2ri
 
 
 def _rpylist2py(robject):

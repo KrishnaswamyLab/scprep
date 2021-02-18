@@ -1,7 +1,7 @@
-import pandas as pd
-
-from .utils import _matrix_to_data_frame
 from .. import utils
+from .utils import _matrix_to_data_frame
+
+import pandas as pd
 
 
 def _read_csv_sparse(filename, chunksize=10000, fill_value=0.0, **kwargs):

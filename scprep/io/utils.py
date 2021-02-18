@@ -1,9 +1,10 @@
+from .. import sanitize
+from .. import utils
+
+import numpy as np
 import pandas as pd
 import scipy.sparse as sp
 import warnings
-import numpy as np
-
-from .. import utils, sanitize
 
 
 def _parse_header(header, n_expected, header_type="gene_names"):
