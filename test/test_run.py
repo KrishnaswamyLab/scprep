@@ -237,7 +237,49 @@ else:
             assert (
                 rpy2.rinterface_lib.callbacks.consolewrite_warnerror is builtin_warning
             )
+            
+    class TestDyngen(unittest.TestCase):
+        @classmethod
+        def setUpClass(self):
+            scprep.run.dyngen.install(verbose=False)
 
+        def test_dyngen_backbone_not_in_list(self):                                                                 
+            utils.assert_raises_message(
+            rpy2.rinterface_lib.embedded.RRuntimeError,
+            "Error in (function (backbone_name = character(), num_cells = 500, num_tfs = 100,  :",
+            scprep.run.DyngenSimulate,
+            backbone="not_a_backbone",
+        )
+
+        def test_dyngen_default(self):
+            sim = scprep.run.DyngenSimulate(backbone="bifurcating", num_cells=50, num_tfs=50,
+                                            num_targets=10, num_hks=10,verbose=False)
+            
+            assert set(sim.keys()) == {'cell_info', 'expression'}
+            assert sim['cell_info'].shape == (50, 7)
+            assert sim['expression'].shape == (50, 70)
+            
+        def test_dyngen_with_grn(self):
+            sim = scprep.run.DyngenSimulate(backbone="bifurcating", num_cells=50, num_tfs=50,
+                                            num_targets=10, num_hks=10,
+                                            compute_cellwise_grn=True, verbose=False)
+            
+            assert set(sim.keys()) == {'cell_info', 'expression', 'bulk_grn', 'cellwise_grn'}
+            assert sim['cell_info'].shape == (50, 7)
+            assert sim['expression'].shape == (50, 70)
+            assert sim['bulk_grn'].shape == (134, 4)
+            assert sim['cellwsie_grn'].shape == (2133, 4)
+            
+        def test_dyngen_with_rna_velocity(self):
+            sim = scprep.run.DyngenSimulate(backbone="bifurcating", num_cells=50, num_tfs=50,
+                                            num_targets=10, num_hks=10,
+                                            compute_rna_velocity=True, verbose=False)
+            
+            assert set(sim.keys()) == {'cell_info', 'expression', 'rna_velocity'}
+            assert sim['cell_info'].shape == (50, 7)
+            assert sim['expression'].shape == (50, 70)
+            assert sim['rna_velocity'].shape == (50, 70)
+            
     class TestSlingshot(unittest.TestCase):
         @classmethod
         def setUpClass(self):
