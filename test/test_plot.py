@@ -7,7 +7,6 @@ from tools import utils
 
 import matplotlib
 import matplotlib.pyplot as plt
-import numbers
 import numpy as np
 import os
 import pandas as pd
@@ -435,7 +434,7 @@ class TestScatterParams(unittest.TestCase):
         np.testing.assert_equal(params.cmap.colors[:10], plt.cm.tab10.colors)
         np.testing.assert_equal(
             params.cmap.colors[10:],
-            plt.cm.tab20.colors[1: 1 + (len(params.cmap.colors) - 10) * 2: 2],
+            plt.cm.tab20.colors[1 : 1 + (len(params.cmap.colors) - 10) * 2 : 2],
         )
 
     def test_continuous_less_than_20(self):
@@ -1462,6 +1461,7 @@ class Test10X(unittest.TestCase):
 
     def test_generate_colorbar_vmin_vmax_none(self):
         cb = scprep.plot.tools.generate_colorbar("inferno")
+        assert len(cb.get_ticks()) == 0
         utils.assert_warns_message(
             UserWarning,
             "Cannot set `n_ticks` without setting `vmin` and `vmax`.",

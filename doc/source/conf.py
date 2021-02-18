@@ -212,4 +212,4 @@ nbsphinx_prolog = r"""
     \texttt{\strut{}{{ docname }}}\\[-0.5\baselineskip]
     \noindent\rule{\textwidth}{0.4pt}}
     \vspace{-2\baselineskip}
-"""
+"""  # noqa

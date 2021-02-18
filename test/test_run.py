@@ -5,7 +5,6 @@ if int(sys.version.split(".")[1]) < 6:
     pass
 else:
     from tools import data
-    from tools import matrix
     from tools import utils
 
     import anndata
@@ -418,7 +417,7 @@ else:
         assert np.all(x["x"] == np.array([1, 2, 3]))
         assert np.all(x["y"] == np.array(["a", "b", "c"]))
 
-    def test_conversion_spmatrix():
+    def test_conversion_sce():
         scprep.run.install_bioconductor("SingleCellExperiment")
         ro.r("library(SingleCellExperiment)")
         ro.r("X <- matrix(1:6, nrow=2, ncol=3)")

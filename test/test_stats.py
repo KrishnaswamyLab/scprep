@@ -1,7 +1,6 @@
 from functools import partial
 from parameterized import parameterized
 from scipy import stats
-from sklearn.metrics import mutual_info_score
 from tools import data
 from tools import matrix
 from tools import utils

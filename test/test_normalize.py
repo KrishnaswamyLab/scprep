@@ -1,4 +1,3 @@
-from functools import partial
 from sklearn.preprocessing import normalize
 from tools import data
 from tools import matrix

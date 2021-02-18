@@ -79,7 +79,10 @@ def assert_transform_unchanged(X, transform, check=assert_all_equal, **kwargs):
 
 
 def assert_transform_equivalent(X, Y, transform, check=assert_all_equal, **kwargs):
-    """Check the output of transform(X, **kwargs) == Y and transform(X, **kwargs) gives the same kind of matrix as X
+    """Check the transformation gives the right result and doesn't change the type.
+
+    Ensures that transform(X, **kwargs) == Y and transform(X, **kwargs)
+    give the same kind of matrix as X.
 
     Parameters
     ----------
@@ -97,7 +100,7 @@ def assert_transform_equivalent(X, Y, transform, check=assert_all_equal, **kwarg
     Y2 = assert_transform_equals(X, Y, transform, check=check, **kwargs)
     assert assert_matrix_class_equivalent(
         X, Y2
-    ), "{} produced inconsistent matrix output".format(_typename(X))
+    ), "{} produced inconsistent matrix output".format(matrix._typename(X))
 
 
 def assert_transform_raises(X, transform, exception=ValueError, **kwargs):

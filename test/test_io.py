@@ -198,7 +198,8 @@ def test_10X():
     )
     utils.assert_raises_message(
         FileNotFoundError,
-        "'matrix.mtx(.gz)', '[genes/features].tsv(.gz)', and 'barcodes.tsv(.gz)' must be present "
+        "'matrix.mtx(.gz)', '[genes/features].tsv(.gz)', and "
+        "'barcodes.tsv(.gz)' must be present "
         "in {}".format(data.data_dir),
         scprep.io.load_10X,
         data.data_dir,
@@ -236,7 +237,10 @@ def test_10X_zip_error():
 
 def test_10X_zip_url():
     X = data.load_10X()
-    filename = "https://github.com/KrishnaswamyLab/scprep/raw/master/data/test_data/test_10X.zip"
+    filename = (
+        "https://github.com/KrishnaswamyLab/scprep/raw/master/data/"
+        "test_data/test_10X.zip"
+    )
     X_zip = scprep.io.load_10X_zip(filename)
     assert scprep.utils.is_sparse_dataframe(X_zip)
     assert np.sum(np.sum(X != X_zip)) == 0
@@ -723,7 +727,8 @@ def test_download_google_drive_large():
 def test_download_url():
     X = data.load_10X()
     scprep.io.download.download_url(
-        "https://github.com/KrishnaswamyLab/scprep/raw/master/data/test_data/test_10X/matrix.mtx.gz",
+        "https://github.com/KrishnaswamyLab/scprep/raw/master/data/"
+        "test_data/test_10X/matrix.mtx.gz",
         "url_test.mtx.gz",
     )
     Y = scprep.io.load_mtx("url_test.mtx.gz").T
@@ -734,7 +739,8 @@ def test_download_url():
 def test_download_zip():
     X = data.load_10X()
     scprep.io.download.download_and_extract_zip(
-        "https://github.com/KrishnaswamyLab/scprep/raw/master/data/test_data/test_10X.zip",
+        "https://github.com/KrishnaswamyLab/scprep/raw/master/data/"
+        "test_data/test_10X.zip",
         "zip_test",
     )
     Y = scprep.io.load_10X("zip_test/test_10X")

@@ -158,10 +158,12 @@ def test_combine_batches():
     assert np.all(sample_labels.index == Y2.index)
     assert sample_labels.name == "sample_labels"
 
-    def transform(X): return scprep.utils.combine_batches(
-        [X, scprep.select.select_rows(X, idx=np.arange(X.shape[0] // 2))],
-        batch_labels=[0, 1],
-    )[0]
+    def transform(X):
+        return scprep.utils.combine_batches(
+            [X, scprep.select.select_rows(X, idx=np.arange(X.shape[0] // 2))],
+            batch_labels=[0, 1],
+        )[0]
+
     matrix.test_matrix_types(
         X,
         utils.assert_transform_equals,
