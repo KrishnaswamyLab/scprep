@@ -434,7 +434,7 @@ class TestScatterParams(unittest.TestCase):
         np.testing.assert_equal(params.cmap.colors[:10], plt.cm.tab10.colors)
         np.testing.assert_equal(
             params.cmap.colors[10:],
-            plt.cm.tab20.colors[1 : 1 + (len(params.cmap.colors) - 10) * 2 : 2],
+            plt.cm.tab20.colors[1: 1 + (len(params.cmap.colors) - 10) * 2: 2],
         )
 
     def test_continuous_less_than_20(self):
