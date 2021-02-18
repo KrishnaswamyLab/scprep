@@ -2,7 +2,6 @@ from setuptools import find_packages
 from setuptools import setup
 
 import os
-import sys
 
 install_requires = [
     "numpy>=1.12.0",
@@ -13,12 +12,7 @@ install_requires = [
     "packaging",
 ]
 
-optional_requires = [
-    "fcsparser",
-    "tables",
-    "h5py",
-    "anndata",
-]
+optional_requires = ["fcsparser", "tables", "h5py", "anndata", "anndata2ri>=1.0.6"]
 
 test_requires = [
     "nose",
@@ -30,6 +24,9 @@ test_requires = [
     "packaging",
     "mock",
     "h5py",
+    "matplotlib>=3.0",
+    "rpy2>=3.0",
+    "black",
 ]
 
 doc_requires = [
@@ -37,15 +34,8 @@ doc_requires = [
     "sphinxcontrib-napoleon",
     "ipykernel",
     "nbsphinx",
+    "autodocsumm",
 ]
-
-if sys.version_info[:2] < (3, 6):
-    test_requires += ["matplotlib>=3.0,<3.1", "rpy2>=3.0,<3.1"]
-    doc_requires += ["autodocsumm!=0.2.0"]
-else:
-    test_requires += ["matplotlib>=3.0", "rpy2>=3.0", "black"]
-    optional_requires += ["anndata2ri>=1.0.6"]
-    doc_requires += ["autodocsumm"]
 
 version_py = os.path.join(os.path.dirname(__file__), "scprep", "version.py")
 version = open(version_py).read().strip().split("=")[-1].replace('"', "").strip()
@@ -61,7 +51,7 @@ setup(
     packages=find_packages(),
     license="GNU General Public License Version 2",
     install_requires=install_requires,
-    python_requires=">=3.5",
+    python_requires=">=3.6",
     extras_require={
         "test": test_requires + optional_requires,
         "doc": doc_requires,
@@ -88,8 +78,10 @@ setup(
         "Operating System :: Microsoft :: Windows",
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "Topic :: Scientific/Engineering :: Bio-Informatics",
     ],
 )

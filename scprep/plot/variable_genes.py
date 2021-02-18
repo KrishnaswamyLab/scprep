@@ -18,7 +18,7 @@ def plot_gene_variability(
     fontsize=None,
     filename=None,
     dpi=None,
-    **kwargs
+    **kwargs,
 ):
     """Plot the histogram of gene variability.
 

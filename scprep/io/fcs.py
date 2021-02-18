@@ -259,7 +259,7 @@ def load_fcs(
     channel_naming="$PnS",
     reformat_meta=True,
     override=False,
-    **kwargs
+    **kwargs,
 ):
     """Load a fcs file.
 

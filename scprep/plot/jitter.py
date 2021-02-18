@@ -65,7 +65,7 @@ def jitter(
     vmax=None,
     filename=None,
     dpi=None,
-    **plot_kwargs
+    **plot_kwargs,
 ):
     """Create a jitter plot.
 

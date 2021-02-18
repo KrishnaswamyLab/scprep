@@ -601,7 +601,7 @@ def scatter(
     azim=None,
     filename=None,
     dpi=None,
-    **plot_kwargs
+    **plot_kwargs,
 ):
     """Create a scatter plot.
 
@@ -853,7 +853,7 @@ def scatter2d(
     legend_ncol=None,
     filename=None,
     dpi=None,
-    **plot_kwargs
+    **plot_kwargs,
 ):
     """Create a 2D scatter plot.
 
@@ -1046,7 +1046,7 @@ def scatter3d(
     azim=None,
     filename=None,
     dpi=None,
-    **plot_kwargs
+    **plot_kwargs,
 ):
     """Create a 3D scatter plot.
 
@@ -1229,7 +1229,7 @@ def rotate_scatter3d(
     elev=None,
     ipython_html="jshtml",
     dpi=None,
-    **kwargs
+    **kwargs,
 ):
     """Create a rotating 3D scatter plot.
 

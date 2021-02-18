@@ -21,7 +21,7 @@ def load_csv(
     cell_names=True,
     sparse=False,
     chunksize=10000,
-    **kwargs
+    **kwargs,
 ):
     r"""Load a csv file.
 
@@ -108,7 +108,7 @@ def load_tsv(
     gene_names=True,
     cell_names=True,
     sparse=False,
-    **kwargs
+    **kwargs,
 ):
     r"""Load a tsv file.
 

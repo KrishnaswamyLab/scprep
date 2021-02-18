@@ -80,7 +80,7 @@ def histogram(
     alpha=None,
     filename=None,
     dpi=None,
-    **kwargs
+    **kwargs,
 ):
     """Plot a histogram.
 
@@ -207,7 +207,7 @@ def plot_library_size(
     fontsize=None,
     filename=None,
     dpi=None,
-    **kwargs
+    **kwargs,
 ):
     """Plot the library size histogram.
 
@@ -295,7 +295,7 @@ def plot_gene_set_expression(
     fontsize=None,
     filename=None,
     dpi=None,
-    **kwargs
+    **kwargs,
 ):
     """Plot the histogram of the expression of a gene set.
 

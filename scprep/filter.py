@@ -138,7 +138,7 @@ def filter_values(
     keep_cells="above",
     return_values=False,
     sample_labels=None,
-    filter_per_sample=None
+    filter_per_sample=None,
 ):
     """Remove all cells with `values` above or below a certain threshold.
 
@@ -207,7 +207,7 @@ def filter_library_size(
     keep_cells=None,
     return_library_size=False,
     sample_labels=None,
-    filter_per_sample=None
+    filter_per_sample=None,
 ):
     """Remove all cells with library size above or below a certain threshold.
 
@@ -274,7 +274,7 @@ def filter_gene_set_expression(
     keep_cells=None,
     return_expression=False,
     sample_labels=None,
-    filter_per_sample=None
+    filter_per_sample=None,
 ):
     """Remove cells with total expression of a gene set above or below a threshold.
 

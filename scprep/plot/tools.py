@@ -99,7 +99,7 @@ def generate_legend(
     title_fontsize=None,
     max_rows=10,
     ncol=None,
-    **kwargs
+    **kwargs,
 ):
     """Generate a legend on an axis.
 
@@ -180,7 +180,7 @@ def generate_colorbar(
     n_ticks="auto",
     labelpad=10,
     mappable=None,
-    **kwargs
+    **kwargs,
 ):
     """Generate a colorbar on an axis.
 

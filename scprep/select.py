@@ -312,7 +312,7 @@ def select_cols(
     starts_with=None,
     ends_with=None,
     exact_word=None,
-    regex=None
+    regex=None,
 ):
     """Select columns from a data matrix.
 
@@ -470,7 +470,7 @@ def select_rows(
     starts_with=None,
     ends_with=None,
     exact_word=None,
-    regex=None
+    regex=None,
 ):
     """Select rows from a data matrix.
 
