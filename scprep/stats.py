@@ -404,7 +404,7 @@ def _preprocess_test_matrices(X, Y):
 
 
 def mean_difference(X, Y):
-    """Calculate the mean difference in genes between two datasets
+    """Calculate the mean difference in genes between two datasets.
 
     In the case where the data has been log normalized,
     this is equivalent to fold change.

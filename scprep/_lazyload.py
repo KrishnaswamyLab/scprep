@@ -34,7 +34,20 @@ _importspec = {
 
 
 class AliasModule(object):
+    """Wrapper around Python module to allow lazy loading."""
+
     def __init__(self, name, members=None):
+        """Initialize a module without loading it.
+
+        Parameters
+        ----------
+        name : str
+            Module name
+        members : list[str, dict]
+            List of submodules to be loaded as AliasModules. If a dict, the submodule
+            is loaded with subsubmodules corresponding to the dictionary values;
+            if a string, the submodule has no subsubmodules.
+        """
         # easy access to AliasModule members to avoid recursionerror
         super_setattr = super().__setattr__
         if members is None:
@@ -59,6 +72,7 @@ class AliasModule(object):
 
     @property
     def __loaded_module__(self):
+        """Load the module, or retrieve it if already loaded."""
         # easy access to AliasModule members to avoid recursionerror
         super_getattr = super().__getattribute__
         name = super_getattr("__module_name__")
@@ -70,6 +84,7 @@ class AliasModule(object):
             return sys.modules[name]
 
     def __getattribute__(self, attr):
+        """Access AliasModule members."""
         # easy access to AliasModule members to avoid recursionerror
         super_getattr = super().__getattribute__
         if attr in super_getattr("__submodules__"):
@@ -88,8 +103,10 @@ class AliasModule(object):
             return getattr(super_getattr("__loaded_module__"), attr)
 
     def __setattr__(self, name, value):
-        # allows monkey-patching
-        # easy access to AliasModule members to avoid recursionerror
+        """Allow monkey-patching.
+
+        Gives easy access to AliasModule members to avoid recursionerror.
+        """
         super_getattr = super().__getattribute__
         return setattr(super_getattr("__loaded_module__"), name, value)
 
