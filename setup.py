@@ -49,7 +49,7 @@ setup(
     author="Scott Gigante, Daniel Burkhardt and Jay Stanley, Yale University",
     author_email="krishnaswamylab@gmail.com",
     packages=find_packages(),
-    license="GNU General Public License Version 2",
+    license="GNU General Public License Version 3",
     install_requires=install_requires,
     python_requires=">=3.6",
     extras_require={
