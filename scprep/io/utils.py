@@ -1,6 +1,3 @@
-# author: Scott Gigante <scott.gigante@yale.edu>
-# (C) 2018 Krishnaswamy Lab GPLv2
-
 import pandas as pd
 import scipy.sparse as sp
 import warnings

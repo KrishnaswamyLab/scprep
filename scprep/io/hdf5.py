@@ -1,5 +1,3 @@
-# author: Scott Gigante <scott.gigante@yale.edu>
-# (C) 2018 Krishnaswamy Lab GPLv2
 from decorator import decorator
 
 from .._lazyload import tables

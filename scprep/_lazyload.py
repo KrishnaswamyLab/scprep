@@ -1,10 +1,13 @@
 import importlib
 import sys
 
-# Key:
-# { module : [{submodule1:[subsubmodule1, subsubmodule2]}, submodule2] }
-# each module loads submodules on initialization but is only imported
-# and loads methods/classes when these are accessed
+"""Key:
+
+{ module : [{submodule1:[subsubmodule1, subsubmodule2]}, submodule2] }
+
+Each module loads submodules on initialization but is only imported
+and loads methods/classes when these are accessed.
+"""
 _importspec = {
     "matplotlib": [
         "colors",

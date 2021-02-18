@@ -1,6 +1,3 @@
-# author: Scott Gigante <scott.gigante@yale.edu>
-# (C) 2018 Krishnaswamy Lab GPLv2
-
 import numpy as np
 from scipy import sparse
 import warnings

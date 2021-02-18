@@ -1,6 +1,3 @@
-# author: Daniel Burkhardt <daniel.burkhardt@yale.edu>
-# (C) 2018 Krishnaswamy Lab GPLv2
-
 import numbers
 import numpy as np
 import pandas as pd

@@ -1,6 +1,3 @@
-# author: Scott Gigante <scott.gigante@yale.edu>
-# (C) 2018 Krishnaswamy Lab GPLv2
-
 import pandas as pd
 
 from .utils import _matrix_to_data_frame

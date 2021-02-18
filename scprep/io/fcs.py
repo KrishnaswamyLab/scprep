@@ -1,6 +1,3 @@
-# author: Scott Gigante <scott.gigante@yale.edu>
-# (C) 2018 Krishnaswamy Lab GPLv2
-
 import pandas as pd
 import numpy as np
 import struct

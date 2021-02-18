@@ -1,6 +1,3 @@
-# author: Daniel Burkhardt <daniel.burkhardt@yale.edu>
-# (C) 2018 Krishnaswamy Lab GPLv2
-
 from sklearn.preprocessing import normalize
 import numpy as np
 from scipy import sparse
