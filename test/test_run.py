@@ -4,7 +4,7 @@ if int(sys.version.split(".")[1]) < 6:
     # python 3.5
     pass
 else:
-    #from tools import utils, matrix, data
+    from tools import utils, matrix, data
     import numpy as np
     import pandas as pd
     import rpy2.robjects as ro
@@ -19,7 +19,6 @@ else:
     import rpy2.rinterface_lib.callbacks
     import rpy2.rinterface_lib.embedded
     import mock
-    import re
 
     builtin_warning = rpy2.rinterface_lib.callbacks.consolewrite_warnerror
 
