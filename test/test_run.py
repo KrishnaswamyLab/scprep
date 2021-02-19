@@ -4,21 +4,23 @@ if int(sys.version.split(".")[1]) < 6:
     # python 3.5
     pass
 else:
-    from tools import utils, matrix, data
+    from tools import data
+    from tools import utils
+
+    import anndata
+    import mock
     import numpy as np
     import pandas as pd
-    import rpy2.robjects as ro
-    import scprep
-    import scprep.run.r_function
-    import scprep.run.conversion
-    import scprep.run
-    import unittest
-    import anndata
-    import sklearn.cluster
-    import scipy.sparse
     import rpy2.rinterface_lib.callbacks
     import rpy2.rinterface_lib.embedded
-    import mock
+    import rpy2.robjects as ro
+    import scipy.sparse
+    import scprep
+    import scprep.run
+    import scprep.run.conversion
+    import scprep.run.r_function
+    import sklearn.cluster
+    import unittest
 
     builtin_warning = rpy2.rinterface_lib.callbacks.consolewrite_warnerror
 
@@ -481,7 +483,7 @@ else:
         assert np.all(x["x"] == np.array([1, 2, 3]))
         assert np.all(x["y"] == np.array(["a", "b", "c"]))
 
-    def test_conversion_spmatrix():
+    def test_conversion_sce():
         scprep.run.install_bioconductor("SingleCellExperiment")
         ro.r("library(SingleCellExperiment)")
         ro.r("X <- matrix(1:6, nrow=2, ncol=3)")

@@ -1,13 +1,10 @@
-# author: Scott Gigante <scott.gigante@yale.edu>
-# (C) 2018 Krishnaswamy Lab GPLv2
-
-import scipy.io as sio
-from scipy import sparse
-import pandas as pd
-import os
-
-from .utils import _matrix_to_data_frame
 from .. import utils
+from .utils import _matrix_to_data_frame
+from scipy import sparse
+
+import os
+import pandas as pd
+import scipy.io as sio
 
 
 def load_mtx(mtx_file, cell_axis="row", gene_names=None, cell_names=None, sparse=None):

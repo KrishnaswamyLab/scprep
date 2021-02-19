@@ -1,6 +1,6 @@
-import scprep
-import os
 import numpy as np
+import os
+import scprep
 
 
 def _os_agnostic_fullpath_join(path):

@@ -1,32 +1,43 @@
-import numpy as np
-from scipy import sparse
-import pandas as pd
-from nose.tools import assert_raises
-from scprep.utils import toarray, is_SparseDataFrame
 from . import matrix
-from nose.tools import assert_raises_regex, assert_warns_regex
+from nose.tools import assert_raises
+from nose.tools import assert_raises_regex
+from nose.tools import assert_warns_regex
+from scipy import sparse
+from scprep.utils import is_SparseDataFrame
+from scprep.utils import toarray
+
+import numpy as np
+import pandas as pd
 import re
 
 
 def assert_warns_message(expected_warning, expected_message, *args, **kwargs):
+    """Assert that the correct warning message is raised.
+
+    Handles regex better than the default.
+    """
     expected_regex = re.escape(expected_message)
     return assert_warns_regex(expected_warning, expected_regex, *args, **kwargs)
 
 
-def assert_raises_message(expected_warning, expected_message, *args, **kwargs):
+def assert_raises_message(expected_error, expected_message, *args, **kwargs):
+    """Assert that the correct error message is raised.
+
+    Handles regex better than the default.
+    """
     expected_regex = re.escape(expected_message)
-    return assert_raises_regex(expected_warning, expected_regex, *args, **kwargs)
+    return assert_raises_regex(expected_error, expected_regex, *args, **kwargs)
 
 
 def assert_all_equal(X, Y):
-    """Assert all values of two matrices are the same"""
+    """Assert all values of two matrices are the same."""
     X = toarray(X)
     Y = toarray(Y)
     np.testing.assert_array_equal(X, Y)
 
 
 def assert_all_close(X, Y, rtol=1e-05, atol=1e-08):
-    """Assert all values of two matrices are similar
+    """Assert all values of two matrices are similar.
 
     Parameters
     ----------
@@ -39,7 +50,7 @@ def assert_all_close(X, Y, rtol=1e-05, atol=1e-08):
 
 
 def assert_transform_equals(X, Y, transform, check=assert_all_equal, **kwargs):
-    """Check that transform(X, **kwargs) == Y
+    """Check that transform(X, **kwargs) == Y.
 
     Parameters
     ----------
@@ -59,7 +70,7 @@ def assert_transform_equals(X, Y, transform, check=assert_all_equal, **kwargs):
 
 
 def assert_transform_unchanged(X, transform, check=assert_all_equal, **kwargs):
-    """Check that transform(X, **kwargs) == X
+    """Check that transform(X, **kwargs) == X.
 
     Parameters
     ----------
@@ -76,7 +87,10 @@ def assert_transform_unchanged(X, transform, check=assert_all_equal, **kwargs):
 
 
 def assert_transform_equivalent(X, Y, transform, check=assert_all_equal, **kwargs):
-    """Check the output of transform(X, **kwargs) == Y and transform(X, **kwargs) gives the same kind of matrix as X
+    """Check the transformation gives the right result and doesn't change the type.
+
+    Ensures that transform(X, **kwargs) == Y and transform(X, **kwargs)
+    give the same kind of matrix as X.
 
     Parameters
     ----------
@@ -94,11 +108,11 @@ def assert_transform_equivalent(X, Y, transform, check=assert_all_equal, **kwarg
     Y2 = assert_transform_equals(X, Y, transform, check=check, **kwargs)
     assert assert_matrix_class_equivalent(
         X, Y2
-    ), "{} produced inconsistent matrix output".format(_typename(X))
+    ), "{} produced inconsistent matrix output".format(matrix._typename(X))
 
 
 def assert_transform_raises(X, transform, exception=ValueError, **kwargs):
-    """Check that transform(X) raises exception
+    """Check that transform(X) raises exception.
 
     Parameters
     ----------
@@ -123,7 +137,7 @@ def _sparse_dataframe_density(X):
 
 
 def assert_matrix_class_equivalent(X, Y):
-    """Check the format of X and Y are the same
+    """Check the format of X and Y are the same.
 
     We expect:
         * shape hasn't changed

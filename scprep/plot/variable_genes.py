@@ -1,5 +1,6 @@
+from .. import measure
+from .. import utils
 from .scatter import scatter
-from .. import utils, measure
 
 
 @utils._with_pkg(pkg="matplotlib", min_version=3)
@@ -17,7 +18,7 @@ def plot_gene_variability(
     fontsize=None,
     filename=None,
     dpi=None,
-    **kwargs
+    **kwargs,
 ):
     """Plot the histogram of gene variability.
 

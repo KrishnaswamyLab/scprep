@@ -1,10 +1,8 @@
-# author: Scott Gigante <scott.gigante@yale.edu>
-# (C) 2018 Krishnaswamy Lab GPLv2
+from . import utils
 
 import numpy as np
 import pandas as pd
 import warnings
-from . import utils
 
 
 def check_numeric(data, dtype="float", copy=None, suppress_errors=False):

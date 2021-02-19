@@ -25,7 +25,7 @@ Code Style and Testing
 
 `scprep` is maintained at close to 100% code coverage. Contributors are encouraged to write tests for their code, but if you do not know how to do so, please do not feel discouraged from contributing code! Others can always help you test your contribution.
 
-Code style is dictated by [`black`](https://pypi.org/project/black/#installation-and-usage). To automatically reformat your code when you run `git commit`, you can run `./autoblack.sh` in the root directory of this project to add a hook to your `git` repository.
+Code style is dictated by [`black`](https://pypi.org/project/black/#installation-and-usage) and [`flake8`](https://flake8.pycqa.org/en/latest/) with [`hacking`](https://github.com/openstack/hacking). Code is automatically reformatted by [`pre-commit`](https://pre-commit.com/) when you push to GitHub.
 
 Code of Conduct
 ---------------

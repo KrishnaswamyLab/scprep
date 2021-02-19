@@ -1,11 +1,16 @@
+from .. import utils
+from .scatter import _ScatterParams
+from .tools import generate_colorbar
+from .tools import generate_legend
+from .tools import label_axis
+from .utils import _get_figure
+from .utils import _with_default
+from .utils import parse_fontsize
+from .utils import show
+from .utils import temp_fontsize
+
 import numpy as np
 import pandas as pd
-
-from .. import utils
-from .utils import _get_figure, show, temp_fontsize, parse_fontsize, _with_default
-from .tools import label_axis, generate_colorbar, generate_legend
-
-from .scatter import _ScatterParams
 
 
 class _JitterParams(_ScatterParams):
@@ -60,7 +65,7 @@ def jitter(
     vmax=None,
     filename=None,
     dpi=None,
-    **plot_kwargs
+    **plot_kwargs,
 ):
     """Create a jitter plot.
 

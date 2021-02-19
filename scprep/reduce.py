@@ -1,11 +1,12 @@
-from sklearn import decomposition, random_projection
-import sklearn.base
-import pandas as pd
-from scipy import sparse
-import numpy as np
-import warnings
-
 from . import utils
+from scipy import sparse
+from sklearn import decomposition
+from sklearn import random_projection
+
+import numpy as np
+import pandas as pd
+import sklearn.base
+import warnings
 
 
 class InvertibleRandomProjection(random_projection.GaussianRandomProjection):

@@ -1,10 +1,8 @@
-# author: Scott Gigante <scott.gigante@yale.edu>
-# (C) 2018 Krishnaswamy Lab GPLv2
+from . import utils
+from scipy import sparse
 
 import numpy as np
-from scipy import sparse
 import warnings
-from . import utils
 
 
 def sqrt(data):
@@ -108,7 +106,7 @@ def arcsinh(data, cofactor=5):
     return utils.matrix_transform(data, np.arcsinh)
 
 
-def sqrt_transform(*args, **kwargs):
+def sqrt_transform(*args, **kwargs):  # noqa
     warnings.warn(
         "scprep.transform.sqrt_transform is deprecated. Please use "
         "scprep.transform.sqrt in future.",
@@ -117,7 +115,7 @@ def sqrt_transform(*args, **kwargs):
     return sqrt(*args, **kwargs)
 
 
-def log_transform(*args, **kwargs):
+def log_transform(*args, **kwargs):  # noqa
     warnings.warn(
         "scprep.transform.log_transform is deprecated. Please use "
         "scprep.transform.log in future.",
@@ -126,7 +124,7 @@ def log_transform(*args, **kwargs):
     return log(*args, **kwargs)
 
 
-def arcsinh_transform(*args, **kwargs):
+def arcsinh_transform(*args, **kwargs):  # noqa
     warnings.warn(
         "scprep.transform.arcsinh_transform is deprecated. Please "
         "use scprep.transform.arcsinh in future.",

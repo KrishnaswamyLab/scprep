@@ -1,8 +1,9 @@
-from tools import utils, matrix, data
+from tools import data
+from tools import matrix
+from tools import utils
+
 import numpy as np
 import scprep
-from scipy import sparse
-import pandas as pd
 import warnings
 
 

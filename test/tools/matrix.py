@@ -1,10 +1,10 @@
+from packaging import version
+from scipy import sparse
+from scprep.utils import is_SparseDataFrame
+
 import numpy as np
 import pandas as pd
 import warnings
-from scipy import sparse
-from functools import partial
-from scprep.utils import is_SparseDataFrame
-from packaging import version
 
 
 def _ignore_pandas_sparse_warning():
@@ -109,13 +109,15 @@ def _typename(X):
 
 
 def test_matrix_types(X, test_fun, matrix_types, *args, **kwargs):
-    """Test a function across a range of matrix types
+    """Test a function across a range of matrix types.
 
     Parameters
     ----------
     X : matrix input
     test_fun : Function(X, *args, **kwargs) for testing
-    matrix_types : List of functions (typically class constructors) converting X to desired matrix formats
+    matrix_types : list
+        List of functions (typically class constructors) converting X
+        to desired matrix formats
     *args : positional arguments for test_fun
     **kwargs : keyword arguments for test_fun
     """

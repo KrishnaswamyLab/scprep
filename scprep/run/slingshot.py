@@ -1,9 +1,9 @@
+from .. import utils
+from . import r_function
+
 import numpy as np
 import pandas as pd
 import warnings
-
-from . import r_function
-from .. import utils
 
 
 def install(site_repository=None, update=False, version=None, verbose=True):
