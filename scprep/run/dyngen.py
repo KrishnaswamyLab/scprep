@@ -1,5 +1,6 @@
-import pandas as pd
 from . import r_function
+
+import pandas as pd
 
 _get_backbones = r_function.RFunction(
     setup="""
@@ -13,7 +14,7 @@ _get_backbones = r_function.RFunction(
 _DyngenSimulate = r_function.RFunction(
     args="""
         backbone_name=character(), num_cells=500, num_tfs=100, num_targets=50,
-        num_hks=25,simulation_census_interval=10, compute_cellwise_grn=FALSE, 
+        num_hks=25,simulation_census_interval=10, compute_cellwise_grn=FALSE,
         compute_rna_velocity=FALSE, n_jobs=7, random_state=NA, verbose=TRUE
     """,
     setup="""
@@ -27,11 +28,11 @@ _DyngenSimulate = r_function.RFunction(
         if (!is.na(random_state)) {
             set.seed(random_state)
         }
-        
+
         backbones <- list('bifurcating'=backbone_bifurcating(),
                   'bifurcating_converging'=backbone_bifurcating_converging(),
                   'bifurcating_cycle'=backbone_bifurcating_cycle(),
-                  'bifurcating_loop'=backbone_bifurcating_loop(), 
+                  'bifurcating_loop'=backbone_bifurcating_loop(),
                   'binary_tree'=backbone_binary_tree(),
                   'branching'=backbone_branching(),
                   'consecutive_bifurcating'=backbone_consecutive_bifurcating(),
@@ -43,7 +44,7 @@ _DyngenSimulate = r_function.RFunction(
                   'linear_simple'=backbone_linear_simple(),
                   'trifurcating'=backbone_trifurcating()
                  )
-                 
+
         backbone <- backbones[[backbone_name]]
         # silent default behavior of dyngen
         if (num_tfs < nrow(backbone$module_info)) {
@@ -52,7 +53,7 @@ _DyngenSimulate = r_function.RFunction(
                 "Dyngen uses backbone default.\n")
             }
             num_tfs <- nrow(backbone$module_info)
-        }         
+        }
         if (verbose) {
             cat('Run Parameters:')
             cat('\n\tBackbone:', backbone_name)
@@ -61,7 +62,7 @@ _DyngenSimulate = r_function.RFunction(
             cat('\n\tNumber of Targets:', num_targets)
             cat('\n\tNumber of HKs:', num_hks, '\n')
         }
-        
+
         init <- initialise_model(
           backbone=backbone,
           num_cells=num_cells,
@@ -81,7 +82,7 @@ _DyngenSimulate = r_function.RFunction(
         out <- generate_dataset(init)
         data <- list(cell_info = as.data.frame(out$dataset$cell_info),
              expression = as.data.frame(as.matrix(out$dataset$expression)))
-         
+
         if (compute_cellwise_grn) {
             data[['bulk_grn']] <- as.data.frame(out$dataset$regulatory_network)
             data[['cellwise_grn']] <- as.data.frame(out$dataset$regulatory_network_sc)
@@ -93,14 +94,19 @@ _DyngenSimulate = r_function.RFunction(
         data
     """,
 )
-    
-    
+
+
 def install(
-    lib=None, dependencies=None, update=False,
-    repos="http://cran.us.r-project.org", build_vignettes=False,
-    force=False, verbose=True):
+    lib=None,
+    dependencies=None,
+    update=False,
+    repos="http://cran.us.r-project.org",
+    build_vignettes=False,
+    force=False,
+    verbose=True,
+):
     """Install Dyngen Github repository.
-    
+
     Parameters
     ----------
     lib: string
@@ -113,9 +119,9 @@ def install(
         When None/NA, installs all packages specified under "Depends", "Imports"
         and "LinkingTo".
     update: string or boolean, optional (default: False)
-        One of "default", "ask", "always", or "never". "default" 
-        Respects R_REMOTES_UPGRADE environment variable if set, falls back to "ask" if unset. 
-        "ask" prompts the user for which out of date packages to upgrade. 
+        One of "default", "ask", "always", or "never". "default"
+        Respects R_REMOTES_UPGRADE environment variable if set, falls back to "ask" if unset.
+        "ask" prompts the user for which out of date packages to upgrade.
         For non-interactive sessions "ask" is equivalent to "always".
         TRUE and FALSE are also accepted and correspond to "always" and "never" respectively.
     repos: string, optional (default: "http://cran.us.r-project.org"):
@@ -127,34 +133,47 @@ def install(
     verbose: boolean, optional (default: True)
         Install script verbosity.
     """
-        
-    r_function.install_github(repo="dynverse/dyngen",
-                    update=update,
-                    lib=lib,
-                    dependencies=dependencies,
-                    repos=repos,
-                    verbose=verbose)
-    
+
+    r_function.install_github(
+        repo="dynverse/dyngen",
+        update=update,
+        lib=lib,
+        dependencies=dependencies,
+        repos=repos,
+        verbose=verbose,
+    )
+
+
 def get_backbones():
     """Output full list of cell trajectory backbones.
-    
+
     Returns
     -------
     backbones: array of backbone names
     """
-    return(_get_backbones())
+    return _get_backbones()
 
 
-def DyngenSimulate(backbone, num_cells=500, num_tfs=100, num_targets=50, num_hks=25,
-        simulation_census_interval=10, compute_cellwise_grn=False, 
-        compute_rna_velocity=False, n_jobs=7, random_state=None, verbose=True,
-        force_num_cells=False):
+def DyngenSimulate(
+    backbone,
+    num_cells=500,
+    num_tfs=100,
+    num_targets=50,
+    num_hks=25,
+    simulation_census_interval=10,
+    compute_cellwise_grn=False,
+    compute_rna_velocity=False,
+    n_jobs=7,
+    random_state=None,
+    verbose=True,
+    force_num_cells=False,
+):
     """Simulate dataset with cellular backbone.
-    
+
     The backbone determines the overall dynamic process during a simulation.
     It consists of a set of gene modules, which regulate each other such that
     expression of certain genes change over time in a specific manner.
-    
+
     DyngenSimulate is a Python wrapper for the R package Dyngen.
     Default values obtained from Github vignettes.
     For more details, read about Dyngen on Github_.
@@ -169,21 +188,21 @@ def DyngenSimulate(backbone, num_cells=500, num_tfs=100, num_targets=50, num_hks
     num_cells: int, optional (default: 500)
            Number of cells.
     num_tfs: int, optional (default: 100)
-           Number of transcription factors. 
+           Number of transcription factors.
            The TFs are the main drivers of the molecular changes in the simulation.
            A TF can only be regulated by other TFs or itself.
-           
+
            NOTE: If num_tfs input is less than nrow(backbone$module_info),
            Dyngen will default to nrow(backbone$module_info).
            This quantity varies between backbones and with each run (without seed).
-           It is generally less than 75. 
+           It is generally less than 75.
            It is recommended to input num_tfs >= 100 to stabilize the output.
     num_targets: int, optional (default: 50)
-           Number of target genes. 
+           Number of target genes.
            Target genes are regulated by a TF or another target gene,
-           but are always downstream of at least one TF. 
+           but are always downstream of at least one TF.
     num_hks: int, optional (default: 25)
-           Number of housekeeping genees. 
+           Number of housekeeping genees.
            Housekeeping genes are completely separate from any TFs or target genes.
     simulation_census_interval: int, optional (default: 10)
            Stores the abundance levels only after a specific interval has passed.
@@ -203,9 +222,9 @@ def DyngenSimulate(backbone, num_cells=500, num_tfs=100, num_targets=50, num_hks
     verbose: boolean, optional (default: True)
            Data generation verbosity.
     force_num_cells: boolean, optional (default: False)
-           Dyngen occassionally produces fewer cells than specified. 
+           Dyngen occassionally produces fewer cells than specified.
            Set this flag to TRUE to rerun Dyngen until correct cell count is reached.
-             
+
     Returns
     -------
     Dictionary data of pd.DataFrames:
@@ -213,23 +232,23 @@ def DyngenSimulate(backbone, num_cells=500, num_tfs=100, num_targets=50, num_hks
            Columns: cell_id, step_ix, simulation_i, sim_time, num_molecules, mult,
            lib_size
            sim_time is the simulated timepoint for a given cell.
-          
+
     data['expression']: pd.DataFrame, shape (n_cells, n_genes)
            Log-transformed counts with dropout.
-       
+
     If compute_cellwise_grn is True,
     data['bulk_grn']: pd.DataFrame, shape (n_tf_target_interactions, 4)
            Columns: regulator, target, strength, effect.
            Strength is positive and unbounded.
            Effect is either +1 (for activation) or -1 (for inhibition).
-           
+
     data['cellwise_grn']: pd.DataFrame, shape (n_tf_target_interactions_per_cell, 4)
-           Columns: cell_id, regulator, target, strength. 
-           The output does not include all edges per cell. 
+           Columns: cell_id, regulator, target, strength.
+           The output does not include all edges per cell.
            The regulatory effect lies between [−1, 1], where -1 is complete inhibition
            of target by TF, +1 is maximal activation of target by TF,
            and 0 is inactivity of the regulatory interaction between R and T.
-       
+
     If compute_rna_velocity is True,
     data['rna_velocity']: pd.DataFrame, shape (n_cells, n_genes)
            Propensity ratios for each cell.
@@ -241,48 +260,52 @@ def DyngenSimulate(backbone, num_cells=500, num_tfs=100, num_targets=50, num_hks
     >>> backbones = scprep.run.dyngen.get_backbones()
     >>> data = scprep.run.DyngenSimulate(backbone=backbones[0])
     """
-    
+
     kwargs = {}
     if random_state is not None:
         kwargs["random_state"] = random_state
-        
-    rdata = _DyngenSimulate(backbone_name=backbone,
-                        num_cells=num_cells,
-                        num_tfs=num_tfs,
-                        num_targets=num_targets,
-                        num_hks=num_hks,
-                        simulation_census_interval=simulation_census_interval,
-                        compute_cellwise_grn=compute_cellwise_grn,
-                        compute_rna_velocity=compute_rna_velocity,
-                        n_jobs=n_jobs,
-                        verbose=verbose,
-                        rpy_verbose=verbose,
-                        **kwargs)
+
+    rdata = _DyngenSimulate(
+        backbone_name=backbone,
+        num_cells=num_cells,
+        num_tfs=num_tfs,
+        num_targets=num_targets,
+        num_hks=num_hks,
+        simulation_census_interval=simulation_census_interval,
+        compute_cellwise_grn=compute_cellwise_grn,
+        compute_rna_velocity=compute_rna_velocity,
+        n_jobs=n_jobs,
+        verbose=verbose,
+        rpy_verbose=verbose,
+        **kwargs,
+    )
     if force_num_cells:
         if random_state is None:
             random_state = -1
-        while(pd.DataFrame(rdata['cell_info']).shape[0] != num_cells):
+        while pd.DataFrame(rdata["cell_info"]).shape[0] != num_cells:
             random_state += 1
-            rdata = _DyngenSimulate(backbone_name=backbone,
-                        num_cells=num_cells,
-                        num_tfs=num_tfs,
-                        num_targets=num_targets,
-                        num_hks=num_hks,
-                        simulation_census_interval=simulation_census_interval,
-                        compute_cellwise_grn=compute_cellwise_grn,
-                        compute_rna_velocity=compute_rna_velocity,
-                        n_jobs=n_jobs,
-                        verbose=verbose,
-                        rpy_verbose=verbose,
-                        random_state=random_state)
+            rdata = _DyngenSimulate(
+                backbone_name=backbone,
+                num_cells=num_cells,
+                num_tfs=num_tfs,
+                num_targets=num_targets,
+                num_hks=num_hks,
+                simulation_census_interval=simulation_census_interval,
+                compute_cellwise_grn=compute_cellwise_grn,
+                compute_rna_velocity=compute_rna_velocity,
+                n_jobs=n_jobs,
+                verbose=verbose,
+                rpy_verbose=verbose,
+                random_state=random_state,
+            )
 
     data = {}
-    data['cell_info'] = pd.DataFrame(rdata['cell_info'])
-    data['expression'] = pd.DataFrame(rdata['expression'])
+    data["cell_info"] = pd.DataFrame(rdata["cell_info"])
+    data["expression"] = pd.DataFrame(rdata["expression"])
     if compute_cellwise_grn:
-        data['cellwise_grn'] = pd.DataFrame(rdata['cellwise_grn'])
-        data['bulk_grn'] = pd.DataFrame(rdata['bulk_grn'])
+        data["cellwise_grn"] = pd.DataFrame(rdata["cellwise_grn"])
+        data["bulk_grn"] = pd.DataFrame(rdata["bulk_grn"])
     if compute_rna_velocity:
-        data['rna_velocity'] = pd.DataFrame(rdata['rna_velocity'])
-    
-    return(data)
+        data["rna_velocity"] = pd.DataFrame(rdata["rna_velocity"])
+
+    return data
