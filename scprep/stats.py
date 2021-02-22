@@ -209,7 +209,7 @@ def knnDREMI(
         )
         # constant input: mutual information is numerically zero
         if return_drevi:
-            return 0, None
+            return 0, np.zeros((n_bins, n_bins), dtype=float)
         else:
             return 0
 

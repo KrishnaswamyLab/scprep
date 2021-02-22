@@ -162,13 +162,19 @@ def test_knnDREMI():
     Y = scprep.stats.knnDREMI(X[:, 0], X[:, 1])
     assert isinstance(Y, float)
     np.testing.assert_allclose(Y, 0.16238906)
+    n_bins = 20
     Y2, drevi = scprep.stats.knnDREMI(
-        X[:, 0], X[:, 1], plot=True, filename="test.png", return_drevi=True
+        X[:, 0],
+        X[:, 1],
+        plot=True,
+        filename="test.png",
+        return_drevi=True,
+        n_bins=n_bins,
     )
     assert os.path.isfile("test.png")
     os.remove("test.png")
     assert Y2 == Y
-    assert drevi.shape == (20, 20)
+    assert drevi.shape == (n_bins, n_bins)
     matrix.test_all_matrix_types(
         X,
         utils.assert_transform_equals,
@@ -178,9 +184,13 @@ def test_knnDREMI():
     )
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=UserWarning)
-        assert scprep.stats.knnDREMI(
-            X[:, 0], np.repeat(X[0, 1], X.shape[0]), return_drevi=True
-        ) == (0, None)
+        n_bins = 10
+        dremi, drevi = scprep.stats.knnDREMI(
+            X[:, 0], np.repeat(X[0, 1], X.shape[0]), n_bins=n_bins, return_drevi=True
+        )
+        assert dremi == 0
+        assert np.all(drevi == 0)
+        assert drevi.shape == (n_bins, n_bins)
     utils.assert_raises_message(
         ValueError,
         "Expected k as an integer. Got ",
