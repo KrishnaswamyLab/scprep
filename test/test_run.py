@@ -82,7 +82,7 @@ else:
             deps <- pacman::p_depends(dyngen)[c("Depends","Imports","LinkingTo",
                     "Suggests")]
             deps <- unname(unlist(deps))
-            installed <- installed.packages()[, "Package"])
+            installed <- installed.packages()[, "Package"]
             success <- all(deps %in% installed)
             list(success=success, deps=deps, installed=installed)
             """
