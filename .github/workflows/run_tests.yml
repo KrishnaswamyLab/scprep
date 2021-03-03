@@ -116,6 +116,8 @@ jobs:
         renv::restore()
         renv::install("bioc::splatter")
         renv::install("bioc::slingshot")
+        renv::install("github::dynverse/dyngen")
+        renv::install("github::dynverse/dynwrap")
       shell: Rscript {0}
 
     - name: Install package & dependencies

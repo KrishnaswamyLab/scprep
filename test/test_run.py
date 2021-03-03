@@ -5,6 +5,7 @@ if int(sys.version.split(".")[1]) < 6:
     pass
 else:
     from tools import data
+    from tools import matrix
     from tools import utils
 
     import anndata
@@ -41,6 +42,50 @@ else:
             site_repository="https://bioconductor.org/packages/3.1/bioc",
             verbose=False,
         )
+
+    def test_install_github_lib():
+        scprep.run.dyngen.install(verbose=False)
+        fun = scprep.run.RFunction(
+            body="""
+            packages <- installed.packages()
+            'dyngen' %in% packages
+            """
+        )
+
+        assert fun()
+
+    def test_install_github_dependencies_None():
+        scprep.run.dyngen.install(verbose=False)
+        fun = scprep.run.RFunction(
+            body="""
+            if (!require("pacman", quietly=TRUE)) {
+                install.packages("pacman",
+                repos='http://cran.rstudio.com')
+            }
+
+            deps <- pacman::p_depends(dyngen)[c("Depends","Imports","LinkingTo")]
+            all(unname(unlist(deps)) %in% installed.packages()[, "Package"])
+            """
+        )
+
+        assert fun()
+
+    def test_install_github_dependencies_True():
+        scprep.run.dyngen.install(verbose=False, dependencies=True)
+        fun = scprep.run.RFunction(
+            body="""
+            if (!require("pacman", quietly=TRUE)) {
+                install.packages("pacman",
+                repos='http://cran.rstudio.com')
+            }
+
+            deps <- pacman::p_depends(dyngen)[c("Depends","Imports","LinkingTo",
+                    "Suggests")]
+            all(unname(unlist(deps)) %in% installed.packages()[, "Package"])
+            """
+        )
+
+        assert fun()
 
     class TestSplatter(unittest.TestCase):
         @classmethod
@@ -240,6 +285,100 @@ else:
                 rpy2.rinterface_lib.callbacks.consolewrite_warnerror is builtin_warning
             )
 
+    class TestDyngen(unittest.TestCase):
+        @classmethod
+        def setUpClass(self):
+            scprep.run.dyngen.install(verbose=False)
+
+        def test_dyngen_backbone_not_in_list(self):
+            utils.assert_raises_message(
+                rpy2.rinterface_lib.embedded.RRuntimeError,
+                (
+                    "Error in (function (backbone_name = character(), "
+                    "num_cells = 500, num_tfs = 100,  :"
+                ),
+                scprep.run.DyngenSimulate,
+                backbone="not_a_backbone",
+            )
+
+        def test_dyngen_default(self):
+            sim = scprep.run.DyngenSimulate(
+                backbone="bifurcating",
+                num_cells=50,
+                num_tfs=50,
+                num_targets=10,
+                num_hks=10,
+                verbose=False,
+            )
+
+            assert set(sim.keys()) == {"cell_info", "expression"}
+            assert sim["cell_info"].shape[0] > 0
+            assert sim["cell_info"].shape[0] <= 50
+            assert sim["expression"].shape[0] > 0
+            assert sim["expression"].shape[0] <= 50
+            assert sim["expression"].shape[1] == 70
+
+        def test_dyngen_force_cell_counts(self):
+            sim = scprep.run.DyngenSimulate(
+                backbone="bifurcating",
+                num_cells=50,
+                num_tfs=50,
+                num_targets=10,
+                num_hks=10,
+                verbose=False,
+                force_num_cells=True,
+            )
+
+            assert set(sim.keys()) == {"cell_info", "expression"}
+            assert sim["cell_info"].shape[0] == 50
+            assert sim["expression"].shape == (50, 70)
+
+        def test_dyngen_with_grn(self):
+            sim = scprep.run.DyngenSimulate(
+                backbone="bifurcating",
+                num_cells=50,
+                num_tfs=50,
+                num_targets=10,
+                num_hks=10,
+                compute_cellwise_grn=True,
+                verbose=False,
+            )
+
+            assert set(sim.keys()) == {
+                "cell_info",
+                "expression",
+                "bulk_grn",
+                "cellwise_grn",
+            }
+            assert sim["cell_info"].shape[0] > 0
+            assert sim["cell_info"].shape[0] <= 50
+            assert sim["expression"].shape[0] > 0
+            assert sim["expression"].shape[0] <= 50
+            assert sim["expression"].shape[1] == 70
+            assert sim["bulk_grn"].shape[0] > 0
+            assert sim["cellwise_grn"].shape[0] > 0
+
+        def test_dyngen_with_rna_velocity(self):
+            sim = scprep.run.DyngenSimulate(
+                backbone="bifurcating",
+                num_cells=50,
+                num_tfs=50,
+                num_targets=10,
+                num_hks=10,
+                compute_rna_velocity=True,
+                verbose=False,
+            )
+
+            assert set(sim.keys()) == {"cell_info", "expression", "rna_velocity"}
+            assert sim["cell_info"].shape[0] > 0
+            assert sim["cell_info"].shape[0] <= 50
+            assert sim["expression"].shape[0] > 0
+            assert sim["expression"].shape[0] <= 50
+            assert sim["expression"].shape[1] == 70
+            assert sim["rna_velocity"].shape[0] > 0
+            assert sim["rna_velocity"].shape[0] <= 50
+            assert sim["rna_velocity"].shape[1] == 70
+
     class TestSlingshot(unittest.TestCase):
         @classmethod
         def setUpClass(self):
@@ -417,7 +556,7 @@ else:
         assert np.all(x["x"] == np.array([1, 2, 3]))
         assert np.all(x["y"] == np.array(["a", "b", "c"]))
 
-    def test_conversion_sce():
+    def test_conversion_spmatrix():
         scprep.run.install_bioconductor("SingleCellExperiment")
         ro.r("library(SingleCellExperiment)")
         ro.r("X <- matrix(1:6, nrow=2, ncol=3)")
