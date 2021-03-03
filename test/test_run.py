@@ -81,11 +81,15 @@ else:
 
             deps <- pacman::p_depends(dyngen)[c("Depends","Imports","LinkingTo",
                     "Suggests")]
-            all(unname(unlist(deps)) %in% installed.packages()[, "Package"])
+            deps <- unname(unlist(deps))
+            installed <- installed.packages()[, "Package"])
+            success <- all(deps %in% installed)
+            list(success=success, deps=deps, installed=installed)
             """
         )
 
-        assert fun()
+        result = fun()
+        assert result["success"], result
 
     class TestSplatter(unittest.TestCase):
         @classmethod
@@ -292,13 +296,12 @@ else:
 
         def test_dyngen_backbone_not_in_list(self):
             utils.assert_raises_message(
-                rpy2.rinterface_lib.embedded.RRuntimeError,
-                (
-                    "Error in (function (backbone_name = character(), "
-                    "num_cells = 500, num_tfs = 100,  :"
-                ),
+                ValueError,
+                "Input not in default backbone list. "
+                "Choose backbone from get_backbones()",
                 scprep.run.DyngenSimulate,
                 backbone="not_a_backbone",
+                verbose=False,
             )
 
         def test_dyngen_default(self):
