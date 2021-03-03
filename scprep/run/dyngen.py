@@ -263,7 +263,6 @@ def DyngenSimulate(
     >>> backbones = scprep.run.dyngen.get_backbones()
     >>> data = scprep.run.DyngenSimulate(backbone=backbones[0])
     """
-
     if backbone not in get_backbones():
         raise ValueError(
             (
@@ -309,6 +308,7 @@ def DyngenSimulate(
                 n_jobs=n_jobs,
                 verbose=verbose,
                 random_state=random_state,
+                force_num_cells=force_num_cells,
             )
 
     data = {}
