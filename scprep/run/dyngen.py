@@ -2,6 +2,17 @@ from . import r_function
 
 import pandas as pd
 
+_install_dyngen = r_function.RFunction(
+    args="""lib=.libPaths()[1], dependencies=NA,
+            repos='http://cran.rstudio.com', verbose=TRUE""",
+    body="""
+       install.packages(c("dynwrap", "dyngen"),
+                        lib=lib,
+                        repos=repos,
+                        dependencies=dependencies)
+    """,
+)
+
 _get_backbones = r_function.RFunction(
     setup="""
         library(dyngen)
@@ -95,13 +106,10 @@ _DyngenSimulate = r_function.RFunction(
 def install(
     lib=None,
     dependencies=None,
-    update=False,
     repos="http://cran.us.r-project.org",
-    build_vignettes=False,
-    force=False,
     verbose=True,
 ):
-    """Install Dyngen Github repository.
+    """Install Dyngen from CRAN.
 
     Parameters
     ----------
@@ -114,37 +122,22 @@ def install(
         When False, installs no dependencies.
         When None/NA, installs all packages specified under "Depends", "Imports"
         and "LinkingTo".
-    update: string or boolean, optional (default: False)
-        One of "default", "ask", "always", or "never". "default"
-        Respects R_REMOTES_UPGRADE variable if set, falls back to "ask" if unset.
-        "ask" prompts the user for which out of date packages to upgrade.
-        For non-interactive sessions "ask" is equivalent to "always".
-        TRUE and FALSE also accepted, correspond to "always" and "never" respectively.
     repos: string, optional (default: "http://cran.us.r-project.org"):
         R package repository.
-    build_vignettes: boolean, optional (default: False)
-        Builds Github vignettes.
-    force: boolean, optional (default: False)
-        Forces installation even if remote state has not changed since previous install.
     verbose: boolean, optional (default: True)
         Install script verbosity.
     """
-    r_function.install_github(
-        repo="dynverse/dynwrap",
-        update=update,
-        lib=lib,
-        dependencies=dependencies,
-        repos=repos,
-        verbose=verbose,
-    )
 
-    r_function.install_github(
-        repo="dynverse/dyngen",
-        update=update,
-        lib=lib,
-        dependencies=dependencies,
+    kwargs = {}
+    if lib is not None:
+        kwargs["lib"] = lib
+    if dependencies is not None:
+        kwargs["dependencies"] = dependencies
+
+    _install_dyngen(
         repos=repos,
         verbose=verbose,
+        **kwargs,
     )
 
 
