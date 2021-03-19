@@ -72,8 +72,9 @@ else:
         assert fun()
 
     def test_install_github_dependencies_True():
-        scprep.run.install_github("twitter/AnomalyDetection", verbose=False,
-                                   dependencies=True)
+        scprep.run.install_github(
+            "twitter/AnomalyDetection", verbose=False, dependencies=True
+        )
         fun = scprep.run.RFunction(
             body="""
             if (!require("pacman", quietly=TRUE)) {
@@ -295,7 +296,7 @@ else:
         @classmethod
         def setUpClass(self):
             scprep.run.dyngen.install(verbose=False)
-            
+
         def test_install_dyngen_lib(self):
             scprep.run.dyngen.install(verbose=False)
             fun = scprep.run.RFunction(

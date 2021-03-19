@@ -6,11 +6,11 @@ _install_dyngen = r_function.RFunction(
     args="""lib=.libPaths()[1], dependencies=NA,
             repos='http://cran.rstudio.com', verbose=TRUE""",
     body="""
-       install.packages(c("dynwrap", "dyngen"), 
+       install.packages(c("dynwrap", "dyngen"),
                         lib=lib,
                         repos=repos,
                         dependencies=dependencies)
-    """
+    """,
 )
 
 _get_backbones = r_function.RFunction(
@@ -127,13 +127,13 @@ def install(
     verbose: boolean, optional (default: True)
         Install script verbosity.
     """
-    
+
     kwargs = {}
     if lib is not None:
         kwargs["lib"] = lib
     if dependencies is not None:
         kwargs["dependencies"] = dependencies
-        
+
     _install_dyngen(
         repos=repos,
         verbose=verbose,
