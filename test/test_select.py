@@ -1,10 +1,12 @@
-from tools import data, matrix, utils
-import scprep
+from scipy import sparse
+from tools import data
+from tools import matrix
+from tools import utils
 
 import numpy as np
 import pandas as pd
+import scprep
 import unittest
-from scipy import sparse
 
 
 class Test10X(unittest.TestCase):

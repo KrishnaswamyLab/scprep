@@ -1,8 +1,9 @@
+from .. import utils
+from .._lazyload import anndata2ri
+from .._lazyload import rpy2
+
 import numpy as np
 import warnings
-
-from .. import utils
-from .._lazyload import rpy2, anndata2ri
 
 
 def _rpylist2py(robject):
@@ -46,15 +47,12 @@ def _pysce2rpy(pyobject):
 
 
 def _is_r_object(obj):
-    return (
-        "rpy2.robjects" in str(type(obj))
-        or "rpy2.rinterface" in str(type(obj))
-        or obj is rpy2.rinterface.NULL
-    )
+    return "rpy2.robjects" in str(type(obj)) or "rpy2.rinterface" in str(type(obj))
 
 
 def _is_builtin(obj):
-    return isinstance(obj, (int, str, float))
+    """Check if an object need not be converted."""
+    return isinstance(obj, (float, int, str, bool))
 
 
 @utils._with_pkg(pkg="rpy2", min_version="3.0")

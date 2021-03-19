@@ -1,9 +1,10 @@
-import subprocess
+from tools import data
+
 import mock
 import os
 import scprep
+import subprocess
 import sys
-from tools import data
 
 
 def test_lazyload():

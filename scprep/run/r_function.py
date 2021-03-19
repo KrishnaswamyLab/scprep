@@ -1,6 +1,6 @@
-from . import conversion
 from .. import utils
 from .._lazyload import rpy2
+from . import conversion
 
 
 def _console_warning(s, log_fn):
@@ -178,3 +178,82 @@ def install_bioconductor(
     if version is not None:
         kwargs["version"] = version
     _install_bioconductor(**kwargs)
+
+
+_install_github = RFunction(
+    args="""repo=character(), lib=.libPaths()[1], dependencies=NA,
+            update=FALSE, repos='http://cran.rstudio.com',
+            build_vignettes=FALSE, force=FALSE, verbose=TRUE""",
+    body="""
+        quiet <- !verbose
+
+        if (!require('remotes', quietly=TRUE)) install.packages('remotes')
+        remotes::install_github(repo=repo,
+                         lib=lib, dependencies=dependencies,
+                         upgrade=update, repos=repos,
+                         build_vignettes=build_vignettes,
+                         force=force, quiet=quiet)
+
+        # prepend path to libPaths if new library
+        if (lib != .libPaths()[1]) .libPaths(c(lib, .libPaths()))
+
+        if (verbose) cat('.libPaths():', .libPaths())
+    """,
+)
+
+
+def install_github(
+    repo,
+    lib=None,
+    dependencies=None,
+    update=False,
+    repos="http://cran.us.r-project.org",
+    build_vignettes=False,
+    force=False,
+    verbose=True,
+):
+    """Install a Github repository.
+
+    Parameters
+    ----------
+    repo: string
+        Github repository name to install.
+    lib: string
+        Directory to install the package.
+        If missing, defaults to the first element of .libPaths().
+    dependencies: boolean, optional (default: None/NA)
+        When True, installs all packages specified under "Depends", "Imports",
+        "LinkingTo" and "Suggests".
+        When False, installs no dependencies.
+        When None/NA, installs all packages specified under "Depends", "Imports"
+        and "LinkingTo".
+    update: string or boolean, optional (default: False)
+        One of "default", "ask", "always", or "never". "default"
+        Respects R_REMOTES_UPGRADE variable if set, falls back to "ask" if unset.
+        "ask" prompts the user for which out of date packages to upgrade.
+        For non-interactive sessions "ask" is equivalent to "always".
+        TRUE and FALSE also accepted, correspond to "always" and "never" respectively.
+    repos: string, optional (default: "http://cran.us.r-project.org"):
+        R package repository.
+    build_vignettes: boolean, optional (default: False)
+        Builds Github vignettes.
+    force: boolean, optional (default: False)
+        Forces installation even if remote state has not changed since previous install.
+    verbose: boolean, optional (default: True)
+        Install script verbosity.
+    """
+    kwargs = {}
+    if lib is not None:
+        kwargs["lib"] = lib
+    if dependencies is not None:
+        kwargs["dependencies"] = dependencies
+
+    _install_github(
+        repo=repo,
+        update=update,
+        repos=repos,
+        build_vignettes=build_vignettes,
+        force=force,
+        verbose=verbose,
+        **kwargs,
+    )

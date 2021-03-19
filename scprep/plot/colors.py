@@ -1,7 +1,7 @@
-import numpy as np
+from .._lazyload import matplotlib as mpl
 from . import tools
 
-from .._lazyload import matplotlib as mpl
+import numpy as np
 
 plt = mpl.pyplot
 

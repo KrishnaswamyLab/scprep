@@ -1,16 +1,17 @@
-# author: Daniel Burkhardt <daniel.burkhardt@yale.edu>
-# (C) 2018 Krishnaswamy Lab GPLv2
+from . import plot
+from . import select
+from . import utils
+from ._lazyload import matplotlib
+from scipy import sparse
+from scipy import stats
+from sklearn import metrics
+from sklearn import neighbors
 
+import joblib
 import numbers
 import numpy as np
 import pandas as pd
-from scipy import stats, sparse
-from sklearn import neighbors, metrics
-import joblib
-from . import plot, utils, select
 import warnings
-
-from ._lazyload import matplotlib
 
 plt = matplotlib.pyplot
 
@@ -208,7 +209,7 @@ def knnDREMI(
         )
         # constant input: mutual information is numerically zero
         if return_drevi:
-            return 0, None
+            return 0, np.zeros((n_bins, n_bins), dtype=float)
         else:
             return 0
 
@@ -407,7 +408,7 @@ def _preprocess_test_matrices(X, Y):
 
 
 def mean_difference(X, Y):
-    """Calculate the mean difference in genes between two datasets
+    """Calculate the mean difference in genes between two datasets.
 
     In the case where the data has been log normalized,
     this is equivalent to fold change.

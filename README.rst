@@ -25,6 +25,12 @@
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
     :alt: Code style: black
+.. image:: https://img.shields.io/badge/style%20guide-openstack-eb1a32.svg
+    :target: https://docs.openstack.org/hacking/latest/user/hacking.html#styleguide
+    :alt: Style Guide: OpenStack
+.. image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white
+    :target: https://github.com/pre-commit/pre-commit
+    :alt: pre-commit
 
 `scprep` provides an all-in-one framework for loading, preprocessing, and plotting matrices in Python, with a focus on single-cell genomics.
 
@@ -64,7 +70,7 @@ You can use `scprep` with your single cell data as follows::
     # Filter by mitochondrial expression to remove dead cells
     mt_genes = scprep.select.get_gene_set(data, starts_with="MT")
     scprep.plot.plot_gene_set_expression(data, genes=mt_genes, percentile=90)
-    data = scprep.filter.filter_gene_set_expression(data, genes=mt_genes, 
+    data = scprep.filter.filter_gene_set_expression(data, genes=mt_genes,
                                                     percentile=90)
     # Library size normalize
     data = scprep.normalize.library_size_normalize(data)

@@ -1,10 +1,7 @@
-# author: Scott Gigante <scott.gigante@yale.edu>
-# (C) 2018 Krishnaswamy Lab GPLv2
-from decorator import decorator
-
-from .._lazyload import tables
-from .._lazyload import h5py
 from .. import utils
+from .._lazyload import h5py
+from .._lazyload import tables
+from decorator import decorator
 
 try:
     ModuleNotFoundError
@@ -15,6 +12,7 @@ except NameError:
 
 @decorator
 def with_HDF5(fun, *args, **kwargs):
+    """Ensure that HDF5 is available to run the decorated function."""
     if not (utils._try_import("tables") or utils._try_import("h5py")):
         raise ModuleNotFoundError(
             "Found neither tables nor h5py. "

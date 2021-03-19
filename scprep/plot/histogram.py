@@ -1,11 +1,14 @@
-import numpy as np
-import numbers
-
+from .. import measure
+from .. import utils
+from .tools import label_axis
+from .utils import _get_figure
+from .utils import parse_fontsize
+from .utils import show
+from .utils import temp_fontsize
 from scipy import sparse
 
-from .. import measure, utils
-from .utils import _get_figure, show, temp_fontsize, parse_fontsize
-from .tools import label_axis
+import numbers
+import numpy as np
 
 _EPS = np.finfo("float").eps
 
@@ -77,7 +80,7 @@ def histogram(
     alpha=None,
     filename=None,
     dpi=None,
-    **kwargs
+    **kwargs,
 ):
     """Plot a histogram.
 
@@ -204,7 +207,7 @@ def plot_library_size(
     fontsize=None,
     filename=None,
     dpi=None,
-    **kwargs
+    **kwargs,
 ):
     """Plot the library size histogram.
 
@@ -292,7 +295,7 @@ def plot_gene_set_expression(
     fontsize=None,
     filename=None,
     dpi=None,
-    **kwargs
+    **kwargs,
 ):
     """Plot the histogram of the expression of a gene set.
 

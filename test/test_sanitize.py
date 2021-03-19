@@ -1,7 +1,10 @@
-from tools import utils, matrix, data
-import scprep
+from tools import data
+from tools import matrix
+from tools import utils
+
 import numpy as np
 import pandas as pd
+import scprep
 import warnings
 
 
@@ -66,7 +69,8 @@ def test_check_index():
     scprep.sanitize.check_index(X)
     with utils.assert_warns_message(
         RuntimeWarning,
-        "Renamed 2 copies of index GATGAGGCATTTCAGG-1 to (GATGAGGCATTTCAGG-1, GATGAGGCATTTCAGG-1.1)",
+        "Renamed 2 copies of index GATGAGGCATTTCAGG-1 to "
+        "(GATGAGGCATTTCAGG-1, GATGAGGCATTTCAGG-1.1)",
     ):
         scprep.sanitize.check_index(X.iloc[[0, 0]])
     with warnings.catch_warnings():
@@ -84,7 +88,8 @@ def test_check_index():
         assert Y.loc["GATGAGGCATTTCAGG-1"].shape[0] == 2
     with utils.assert_warns_message(
         RuntimeWarning,
-        "Renamed 3 copies of index GTCATTTCATCTCGCT-1 to (GTCATTTCATCTCGCT-1, GTCATTTCATCTCGCT-1.1, GTCATTTCATCTCGCT-1.2)",
+        "Renamed 3 copies of index GTCATTTCATCTCGCT-1 to "
+        "(GTCATTTCATCTCGCT-1, GTCATTTCATCTCGCT-1.1, GTCATTTCATCTCGCT-1.2)",
     ):
         scprep.sanitize.check_index(X.iloc[[1, 1, 1]])
     with warnings.catch_warnings():

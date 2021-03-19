@@ -1,12 +1,12 @@
+from . import utils
+from scipy import sparse
+
+import numbers
 import numpy as np
 import pandas as pd
-import numbers
-from scipy import sparse
-import warnings
 import re
 import sys
-
-from . import utils
+import warnings
 
 if int(sys.version.split(".")[1]) < 7:
     _re_pattern = type(re.compile(""))
@@ -312,7 +312,7 @@ def select_cols(
     starts_with=None,
     ends_with=None,
     exact_word=None,
-    regex=None
+    regex=None,
 ):
     """Select columns from a data matrix.
 
@@ -470,7 +470,7 @@ def select_rows(
     starts_with=None,
     ends_with=None,
     exact_word=None,
-    regex=None
+    regex=None,
 ):
     """Select rows from a data matrix.
 

@@ -1,17 +1,15 @@
-# author: Scott Gigante <scott.gigante@yale.edu>
-# (C) 2018 Krishnaswamy Lab GPLv2
-
-import numpy as np
-import pandas as pd
+from . import measure
+from . import select
+from . import utils
 from scipy import sparse
 
-import warnings
 import numbers
+import numpy as np
+import pandas as pd
+import warnings
 
-from . import utils, measure, select
 
-
-def remove_empty_genes(data, *extra_data):
+def remove_empty_genes(data, *extra_data):  # noqa
     warnings.warn(
         "`scprep.filter.remove_empty_genes` is deprecated. "
         "Use `scprep.filter.filter_empty_genes` instead.",
@@ -20,7 +18,7 @@ def remove_empty_genes(data, *extra_data):
     return filter_empty_genes(data, *extra_data)
 
 
-def remove_rare_genes(data, *extra_data, cutoff=0, min_cells=5):
+def remove_rare_genes(data, *extra_data, cutoff=0, min_cells=5):  # noqa
     warnings.warn(
         "`scprep.filter.remove_rare_genes` is deprecated. "
         "Use `scprep.filter.filter_rare_genes` instead.",
@@ -29,7 +27,7 @@ def remove_rare_genes(data, *extra_data, cutoff=0, min_cells=5):
     return filter_rare_genes(data, *extra_data, cutoff=cutoff, min_cells=min_cells)
 
 
-def remove_empty_cells(data, *extra_data, sample_labels=None):
+def remove_empty_cells(data, *extra_data, sample_labels=None):  # noqa
     warnings.warn(
         "`scprep.filter.remove_empty_cells` is deprecated. "
         "Use `scprep.filter.filter_empty_cells` instead.",
@@ -38,7 +36,7 @@ def remove_empty_cells(data, *extra_data, sample_labels=None):
     return filter_empty_cells(data, *extra_data, sample_labels=sample_labels)
 
 
-def remove_duplicates(data, *extra_data, sample_labels=None):
+def remove_duplicates(data, *extra_data, sample_labels=None):  # noqa
     warnings.warn(
         "`scprep.filter.remove_duplicates` is deprecated. "
         "Use `scprep.filter.filter_duplicates` instead.",
@@ -140,7 +138,7 @@ def filter_values(
     keep_cells="above",
     return_values=False,
     sample_labels=None,
-    filter_per_sample=None
+    filter_per_sample=None,
 ):
     """Remove all cells with `values` above or below a certain threshold.
 
@@ -209,7 +207,7 @@ def filter_library_size(
     keep_cells=None,
     return_library_size=False,
     sample_labels=None,
-    filter_per_sample=None
+    filter_per_sample=None,
 ):
     """Remove all cells with library size above or below a certain threshold.
 
@@ -276,7 +274,7 @@ def filter_gene_set_expression(
     keep_cells=None,
     return_expression=False,
     sample_labels=None,
-    filter_per_sample=None
+    filter_per_sample=None,
 ):
     """Remove cells with total expression of a gene set above or below a threshold.
 
