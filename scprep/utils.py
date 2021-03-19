@@ -1,13 +1,12 @@
+from decorator import decorator
+from scipy import sparse
+
+import importlib
+import numbers
 import numpy as np
 import pandas as pd
-
-import numbers
-import warnings
-import importlib
 import re
-
-from scipy import sparse
-from decorator import decorator
+import warnings
 
 try:
     ModuleNotFoundError

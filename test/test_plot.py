@@ -1,22 +1,18 @@
+from packaging.version import Version
+from scprep.plot.histogram import _symlog_bins
+from scprep.plot.jitter import _JitterParams
+from scprep.plot.scatter import _ScatterParams
+from tools import data
+from tools import utils
+
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
-
-import scprep
-import matplotlib
-
 import os
+import pandas as pd
+import scprep
 import sys
-import numbers
 import unittest
-
-from packaging.version import Version
-
-from scprep.plot.scatter import _ScatterParams
-from scprep.plot.jitter import _JitterParams
-from scprep.plot.histogram import _symlog_bins
-
-from tools import data, utils
 
 
 def try_remove(filename):
@@ -1465,6 +1461,7 @@ class Test10X(unittest.TestCase):
 
     def test_generate_colorbar_vmin_vmax_none(self):
         cb = scprep.plot.tools.generate_colorbar("inferno")
+        assert len(cb.get_ticks()) == 0
         utils.assert_warns_message(
             UserWarning,
             "Cannot set `n_ticks` without setting `vmin` and `vmax`.",

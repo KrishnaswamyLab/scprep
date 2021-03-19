@@ -1,7 +1,8 @@
-import scprep
+from pandas.core.internals.blocks import ExtensionBlock
+
 import numpy as np
 import pandas as pd
-from pandas.core.internals.blocks import ExtensionBlock
+import scprep  # noqa
 
 
 def test_pandas_series_rmatmul():

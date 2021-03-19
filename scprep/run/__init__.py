@@ -1,3 +1,5 @@
-from .r_function import RFunction, install_bioconductor
-from .splatter import SplatSimulate
+from .dyngen import DyngenSimulate
+from .r_function import install_bioconductor
+from .r_function import RFunction
 from .slingshot import Slingshot
+from .splatter import SplatSimulate

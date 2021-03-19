@@ -1,10 +1,7 @@
-# author: Scott Gigante <scott.gigante@yale.edu>
-# (C) 2018 Krishnaswamy Lab GPLv2
+from .. import utils
+from .utils import _matrix_to_data_frame
 
 import pandas as pd
-
-from .utils import _matrix_to_data_frame
-from .. import utils
 
 
 def _read_csv_sparse(filename, chunksize=10000, fill_value=0.0, **kwargs):
@@ -24,7 +21,7 @@ def load_csv(
     cell_names=True,
     sparse=False,
     chunksize=10000,
-    **kwargs
+    **kwargs,
 ):
     r"""Load a csv file.
 
@@ -111,7 +108,7 @@ def load_tsv(
     gene_names=True,
     cell_names=True,
     sparse=False,
-    **kwargs
+    **kwargs,
 ):
     r"""Load a tsv file.
 

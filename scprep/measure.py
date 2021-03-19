@@ -1,9 +1,10 @@
+from . import select
+from . import utils
+from scipy import sparse
+
 import numpy as np
 import pandas as pd
 import scipy.signal
-from scipy import sparse
-
-from . import utils, select
 
 
 def library_size(data):

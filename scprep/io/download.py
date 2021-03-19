@@ -1,10 +1,10 @@
-import zipfile
-import tempfile
-import os
-import urllib.request
-
-from .._lazyload import requests
 from .. import utils
+from .._lazyload import requests
+
+import os
+import tempfile
+import urllib.request
+import zipfile
 
 _CHUNK_SIZE = 32768
 _GOOGLE_DRIVE_URL = "https://docs.google.com/uc?export=download"

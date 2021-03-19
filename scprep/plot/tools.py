@@ -1,10 +1,11 @@
+from .. import utils
+from .._lazyload import matplotlib as mpl
+from .utils import _get_figure
+from .utils import parse_fontsize
+from .utils import temp_fontsize
+
 import numpy as np
 import warnings
-
-from .. import utils
-from .utils import _get_figure, parse_fontsize, temp_fontsize
-
-from .._lazyload import matplotlib as mpl
 
 plt = mpl.pyplot
 
@@ -98,7 +99,7 @@ def generate_legend(
     title_fontsize=None,
     max_rows=10,
     ncol=None,
-    **kwargs
+    **kwargs,
 ):
     """Generate a legend on an axis.
 
@@ -179,7 +180,7 @@ def generate_colorbar(
     n_ticks="auto",
     labelpad=10,
     mappable=None,
-    **kwargs
+    **kwargs,
 ):
     """Generate a colorbar on an axis.
 

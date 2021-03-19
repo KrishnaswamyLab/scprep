@@ -1,11 +1,13 @@
-from tools import utils, matrix, data
-import scprep
+from functools import partial
 from scipy import sparse
+from sklearn import decomposition
+from tools import data
+from tools import matrix
+from tools import utils
+
 import numpy as np
 import pandas as pd
-from sklearn import decomposition
-
-from functools import partial
+import scprep
 import unittest
 
 

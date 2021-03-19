@@ -1,9 +1,12 @@
-from tools import data, matrix, utils
-import scprep
+from parameterized import parameterized
 from scipy import sparse
+from tools import data
+from tools import matrix
+from tools import utils
+
 import numpy as np
 import pandas as pd
-from parameterized import parameterized
+import scprep
 
 
 def test_with_pkg():
@@ -154,10 +157,13 @@ def test_combine_batches():
     )
     assert np.all(sample_labels.index == Y2.index)
     assert sample_labels.name == "sample_labels"
-    transform = lambda X: scprep.utils.combine_batches(
-        [X, scprep.select.select_rows(X, idx=np.arange(X.shape[0] // 2))],
-        batch_labels=[0, 1],
-    )[0]
+
+    def transform(X):
+        return scprep.utils.combine_batches(
+            [X, scprep.select.select_rows(X, idx=np.arange(X.shape[0] // 2))],
+            batch_labels=[0, 1],
+        )[0]
+
     matrix.test_matrix_types(
         X,
         utils.assert_transform_equals,

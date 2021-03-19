@@ -13,14 +13,15 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+import glob
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
-import sys
-import glob
 import shutil
+import sys
 
 root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, root_dir)
@@ -211,4 +212,4 @@ nbsphinx_prolog = r"""
     \texttt{\strut{}{{ docname }}}\\[-0.5\baselineskip]
     \noindent\rule{\textwidth}{0.4pt}}
     \vspace{-2\baselineskip}
-"""
+"""  # noqa
