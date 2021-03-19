@@ -44,18 +44,18 @@ else:
         )
 
     def test_install_github_lib():
-        scprep.run.dyngen.install(verbose=False)
+        scprep.run.install_github("twitter/AnomalyDetection", verbose=False)
         fun = scprep.run.RFunction(
             body="""
             packages <- installed.packages()
-            'dyngen' %in% packages
+            'AnomalyDetection' %in% packages
             """
         )
 
         assert fun()
 
     def test_install_github_dependencies_None():
-        scprep.run.dyngen.install(verbose=False)
+        scprep.run.install_github("twitter/AnomalyDetection", verbose=False)
         fun = scprep.run.RFunction(
             body="""
             if (!require("pacman", quietly=TRUE)) {
@@ -63,7 +63,8 @@ else:
                 repos='http://cran.rstudio.com')
             }
 
-            deps <- pacman::p_depends(dyngen)[c("Depends","Imports","LinkingTo")]
+            deps <- pacman::p_depends(AnomalyDetection, local=TRUE)[c("Depends",
+                    "Imports","LinkingTo")]
             all(unname(unlist(deps)) %in% installed.packages()[, "Package"])
             """
         )
@@ -71,7 +72,8 @@ else:
         assert fun()
 
     def test_install_github_dependencies_True():
-        scprep.run.dyngen.install(verbose=False, dependencies=True)
+        scprep.run.install_github("twitter/AnomalyDetection", verbose=False,
+                                   dependencies=True)
         fun = scprep.run.RFunction(
             body="""
             if (!require("pacman", quietly=TRUE)) {
@@ -79,8 +81,8 @@ else:
                 repos='http://cran.rstudio.com')
             }
 
-            deps <- pacman::p_depends(dyngen)[c("Depends","Imports","LinkingTo",
-                    "Suggests")]
+            deps <- pacman::p_depends(AnomalyDetection, local=TRUE)[c("Depends",
+                    "Imports","LinkingTo","Suggests")]
             deps <- unname(unlist(deps))
             installed <- installed.packages()[, "Package"]
             success <- all(deps %in% installed)
@@ -293,6 +295,54 @@ else:
         @classmethod
         def setUpClass(self):
             scprep.run.dyngen.install(verbose=False)
+            
+        def test_install_dyngen_lib(self):
+            scprep.run.dyngen.install(verbose=False)
+            fun = scprep.run.RFunction(
+                body="""
+                packages <- installed.packages()
+                'dyngen' %in% packages
+                """
+            )
+
+            assert fun()
+
+        def test_install_dyngen_dependencies_None(self):
+            scprep.run.dyngen.install(verbose=False)
+            fun = scprep.run.RFunction(
+                body="""
+                if (!require("pacman", quietly=TRUE)) {
+                    install.packages("pacman",
+                    repos='http://cran.rstudio.com')
+                }
+
+                deps <- pacman::p_depends(dyngen)[c("Depends","Imports","LinkingTo")]
+                all(unname(unlist(deps)) %in% installed.packages()[, "Package"])
+                """
+            )
+
+            assert fun()
+
+        def test_install_dyngen_dependencies_True(self):
+            scprep.run.dyngen.install(verbose=False, dependencies=True)
+            fun = scprep.run.RFunction(
+                body="""
+                if (!require("pacman", quietly=TRUE)) {
+                    install.packages("pacman",
+                    repos='http://cran.rstudio.com')
+                }
+
+                deps <- pacman::p_depends(dyngen)[c("Depends","Imports","LinkingTo",
+                        "Suggests")]
+                deps <- unname(unlist(deps))
+                installed <- installed.packages()[, "Package"]
+                success <- all(deps %in% installed)
+                list(success=success, deps=deps, installed=installed)
+                """
+            )
+
+            result = fun()
+            assert result["success"], result
 
         def test_dyngen_backbone_not_in_list(self):
             utils.assert_raises_message(
