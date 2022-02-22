@@ -63,7 +63,7 @@ def scree_plot(
     >>> scprep.plot.scree_plot(singular_values, cumulative=True)
     """
     with temp_fontsize(fontsize):
-        explained_variance = singular_values**2
+        explained_variance = singular_values ** 2
         explained_variance = explained_variance / explained_variance.sum() * 100
         if cumulative:
             explained_variance = np.cumsum(explained_variance)

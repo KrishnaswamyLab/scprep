@@ -212,7 +212,7 @@ def Slingshot(
     ...     ax.plot(curve[:,0], curve[:,1], c='black')
     """
     if seed is None:
-        seed = np.random.randint(2**16 - 1)
+        seed = np.random.randint(2 ** 16 - 1)
     if distance is not None:
         raise NotImplementedError("distance argument not currently implemented")
     np.random.seed(seed)
