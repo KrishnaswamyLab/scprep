@@ -182,7 +182,7 @@ def install_bioconductor(
 
 _install_github = RFunction(
     args="""repo=character(), lib=.libPaths()[1], dependencies=NA,
-            update=FALSE, repos='http://cran.rstudio.com',
+            update=FALSE, host="api.github.com",
             build_vignettes=FALSE, force=FALSE, verbose=TRUE""",
     body="""
         quiet <- !verbose
@@ -190,7 +190,7 @@ _install_github = RFunction(
         if (!require('remotes', quietly=TRUE)) install.packages('remotes')
         remotes::install_github(repo=repo,
                          lib=lib, dependencies=dependencies,
-                         upgrade=update, repos=repos,
+                         upgrade=update, host=host,
                          build_vignettes=build_vignettes,
                          force=force, quiet=quiet)
 
