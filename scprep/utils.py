@@ -459,7 +459,7 @@ def matrix_std(data, axis=None):
             if isinstance(data, (sparse.lil_matrix, sparse.dok_matrix)):
                 data = data.tocoo()
             data_sq = data.copy()
-            data_sq.data = data_sq.data**2
+            data_sq.data = data_sq.data ** 2
             variance = data_sq.mean() - data.mean() ** 2
             std = np.sqrt(variance)
         else:
@@ -475,7 +475,7 @@ def matrix_std(data, axis=None):
             for i in range(N):
                 col = next_fn(i)
                 col_sq = col.copy()
-                col_sq.data = col_sq.data**2
+                col_sq.data = col_sq.data ** 2
                 variance = col_sq.mean() - col.mean() ** 2
                 std.append(np.sqrt(variance))
             std = np.array(std)

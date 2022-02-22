@@ -455,7 +455,7 @@ def t_statistic(X, Y):
     X, Y = _preprocess_test_matrices(X, Y)
     X_std = utils.matrix_std(X, axis=0)
     Y_std = utils.matrix_std(Y, axis=0)
-    paired_std = np.sqrt(X_std**2 / X.shape[0] + Y_std**2 / Y.shape[0])
+    paired_std = np.sqrt(X_std ** 2 / X.shape[0] + Y_std ** 2 / Y.shape[0])
     return mean_difference(X, Y) / paired_std
 
 
