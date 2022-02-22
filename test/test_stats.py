@@ -126,6 +126,15 @@ def test_pairwise_correlation():
     )
 
 
+def test_pairwise_correlation_nan():
+    D = np.array([np.arange(10), np.arange(0, 20, 2)])
+    D[:,3] = np.nan
+    assert np.all(np.isnan(scprep.stats.pairwise_correlation(D, D)))
+    C = scprep.stats.pairwise_correlation(D, D, ignore_nan=True)
+    assert not np.any(np.isnan(C))
+    np.testing.assert_equal(C, 1)
+
+
 def shan_entropy(c):
     c_normalized = c / float(np.sum(c))
     return stats.entropy(c_normalized[c_normalized != 0])
