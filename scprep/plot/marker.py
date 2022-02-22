@@ -79,7 +79,7 @@ def _cluster_tissues(tissue_names, cluster_names, tissue_labels, cluster_labels,
         tissue_features.append(np.concatenate(tissue_data))
     tissue_features = np.array(tissue_features)
     # normalize
-    tissue_features = tissue_features / np.sqrt(np.sum(tissue_features ** 2))
+    tissue_features = tissue_features / np.sqrt(np.sum(tissue_features**2))
     tissues_order = hierarchy.leaves_list(hierarchy.linkage(tissue_features))
     return tissues_order
 
@@ -103,7 +103,7 @@ def _cluster_markers(
                 marker_features.append(np.concatenate([s[marker_idx], c[marker_idx]]))
             marker_features = np.array(marker_features)
             # normalize
-            marker_features = marker_features / np.sqrt(np.sum(marker_features ** 2))
+            marker_features = marker_features / np.sqrt(np.sum(marker_features**2))
             marker_group_order = hierarchy.leaves_list(
                 hierarchy.linkage(marker_features)
             )
