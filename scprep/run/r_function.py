@@ -182,15 +182,15 @@ def install_bioconductor(
 
 _install_github = RFunction(
     args="""repo=character(), lib=.libPaths()[1], dependencies=NA,
-            update=FALSE, host="api.github.com",
+            update=FALSE,
             build_vignettes=FALSE, force=FALSE, verbose=TRUE""",
     body="""
         quiet <- !verbose
 
-        if (!require('remotes', quietly=TRUE)) install.packages('remotes')
+        if (!require('remotes', quietly=TRUE)) install.packages('remotes', lib=lib)
         remotes::install_github(repo=repo,
                          lib=lib, dependencies=dependencies,
-                         upgrade=update, host=host,
+                         upgrade=update,
                          build_vignettes=build_vignettes,
                          force=force, quiet=quiet)
 
@@ -207,7 +207,6 @@ def install_github(
     lib=None,
     dependencies=None,
     update=False,
-    repos="http://cran.us.r-project.org",
     build_vignettes=False,
     force=False,
     verbose=True,
@@ -233,8 +232,6 @@ def install_github(
         "ask" prompts the user for which out of date packages to upgrade.
         For non-interactive sessions "ask" is equivalent to "always".
         TRUE and FALSE also accepted, correspond to "always" and "never" respectively.
-    repos: string, optional (default: "http://cran.us.r-project.org"):
-        R package repository.
     build_vignettes: boolean, optional (default: False)
         Builds Github vignettes.
     force: boolean, optional (default: False)
