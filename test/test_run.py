@@ -36,7 +36,7 @@ else:
     def test_install_bioc():
         utils.assert_raises_message(
             rpy2.rinterface_lib.embedded.RRuntimeError,
-            "Error: Bioconductor version '3.1' requires R version '3.2'; see",
+            "Error: Bioconductor version '3.1' requires R version '3.2'; use",
             scprep.run.install_bioconductor,
             version="3.1",
             site_repository="https://bioconductor.org/packages/3.1/bioc",
