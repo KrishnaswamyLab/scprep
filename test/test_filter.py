@@ -407,13 +407,13 @@ def test_large_sparse_dataframe_library_size():
     if matrix._pandas_0:
         matrix._ignore_pandas_sparse_warning()
         X = pd.SparseDataFrame(
-            sparse.coo_matrix((10**7, 2 * 10**4)), default_fill_value=0.0
+            sparse.coo_matrix((10 ** 7, 2 * 10 ** 4)), default_fill_value=0.0
         )
         cell_sums = scprep.measure.library_size(X)
         assert cell_sums.shape[0] == X.shape[0]
         matrix._reset_warnings()
     X = matrix.SparseDataFrame(
-        sparse.coo_matrix((10**7, 2 * 10**4)), default_fill_value=0.0
+        sparse.coo_matrix((10 ** 7, 2 * 10 ** 4)), default_fill_value=0.0
     )
     cell_sums = scprep.measure.library_size(X)
     assert cell_sums.shape[0] == X.shape[0]
