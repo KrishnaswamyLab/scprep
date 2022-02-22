@@ -248,7 +248,6 @@ def install_github(
     _install_github(
         repo=repo,
         update=update,
-        repos=repos,
         build_vignettes=build_vignettes,
         force=force,
         verbose=verbose,
