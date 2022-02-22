@@ -86,16 +86,20 @@ def pairwise_correlation(X, Y, ignore_nan=False):
     # one-by-one
     N_times_sum_xy = utils.toarray(N * Y.T.dot(X))
     sum_x_times_sum_y = X_colsums * Y_colsums[:, None]
-    var_x = N * utils.matrix_sum(
-        utils.matrix_transform(X, np.power, 2),
-        axis=0,
-        ignore_nan=ignore_nan
-    ) - X_colsums ** 2
-    var_y = N * utils.matrix_sum(
-        utils.matrix_transform(Y, np.power, 2),
-        axis=0,
-        ignore_nan=ignore_nan
-    ) - Y_colsums ** 2
+    var_x = (
+        N
+        * utils.matrix_sum(
+            utils.matrix_transform(X, np.power, 2), axis=0, ignore_nan=ignore_nan
+        )
+        - X_colsums ** 2
+    )
+    var_y = (
+        N
+        * utils.matrix_sum(
+            utils.matrix_transform(Y, np.power, 2), axis=0, ignore_nan=ignore_nan
+        )
+        - Y_colsums ** 2
+    )
     # Finally compute Pearson Correlation Coefficient as 2D array
     cor = (N_times_sum_xy - sum_x_times_sum_y) / np.sqrt(var_x * var_y[:, None])
     return cor.T

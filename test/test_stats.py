@@ -128,7 +128,7 @@ def test_pairwise_correlation():
 
 def test_pairwise_correlation_nan():
     D = np.array([np.arange(10), np.arange(0, 20, 2)])
-    D[:,3] = np.nan
+    D[:, 3] = np.nan
     C = scprep.stats.pairwise_correlation(D, D)
     assert np.all(np.isnan(C))
     C = scprep.stats.pairwise_correlation(D, D, ignore_nan=True)
