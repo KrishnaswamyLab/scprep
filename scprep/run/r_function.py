@@ -151,7 +151,12 @@ _install_bioconductor = RFunction(
 
 
 def install_bioconductor(
-    package=None, site_repository=None, update=False, type="binary", version=None, verbose=True
+    package=None,
+    site_repository=None,
+    update=False,
+    type="binary",
+    version=None,
+    verbose=True,
 ):
     """Install a Bioconductor package.
 
