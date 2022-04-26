@@ -238,7 +238,7 @@ def test_10X_zip_error():
 def test_10X_zip_url():
     X = data.load_10X()
     filename = (
-        "https://github.com/KrishnaswamyLab/scprep/raw/master/data/"
+        "https://raw.githubusercontent.com/KrishnaswamyLab/scprep/master/data/"
         "test_data/test_10X.zip"
     )
     X_zip = scprep.io.load_10X_zip(filename)
@@ -253,7 +253,7 @@ def test_10X_zip_url_not_a_zip():
         zipfile.BadZipFile,
         "File is not a zip file",
         scprep.io.load_10X_zip,
-        "https://github.com/KrishnaswamyLab/scprep/raw/master/data/test_data/test_10X",
+        "https://raw.githubusercontent.com/KrishnaswamyLab/scprep/master/data/test_data/test_small.csv",
     )
 
 
@@ -268,7 +268,7 @@ def test_10X_zip_url_404():
         urllib.error.HTTPError,
         "HTTP Error 404: Not Found",
         scprep.io.load_10X_zip,
-        "https://github.com/KrishnaswamyLab/scprep/invalid_url",
+        "https://raw.githubusercontent.com/KrishnaswamyLab/scprep/invalid_url",
     )
 
 
@@ -727,7 +727,7 @@ def test_download_google_drive_large():
 def test_download_url():
     X = data.load_10X()
     scprep.io.download.download_url(
-        "https://github.com/KrishnaswamyLab/scprep/raw/master/data/"
+        "https://raw.githubusercontent.com/KrishnaswamyLab/scprep/master/data/"
         "test_data/test_10X/matrix.mtx.gz",
         "url_test.mtx.gz",
     )
@@ -739,7 +739,7 @@ def test_download_url():
 def test_download_zip():
     X = data.load_10X()
     scprep.io.download.download_and_extract_zip(
-        "https://github.com/KrishnaswamyLab/scprep/raw/master/data/"
+        "https://raw.githubusercontent.com/KrishnaswamyLab/scprep/master/data/"
         "test_data/test_10X.zip",
         "zip_test",
     )
