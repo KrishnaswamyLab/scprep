@@ -89,7 +89,7 @@ jobs:
 
     - name: Test rpy2
       run: |
-        pip install "rpy2<3.5"
+        pip install "rpy2<3.4"
         python -c "from rpy2.robjects import conversion, numpy2ri, pandas2ri"
 
     - name: Cache Python packages
