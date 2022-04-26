@@ -89,8 +89,8 @@ jobs:
 
     - name: Test anndata2ri
       run: |
-        pip install anndata2ri
-        python -c "import anndata2ri"
+        pip install rpy2
+        python -c "from rpy2.robjects import conversion, numpy2ri, pandas2ri"
 
     - name: Cache Python packages
       uses: actions/cache@v2
