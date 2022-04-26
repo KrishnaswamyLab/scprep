@@ -55,10 +55,10 @@ jobs:
       fail-fast: false
       matrix:
         config:
-        - {name: '3.9', os: ubuntu-latest, python: '3.9', r: 'devel' }
-        - {name: '3.8', os: ubuntu-latest, python: '3.8', r: 'devel' }
-        - {name: '3.7', os: ubuntu-latest, python: '3.7', r: 'devel' }
-        - {name: '3.6', os: ubuntu-latest, python: '3.6', r: 'devel' }
+        - {name: '3.9', os: ubuntu-latest, python: '3.9', r: 'release' }
+        - {name: '3.8', os: ubuntu-latest, python: '3.8', r: 'release' }
+        - {name: '3.7', os: ubuntu-latest, python: '3.7', r: 'release' }
+        - {name: '3.6', os: ubuntu-latest, python: '3.6', r: 'release' }
 
     steps:
     - name: Cancel Previous Runs
@@ -87,6 +87,11 @@ jobs:
       with:
         r-version: ${{ matrix.config.r }}
 
+    - name: Test anndata2ri
+      run: |
+        pip install anndata2ri
+        python -c "import anndata2ri"
+
     - name: Cache Python packages
       uses: actions/cache@v2
       with:
@@ -109,7 +114,6 @@ jobs:
         pip install --upgrade wheel setuptools
         pip install --upgrade .[test]
         python -c "import scprep"
-        python -c "import anndata2ri"
 
     - name: Install R packages
       run: |
