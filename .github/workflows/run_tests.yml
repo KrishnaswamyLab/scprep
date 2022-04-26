@@ -55,20 +55,20 @@ jobs:
       fail-fast: false
       matrix:
         config:
-        - {name: '3.9', os: ubuntu-latest, python: '3.9', r: 'release' }
+        - {name: '3.9', os: ubuntu-latest, python: '3.9', r: 'devel' }
         - {name: '3.8', os: ubuntu-latest, python: '3.8', r: 'release' }
         - {name: '3.7', os: ubuntu-latest, python: '3.7', r: 'release' }
-        - {name: '3.6', os: ubuntu-latest, python: '3.6', r: 'release' }
+        - {name: '3.6', os: ubuntu-latest, python: '3.6', r: 'oldrel' }
 
     steps:
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.6.0
-      with:
-        access_token: ${{ github.token }}
+#    - name: Cancel Previous Runs
+#      uses: styfle/cancel-workflow-action@0.6.0
+#      with:
+#        access_token: ${{ github.token }}
 
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
+#    - uses: actions/checkout@v2
+#      with:
+#        fetch-depth: 0
 
 #    - name: Install system dependencies
 #      if: runner.os == 'Linux'
@@ -92,8 +92,11 @@ jobs:
         pip install wheel
         pip install rpy2
         python -c "from rpy2.robjects import conversion"
+        echo done
         python -c "from rpy2.robjects import numpy2ri"
+        echo done
         python -c "from rpy2.robjects import pandas2ri"
+        echo done
         python -c "from rpy2.robjects import conversion, numpy2ri, pandas2ri"
 
     - name: Cache Python packages
