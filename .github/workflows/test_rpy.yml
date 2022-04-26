@@ -35,8 +35,4 @@ jobs:
       run: |
         pip install wheel
         pip install rpy2
-        python -c "import rpy2"
-        echo done
         python -c "import rpy2.robjects"
-        echo done
-        python -c "from rpy2.robjects import conversion"
