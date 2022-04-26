@@ -3,7 +3,7 @@ name: Test rpy2
 on:
   push:
     branches:
-      - '*'
+      - '**'
 
 jobs:
   test_rpy2:
