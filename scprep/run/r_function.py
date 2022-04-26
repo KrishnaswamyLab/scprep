@@ -127,12 +127,12 @@ class RFunction(object):
                 # Attempt to capture the traceback from R. Credit: https://stackoverflow.com/a/40002973
                 try:
                     e.context = {
-                        'r_traceback': '\n'.join(rpy2.robjects.r('unlist(traceback())'))
+                        "r_traceback": "\n".join(rpy2.robjects.r("unlist(traceback())"))
                     }
                 except Exception as traceback_exc:
                     e.context = {
-                        'r_traceback': '(an error occurred while getting traceback from R)',
-                        'r_traceback_err': traceback_exc,
+                        "r_traceback": "(an error occurred while getting traceback from R)",
+                        "r_traceback_err": traceback_exc,
                     }
                 raise
 
