@@ -70,11 +70,11 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Install system dependencies
-      if: runner.os == 'Linux'
-      run: |
-        sudo apt-get update -qq
-        sudo apt-get install -y pandoc gfortran libblas-dev liblapack-dev libedit-dev llvm-dev libcurl4-openssl-dev ffmpeg libhdf5-dev
+#    - name: Install system dependencies
+#      if: runner.os == 'Linux'
+#      run: |
+#        sudo apt-get update -qq
+#        sudo apt-get install -y pandoc gfortran libblas-dev liblapack-dev libedit-dev llvm-dev libcurl4-openssl-dev ffmpeg libhdf5-dev
 
     - name: Set up Python
       uses: actions/setup-python@v2
@@ -90,7 +90,7 @@ jobs:
     - name: Test rpy2
       run: |
         pip install wheel
-        pip install "rpy2<3.1"
+        pip install rpy2
         python -c "from rpy2.robjects import conversion, numpy2ri, pandas2ri"
 
     - name: Cache Python packages
