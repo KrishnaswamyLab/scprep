@@ -91,6 +91,9 @@ jobs:
       run: |
         pip install wheel
         pip install rpy2
+        python -c "from rpy2.robjects import conversion"
+        python -c "from rpy2.robjects import numpy2ri"
+        python -c "from rpy2.robjects import pandas2ri"
         python -c "from rpy2.robjects import conversion, numpy2ri, pandas2ri"
 
     - name: Cache Python packages
