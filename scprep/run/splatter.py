@@ -282,7 +282,7 @@ def SplatSimulate(
         dropout : Logical matrix showing which values have been dropped in which cells.
     """
     if seed is None:
-        seed = np.random.randint(2 ** 16 - 1)
+        seed = np.random.randint(2**16 - 1)
     if dropout_type == "binomial":
         dropout_type = "none"
     else:
