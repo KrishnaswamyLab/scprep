@@ -127,8 +127,8 @@ jobs:
         pip install -U .[test]
         python -c "import scprep"
 
-#    - name: Run tests
-#      run: nose2 -vvv
+    - name: Run tests
+      run: nose2 -vvv
 
     - name: Coveralls
       env:
