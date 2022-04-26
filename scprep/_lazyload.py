@@ -24,7 +24,7 @@ _importspec = {
     "rpy2": [
         {"robjects": ["numpy2ri", "pandas2ri", "packages", "vectors", "conversion"]},
         "rinterface",
-        {"rinterface_lib": ["callbacks"]},
+        {"rinterface_lib": ["callbacks", "embedded"]},
     ],
     "h5py": [],
     "tables": [],
