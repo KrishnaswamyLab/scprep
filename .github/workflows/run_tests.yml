@@ -89,7 +89,8 @@ jobs:
 
     - name: Test rpy2
       run: |
-        pip install "rpy2==3.0"
+        pip install wheel
+        pip install "rpy2<3.1"
         python -c "from rpy2.robjects import conversion, numpy2ri, pandas2ri"
 
     - name: Cache Python packages
