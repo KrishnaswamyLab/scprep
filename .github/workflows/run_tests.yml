@@ -109,6 +109,7 @@ jobs:
         pip install --upgrade wheel setuptools
         pip install --upgrade .[test]
         python -c "import scprep"
+        python -c "import anndata2ri"
 
     - name: Install R packages
       run: |
@@ -119,13 +120,6 @@ jobs:
         renv::install("github::dynverse/dyngen")
         renv::install("github::dynverse/dynwrap")
       shell: Rscript {0}
-
-    - name: Install package & dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -U wheel setuptools
-        pip install -U .[test]
-        python -c "import scprep"
 
     - name: Run tests
       run: nose2 -vvv
