@@ -36,3 +36,12 @@ jobs:
         pip install wheel
         pip install rpy2
         python -c "import rpy2.robjects"
+
+    - name: Print system config
+      if: always()
+      shell: /usr/bin/env bash -ex {0}
+      run: |
+        uname -a
+        python --version
+        R --version
+        pip freeze
