@@ -707,7 +707,7 @@ def test_parse_header():
 
 
 def test_download_google_drive():
-    id = "1_T5bRqbid5mtuDYnyusoGvujc6fW1UKv"
+    id = "1oFdHx8pgTYjRNThvt4vHughrLPlJOiZh"
     dest = "test.txt"
     scprep.io.download.download_google_drive(id, dest)
     assert os.path.isfile(dest)
