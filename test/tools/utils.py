@@ -11,21 +11,21 @@ import pandas as pd
 import re
 
 
-def assert_warns_message(expected_warning, expected_message, *args, **kwargs):
+def assert_warns_message(expected_warning, expected_message, *args, escape=True, **kwargs):
     """Assert that the correct warning message is raised.
 
     Handles regex better than the default.
     """
-    expected_regex = re.escape(expected_message)
+    expected_regex = re.escape(expected_message) if escape else expected_message
     return assert_warns_regex(expected_warning, expected_regex, *args, **kwargs)
 
 
-def assert_raises_message(expected_error, expected_message, *args, **kwargs):
+def assert_raises_message(expected_error, expected_message, *args, escape=True, **kwargs):
     """Assert that the correct error message is raised.
 
     Handles regex better than the default.
     """
-    expected_regex = re.escape(expected_message)
+    expected_regex = re.escape(expected_message) if escape else expected_message
     return assert_raises_regex(expected_error, expected_regex, *args, **kwargs)
 
 
