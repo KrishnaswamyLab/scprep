@@ -196,7 +196,8 @@ _install_github = RFunction(
         quiet <- !verbose
 
         if (!require('remotes', quietly=TRUE)) install.packages('remotes', lib=lib)
-        remotes::install_github(repo=repo,
+        library(remotes)
+        install_github(repo=repo,
                          lib=lib, dependencies=dependencies,
                          upgrade=update,
                          build_vignettes=build_vignettes,
