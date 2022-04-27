@@ -3,10 +3,10 @@ from parameterized import parameterized
 from scipy import sparse
 from tools import data
 from tools import utils
+from unittest import mock
 
 import copy
 import fcsparser
-from unittest import mock
 import numpy as np
 import os
 import pandas as pd
