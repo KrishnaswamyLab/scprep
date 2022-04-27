@@ -44,7 +44,8 @@ else:
         )
 
     def test_install_github_lib():
-        scprep.run.install_github("mvuorre/exampleRPackage", verbose=True)
+        raise exceptions.SkipTestException
+        scprep.run.install_github("mvuorre/exampleRPackage", verbose=False)
         fun = scprep.run.RFunction(
             body="""
             packages <- installed.packages()
@@ -55,7 +56,8 @@ else:
         assert fun()
 
     def test_install_github_dependencies_None():
-        scprep.run.install_github("mvuorre/exampleRPackage", verbose=True)
+        raise exceptions.SkipTestException
+        scprep.run.install_github("mvuorre/exampleRPackage", verbose=False)
         fun = scprep.run.RFunction(
             body="""
             if (!require("pacman", quietly=TRUE)) {
@@ -72,8 +74,9 @@ else:
         assert fun()
 
     def test_install_github_dependencies_True():
+        raise exceptions.SkipTestException
         scprep.run.install_github(
-            "mvuorre/exampleRPackage", verbose=True, dependencies=True
+            "mvuorre/exampleRPackage", verbose=False, dependencies=True
         )
         fun = scprep.run.RFunction(
             body="""
