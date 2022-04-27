@@ -7,9 +7,9 @@ else:
     from tools import data
     from tools import exceptions
     from tools import utils
+    from unittest import mock
 
     import anndata
-    from unittest import mock
     import numpy as np
     import pandas as pd
     import rpy2.rinterface_lib.callbacks
