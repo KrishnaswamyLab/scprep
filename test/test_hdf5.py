@@ -2,7 +2,7 @@ from tools import data
 from tools import utils
 
 import h5py
-import mock
+from unittest import mock
 import os
 import scprep
 import sys

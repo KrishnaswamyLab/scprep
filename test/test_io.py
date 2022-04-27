@@ -6,7 +6,7 @@ from tools import utils
 
 import copy
 import fcsparser
-import mock
+from unittest import mock
 import numpy as np
 import os
 import pandas as pd
@@ -253,7 +253,8 @@ def test_10X_zip_url_not_a_zip():
         zipfile.BadZipFile,
         "File is not a zip file",
         scprep.io.load_10X_zip,
-        "https://raw.githubusercontent.com/KrishnaswamyLab/scprep/master/data/test_data/test_small.csv",
+        "https://raw.githubusercontent.com/KrishnaswamyLab/scprep/"
+        "master/data/test_data/test_small.csv",
     )
 
 

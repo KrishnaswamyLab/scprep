@@ -1,6 +1,6 @@
 from tools import data
 
-import mock
+from unittest import mock
 import os
 import scprep
 import subprocess

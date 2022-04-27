@@ -9,7 +9,7 @@ else:
     from tools import utils
 
     import anndata
-    import mock
+    from unittest import mock
     import numpy as np
     import pandas as pd
     import rpy2.rinterface_lib.callbacks
@@ -90,7 +90,12 @@ else:
             deps <- unname(unlist(deps))
             installed <- installed.packages()[, "Package"]
             success <- all(deps %in% installed)
-            list(success=success, missing=setdiff(deps, installed), deps=deps, installed=installed)
+            list(
+              success=success,
+              missing=setdiff(deps, installed),
+              deps=deps,
+              installed=installed
+            )
             """
         )
 
@@ -341,7 +346,12 @@ else:
                 deps <- unname(unlist(deps))
                 installed <- installed.packages()[, "Package"]
                 success <- all(deps %in% installed)
-                list(success=success, missing=setdiff(deps, installed), deps=deps, installed=installed)
+                list(
+                  success=success,
+                  missing=setdiff(deps, installed),
+                  deps=deps,
+                  installed=installed
+                )
                 """
             )
 
@@ -621,7 +631,7 @@ else:
         np.testing.assert_array_equal(x["x"], np.array([1, 2, 3]))
         np.testing.assert_array_equal(x["y"], np.array(["a", "b", "c"]))
 
-    def test_conversion_spmatrix():
+    def test_conversion_sce():
         scprep.run.install_bioconductor("SingleCellExperiment")
         ro.r("library(SingleCellExperiment)")
         ro.r("X <- matrix(1:6, nrow=2, ncol=3)")

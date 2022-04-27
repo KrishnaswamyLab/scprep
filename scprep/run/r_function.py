@@ -130,8 +130,8 @@ class RFunction(object):
 
 
 _install_bioconductor = RFunction(
-    args='package = character(), site_repository = character(), update = FALSE, type="binary", '
-    "version = BiocManager::version()",
+    args="package = character(), site_repository = character(), update = FALSE, "
+    'type="binary", version = BiocManager::version()',
     body="""
         if (!require('BiocManager')) install.packages("BiocManager")
         ask <- !update
@@ -169,8 +169,8 @@ def install_bioconductor(
         When False, don't attempt to update old packages.
         When True, update old packages automatically.
     type : {"binary", "source", "both"}, optional (default: "binary")
-        Which package version to install if a newer version is available as source. "both"
-        tries source first and uses binary as a fallback.
+        Which package version to install if a newer version is available as source.
+        "both" tries source first and uses binary as a fallback.
     version : string, optional (default: None)
         Bioconductor version to install, e.g., version = "3.8".
         The special symbol version = "devel" installs the current 'development' version.
@@ -243,8 +243,8 @@ def install_github(
         For non-interactive sessions "ask" is equivalent to "always".
         TRUE and FALSE also accepted, correspond to "always" and "never" respectively.
     type : {"binary", "source", "both"}, optional (default: "binary")
-        Which package version to install if a newer version is available as source. "both"
-        tries source first and uses binary as a fallback.
+        Which package version to install if a newer version is available as source.
+        "both" tries source first and uses binary as a fallback.
     build_vignettes: boolean, optional (default: False)
         Builds Github vignettes.
     force: boolean, optional (default: False)
