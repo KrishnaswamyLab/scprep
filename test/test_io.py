@@ -269,7 +269,7 @@ def test_10X_zip_url_404():
         "HTTP Error 404: Bad Request",
         scprep.io.load_10X_zip,
         "https://raw.githubusercontent.com/KrishnaswamyLab/scprep/invalid_url",
-        escape=False
+        escape=False,
     )
 
 
