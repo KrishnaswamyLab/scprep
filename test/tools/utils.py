@@ -11,9 +11,7 @@ import pandas as pd
 import re
 
 
-def assert_warns_message(
-    expected_warning, expected_message, *args, **kwargs
-):
+def assert_warns_message(expected_warning, expected_message, *args, **kwargs):
     """Assert that the correct warning message is raised.
 
     Handles regex better than the default.
@@ -22,9 +20,7 @@ def assert_warns_message(
     return assert_warns_regex(expected_warning, expected_regex, *args, **kwargs)
 
 
-def assert_raises_message(
-    expected_error, expected_message, *args, **kwargs
-):
+def assert_raises_message(expected_error, expected_message, *args, **kwargs):
     """Assert that the correct error message is raised.
 
     Handles regex better than the default.
