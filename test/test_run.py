@@ -626,12 +626,11 @@ else:
 
     def test_r_traceback():
         test_fun = scprep.run.RFunction(
-            setup='a <- function() stop("test"); b <- function() a()', body="b()"
+            setup='a <- function() stop("test"); b <- function() a()', body="b()", verbose=False
         )
         utils.assert_raises_message(
             rpy2.rinterface_lib.embedded.RRuntimeError,
             'Error in a() : test\n\n4: stop("test")\n3: a()\n'
             '2: b()\n1: (function () \n{\n    b()\n})()',
             test_fun,
-            verbose=False
         )
