@@ -654,7 +654,6 @@ else:
         test_fun = scprep.run.RFunction(setup='a <- function() stop("test"); b <- function() a()', body="b()")
         utils.assert_raises_message(
             rpy2.rinterface_lib.embedded.RRuntimeError,
-            'Error in a() : test\n\n4: stop("test")\n3: a()\n2: b()\n1: (function () \n{\n    b()\n})()'
-',
+            'Error in a() : test\n\n4: stop("test")\n3: a()\n2: b()\n1: (function () \n{\n    b()\n})()',
             test_fun
         )
