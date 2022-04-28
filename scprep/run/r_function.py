@@ -126,14 +126,11 @@ class RFunction(object):
             except rpy2.rinterface_lib.embedded.RRuntimeError as e:
                 # Attempt to capture the traceback from R. Credit: https://stackoverflow.com/a/40002973
                 try:
-                    e.context = {
-                        "r_traceback": "\n".join(rpy2.robjects.r("unlist(traceback())"))
-                    }
+                    r_traceback = ["\n".join(a[0]) for a in rpy2.robjects.r(".traceback()")]
+                    r_traceback = [f"{i}: {msg}" for i, msg in zip(range(len(r_traceback), 0, -1), r_traceback)]
                 except Exception as traceback_exc:
-                    e.context = {
-                        "r_traceback": "(an error occurred while getting traceback from R)",
-                        "r_traceback_err": traceback_exc,
-                    }
+                    r_traceback = ["(an error occurred while getting traceback from R)",str(traceback_exc)]
+                e.args = ("\n".join([e.args[0]] + r_traceback),)
                 raise
 
             robject = conversion.rpy2py(robject)
