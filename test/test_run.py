@@ -332,32 +332,6 @@ else:
 
             assert fun()
 
-        def test_install_dyngen_dependencies_True(self):
-            scprep.run.dyngen.install(verbose=False, dependencies=True)
-            fun = scprep.run.RFunction(
-                body="""
-                if (!require("pacman", quietly=TRUE)) {
-                    install.packages("pacman",
-                    repos='http://cran.rstudio.com')
-                }
-
-                deps <- pacman::p_depends(dyngen)[c("Depends","Imports","LinkingTo",
-                        "Suggests")]
-                deps <- unname(unlist(deps))
-                installed <- installed.packages()[, "Package"]
-                success <- all(deps %in% installed)
-                list(
-                  success=success,
-                  missing=setdiff(deps, installed),
-                  deps=deps,
-                  installed=installed
-                )
-                """
-            )
-
-            result = fun()
-            assert result["success"], result
-
         def test_dyngen_backbone_not_in_list(self):
             utils.assert_raises_message(
                 ValueError,
