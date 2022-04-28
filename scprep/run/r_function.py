@@ -124,7 +124,8 @@ class RFunction(object):
             try:
                 robject = self.function(*args, **kwargs)
             except rpy2.rinterface_lib.embedded.RRuntimeError as e:
-                # Attempt to capture the traceback from R. Credit: https://stackoverflow.com/a/40002973
+                # Attempt to capture the traceback from R.
+                # Credit: https://stackoverflow.com/a/40002973
                 try:
                     r_traceback = [
                         "\n".join(a[0]) for a in rpy2.robjects.r(".traceback()")
