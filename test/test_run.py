@@ -631,7 +631,7 @@ else:
         utils.assert_raises_message(
             rpy2.rinterface_lib.embedded.RRuntimeError,
             'Error in a() : test\n\n4: stop("test")\n3: a()\n'
-            '2: b()\n1: (function () \n{\n    b()\n})()',
+            "2: b()\n1: (function () \n{\n    b()\n})()",
             test_fun,
-            verbose=False
+            verbose=False,
         )
