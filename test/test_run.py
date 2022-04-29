@@ -22,6 +22,7 @@ else:
     import scprep.run.r_function
     import sklearn.cluster
     import unittest
+    import re
 
     builtin_warning = rpy2.rinterface_lib.callbacks.consolewrite_warnerror
 
@@ -630,12 +631,15 @@ else:
             body="b()",
             verbose=False,
         )
+
+        re_compile = re.compile
+        def compile_with_dotall(*args, flags=re.DOTALL, **kwargs):
+            return re_compile(*args, flags=flags, **kwargs)
+        re.compile = compile_with_dotall
         utils.assert_raises_message(
             rpy2.rinterface_lib.embedded.RRuntimeError,
-            (b'Error in a() : test\n\n\x1b[1m<error/rlang_error>\x1b[22m\ntest\n\x1b[1'
-            b'mBacktrace:\x1b[22m\n\x1b[90m    \x1b[39m\xe2\x96\x88\n\x1b[90m 1. \x1b['
-            b'39m\xe2\x94\x94\xe2\x94\x80(function () ...\n\x1b[90m 2. \x1b[39m  \xe2'
-            b'\x94\x94\xe2\x94\x80global::b()\n\x1b[90m 3. \x1b[39m    \xe2\x94\x94'
-            b'\xe2\x94\x80global::a()').decode(),
+            r"Error in a\(\) : test.*test.*global::b\(\).*global::a\(\)",
             test_fun,
+            regex=True,
         )
+        re.compile = re_compile
