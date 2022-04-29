@@ -633,13 +633,15 @@ else:
         )
 
         re_compile = re.compile
-        def compile_with_dotall(*args, flags=re.DOTALL, **kwargs):
-            return re_compile(*args, flags=flags, **kwargs)
+        def compile_with_dotall(pattern, flags=0):
+            return re_compile(pattern, flags=re.DOTALL)
         re.compile = compile_with_dotall
-        utils.assert_raises_message(
-            rpy2.rinterface_lib.embedded.RRuntimeError,
-            r"Error in a\(\) : test.*test.*global::b\(\).*global::a\(\)",
-            test_fun,
-            regex=True,
-        )
-        re.compile = re_compile
+        try:
+            utils.assert_raises_message(
+                rpy2.rinterface_lib.embedded.RRuntimeError,
+                r"Error in a\(\) : test.*test.*global::b\(\).*global::a\(\)",
+                test_fun,
+                regex=True,
+            )
+        finally:
+            re.compile = re_compile
