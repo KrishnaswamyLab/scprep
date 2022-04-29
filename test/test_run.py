@@ -12,6 +12,7 @@ else:
     import anndata
     import numpy as np
     import pandas as pd
+    import re
     import rpy2.rinterface_lib.callbacks
     import rpy2.rinterface_lib.embedded
     import rpy2.robjects as ro
@@ -22,7 +23,6 @@ else:
     import scprep.run.r_function
     import sklearn.cluster
     import unittest
-    import re
 
     builtin_warning = rpy2.rinterface_lib.callbacks.consolewrite_warnerror
 
