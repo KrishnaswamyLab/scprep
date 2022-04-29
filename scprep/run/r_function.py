@@ -1,8 +1,8 @@
-import functools
-
 from .. import utils
 from .._lazyload import rpy2
 from . import conversion
+
+import functools
 
 
 def _console_warning(s, log_fn):
@@ -62,10 +62,12 @@ class _ConsoleWarning(object):
 
 @functools.lru_cache(None)
 def setup_rlang():
-    rpy2.robjects.r("""
+    rpy2.robjects.r(
+        """
     if (!require('rlang')) install.packages('rlang')
     options(error = rlang::entrace)
-    """)
+    """
+    )
 
 
 class RFunction(object):
@@ -138,7 +140,9 @@ class RFunction(object):
                 # Attempt to capture the traceback from R.
                 # Credit: https://stackoverflow.com/a/40002973
                 try:
-                    r_traceback = rpy2.robjects.r("format(rlang::last_trace(), simplify='none', fields=TRUE)")[0]
+                    r_traceback = rpy2.robjects.r(
+                        "format(rlang::last_trace(), simplify='none', fields=TRUE)"
+                    )[0]
                 except Exception as traceback_exc:
                     r_traceback = f"\n(an error occurred while getting traceback from R){traceback_exc}"
                 e.args = (f"{e.args[0]}\n{r_traceback}",)
