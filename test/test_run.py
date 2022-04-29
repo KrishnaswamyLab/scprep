@@ -633,8 +633,10 @@ else:
         )
 
         re_compile = re.compile
+
         def compile_with_dotall(pattern, flags=0):
             return re_compile(pattern, flags=re.DOTALL)
+
         re.compile = compile_with_dotall
         try:
             utils.assert_raises_message(
