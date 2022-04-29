@@ -1,3 +1,5 @@
+import functools
+
 from .. import utils
 from .._lazyload import rpy2
 from . import conversion
@@ -58,6 +60,14 @@ class _ConsoleWarning(object):
         self.set(self.previous_warning)
 
 
+@functools.lru_cache(None)
+def setup_rlang():
+    rpy2.robjects.r("""
+    if (!require('rlang')) install.packages('rlang')
+    options(error = rlang::entrace)
+    """)
+
+
 class RFunction(object):
     """Run an R function from Python.
 
@@ -88,6 +98,7 @@ class RFunction(object):
 
     @utils._with_pkg(pkg="rpy2", min_version="3.0")
     def _build(self):
+        setup_rlang()
         if self.setup != "":
             with _ConsoleWarning(self.verbose - 1):
                 rpy2.robjects.r(self.setup)
@@ -127,19 +138,10 @@ class RFunction(object):
                 # Attempt to capture the traceback from R.
                 # Credit: https://stackoverflow.com/a/40002973
                 try:
-                    r_traceback = [
-                        "\n".join(a[0]) for a in rpy2.robjects.r(".traceback()")
-                    ]
-                    r_traceback = [
-                        f"{i}: {msg}"
-                        for i, msg in zip(range(len(r_traceback), 0, -1), r_traceback)
-                    ]
+                    r_traceback = rpy2.robjects.r("format(rlang::last_trace(), simplify='none', fields=TRUE)")[0]
                 except Exception as traceback_exc:
-                    r_traceback = [
-                        "(an error occurred while getting traceback from R)",
-                        str(traceback_exc),
-                    ]
-                e.args = ("\n".join([e.args[0]] + r_traceback),)
+                    r_traceback = f"\n(an error occurred while getting traceback from R){traceback_exc}"
+                e.args = (f"{e.args[0]}\n{r_traceback}",)
                 raise
 
             robject = conversion.rpy2py(robject)

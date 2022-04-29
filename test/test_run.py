@@ -630,7 +630,10 @@ else:
         )
         utils.assert_raises_message(
             rpy2.rinterface_lib.embedded.RRuntimeError,
-            'Error in a() : test\n\n4: stop("test")\n3: a()\n'
-            "2: b()\n1: (function () \n{\n    b()\n})()",
+            (b'Error in a() : test\n\n\x1b[1m<error/rlang_error>\x1b[22m\ntest\n\x1b[1'
+            b'mBacktrace:\x1b[22m\n\x1b[90m    \x1b[39m\xe2\x96\x88\n\x1b[90m 1. \x1b['
+            b'39m\xe2\x94\x94\xe2\x94\x80(function () ...\n\x1b[90m 2. \x1b[39m  \xe2'
+            b'\x94\x94\xe2\x94\x80global::b()\n\x1b[90m 3. \x1b[39m    \xe2\x94\x94'
+            b'\xe2\x94\x80global::a()').decode(),
             test_fun,
         )
