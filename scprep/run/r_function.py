@@ -144,7 +144,10 @@ class RFunction(object):
                         "format(rlang::last_trace(), simplify='none', fields=TRUE)"
                     )[0]
                 except Exception as traceback_exc:
-                    r_traceback = f"\n(an error occurred while getting traceback from R){traceback_exc}"
+                    r_traceback = (
+                        "\n(an error occurred while getting traceback "
+                        f"from R){traceback_exc}"
+                    )
                 e.args = (f"{e.args[0]}\n{r_traceback}",)
                 raise
 
