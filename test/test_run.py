@@ -12,6 +12,7 @@ else:
     import anndata
     import numpy as np
     import pandas as pd
+    import re
     import rpy2.rinterface_lib.callbacks
     import rpy2.rinterface_lib.embedded
     import rpy2.robjects as ro
@@ -22,7 +23,6 @@ else:
     import scprep.run.r_function
     import sklearn.cluster
     import unittest
-    import re
 
     builtin_warning = rpy2.rinterface_lib.callbacks.consolewrite_warnerror
 
@@ -633,8 +633,10 @@ else:
         )
 
         re_compile = re.compile
+
         def compile_with_dotall(*args, flags=re.DOTALL, **kwargs):
             return re_compile(*args, flags=flags, **kwargs)
+
         re.compile = compile_with_dotall
         utils.assert_raises_message(
             rpy2.rinterface_lib.embedded.RRuntimeError,
