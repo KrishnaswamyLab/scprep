@@ -641,7 +641,8 @@ else:
         try:
             utils.assert_raises_message(
                 rpy2.rinterface_lib.embedded.RRuntimeError,
-                r"Error in a\(\) : test.*test.*global::b\(\).*global::a\(\)",
+                r"Error in a\(\) : test.*test.*Backtrace:.*1\..*(function|`<fn>`\(\))"
+                r".*2\..*global[ \:]+b\(\).*3\..*global[ \:]+a\(\)",
                 test_fun,
                 regex=True,
             )
