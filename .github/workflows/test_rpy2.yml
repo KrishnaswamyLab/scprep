@@ -28,8 +28,15 @@ jobs:
 
     steps:
 
-    - name: Set up Python
-      uses: actions/setup-python@${{ matrix.config.setup_python }}
+    - name: Set up Python V1
+      if: ${{ matrix.config.setup_python == 'v1' }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.config.python }}
+
+    - name: Set up Python V2
+      if: ${{ matrix.config.setup_python == 'v2' }}
+      uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.config.python }}
 
