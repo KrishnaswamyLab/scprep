@@ -33,9 +33,11 @@ jobs:
 
     - name: Test rpy2
       run: |
-        pip install wheel
+        python -m venv pyenv_base
+        source pyenv_base/bin/activate
+        python -m pip install -U pip wheel
         pip install rpy2
-        export LD_LIBRARY_PATH=$(python -m rpy2.situation LD_LIBRARY_PATH):${LD_LIBRARY_PATH}
+        # export LD_LIBRARY_PATH=$(python -m rpy2.situation LD_LIBRARY_PATH):${LD_LIBRARY_PATH}
         python -c "import rpy2.robjects"
 
     - name: Print system config
