@@ -38,7 +38,7 @@ jobs:
         python -m venv pyenv_base
         source pyenv_base/bin/activate
         python -m pip install -U pip wheel
-        pip install rpy2
+        python -m pip install git+https://github.com/rpy2/rpy2
         export LD_LIBRARY_PATH=$(python -m rpy2.situation LD_LIBRARY_PATH):${LD_LIBRARY_PATH}
         python -c "import rpy2.robjects"
 
@@ -49,4 +49,4 @@ jobs:
         uname -a
         python --version
         R --version
-        pip freeze
+        python -m pip freeze
