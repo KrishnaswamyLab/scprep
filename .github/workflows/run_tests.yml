@@ -11,7 +11,6 @@ on:
 jobs:
   run_tester:
     runs-on: ${{ matrix.config.os }}
-    continue-on-error: ${{ matrix.config.experimental }}
     if: "!contains(github.event.head_commit.message, 'ci skip')"
     env:
       RENV_PATHS_ROOT: ~/.local/share/renv
@@ -20,11 +19,10 @@ jobs:
       fail-fast: false
       matrix:
         config:
-        - {name: '3.10', os: ubuntu-latest, python: '3.10', r: 'devel', experimental: true}
-        - {name: '3.9', os: ubuntu-latest, python: '3.9', r: 'release', experimental: false}
-        - {name: '3.8', os: ubuntu-latest, python: '3.8', r: 'release', experimental: false}
-        - {name: '3.7', os: ubuntu-latest, python: '3.7', r: 'release', experimental: false}
-        - {name: '3.6', os: ubuntu-latest, python: '3.6', r: 'oldrel', experimental: false}
+        - {name: '3.9', os: ubuntu-latest, python: '3.9', r: 'release'}
+        - {name: '3.8', os: ubuntu-latest, python: '3.8', r: 'release'}
+        - {name: '3.7', os: ubuntu-latest, python: '3.7', r: 'release'}
+        - {name: '3.6', os: ubuntu-latest, python: '3.6', r: 'oldrel'}
 
     steps:
     - name: Cancel Previous Runs
