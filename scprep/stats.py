@@ -91,14 +91,14 @@ def pairwise_correlation(X, Y, ignore_nan=False):
         * utils.matrix_sum(
             utils.matrix_transform(X, np.power, 2), axis=0, ignore_nan=ignore_nan
         )
-        - X_colsums ** 2
+        - X_colsums**2
     )
     var_y = (
         N
         * utils.matrix_sum(
             utils.matrix_transform(Y, np.power, 2), axis=0, ignore_nan=ignore_nan
         )
-        - Y_colsums ** 2
+        - Y_colsums**2
     )
     # Finally compute Pearson Correlation Coefficient as 2D array
     cor = (N_times_sum_xy - sum_x_times_sum_y) / np.sqrt(var_x * var_y[:, None])
@@ -455,7 +455,7 @@ def t_statistic(X, Y):
     X, Y = _preprocess_test_matrices(X, Y)
     X_std = utils.matrix_std(X, axis=0)
     Y_std = utils.matrix_std(Y, axis=0)
-    paired_std = np.sqrt(X_std ** 2 / X.shape[0] + Y_std ** 2 / Y.shape[0])
+    paired_std = np.sqrt(X_std**2 / X.shape[0] + Y_std**2 / Y.shape[0])
     return mean_difference(X, Y) / paired_std
 
 
