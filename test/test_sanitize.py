@@ -111,8 +111,14 @@ def test_check_index():
 
 def test_check_index_multiindex():
     X = data.load_10X()
-    X["i"] = [i for i in range(X.shape[0])]
-    X["i+1"] = [i + 1 for i in range(X.shape[0])]
+    X_index = pd.DataFrame(
+        {
+            "i": [i for i in range(X.shape[0])],
+            "i+1": [i + 1 for i in range(X.shape[0])],
+        },
+        index=X.index,
+    )
+    X = pd.concat([X, X_index], axis=1)
     X = X.set_index(["i", "i+1"])
     scprep.sanitize.check_index(X)
     with utils.assert_warns_message(
