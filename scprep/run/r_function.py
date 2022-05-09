@@ -2,6 +2,8 @@ from .. import utils
 from .._lazyload import rpy2
 from . import conversion
 
+import functools
+
 
 def _console_warning(s, log_fn):
     s = s.strip()
@@ -58,6 +60,16 @@ class _ConsoleWarning(object):
         self.set(self.previous_warning)
 
 
+@functools.lru_cache(None)
+def setup_rlang():
+    rpy2.robjects.r(
+        """
+    if (!require('rlang')) install.packages('rlang')
+    options(error = rlang::entrace)
+    """
+    )
+
+
 class RFunction(object):
     """Run an R function from Python.
 
@@ -88,6 +100,7 @@ class RFunction(object):
 
     @utils._with_pkg(pkg="rpy2", min_version="3.0")
     def _build(self):
+        setup_rlang()
         if self.setup != "":
             with _ConsoleWarning(self.verbose - 1):
                 rpy2.robjects.r(self.setup)
@@ -121,7 +134,23 @@ class RFunction(object):
         args = [conversion.py2rpy(a) for a in args]
         kwargs = {k: conversion.py2rpy(v) for k, v in kwargs.items()}
         with _ConsoleWarning(rpy_verbose):
-            robject = self.function(*args, **kwargs)
+            try:
+                robject = self.function(*args, **kwargs)
+            except rpy2.rinterface_lib.embedded.RRuntimeError as e:
+                # Attempt to capture the traceback from R.
+                # Credit: https://stackoverflow.com/a/40002973
+                try:
+                    r_traceback = rpy2.robjects.r(
+                        "format(rlang::last_trace(), simplify='none', fields=TRUE)"
+                    )[0]
+                except Exception as traceback_exc:
+                    r_traceback = (
+                        "\n(an error occurred while getting traceback "
+                        f"from R){traceback_exc}"
+                    )
+                e.args = (f"{e.args[0]}\n{r_traceback}",)
+                raise
+
             robject = conversion.rpy2py(robject)
             if rpy_cleanup:
                 rpy2.robjects.r("rm(list=ls())")
@@ -131,7 +160,7 @@ class RFunction(object):
 
 _install_bioconductor = RFunction(
     args="package = character(), site_repository = character(), update = FALSE, "
-    "version = BiocManager::version()",
+    'type="binary", version = BiocManager::version()',
     body="""
         if (!require('BiocManager')) install.packages("BiocManager")
         ask <- !update
@@ -142,7 +171,7 @@ _install_bioconductor = RFunction(
           for (pkg in package) {
             if (update || !require(pkg, character.only = TRUE)) {
               BiocManager::install(pkg, site_repository=site_repository,
-                                   update=update, ask=ask, version=version)
+                                   update=update, ask=ask, version=version, type=type)
             }
           }
         }
@@ -151,7 +180,12 @@ _install_bioconductor = RFunction(
 
 
 def install_bioconductor(
-    package=None, site_repository=None, update=False, version=None, verbose=True
+    package=None,
+    site_repository=None,
+    update=False,
+    type="binary",
+    version=None,
+    verbose=True,
 ):
     """Install a Bioconductor package.
 
@@ -163,6 +197,9 @@ def install_bioconductor(
     update : boolean, optional (default: False)
         When False, don't attempt to update old packages.
         When True, update old packages automatically.
+    type : {"binary", "source", "both"}, optional (default: "binary")
+        Which package version to install if a newer version is available as source.
+        "both" tries source first and uses binary as a fallback.
     version : string, optional (default: None)
         Bioconductor version to install, e.g., version = "3.8".
         The special symbol version = "devel" installs the current 'development' version.
@@ -170,7 +207,7 @@ def install_bioconductor(
     verbose : boolean, optional (default: True)
         Install script verbosity.
     """
-    kwargs = {"update": update, "rpy_verbose": verbose}
+    kwargs = {"update": update, "rpy_verbose": verbose, "type": type}
     if package is not None:
         kwargs["package"] = package
     if site_repository is not None:
@@ -182,15 +219,16 @@ def install_bioconductor(
 
 _install_github = RFunction(
     args="""repo=character(), lib=.libPaths()[1], dependencies=NA,
-            update=FALSE, repos='http://cran.rstudio.com',
+            update=FALSE, type="binary",
             build_vignettes=FALSE, force=FALSE, verbose=TRUE""",
     body="""
         quiet <- !verbose
 
-        if (!require('remotes', quietly=TRUE)) install.packages('remotes')
-        remotes::install_github(repo=repo,
+        if (!require('remotes', quietly=TRUE)) install.packages('remotes', lib=lib)
+        library(remotes)
+        install_github(repo=repo,
                          lib=lib, dependencies=dependencies,
-                         upgrade=update, repos=repos,
+                         upgrade=update,
                          build_vignettes=build_vignettes,
                          force=force, quiet=quiet)
 
@@ -207,7 +245,7 @@ def install_github(
     lib=None,
     dependencies=None,
     update=False,
-    repos="http://cran.us.r-project.org",
+    type="binary",
     build_vignettes=False,
     force=False,
     verbose=True,
@@ -233,8 +271,9 @@ def install_github(
         "ask" prompts the user for which out of date packages to upgrade.
         For non-interactive sessions "ask" is equivalent to "always".
         TRUE and FALSE also accepted, correspond to "always" and "never" respectively.
-    repos: string, optional (default: "http://cran.us.r-project.org"):
-        R package repository.
+    type : {"binary", "source", "both"}, optional (default: "binary")
+        Which package version to install if a newer version is available as source.
+        "both" tries source first and uses binary as a fallback.
     build_vignettes: boolean, optional (default: False)
         Builds Github vignettes.
     force: boolean, optional (default: False)
@@ -242,7 +281,7 @@ def install_github(
     verbose: boolean, optional (default: True)
         Install script verbosity.
     """
-    kwargs = {}
+    kwargs = {"type": type}
     if lib is not None:
         kwargs["lib"] = lib
     if dependencies is not None:
@@ -251,7 +290,6 @@ def install_github(
     _install_github(
         repo=repo,
         update=update,
-        repos=repos,
         build_vignettes=build_vignettes,
         force=force,
         verbose=verbose,

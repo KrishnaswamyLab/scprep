@@ -1,8 +1,8 @@
 from tools import data
 from tools import utils
+from unittest import mock
 
 import h5py
-import mock
 import os
 import scprep
 import sys

@@ -3,10 +3,10 @@ from parameterized import parameterized
 from scipy import sparse
 from tools import data
 from tools import utils
+from unittest import mock
 
 import copy
 import fcsparser
-import mock
 import numpy as np
 import os
 import pandas as pd
@@ -238,7 +238,7 @@ def test_10X_zip_error():
 def test_10X_zip_url():
     X = data.load_10X()
     filename = (
-        "https://github.com/KrishnaswamyLab/scprep/raw/master/data/"
+        "https://raw.githubusercontent.com/KrishnaswamyLab/scprep/master/data/"
         "test_data/test_10X.zip"
     )
     X_zip = scprep.io.load_10X_zip(filename)
@@ -253,7 +253,8 @@ def test_10X_zip_url_not_a_zip():
         zipfile.BadZipFile,
         "File is not a zip file",
         scprep.io.load_10X_zip,
-        "https://github.com/KrishnaswamyLab/scprep/raw/master/data/test_data/test_10X",
+        "https://raw.githubusercontent.com/KrishnaswamyLab/scprep/"
+        "master/data/test_data/test_small.csv",
     )
 
 
@@ -266,9 +267,9 @@ def test_10X_zip_url_not_a_real_website():
 def test_10X_zip_url_404():
     utils.assert_raises_message(
         urllib.error.HTTPError,
-        "HTTP Error 404: Not Found",
+        "HTTP Error 400: Bad Request",
         scprep.io.load_10X_zip,
-        "https://github.com/KrishnaswamyLab/scprep/invalid_url",
+        "https://raw.githubusercontent.com/KrishnaswamyLab/scprep/invalid_url",
     )
 
 
@@ -707,7 +708,7 @@ def test_parse_header():
 
 
 def test_download_google_drive():
-    id = "1_T5bRqbid5mtuDYnyusoGvujc6fW1UKv"
+    id = "1oFdHx8pgTYjRNThvt4vHughrLPlJOiZh"
     dest = "test.txt"
     scprep.io.download.download_google_drive(id, dest)
     assert os.path.isfile(dest)
@@ -727,7 +728,7 @@ def test_download_google_drive_large():
 def test_download_url():
     X = data.load_10X()
     scprep.io.download.download_url(
-        "https://github.com/KrishnaswamyLab/scprep/raw/master/data/"
+        "https://raw.githubusercontent.com/KrishnaswamyLab/scprep/master/data/"
         "test_data/test_10X/matrix.mtx.gz",
         "url_test.mtx.gz",
     )
@@ -739,7 +740,7 @@ def test_download_url():
 def test_download_zip():
     X = data.load_10X()
     scprep.io.download.download_and_extract_zip(
-        "https://github.com/KrishnaswamyLab/scprep/raw/master/data/"
+        "https://raw.githubusercontent.com/KrishnaswamyLab/scprep/master/data/"
         "test_data/test_10X.zip",
         "zip_test",
     )
