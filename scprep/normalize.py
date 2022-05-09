@@ -76,7 +76,7 @@ def library_size_normalize(data, rescale=10000, return_library_size=False):
             # dense data
             data = data.to_numpy()
 
-    calc_libsize = sparse.issparse(data) and (return_library_size or data.nnz > 2 ** 31)
+    calc_libsize = sparse.issparse(data) and (return_library_size or data.nnz > 2**31)
     rescale, libsize = _get_scaled_libsize(data, rescale, calc_libsize)
 
     if libsize is not None:
