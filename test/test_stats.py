@@ -7,6 +7,7 @@ from tools import utils
 
 import numpy as np
 import os
+import scipy.sparse
 import scprep
 import warnings
 
@@ -93,7 +94,7 @@ def test_pairwise_correlation():
         )
 
     D = data.generate_positive_sparse_matrix(shape=(500, 100), seed=42, poisson_mean=5)
-    Y = test_fun(D)
+    Y = np.corrcoef(D.T)[:, :10]
     assert Y.shape == (D.shape[1], 10)
     assert np.allclose(Y[(np.arange(10), np.arange(10))], 1, atol=0)
     matrix.test_all_matrix_types(
@@ -123,6 +124,34 @@ def test_pairwise_correlation():
         Y=Y,
         transform=test_fun,
         check=utils.assert_all_close,
+    )
+
+
+def test_pairwise_correlation_nan():
+    D = np.array([np.arange(10), np.arange(0, 20, 2), np.zeros(10)]).astype(float).T
+    D[3, :] = np.nan
+
+    def test_with_nan(D):
+        C = scprep.stats.pairwise_correlation(D, D)
+        assert np.all(np.isnan(C))
+
+    matrix.test_all_matrix_types(
+        D,
+        test_with_nan,
+    )
+
+    def test_with_ignore_nan(D):
+        C = scprep.stats.pairwise_correlation(D, D, ignore_nan=True)
+        # should still be NaN on samples that have no variance
+        assert np.all(np.isnan(C[-1]))
+        assert np.all(np.isnan(C[:, -1]))
+        # but shouldn't be NaN on samples that have some NaNs
+        assert not np.any(np.isnan(C[:2][:, :2]))
+        np.testing.assert_equal(C[:2][:, :2], 1)
+
+    matrix.test_all_matrix_types(
+        D,
+        test_with_ignore_nan,
     )
 
 

@@ -378,7 +378,31 @@ def matrix_transform(data, fun, *args, **kwargs):
     return data
 
 
-def matrix_sum(data, axis=None):
+def fillna(data, fill, copy=True):
+    return_cls = None
+    if isinstance(data, (sparse.lil_matrix, sparse.dok_matrix)):
+        return_cls = type(data)
+        assert copy, f"Cannot fillna in-place for {return_cls.__name__}"
+        data = data.tocsr()
+    elif copy:
+        data = data.copy()
+    if sparse.issparse(data):
+        data.data[np.isnan(data.data)] = fill
+        if return_cls is not None:
+            data = return_cls(data)
+    else:
+        data[np.isnan(data)] = fill
+    return data
+
+
+def _nansum(data, axis=None):
+    if sparse.issparse(data):
+        return np.sum(fillna(data, 0), axis=axis)
+    else:
+        return np.nansum(data, axis=axis)
+
+
+def matrix_sum(data, axis=None, ignore_nan=False):
     """Get the column-wise, row-wise, or total sum of values in a matrix.
 
     Parameters
@@ -388,37 +412,40 @@ def matrix_sum(data, axis=None):
     axis : int or None, optional (default: None)
         Axis across which to sum. axis=0 gives column sums,
         axis=1 gives row sums. None gives the total sum.
+    ignore_nan : bool, optional (default: False)
+        If True, uses `np.nansum` instead of `np.sum`
 
     Returns
     -------
     sums : array-like or float
         Sums along desired axis.
     """
+    sum_fn = _nansum if ignore_nan else np.sum
     if axis not in [0, 1, None]:
         raise ValueError("Expected axis in [0, 1, None]. Got {}".format(axis))
     if isinstance(data, pd.DataFrame):
         if is_SparseDataFrame(data):
             if axis is None:
-                sums = data.to_coo().sum()
+                sums = sum_fn(data.to_coo())
             else:
                 index = data.index if axis == 1 else data.columns
                 sums = pd.Series(
-                    np.array(data.to_coo().sum(axis)).flatten(), index=index
+                    np.array(sum_fn(data.to_coo(), axis)).flatten(), index=index
                 )
         elif is_sparse_dataframe(data):
             if axis is None:
-                sums = data.sparse.to_coo().sum()
+                sums = sum_fn(data.sparse.to_coo())
             else:
                 index = data.index if axis == 1 else data.columns
                 sums = pd.Series(
-                    np.array(data.sparse.to_coo().sum(axis)).flatten(), index=index
+                    np.array(sum_fn(data.sparse.to_coo(), axis)).flatten(), index=index
                 )
         elif axis is None:
-            sums = data.to_numpy().sum()
+            sums = sum_fn(data.to_numpy())
         else:
-            sums = data.sum(axis)
+            sums = sum_fn(data, axis)
     else:
-        sums = np.sum(data, axis=axis)
+        sums = sum_fn(data, axis=axis)
         if isinstance(sums, np.matrix):
             sums = np.array(sums).flatten()
     return sums
