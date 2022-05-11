@@ -395,7 +395,6 @@ def fillna(data, fill, copy=True):
     return data
 
 
-
 def _nansum(data, axis=None):
     if sparse.issparse(data):
         return np.sum(fillna(data, 0), axis=axis)

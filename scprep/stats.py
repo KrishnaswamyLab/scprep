@@ -1,5 +1,3 @@
-import scipy.sparse
-
 from . import plot
 from . import select
 from . import utils
@@ -13,6 +11,7 @@ import joblib
 import numbers
 import numpy as np
 import pandas as pd
+import scipy.sparse
 import warnings
 
 plt = matplotlib.pyplot
@@ -102,7 +101,11 @@ def pairwise_correlation(X, Y, ignore_nan=False):
     sum_x_times_sum_y = X_colsums * Y_colsums[:, None]
     # Finally compute Pearson Correlation Coefficient as 2D array
     with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", message="invalid value encountered in true_divide", category=RuntimeWarning)
+        warnings.filterwarnings(
+            "ignore",
+            message="invalid value encountered in true_divide",
+            category=RuntimeWarning,
+        )
         cor = (N_times_sum_xy - sum_x_times_sum_y) / np.sqrt(var_x * var_y[:, None])
     return cor.T
 
