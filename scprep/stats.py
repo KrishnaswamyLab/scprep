@@ -1,3 +1,5 @@
+import scipy.sparse
+
 from . import plot
 from . import select
 from . import utils
@@ -84,24 +86,24 @@ def pairwise_correlation(X, Y, ignore_nan=False):
     Y_colsums = utils.matrix_sum(Y, axis=0, ignore_nan=ignore_nan)
     # Basically there are four parts in the formula. We would compute them
     # one-by-one
+    X_sq_colsums = utils.matrix_sum(
+        utils.matrix_transform(X, np.power, 2), axis=0, ignore_nan=ignore_nan
+    )
+    Y_sq_colsums = utils.matrix_sum(
+        utils.matrix_transform(Y, np.power, 2), axis=0, ignore_nan=ignore_nan
+    )
+    var_x = N * X_sq_colsums - X_colsums**2
+    var_y = N * Y_sq_colsums - Y_colsums**2
+    if ignore_nan:
+        # now that we have the variance computed we can fill in the NaNs
+        X = utils.fillna(X, 0)
+        Y = utils.fillna(Y, 0)
     N_times_sum_xy = utils.toarray(N * Y.T.dot(X))
     sum_x_times_sum_y = X_colsums * Y_colsums[:, None]
-    var_x = (
-        N
-        * utils.matrix_sum(
-            utils.matrix_transform(X, np.power, 2), axis=0, ignore_nan=ignore_nan
-        )
-        - X_colsums**2
-    )
-    var_y = (
-        N
-        * utils.matrix_sum(
-            utils.matrix_transform(Y, np.power, 2), axis=0, ignore_nan=ignore_nan
-        )
-        - Y_colsums**2
-    )
     # Finally compute Pearson Correlation Coefficient as 2D array
-    cor = (N_times_sum_xy - sum_x_times_sum_y) / np.sqrt(var_x * var_y[:, None])
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", message="invalid value encountered in true_divide", category=RuntimeWarning)
+        cor = (N_times_sum_xy - sum_x_times_sum_y) / np.sqrt(var_x * var_y[:, None])
     return cor.T
 
 
