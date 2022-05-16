@@ -11,7 +11,6 @@ import joblib
 import numbers
 import numpy as np
 import pandas as pd
-import scipy.sparse
 import warnings
 
 plt = matplotlib.pyplot
