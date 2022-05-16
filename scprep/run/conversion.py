@@ -3,6 +3,7 @@ from .._lazyload import anndata2ri
 from .._lazyload import rpy2
 
 import numpy as np
+import scipy.sparse
 import warnings
 
 
@@ -46,6 +47,18 @@ def _pysce2rpy(pyobject):
     return pyobject
 
 
+def _rpyspmatrix2py(robject):
+    if utils._try_import("anndata2ri"):
+        robject = anndata2ri.scipy2ri.rpy2py(robject)
+    return robject
+
+
+def _pyspmatrix2rpy(pyobject):
+    if utils._try_import("anndata2ri") and isinstance(pyobject, scipy.sparse.spmatrix):
+        pyobject = anndata2ri.scipy2ri.py2rpy(pyobject)
+    return pyobject
+
+
 def _is_r_object(obj):
     return "rpy2.robjects" in str(type(obj)) or "rpy2.rinterface" in str(type(obj))
 
@@ -76,6 +89,7 @@ def rpy2py(robject):
     for converter in [
         _rpynull2py,
         _rpysce2py,
+        _rpyspmatrix2py,
         rpy2.robjects.pandas2ri.rpy2py,
         _rpylist2py,
         rpy2.robjects.numpy2ri.rpy2py,
@@ -119,6 +133,7 @@ def py2rpy(pyobject):
     for converter in [
         _pynull2rpy,
         _pysce2rpy,
+        _pyspmatrix2rpy,
         rpy2.robjects.pandas2ri.py2rpy,
         rpy2.robjects.numpy2ri.py2rpy,
         rpy2.robjects.conversion.py2rpy,

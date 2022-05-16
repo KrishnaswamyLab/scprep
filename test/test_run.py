@@ -596,6 +596,8 @@ else:
         assert isinstance(x, scipy.sparse.csc_matrix)
         assert x.shape == (2, 3)
         assert np.all(x.toarray() == np.array([[1, 3, 5], [2, 4, 6]]))
+        y = scprep.run.conversion.py2rpy(x)
+        assert (scprep.run.conversion.rpy2py(y) != x).nnz == 0
 
     def test_conversion_dataframe():
         x = scprep.run.conversion.rpy2py(
