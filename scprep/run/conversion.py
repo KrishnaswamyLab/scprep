@@ -1,10 +1,9 @@
-import scipy.sparse
-
 from .. import utils
 from .._lazyload import anndata2ri
 from .._lazyload import rpy2
 
 import numpy as np
+import scipy.sparse
 import warnings
 
 
