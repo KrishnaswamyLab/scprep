@@ -13,7 +13,7 @@ _install_dyngen = r_function.RFunction(
             dependencies=dependencies
         )
         remotes::install_github(
-            "dynverse/dyngen", 
+            "dynverse/dyngen",
             lib=lib,
             repos=repos,
             dependencies=dependencies
