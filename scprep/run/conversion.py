@@ -79,7 +79,7 @@ def rpy2py(robject):
         rpy2.robjects.pandas2ri.converter.rpy2py,
         _rpylist2py,
         rpy2.robjects.numpy2ri.converter.rpy2py,
-        rpy2.robjects.conversion.default_converter.rpy2py,
+        rpy2.robjects.default_converter.rpy2py,
     ]:
         if _is_r_object(robject):
             try:
@@ -121,7 +121,7 @@ def py2rpy(pyobject):
         _pysce2rpy,
         rpy2.robjects.pandas2ri.converter.py2rpy,
         rpy2.robjects.numpy2ri.converter.py2rpy,
-        rpy2.robjects.conversion.default_converter.py2rpy,
+        rpy2.robjects.default_converter.py2rpy,
     ]:
         if not _is_r_object(pyobject):
             try:
