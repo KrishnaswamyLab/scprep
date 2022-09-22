@@ -12,8 +12,8 @@ _install_dyngen = r_function.RFunction(
             repos=repos,
             dependencies=dependencies
         )
-        remotes::install_github(
-            "dynverse/dyngen", 
+        remotes::install_url(
+            "https://cran.r-project.org/src/contrib/Archive/dyngen/dyngen_1.0.4.tar.gz", 
             lib=lib,
             repos=repos,
             dependencies=dependencies
