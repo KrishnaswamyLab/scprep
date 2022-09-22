@@ -1160,7 +1160,9 @@ class Test10X(unittest.TestCase):
 
     def test_scatter_no_ticklabels(self):
         ax = scprep.plot.scatter3d(self.X_pca, zticklabels=False)
-        np.testing.assert_array_equal([lab.get_text() for lab in ax.get_zticklabels()], "")
+        np.testing.assert_array_equal(
+            [lab.get_text() for lab in ax.get_zticklabels()], ""
+        )
 
     def test_scatter_custom_ticks(self):
         ax = scprep.plot.scatter2d(self.X_pca, xticks=[0, 1, 2])
