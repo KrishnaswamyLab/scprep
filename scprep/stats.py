@@ -11,7 +11,6 @@ import joblib
 import numbers
 import numpy as np
 import pandas as pd
-import scipy.sparse
 import warnings
 
 plt = matplotlib.pyplot
@@ -550,7 +549,7 @@ def differential_expression(
     X, Y, measure="difference", direction="both", gene_names=None, n_jobs=-2
 ):
     """Calculate the most significant genes between two datasets.
-    
+
     If using ``measure="emd"``, the test statistic is multiplied by the sign of
     the mean differencein order to allow for distinguishing between positive
     and negative shifts. To ignore this, use ``direction="both"`` to sort by the

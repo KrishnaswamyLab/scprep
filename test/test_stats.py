@@ -7,7 +7,6 @@ from tools import utils
 
 import numpy as np
 import os
-import scipy.sparse
 import scprep
 import warnings
 

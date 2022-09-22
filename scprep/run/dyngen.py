@@ -6,10 +6,12 @@ _install_dyngen = r_function.RFunction(
     args="""lib=.libPaths()[1], dependencies=NA,
             repos='http://cran.rstudio.com', verbose=TRUE""",
     body="""
-       install.packages(c("dynwrap", "dyngen"),
-                        lib=lib,
-                        repos=repos,
-                        dependencies=dependencies)
+        install.packages(
+            c("dynwrap", "dyngen"),
+            lib=lib,
+            repos=repos,
+            dependencies=dependencies
+        )
     """,
 )
 
