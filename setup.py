@@ -25,7 +25,7 @@ test_requires = [
     "mock",
     "h5py",
     "matplotlib>=3.0",
-    "rpy2>=3.0",
+    "rpy2>=3.5",
     "black",
 ]
 

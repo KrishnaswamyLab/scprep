@@ -76,10 +76,10 @@ def rpy2py(robject):
     for converter in [
         _rpynull2py,
         _rpysce2py,
-        rpy2.robjects.pandas2ri.rpy2py,
+        rpy2.robjects.pandas2ri.converter.rpy2py,
         _rpylist2py,
-        rpy2.robjects.numpy2ri.rpy2py,
-        rpy2.robjects.conversion.rpy2py,
+        rpy2.robjects.numpy2ri.converter.rpy2py,
+        rpy2.robjects.conversion.default_converter.rpy2py,
     ]:
         if _is_r_object(robject):
             try:
@@ -119,9 +119,9 @@ def py2rpy(pyobject):
     for converter in [
         _pynull2rpy,
         _pysce2rpy,
-        rpy2.robjects.pandas2ri.py2rpy,
-        rpy2.robjects.numpy2ri.py2rpy,
-        rpy2.robjects.conversion.py2rpy,
+        rpy2.robjects.pandas2ri.converter.py2rpy,
+        rpy2.robjects.numpy2ri.converter.py2rpy,
+        rpy2.robjects.conversion.default_converter.py2rpy,
     ]:
         if not _is_r_object(pyobject):
             try:
