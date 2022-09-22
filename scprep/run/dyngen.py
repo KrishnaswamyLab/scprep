@@ -7,13 +7,7 @@ _install_dyngen = r_function.RFunction(
             repos='http://cran.rstudio.com', verbose=TRUE""",
     body="""
         install.packages(
-            c("dynwrap", "remotes"),
-            lib=lib,
-            repos=repos,
-            dependencies=dependencies
-        )
-        remotes::install_url(
-            "https://cran.r-project.org/src/contrib/Archive/dyngen/dyngen_1.0.4.tar.gz", 
+            c("dynwrap", "dyngen"),
             lib=lib,
             repos=repos,
             dependencies=dependencies

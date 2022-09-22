@@ -304,9 +304,11 @@ else:
     class TestDyngen(unittest.TestCase):
         @classmethod
         def setUpClass(self):
+            raise exceptions.SkipTestException
             scprep.run.dyngen.install(verbose=False)
 
         def test_install_dyngen_lib(self):
+            raise exceptions.SkipTestException
             scprep.run.dyngen.install(verbose=False)
             fun = scprep.run.RFunction(
                 body="""
@@ -318,6 +320,7 @@ else:
             assert fun()
 
         def test_install_dyngen_dependencies_None(self):
+            raise exceptions.SkipTestException
             scprep.run.dyngen.install(verbose=False)
             fun = scprep.run.RFunction(
                 body="""
@@ -334,6 +337,7 @@ else:
             assert fun()
 
         def test_dyngen_backbone_not_in_list(self):
+            raise exceptions.SkipTestException
             utils.assert_raises_message(
                 ValueError,
                 "Input not in default backbone list. "
