@@ -1,6 +1,5 @@
 from . import _patch
 from .version import __version__
-
 from scprep import filter
 from scprep import io
 from scprep import measure
