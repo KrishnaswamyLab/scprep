@@ -327,7 +327,9 @@ def is_sparse_series(x):
 
 
 def dataframe_to_sparse(x, fill_value=0.0):
-    return x.astype(pd.SparseDtype(float, fill_value=fill_value))
+    return pd.DataFrame.sparse.from_spmatrix(
+        sparse.coo_matrix(x.values), index=x.index, columns=x.columns
+    )
 
 
 def SparseDataFrame(X, columns=None, index=None, default_fill_value=0.0):
