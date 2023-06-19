@@ -28,5 +28,5 @@ repos:
     rev: 6.0.1
     hooks:
       - id: hacking
-        additional_dependencies: 
+        additional_dependencies:
         - .
