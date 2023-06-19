@@ -5,7 +5,7 @@ import pandas as pd
 import warnings
 
 
-def check_numeric(data, dtype="float", copy=None, suppress_errors=False):
+def check_numeric(data, dtype="float", copy=None, suppress_errors=False, default_fill_value=0.0):
     """Check a matrix contains only numeric data.
 
     Parameters
@@ -19,6 +19,8 @@ def check_numeric(data, dtype="float", copy=None, suppress_errors=False):
         False for all datatypes except pandas.SparseDataFrame
     suppress_errors : bool, optional (default: False)
         Suppress errors from non-numeric data
+    default_fill_value : float
+        If sparse, the default fill value
 
     Returns
     -------
@@ -32,6 +34,8 @@ def check_numeric(data, dtype="float", copy=None, suppress_errors=False):
     if copy is None:
         copy = utils.is_SparseDataFrame(data)
     try:
+        if utils.is_sparse_dataframe(data) and not isinstance(dtype, pd.SparseDtype):
+            dtype = pd.SparseDtype(dtype, fill_value=default_fill_value)
         return data.astype(dtype, copy=copy)
     except TypeError as e:
         if utils.is_SparseDataFrame(data):
