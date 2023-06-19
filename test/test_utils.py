@@ -152,7 +152,7 @@ def test_combine_batches():
     )
     assert np.all(Y.index == np.array([i[:-2] for i in Y2.index]))
     assert np.all(
-        np.core.defchararray.add("_", sample_labels.astype(str))
+        "_" + sample_labels.astype(str)
         == np.array([i[-2:] for i in Y2.index], dtype=str)
     )
     assert np.all(sample_labels.index == Y2.index)
