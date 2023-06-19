@@ -19,7 +19,12 @@ repos:
     rev: v1.5.4
     hooks:
       - id: autopep8
-  - repo: https://gitlab.com/pycqa/flake8
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: 'v0.0.261'
+    hooks:
+      - id: ruff
+        args: ['--fix']
+  - repo: https://github.com/pycqa/flake8
     rev: 3.8.4
     hooks:
       - id: flake8
