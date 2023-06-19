@@ -8,3 +8,16 @@ from .mtx import save_mtx
 from .tenx import load_10X
 from .tenx import load_10X_HDF5
 from .tenx import load_10X_zip
+
+__all__ = [
+    "download",
+    "hdf5",
+    "load_csv",
+    "load_tsv",
+    "load_fcs",
+    "load_mtx",
+    "save_mtx",
+    "load_10X",
+    "load_10X_HDF5",
+    "load_10X_zip",
+]

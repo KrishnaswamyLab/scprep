@@ -8,6 +8,11 @@ on:
     branches:
       - '*'
 
+concurrency:
+  group: ci-tests-${{ github.ref }}-1
+  # main should run through entire queue of commits for debugging
+  cancel-in-progress: ${{ github.ref_name != 'main'}}
+
 jobs:
   run_tester:
     runs-on: ${{ matrix.config.os }}
@@ -26,10 +31,6 @@ jobs:
         - {name: '3.7', os: ubuntu-latest, python: '3.7', r: 'oldrel'}
 
     steps:
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.6.0
-      with:
-        access_token: ${{ github.token }}
 
     - name: Get current date
       id: date

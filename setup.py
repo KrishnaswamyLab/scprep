@@ -8,11 +8,17 @@ install_requires = [
     "scipy>=0.18.1",
     "scikit-learn>=0.19.1",
     "decorator>=4.3.0",
-    "pandas>=0.25,<1.4",
+    "pandas>=0.25,<2.1",
     "packaging",
 ]
 
-optional_requires = ["fcsparser", "tables", "h5py", "anndata", "anndata2ri>=1.0.6"]
+optional_requires = [
+    "fcsparser<0.2.5",
+    "tables",
+    "h5py",
+    "anndata",
+    "anndata2ri>=1.0.6",
+]
 
 test_requires = [
     "nose",

@@ -7,7 +7,7 @@ repos:
       - id: trailing-whitespace
         exclude: \.(ai|gz)$
   - repo: https://github.com/timothycrosley/isort
-    rev: 5.6.4
+    rev: 5.11.5
     hooks:
       - id: isort
   - repo: https://github.com/psf/black
@@ -19,8 +19,14 @@ repos:
     rev: v1.5.4
     hooks:
       - id: autopep8
-  - repo: https://gitlab.com/pycqa/flake8
-    rev: 3.8.4
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: 'v0.0.261'
     hooks:
-      - id: flake8
-        additional_dependencies: ['hacking']
+      - id: ruff
+        args: ['--fix']
+  - repo: https://opendev.org/openstack/hacking
+    rev: 6.0.1
+    hooks:
+      - id: hacking
+        additional_dependencies:
+        - .

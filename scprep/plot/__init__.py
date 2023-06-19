@@ -11,3 +11,19 @@ from .scatter import scatter2d
 from .scatter import scatter3d
 from .scree import scree_plot
 from .variable_genes import plot_gene_variability
+
+__all__ = [
+    "colors",
+    "tools",
+    "histogram",
+    "plot_gene_set_expression",
+    "plot_library_size",
+    "jitter",
+    "marker_plot",
+    "rotate_scatter3d",
+    "scatter",
+    "scatter2d",
+    "scatter3d",
+    "scree_plot",
+    "plot_gene_variability",
+]
