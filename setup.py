@@ -12,7 +12,13 @@ install_requires = [
     "packaging",
 ]
 
-optional_requires = ["fcsparser<0.2.5", "tables", "h5py", "anndata", "anndata2ri>=1.0.6"]
+optional_requires = [
+    "fcsparser<0.2.5",
+    "tables",
+    "h5py",
+    "anndata",
+    "anndata2ri>=1.0.6",
+]
 
 test_requires = [
     "nose",
