@@ -24,8 +24,7 @@ repos:
     hooks:
       - id: ruff
         args: ['--fix']
-  - repo: https://github.com/pycqa/flake8
-    rev: 5.0.1
+  - repo: https://opendev.org/openstack/hacking
+    rev: 6.0.1
     hooks:
-      - id: flake8
-        additional_dependencies: ['hacking']
+      - id: hacking
