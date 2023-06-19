@@ -4,14 +4,15 @@ on:
     branches-ignore:
       - 'master'
 
+concurrency:
+  group: ci-tests-${{ github.ref }}-1
+  # main should run through entire queue of commits for debugging
+  cancel-in-progress: ${{ github.ref_name != 'main'}}
+
 jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-      - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@0.6.0
-        with:
-          access_token: ${{ github.token }}
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
