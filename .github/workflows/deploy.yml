@@ -8,6 +8,11 @@ on:
     tags:
       - '*'
 
+concurrency:
+  group: deploy-${{ github.ref }}-1
+  # main should run through entire queue of commits for debugging
+  cancel-in-progress: ${{ github.ref_name != 'main'}}
+
 jobs:
   build-n-publish:
     name: Build and publish Python 🐍 distributions 📦 to PyPI
