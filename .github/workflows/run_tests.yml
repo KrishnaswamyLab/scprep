@@ -19,6 +19,8 @@ jobs:
     if: "!contains(github.event.head_commit.message, 'ci skip')"
     env:
       RENV_PATHS_ROOT: ~/.local/share/renv
+      R_LIBS_USER: /home/runner/work/_temp/Library
+      R_PROFILE_USER: /home/runner/work/_temp/.Rprofile
 
     strategy:
       fail-fast: false
@@ -44,7 +46,7 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt-get update -qq
-        sudo apt-get install -y pandoc gfortran libblas-dev liblapack-dev libedit-dev llvm-dev libcurl4-openssl-dev ffmpeg libhdf5-dev libfribidi-dev libharfbuzz-dev
+        sudo apt-get install -y pandoc gfortran libblas-dev liblapack-dev libedit-dev llvm-dev libcurl4-openssl-dev ffmpeg libhdf5-dev libfribidi-dev libharfbuzz-dev libxml2-dev libssl-dev
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -56,6 +58,9 @@ jobs:
       uses: r-lib/actions/setup-r@v2
       with:
         r-version: ${{ matrix.config.r }}
+
+    - name: Set up Pandoc
+      uses: r-lib/actions/setup-pandoc@v2
 
     - name: Cache Python packages
       uses: pat-s/always-upload-cache@v2
@@ -69,13 +74,14 @@ jobs:
       if: startsWith(runner.os, 'Linux')
       with:
         path: ${{ env.R_LIBS_USER }}
-        key: ${{ runner.os }}-R-${{ steps.setup-r.outputs.installed-r-version }}-${{ hashFiles('DESCRIPTION') }}
+        key: ${{ runner.os }}-R-${{ steps.setup-r.outputs.installed-r-version }}-${{ hashFiles('DESCRIPTION') }}-v2
         restore-keys: |
-          ${{ runner.os }}-R-${{ steps.setup-r.outputs.installed-r-version }}-
-
+          ${{ runner.os }}-R-${{ steps.setup-r.outputs.installed-r-version }}-v2
 
     - name: Install python tools
       run: |
+        # Ensure pip is properly installed
+        python -m ensurepip --upgrade || true
         python -m pip install --upgrade pip
         pip install --upgrade wheel setuptools
 
@@ -84,20 +90,37 @@ jobs:
         pip install rpy2
         echo "LD_LIBRARY_PATH=$(python -m rpy2.situation LD_LIBRARY_PATH):${LD_LIBRARY_PATH}" >> $GITHUB_ENV
 
+    - name: Install core R packages
+      run: |
+        install.packages(c("remotes", "devtools", "BiocManager"), repos = "https://cloud.r-project.org/")
+      shell: Rscript {0}
+
+    - name: Install Bioconductor packages
+      run: |
+        BiocManager::install(c("splatter", "slingshot"), ask = FALSE, update = FALSE)
+      shell: Rscript {0}
+
+    - name: Install GitHub packages
+      run: |
+        remotes::install_github(c("dynverse/dyngen", "dynverse/dynwrap"), upgrade = "never")
+      shell: Rscript {0}
+
+    - name: Verify R package installation
+      run: |
+        packages <- c("splatter", "slingshot", "dyngen", "dynwrap")
+        for (pkg in packages) {
+          if (!requireNamespace(pkg, quietly = TRUE)) {
+            stop(paste("Package", pkg, "failed to install"))
+          }
+          cat("✓ Package", pkg, "installed successfully\n")
+        }
+      shell: Rscript {0}
+
     - name: Install scprep
       id: install-python-packages
       run: |
-        pip install --upgrade .[test]
+        python -m pip install --upgrade .[test]
         python -c "import scprep"
-
-    - name: Install R packages
-      id: install-r-packages
-      run: |
-        install.packages(c("BiocManager", "devtools"))
-        BiocManager::install(c("splatter", "slingshot"))
-        devtools::install_github("dynverse/dyngen")
-        devtools::install_github("dynverse/dynwrap")
-      shell: Rscript {0}
 
     - name: Run tests
       run: nose2 -vvv
