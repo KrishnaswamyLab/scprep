@@ -109,8 +109,10 @@ jobs:
 
     - name: Install GitHub packages
       run: |
-        remotes::install_github(c("dynverse/dyngen", "dynverse/dynwrap"), upgrade = "never")
+        remotes::install_github("dynverse/dyngen", upgrade = "never")
+        remotes::install_github("dynverse/dynwrap", upgrade = "never")
       shell: Rscript {0}
+
 
     - name: Verify R package installation
       run: |
