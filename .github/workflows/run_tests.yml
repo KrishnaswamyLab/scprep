@@ -93,12 +93,10 @@ jobs:
     - name: Install R packages
       id: install-r-packages
       run: |
-        if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
-        renv::restore()
-        renv::install("bioc::splatter")
-        renv::install("bioc::slingshot")
-        renv::install("github::dynverse/dyngen")
-        renv::install("github::dynverse/dynwrap")
+        install.packages(c("BiocManager", "devtools"))
+        BiocManager::install(c("splatter", "slingshot"))
+        devtools::install_github("dynverse/dyngen")
+        devtools::install_github("dynverse/dynwrap")
       shell: Rscript {0}
 
     - name: Run tests
