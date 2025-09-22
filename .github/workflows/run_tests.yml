@@ -46,8 +46,12 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt-get update -qq
-        sudo apt-get install -y pandoc gfortran libblas-dev liblapack-dev libedit-dev llvm-dev libcurl4-openssl-dev ffmpeg libhdf5-dev libfribidi-dev libharfbuzz-dev libxml2-dev libssl-dev
-
+        sudo apt-get install -y \
+          pandoc gfortran libblas-dev liblapack-dev libedit-dev llvm-dev \
+          libcurl4-openssl-dev ffmpeg libhdf5-dev libfribidi-dev libharfbuzz-dev \
+          libxml2-dev libssl-dev \
+          libfontconfig1-dev libfreetype6-dev
+          
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
