@@ -21,6 +21,7 @@ jobs:
       RENV_PATHS_ROOT: ~/.local/share/renv
       R_LIBS_USER: /home/runner/work/_temp/Library
       R_PROFILE_USER: /home/runner/work/_temp/.Rprofile
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
     strategy:
       fail-fast: false
