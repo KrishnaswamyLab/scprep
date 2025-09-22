@@ -19,24 +19,27 @@ jobs:
     if: "!contains(github.event.head_commit.message, 'ci skip')"
     env:
       RENV_PATHS_ROOT: ~/.local/share/renv
+      R_LIBS_USER: /home/runner/work/_temp/Library
+      R_PROFILE_USER: /home/runner/work/_temp/.Rprofile
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
     strategy:
       fail-fast: false
       matrix:
         config:
+        - {name: '3.13', os: ubuntu-latest, python: '3.13', r: 'release'}
+        - {name: '3.12', os: ubuntu-latest, python: '3.12', r: 'release'}
         - {name: '3.11', os: ubuntu-latest, python: '3.11', r: 'release'}
         - {name: '3.10', os: ubuntu-latest, python: '3.10', r: 'release'}
         - {name: '3.9', os: ubuntu-latest, python: '3.9', r: 'release'}
-        - {name: '3.8', os: ubuntu-latest, python: '3.8', r: 'release'}
-        - {name: '3.7', os: ubuntu-latest, python: '3.7', r: 'oldrel'}
 
     steps:
 
     - name: Get current date
       id: date
-      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+      run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
@@ -44,10 +47,17 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt-get update -qq
-        sudo apt-get install -y pandoc gfortran libblas-dev liblapack-dev libedit-dev llvm-dev libcurl4-openssl-dev ffmpeg libhdf5-dev libfribidi-dev libharfbuzz-dev
+        sudo apt-get install -y \
+          pandoc gfortran libblas-dev liblapack-dev libedit-dev llvm-dev \
+          libcurl4-openssl-dev ffmpeg libhdf5-dev libfribidi-dev libharfbuzz-dev \
+          libxml2-dev libssl-dev \
+          libfontconfig1-dev libfreetype6-dev
+
+    - name: Install pkg-config
+      run: sudo apt-get update && sudo apt-get install -y pkg-config
 
     - name: Set up Python
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.config.python }}
 
@@ -56,6 +66,9 @@ jobs:
       uses: r-lib/actions/setup-r@v2
       with:
         r-version: ${{ matrix.config.r }}
+
+    - name: Set up Pandoc
+      uses: r-lib/actions/setup-pandoc@v2
 
     - name: Cache Python packages
       uses: pat-s/always-upload-cache@v2
@@ -68,14 +81,15 @@ jobs:
       uses: pat-s/always-upload-cache@v2
       if: startsWith(runner.os, 'Linux')
       with:
-        path: ${{ env.RENV_PATHS_ROOT }}
-        key: ${{ runner.os }}-renv-${{ steps.setup-r.outputs.installed-r-version }}-${{ hashFiles('**/renv.lock') }}-${{ steps.date.outputs.date }}
+        path: ${{ env.R_LIBS_USER }}
+        key: ${{ runner.os }}-R-${{ steps.setup-r.outputs.installed-r-version }}-${{ hashFiles('DESCRIPTION') }}-v2
         restore-keys: |
-          ${{ runner.os }}-renv-${{ steps.setup-r.outputs.installed-r-version }}-${{ hashFiles('**/renv.lock') }}-
-          ${{ runner.os }}-renv-${{ steps.setup-r.outputs.installed-r-version }}-
+          ${{ runner.os }}-R-${{ steps.setup-r.outputs.installed-r-version }}-v2
 
     - name: Install python tools
       run: |
+        # Ensure pip is properly installed
+        python -m ensurepip --upgrade || true
         python -m pip install --upgrade pip
         pip install --upgrade wheel setuptools
 
@@ -84,22 +98,39 @@ jobs:
         pip install rpy2
         echo "LD_LIBRARY_PATH=$(python -m rpy2.situation LD_LIBRARY_PATH):${LD_LIBRARY_PATH}" >> $GITHUB_ENV
 
+    - name: Install core R packages
+      run: |
+        install.packages(c("remotes", "devtools", "BiocManager"), repos = "https://cloud.r-project.org/")
+      shell: Rscript {0}
+
+    - name: Install Bioconductor packages
+      run: |
+        BiocManager::install(c("splatter", "slingshot"), ask = FALSE, update = FALSE)
+      shell: Rscript {0}
+
+    - name: Install GitHub packages
+      run: |
+        remotes::install_github("dynverse/dyngen", upgrade = "never")
+        remotes::install_github("dynverse/dynwrap", upgrade = "never")
+      shell: Rscript {0}
+
+
+    - name: Verify R package installation
+      run: |
+        packages <- c("splatter", "slingshot", "dyngen", "dynwrap")
+        for (pkg in packages) {
+          if (!requireNamespace(pkg, quietly = TRUE)) {
+            stop(paste("Package", pkg, "failed to install"))
+          }
+          cat("✓ Package", pkg, "installed successfully\n")
+        }
+      shell: Rscript {0}
+
     - name: Install scprep
       id: install-python-packages
       run: |
-        pip install --upgrade .[test]
+        python -m pip install --upgrade .[test]
         python -c "import scprep"
-
-    - name: Install R packages
-      id: install-r-packages
-      run: |
-        if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
-        renv::restore()
-        renv::install("bioc::splatter")
-        renv::install("bioc::slingshot")
-        renv::install("github::dynverse/dyngen")
-        renv::install("github::dynverse/dynwrap")
-      shell: Rscript {0}
 
     - name: Run tests
       run: nose2 -vvv
@@ -113,7 +144,7 @@ jobs:
 
     - name: Upload check results on fail
       if: failure()
-      uses: actions/upload-artifact@master
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.config.name }}_results
         path: check
